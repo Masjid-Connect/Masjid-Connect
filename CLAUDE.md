@@ -7,7 +7,7 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
 - **Framework**: React Native + Expo (SDK 52+, managed workflow, TypeScript)
 - **Navigation**: Expo Router (file-based routing)
 - **Backend**: PocketBase (self-hosted on Digital Ocean droplet via Coolify)
-- **Prayer Calculation**: `adhan` (adhan-js) — offline calculation, no external API dependency
+- **Prayer Times**: Aladhan API (primary, free, no key) + `adhan` (adhan-js, offline fallback)
 - **Push Notifications**: Expo Notifications + Expo Push Service
 - **Local Storage**: expo-sqlite for offline-first caching
 - **Animations**: react-native-reanimated
@@ -141,13 +141,14 @@ eas build --platform all          # Both platforms
 - Offline-first: gracefully degrade when network unavailable
 
 ### Offline-First Strategy
-- Prayer times calculated locally with adhan-js — never depend on network for prayer times
-- Cache announcements and events in expo-sqlite
+- Prayer times: Aladhan API when online, adhan-js calculation when offline
+- Cache prayer times, announcements, and events in AsyncStorage / expo-sqlite
 - Queue actions (subscription changes) when offline, sync when back online
 - Show stale data with "last updated" indicator rather than empty screens
 
 ## Important Notes
-- **No external prayer API** — use adhan-js to calculate locally from coordinates
+- **Primary prayer times**: Aladhan API (free, no key) — `GET https://api.aladhan.com/v1/timings/{date}?latitude={lat}&longitude={lng}&method={method}`
+- **Offline fallback**: adhan-js calculates locally from coordinates when no network
 - **All times respect user's local timezone** and 12h/24h device locale
 - **PocketBase is self-hosted** on the same Digital Ocean droplet as other services, deployed via Coolify
 - **Expo managed workflow** — no native code ejection for MVP
