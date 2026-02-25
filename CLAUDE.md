@@ -153,6 +153,6 @@ eas build --platform all          # Both platforms
 - **PocketBase is self-hosted** on the same Digital Ocean droplet as other services, deployed via Coolify
 - **Expo managed workflow** — no native code ejection for MVP
 - **Never hardcode prayer times** — always calculate from coordinates + date + method
-- Calculation methods: ISNA (2), MWL (3), Umm Al-Qura (4), Egyptian (5), Karachi (1)
+- Calculation methods:  Umm Al-Qura 
 - Announcements update in real-time via PocketBase realtime subscriptions
 - Prayer reminders use local scheduled notifications (not server-pushed)
