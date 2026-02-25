@@ -2,6 +2,8 @@
   <br>
   <sub>بسم الله الرحمن الرحيم</sub>
   <br><br>
+  <img src="assets/images/splash-mosque.png" alt="Mosque Connect — Islamic Geometric Arabesque" width="280" />
+  <br><br>
   Mosque Connect
   <br>
   <sup><sub>صِلَة المسجد</sub></sup>
@@ -38,6 +40,20 @@ Most mosque apps feel like an afterthought — generic Material UI shells with h
 Every pixel draws from centuries of Islamic artistic tradition: the deep blues of İznik tilework, the warm gold of gilded Quranic manuscripts, the terracotta warmth of the Alhambra. Typography pairs classical Arabic Kufic script with refined Latin serifs. Animations breathe with spring physics, never the harsh linearity of factory software.
 
 This is an app your community _deserves_.
+
+<br>
+
+### Splash Screen
+
+<p align="center">
+  <img src="assets/images/splash-mosque.png" alt="Splash Screen — Islamic geometric arabesque in Sacred Blue and Divine Gold on Warm Ivory" width="320" />
+</p>
+
+<p align="center">
+  <sub>Islamic geometric arabesque — Sacred Blue <code>#1B4965</code> · Divine Gold <code>#C8A951</code> · Warm Ivory <code>#FAF7F2</code></sub>
+  <br>
+  <sub>Used as the app splash screen, app icon, and adaptive icon across all platforms.</sub>
+</p>
 
 <br>
 
