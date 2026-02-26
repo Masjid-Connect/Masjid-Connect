@@ -11,6 +11,8 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
 - **Push Notifications**: Expo Notifications + Expo Push Service
 - **Local Storage**: expo-sqlite for offline-first caching
 - **Animations**: react-native-reanimated
+- **SVG**: react-native-svg (brand mark, textures)
+- **Haptics**: expo-haptics (splash reveal, meaningful interactions)
 - **Date Handling**: date-fns
 - **Language**: TypeScript (strict mode)
 
@@ -24,7 +26,14 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
     settings.tsx        # Settings & preferences
   /_layout.tsx          # Root layout
 /components             # Reusable UI components
+  /brand                # Brand identity system (Convergent Arch)
+    ConvergentArch.tsx  # The SVG mark — single continuous arch line + gold node
+    AnimatedSplash.tsx  # Splash screen with vector-draw reveal animation
+    BrandTabIcon.tsx    # Tab bar icon with gold node illumination
+    GoldBadge.tsx       # Divine Gold notification badge (not red)
+    index.ts            # Re-exports for clean imports
   /ui                   # Base design system components
+    KozoPaperBackground.tsx  # Kozo paper texture substrate
   /prayer               # Prayer time components
   /announcements        # Announcement components
   /events               # Event components
@@ -42,12 +51,67 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
   /sounds               # Oud, ney, riq notification sounds
 ```
 
+## Brand Identity — The Convergent Arch
+
+### The Mark
+The central element is a single, unbroken line that simultaneously suggests two things:
+
+- **The Mihrab Niche**: A subtle, inward-curving arch at the base, representing the individual's quiet direction and focus.
+- **The Dome**: The line flows upward, arcing to create a simplified suggestion of a dome's interior, representing the community gathered under one roof.
+
+The two curves meet at a single elevated point — the **apex** — creating a unified form that feels both ancient and utterly modern. It is an abstract architectural section, not a literal building.
+
+### Material & Execution
+The execution is more crucial than the form. This isn't a digital graphic; it's a rendering of a physical object.
+
+- **The Substrate**: Not just `#FAF7F2`. A digital interpretation of **Kozo paper** — Japanese mulberry paper known for its incredible strength, long fibers, and subtle natural luster. The `KozoPaperBackground` component renders this with barely-visible organic fiber texture.
+- **The Line Work**: A single, continuous line in Sacred Blue (`#1B4965`). Consistent weight, suggesting precision and engineering. It feels etched.
+- **The Gilding**: At the apex where the two curves meet — a single, matte **gold leaf node** (`#C8A951`). Not decoration; a structural pin, a point of convergence. The gold has the soft, non-reflective quality of gold leaf burnished into paper.
+- **The Depth**: A blind emboss sensibility. Soft ambient lighting from above creates the faintest shadows. The gold node sits atop the surface, the only element with its own materiality.
+
+### The Living Identity System
+
+**Animated Splash Screen (The Reveal):**
+1. Pure, unadorned Kozo paper background for 1 second. Silence.
+2. Haptic `impact(Medium)` triggers. The hair-thin line draws in Sacred Blue over 1.5s — a vector draw, as if an invisible hand traces the geometry.
+3. Microscopic pause at completion.
+4. Matte gold node fades in at the apex with a soft `spring()` animation.
+5. App content subtly fades in around it.
+
+**Tab Bar Icon:**
+The full mark at thinnest possible line weight in muted Sacred Blue. Sits quietly. When selected, the gold node gently illuminates and the mark scales subtly.
+
+**Notification Badge:**
+A tiny, perfect circle. Not red. **Divine Gold**. Not an error; a glint of light catching attention. A small, precious seal.
+
+**Typography Integration:**
+Prayer time numerals use `tabular-nums` font variant with thin, confident weight — designed to feel like an extension of the mark's line work.
+
+### SVG Architecture
+The mark is defined as a single cubic Bézier path:
+```
+M 20 130 C 35 108, 28 48, 50 10 C 72 48, 65 108, 80 130
+```
+- viewBox: `0 0 100 140`
+- Apex (gold node): `(50, 10)`
+- Approximate path length: `280` viewBox units
+- All components reference constants from `ConvergentArch.tsx`
+
+### Brand Tokens (in `Theme.ts`)
+```ts
+brand.splash.*       // Animation timing constants
+brand.stroke.*       // Line weights per context (splash, tabBar, header)
+brand.node.*         // Gold node radii per context
+brand.tabIcon.size   // Tab bar icon height
+brand.badge.*        // Notification badge sizing
+```
+
 ## Design System
 
 ### Color Palette (from Islamic architectural tradition)
-- **Warm Ivory** `#FAF7F2` — primary background (parchment)
-- **Sacred Blue** `#1B4965` — primary text, headers (Iznik tile blue)
-- **Divine Gold** `#C8A951` — accents, highlights (gilded manuscript)
+- **Warm Ivory** `#FAF7F2` — Kozo paper substrate
+- **Sacred Blue** `#1B4965` — the etched line of the mark (Iznik tile blue)
+- **Divine Gold** `#C8A951` — the matte gold leaf node (gilded manuscript)
 - **Paradise Green** `#2D6A4F` — success states, prayer indicators (garden of paradise)
 - **Moorish Terracotta** `#C44536` — urgent/alert states (Alhambra clay)
 - **Deep Charcoal** `#2B2D42` — secondary text
@@ -57,14 +121,18 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
 - **Arabic**: Reem Kufi (headings), Noto Naskh Arabic (body)
 - **English**: Playfair Display (headings), Source Serif 4 (body)
 - System monospace for times/numbers
+- `tabular-nums` font variant for prayer times — thin, confident, extension of mark line work
 
 ### Design Principles
 - 30–50% more padding than typical apps (generous whitespace)
 - Muqarnas-inspired 3-tier depth system (ground/elevated/floating)
 - RTL-native from day one
 - Spring-based animations (Reanimated), no linear easing
-- Haptic feedback on meaningful interactions
+- Haptic feedback on meaningful interactions (splash reveal, prayer transitions)
 - No generic Material/iOS chrome — custom Islamic aesthetic throughout
+- Kozo paper texture on light-mode backgrounds via `KozoPaperBackground`
+- Notification badges are Divine Gold, never red — a glint, not an error
+- Brand mark appears in prayer times header and as the home tab icon
 
 ## Backend — PocketBase Collections
 

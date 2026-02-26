@@ -11,6 +11,48 @@ export const spacing = {
   '3xl': 64,
 } as const;
 
+/**
+ * Brand Identity — The Convergent Arch
+ *
+ * Timing, sizing, and material constants for the living identity system.
+ * These tokens govern how the mark behaves across the splash screen,
+ * tab bar, app icon, and notification badges.
+ */
+export const brand = {
+  /** Splash screen animation timing (ms) */
+  splash: {
+    pauseBeforeDraw: 1000,
+    drawDuration: 1500,
+    pauseAfterDraw: 200,
+    goldFadeDuration: 600,
+    contentFadeDelay: 400,
+    contentFadeDuration: 800,
+  },
+  /** Mark stroke weights in viewBox units */
+  stroke: {
+    splash: 1.5,
+    tabBar: 1.2,
+    tabBarActive: 1.5,
+    header: 1.0,
+  },
+  /** Gold node radii in viewBox units */
+  node: {
+    splash: 4,
+    tabBar: 2.5,
+    tabBarActive: 3.5,
+    header: 3,
+  },
+  /** Tab bar icon sizing */
+  tabIcon: {
+    size: 26,
+  },
+  /** Notification badge */
+  badge: {
+    dotSize: 8,
+    countSize: 18,
+  },
+} as const;
+
 /** Muqarnas-inspired depth system */
 export const elevation = {
   ground: {
