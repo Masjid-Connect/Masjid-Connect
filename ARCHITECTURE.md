@@ -4,34 +4,39 @@
 Fully self-hosted architecture on a Digital Ocean droplet managed by Coolify. No third-party cloud dependencies beyond Expo Push Service (free) and app store distribution.
 
 ```
-┌─────────────────────────────────────────────────┐
-│              Digital Ocean Droplet               │
-│                  (via Coolify)                    │
-│                                                  │
-│  ┌──────────────┐    ┌────────────────────────┐  │
-│  │  PocketBase   │    │  Push Notification     │  │
-│  │  (Go binary)  │    │  Worker (Node.js)      │  │
-│  │               │    │                        │  │
-│  │  - SQLite DB  │◄──►│  - Listens PB hooks    │  │
-│  │  - Auth       │    │  - Calls Expo Push API │  │
-│  │  - Realtime   │    │  - Schedules delivery  │  │
-│  │  - Admin UI   │    └────────────────────────┘  │
-│  │  - API        │                               │
-│  └──────┬───────┘                               │
-│         │                                        │
-│         │ :8090                                   │
-└─────────┼────────────────────────────────────────┘
+                          ┌──────────────┐
+                          │  Aladhan API  │  ← Primary prayer times (free, no key)
+                          │  (external)   │
+                          └──────┬───────┘
+                                 │
+┌────────────────────────────────┼────────────┐
+│              Digital Ocean Droplet           │
+│                  (via Coolify)                │
+│                                              │
+│  ┌──────────────┐    ┌────────────────────┐  │
+│  │  PocketBase   │    │  Push Notification │  │
+│  │  (Go binary)  │    │  Worker (Node.js)  │  │
+│  │               │    │                    │  │
+│  │  - SQLite DB  │◄──►│  - Listens PB hooks│  │
+│  │  - Auth       │    │  - Expo Push API   │  │
+│  │  - Realtime   │    │  - Schedules sends │  │
+│  │  - Admin UI   │    └────────────────────┘  │
+│  │  - API        │                            │
+│  └──────┬───────┘                            │
+│         │ :8090                               │
+└─────────┼────────────────────────────────────┘
           │
           │ HTTPS (Coolify reverse proxy)
           │
-    ┌─────┴─────┐
-    │   Client   │
-    │  (Expo App)│
-    │            │
-    │ - adhan-js │  ← offline prayer calculation
-    │ - SQLite   │  ← offline cache
-    │ - Realtime │  ← PocketBase subscriptions
-    └────────────┘
+    ┌─────┴──────────┐
+    │     Client      │
+    │   (Expo App)    │
+    │                 │
+    │ - Aladhan API   │  ← primary prayer times
+    │ - adhan-js      │  ← offline-only fallback
+    │ - AsyncStorage  │  ← offline cache
+    │ - Realtime      │  ← PocketBase subscriptions
+    └─────────────────┘
 ```
 
 ---
@@ -139,6 +144,9 @@ PocketBase provides this automatically. Extended fields:
 
 **Unique index:** `(mosque, user)`
 
+### Admin UX Principle
+Mosque admins (imams, board members, volunteers) are often **not tech-savvy**. All admin-facing API interactions should be wrapped in guided, jargon-free UI flows. Target: a volunteer can post an announcement within 60 seconds. See BUILD_PROMPT.md "Admin Panel" section for full requirements.
+
 ### prayer_adjustments
 | Field | Type | Required | Default | Notes |
 |-------|------|----------|---------|-------|
@@ -174,7 +182,8 @@ Admin creates announcement
 ### Local Prayer Notifications
 ```
 App foreground / midnight trigger
-  → Calculate today's prayer times with adhan-js
+  → Fetch today's prayer times from Aladhan API
+    (fall back to adhan-js if offline)
   → Cancel previous scheduled notifications
   → For each prayer:
     → scheduleNotificationAsync({
@@ -284,8 +293,8 @@ CREATE TABLE outbox (
 ```
 
 ### Sync Strategy
-1. **Prayer times** — calculated locally with adhan-js, never depend on network
-2. **Pull phase** — on app launch + periodic background, fetch latest announcements/events from PocketBase, update SQLite cache
+1. **Prayer times** — Aladhan API is the **primary source**; adhan-js is the **offline-only fallback** when network is unavailable. Cached in AsyncStorage with date stamp.
+2. **Pull phase** — on app launch + periodic background, fetch latest announcements/events from PocketBase, update local cache
 3. **Push phase** — process outbox queue, send pending subscription changes to PocketBase
 4. **Realtime** — when online, subscribe to PocketBase realtime for announcements (instant updates)
 5. **Stale indicator** — show "Last updated: X ago" when serving from cache

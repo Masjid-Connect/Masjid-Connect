@@ -4,10 +4,10 @@
 Mosque Connect is a premium mobile app serving local mosque communities with prayer time notifications, event/lesson listings, and community announcements. The design philosophy is **god-tier, not SaaS** — a serene, premium experience rooted in Islamic geometric art and calligraphic tradition.
 
 ## Tech Stack
-- **Framework**: React Native + Expo (SDK 52+, managed workflow, TypeScript)
+- **Framework**: React Native + Expo (SDK 55, managed workflow, TypeScript)
 - **Navigation**: Expo Router (file-based routing)
 - **Backend**: PocketBase (self-hosted on Digital Ocean droplet via Coolify)
-- **Prayer Times**: Aladhan API (primary, free, no key) + `adhan` (adhan-js, offline fallback)
+- **Prayer Times**: Aladhan API (primary, free, no key required) + `adhan` (adhan-js, offline-only fallback)
 - **Push Notifications**: Expo Notifications + Expo Push Service
 - **Local Storage**: expo-sqlite for offline-first caching
 - **Animations**: react-native-reanimated
@@ -39,10 +39,9 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
   /events               # Event components
 /lib                    # Utilities and services
   /pocketbase.ts        # PocketBase client & helpers
-  /prayer.ts            # adhan-js prayer calculation
+  /prayer.ts            # Aladhan API + adhan-js offline fallback
   /notifications.ts     # Push notification logic
-  /storage.ts           # Offline cache (expo-sqlite)
-  /theme.ts             # Design tokens & theme
+  /storage.ts           # Offline cache (AsyncStorage)
 /hooks                  # Custom React hooks
 /constants              # App constants, enums
 /assets                 # Fonts, images, patterns, sounds
@@ -179,6 +178,22 @@ eas build --platform android      # Android build
 eas build --platform all          # Both platforms
 ```
 
+## Admin Experience — Non-Technical User First
+
+Mosque administrators (imams, board members, community volunteers) are often **not tech-savvy**. Every admin-facing surface must be designed with this in mind:
+
+- **Zero jargon** — use plain language everywhere ("Add an announcement" not "Create a record")
+- **Guided flows** — step-by-step wizards for complex tasks, not raw forms
+- **Sensible defaults** — pre-fill dates, times, calculation methods; minimize required fields
+- **Inline help** — brief contextual hints on every form field explaining what it does
+- **Forgiving input** — accept times in any reasonable format, auto-correct obvious mistakes
+- **Confirmation dialogs** — always confirm before destructive actions (delete, unpublish)
+- **Visual feedback** — clear success/error states with human-readable messages, not codes
+- **Mobile-first admin** — admin features must work on phones, not just desktop browsers
+- **Minimal training** — a volunteer who has never used the app should be able to post an announcement within 60 seconds of opening the admin panel
+
+This principle applies to PocketBase admin UI customizations, in-app admin screens, and any mosque management flows.
+
 ## Code Conventions
 
 ### General
@@ -209,14 +224,14 @@ eas build --platform all          # Both platforms
 - Offline-first: gracefully degrade when network unavailable
 
 ### Offline-First Strategy
-- Prayer times: Aladhan API when online, adhan-js calculation when offline
-- Cache prayer times, announcements, and events in AsyncStorage / expo-sqlite
+- Prayer times: Aladhan API is the **primary source** when online; adhan-js is the **offline-only fallback** — never the primary
+- Cache prayer times, announcements, and events in AsyncStorage
 - Queue actions (subscription changes) when offline, sync when back online
 - Show stale data with "last updated" indicator rather than empty screens
 
 ## Important Notes
-- **Primary prayer times**: Aladhan API (free, no key) — `GET https://api.aladhan.com/v1/timings/{date}?latitude={lat}&longitude={lng}&method={method}`
-- **Offline fallback**: adhan-js calculates locally from coordinates when no network
+- **Primary prayer times**: Aladhan API (free, no key required) — `GET https://api.aladhan.com/v1/timings/{date}?latitude={lat}&longitude={lng}&method={method}`
+- **Offline fallback only**: adhan-js calculates locally from coordinates when network is unavailable — never used as primary source
 - **All times respect user's local timezone** and 12h/24h device locale
 - **PocketBase is self-hosted** on the same Digital Ocean droplet as other services, deployed via Coolify
 - **Expo managed workflow** — no native code ejection for MVP

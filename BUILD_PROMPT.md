@@ -11,14 +11,17 @@ Build a premium mobile app called **Mosque Connect** using React Native with Exp
 
 | Layer | Tool | Why |
 |-------|------|-----|
-| Cross-platform framework | React Native + Expo (SDK 52+) | Single codebase → iOS, Android, web |
-| Navigation | Expo Router | File-based routing, deep linking |
+| Cross-platform framework | React Native + Expo (SDK 55) | Single codebase → iOS, Android, web |
+| Navigation | Expo Router | File-based routing, deep linking, typed routes |
 | Backend / Database | PocketBase (self-hosted) | Single Go binary, SQLite, realtime, auth, admin UI |
 | Hosting | Digital Ocean droplet + Coolify | Self-hosted, full control, no vendor lock-in |
-| Prayer calculation | adhan-js | Offline calculation, no external API dependency |
+| Prayer times (primary) | Aladhan API | Free, no key required, accurate times + Hijri date |
+| Prayer times (fallback) | adhan-js | Offline-only fallback — local calculation when no network |
 | Push notifications | Expo Notifications + Expo Push Service | Free, abstracts FCM/APNs |
-| Local storage | expo-sqlite | Offline-first caching |
+| Local storage | AsyncStorage | Offline-first caching layer |
 | Animations | react-native-reanimated | 60fps spring-based animations |
+| SVG / Brand | react-native-svg | Convergent Arch mark, Kozo paper textures |
+| Haptics | expo-haptics | Splash reveal, meaningful interactions |
 | Date handling | date-fns | Lightweight date formatting |
 | Language | TypeScript (strict) | Type safety across frontend and backend |
 
@@ -30,9 +33,9 @@ Build a premium mobile app called **Mosque Connect** using React Native with Exp
 
 | Name | Hex | Inspiration | Usage |
 |------|-----|-------------|-------|
-| Warm Ivory | `#FAF7F2` | Aged parchment, limestone | Primary background |
-| Sacred Blue | `#1B4965` | Iznik tilework, lapis lazuli | Primary text, headers |
-| Divine Gold | `#C8A951` | Gilded Quranic manuscripts | Accents, highlights, active states |
+| Warm Ivory | `#FAF7F2` | Kozo paper, limestone | Substrate background |
+| Sacred Blue | `#1B4965` | Iznik tilework, lapis lazuli | Brand mark line, primary text |
+| Divine Gold | `#C8A951` | Gilded Quranic manuscripts | Gold node, accents, notification badges |
 | Paradise Green | `#2D6A4F` | Garden of paradise imagery | Success, prayer indicators |
 | Moorish Terracotta | `#C44536` | Alhambra clay, zellige | Urgent/alert states |
 | Deep Charcoal | `#2B2D42` | Calligraphic ink | Secondary text |
@@ -105,16 +108,33 @@ Build a premium mobile app called **Mosque Connect** using React Native with Exp
 ### Animation Principles
 - **Spring physics** — never linear easing. Damping 15-20, stiffness 150-180
 - **Meaningful motion** — prayer card lifts and glows as time approaches
-- **Haptic vocabulary** — light tap for navigation, medium for prayer alert, heavy for urgent
+- **Haptic vocabulary** — light tap for navigation, medium for prayer alert / splash reveal, heavy for urgent
 - **Acoustic design** — oud string pluck for prayer, ney breath for transitions (optional, not synthetic)
-- **Geometric reveal** — octagram/arabesque patterns animate in as decorative accents
+- **Splash reveal** — Kozo paper silence → haptic trigger → vector-draw arch in Sacred Blue → gold node spring fade-in → content crossfade
+
+### Brand Identity — The Convergent Arch
+The mark is a single, unbroken cubic Bézier line suggesting both the mihrab niche (inward base curve) and the dome (outward apex arc). The two curves meet at a single gold leaf node — a structural point of convergence.
+
+**Components:**
+- `ConvergentArch.tsx` — static SVG mark with configurable stroke / gold node
+- `AnimatedSplash.tsx` — full reveal sequence with haptic feedback and spring animations
+- `BrandTabIcon.tsx` — tab bar icon with gold node illumination on focus
+- `GoldBadge.tsx` — Divine Gold notification badge (not red)
+- `KozoPaperBackground.tsx` — Kozo paper fiber texture overlay for backgrounds
+
+**The SVG path:**
+```
+M 20 130 C 35 108, 28 48, 50 10 C 72 48, 65 108, 80 130
+```
+viewBox: `0 0 100 140`, apex at `(50, 10)`, path length ~280 units.
 
 ### Layout Principles
 - 30-50% more whitespace than typical apps
 - Full-bleed cards with generous internal padding (20-24px)
 - RTL-native from day one — use `I18nManager`, `flexDirection: 'row'` flips automatically
 - Content-first — no chrome-heavy headers, let the content breathe
-- Islamic geometric patterns as subtle background textures, not decoration
+- Kozo paper texture on light-mode backgrounds via `KozoPaperBackground`
+- Notification badges are Divine Gold, never red — a glint of light, not an error
 
 ---
 
@@ -124,10 +144,11 @@ Build a premium mobile app called **Mosque Connect** using React Native with Exp
 - Show today's 5 prayer times (Fajr, Dhuhr, Asr, Maghrib, Isha) + Sunrise
 - **Active prayer card** — elevated, golden glow, countdown to next prayer
 - Hijri date display alongside Gregorian
-- Calculation from adhan-js based on user coordinates + preferred method
-- Cache locally in expo-sqlite
-- Pull-to-refresh recalculates
-- Subtle geometric pattern header (octagram)
+- Aladhan API as primary source; adhan-js offline-only fallback
+- Cache locally in AsyncStorage
+- Pull-to-refresh fetches fresh from API
+- Brand mark (Convergent Arch) in header alongside title
+- Kozo paper texture background
 
 ### Tab 2: Announcements
 - Real-time feed from PocketBase (realtime subscription on `announcements` collection)
@@ -159,7 +180,7 @@ Build a premium mobile app called **Mosque Connect** using React Native with Exp
 ## Notification Logic
 
 ### Prayer reminders (local)
-- Calculate all 5 prayer times daily using adhan-js
+- Fetch prayer times from Aladhan API (fall back to adhan-js if offline)
 - Schedule local notifications via `Notifications.scheduleNotificationAsync()`
 - Reschedule at midnight or when preferences change
 - Configurable offset: at time, 5/10/15/30 min before
@@ -172,11 +193,22 @@ Build a premium mobile app called **Mosque Connect** using React Native with Exp
 
 ---
 
-## Admin Panel
+## Admin Panel — Non-Technical User First
+
+Mosque administrators (imams, board members, community volunteers) are often **not tech-savvy**. The admin experience must be ultra-friendly:
+
 - Screens behind auth gate (check `mosque_admins` collection)
 - Login with PocketBase email/password auth
-- Forms to create/edit announcements and events
+- **Guided step-by-step flows** for creating announcements and events — not raw forms
+- **Zero jargon** — plain language labels ("Add an announcement", not "Create record")
+- **Sensible defaults** — pre-fill dates, times, calculation methods; minimize required fields
+- **Inline contextual help** on every form field
+- **Forgiving input** — accept times in any reasonable format, auto-correct obvious mistakes
+- **Confirmation dialogs** before any destructive action (delete, unpublish)
+- **Clear visual feedback** — human-readable success/error messages, not status codes
+- **Mobile-first** — admin features must work on phones, not just desktop browsers
 - Simple dashboard showing subscriber count
+- A volunteer should be able to post an announcement **within 60 seconds** of opening the admin panel
 - Can be web-only screens via Expo Router
 
 ---
@@ -197,7 +229,16 @@ Build a premium mobile app called **Mosque Connect** using React Native with Exp
 
 ## Key API Reference
 
-### adhan-js Prayer Calculation
+### Aladhan API (Primary Prayer Source)
+```
+GET https://api.aladhan.com/v1/timings/{DD-MM-YYYY}
+    ?latitude={lat}&longitude={lng}&method={method}
+
+Response: { data: { timings: { Fajr, Sunrise, Dhuhr, Asr, Maghrib, Isha }, date: { hijri } } }
+```
+Free, no API key required. Returns accurate times + Hijri date.
+
+### adhan-js (Offline-Only Fallback)
 ```typescript
 import { Coordinates, CalculationMethod, PrayerTimes } from 'adhan';
 
@@ -212,6 +253,7 @@ console.log(prayerTimes.asr);     // Date object
 console.log(prayerTimes.maghrib); // Date object
 console.log(prayerTimes.isha);    // Date object
 ```
+Only used when network is unavailable. Aladhan API is always preferred.
 
 ### Calculation Methods
 | Code | Method |

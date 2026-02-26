@@ -43,6 +43,31 @@ This is an app your community _deserves_.
 
 <br>
 
+### The Convergent Arch — Brand Identity
+
+The mark is a single, unbroken line that simultaneously suggests two things: the **mihrab niche** (inward-curving base) and the **dome** (outward arc at top). The two curves meet at a single elevated apex — a matte **gold leaf node** that is not decoration, but a structural point of convergence.
+
+```
+            ╭── gold node ──╮
+            │       •       │
+           ╱                 ╲       The SVG path:
+          ╱    dome curve     ╲      M 20 130 C 35 108, 28 48, 50 10
+         │                     │     C 72 48, 65 108, 80 130
+          ╲  mihrab curve    ╱
+           ╲               ╱        viewBox: 0 0 100 140
+            ╰             ╯         Apex: (50, 10)
+```
+
+**The Animated Splash (The Reveal):**
+1. Pure Kozo paper background for 1 second. Silence.
+2. Haptic `impact(Medium)`. Line draws in Sacred Blue over 1.5s.
+3. Microscopic pause. Gold node fades in with spring physics.
+4. App content crossfades in.
+
+**Material language:** The substrate is Kozo paper — Japanese mulberry paper with barely-visible organic fiber texture. The line feels etched. The gold has the soft quality of burnished gold leaf. Notification badges are Divine Gold, never red.
+
+<br>
+
 ### Splash Screen
 
 <p align="center">
@@ -64,11 +89,11 @@ This is an app your community _deserves_.
 <td width="50%" valign="top">
 
 ### 🕌 Prayer Times  ·  أوقات الصلاة
-- Aladhan API with offline adhan-js fallback
+- Aladhan API (primary) with adhan-js offline-only fallback
 - Next prayer countdown with golden glow
 - Hijri date display alongside Gregorian
 - 5 calculation methods (ISNA, MWL, Umm Al-Qura, Egyptian, Karachi)
-- Pull-to-refresh, cached for offline use
+- Brand mark in header, Kozo paper background
 
 </td>
 <td width="50%" valign="top">
@@ -218,10 +243,12 @@ This is an app your community _deserves_.
 | **Framework** | React Native + Expo SDK 55 | Single codebase, managed workflow, OTA updates |
 | **Navigation** | Expo Router | File-based routing, deep links, typed routes |
 | **Backend** | PocketBase (self-hosted) | One Go binary, SQLite, realtime, auth, admin UI |
-| **Prayer Times** | Aladhan API + adhan-js | API when online, local calculation when offline |
+| **Prayer Times** | Aladhan API (primary) + adhan-js (offline fallback) | API for accuracy + Hijri dates; local calc when no network |
 | **Notifications** | Expo Notifications | Abstracts FCM/APNs, local scheduling |
 | **Storage** | AsyncStorage | Offline-first caching layer |
 | **Animations** | Reanimated | 60fps spring physics on the UI thread |
+| **SVG / Brand** | react-native-svg | Convergent Arch mark, Kozo paper textures |
+| **Haptics** | expo-haptics | Splash reveal, meaningful interaction feedback |
 | **Dates** | date-fns | Lightweight, tree-shakeable formatting |
 | **Language** | TypeScript (strict) | Zero `any` types, full inference |
 
@@ -232,18 +259,28 @@ This is an app your community _deserves_.
 ```
 mosque-connect/
 ├── app/                          # Expo Router — file-based screens
-│   ├── _layout.tsx               # Root layout (themes, fonts, splash)
+│   ├── _layout.tsx               # Root layout (themes, fonts, AnimatedSplash)
 │   ├── +not-found.tsx            # 404 screen
 │   └── (tabs)/                   # Bottom tab navigator
-│       ├── _layout.tsx           # Tab bar configuration
+│       ├── _layout.tsx           # Tab bar config (BrandTabIcon on home)
 │       ├── index.tsx             # ☪ Prayer Times (home)
 │       ├── announcements.tsx     # 📢 Community announcements
 │       ├── events.tsx            # 📅 Events & lessons calendar
 │       └── settings.tsx          # ⚙ Preferences & mosque selection
 │
+├── components/                   # Reusable UI components
+│   ├── brand/                    # Brand identity system (Convergent Arch)
+│   │   ├── ConvergentArch.tsx    # SVG mark — arch line + gold node
+│   │   ├── AnimatedSplash.tsx    # Splash reveal (vector-draw + spring)
+│   │   ├── BrandTabIcon.tsx      # Tab icon with gold illumination
+│   │   ├── GoldBadge.tsx         # Divine Gold notification badge
+│   │   └── index.ts             # Re-exports
+│   └── ui/                       # Base design system components
+│       └── KozoPaperBackground.tsx # Kozo paper fiber texture
+│
 ├── lib/                          # Core services
 │   ├── pocketbase.ts             # Backend client (auth, CRUD, realtime)
-│   ├── prayer.ts                 # Aladhan API + adhan-js calculation
+│   ├── prayer.ts                 # Aladhan API + adhan-js offline fallback
 │   ├── notifications.ts          # Push tokens, prayer reminders
 │   └── storage.ts                # AsyncStorage cache layer
 │
@@ -254,7 +291,7 @@ mosque-connect/
 │
 ├── constants/                    # Design tokens
 │   ├── Colors.ts                 # Islamic palette (light + dark)
-│   └── Theme.ts                  # Spacing, elevation, typography, springs
+│   └── Theme.ts                  # Spacing, elevation, typography, brand tokens
 │
 ├── types/                        # TypeScript definitions
 │   └── index.ts                  # Mosque, Announcement, Event, Prayer types
@@ -265,7 +302,7 @@ mosque-connect/
 │
 ├── BUILD_PROMPT.md               # Comprehensive build specification
 ├── ARCHITECTURE.md               # Backend, deployment, push notifications
-├── CLAUDE.md                     # AI development conventions
+├── CLAUDE.md                     # AI development conventions & brand identity
 └── .env.example                  # Environment template
 ```
 
@@ -330,14 +367,16 @@ Mosque Connect uses a two-tier approach to ensure prayer times are always availa
 
 ```
 ┌─────────────────────────────────────────────────┐
-│  1. Aladhan API  (primary, when online)         │
+│  1. Aladhan API  (PRIMARY — always preferred)   │
 │     GET /v1/timings/{date}                      │
 │     ?latitude={lat}&longitude={lng}&method={m}  │
 │     → Accurate times + Hijri date               │
+│     → Free, no API key required                 │
 ├─────────────────────────────────────────────────┤
-│  2. adhan-js     (fallback, always available)   │
+│  2. adhan-js     (OFFLINE FALLBACK ONLY)        │
 │     Local calculation from GPS coordinates      │
-│     → Works offline, no network required        │
+│     → Used only when network is unavailable     │
+│     → Never used as primary source              │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -357,7 +396,7 @@ Mosque Connect uses a two-tier approach to ensure prayer times are always availa
 
 > _The app should work in a basement with no signal just as well as on fiber._
 
-1. **Prayer times** — calculated locally via adhan-js; never depend on network
+1. **Prayer times** — Aladhan API is the **primary source** when online; adhan-js is the **offline-only fallback** for when there is no network. Cached in AsyncStorage.
 2. **Cache everything** — announcements and events stored in AsyncStorage with date stamps
 3. **Stale is better than empty** — show cached data with a "Last updated" indicator
 4. **Queue and sync** — subscription changes queue locally, sync when connectivity returns
@@ -419,12 +458,16 @@ id, mosque→, user→, role (admin|super_admin)
 | Principle | Implementation |
 |-----------|---------------|
 | **God-tier, not SaaS** | No generic Material/iOS chrome. Custom Islamic aesthetic throughout. |
+| **The Convergent Arch** | Single continuous line (mihrab + dome) with gold node. Lives in splash, tab bar, headers. |
+| **Kozo paper substrate** | Warm Ivory background with barely-visible organic fiber texture. |
+| **Divine Gold, not red** | Notification badges are gold — a glint of light, not an error. |
 | **Breathe** | 30–50% more whitespace than typical apps. Content first. |
 | **Spring physics** | Reanimated springs (damping 15–20). Never linear easing. |
-| **Meaningful motion** | Active prayer card lifts and glows as time approaches. |
-| **Haptic vocabulary** | Light tap for nav, medium for prayer alert, heavy for urgent. |
+| **Meaningful motion** | Splash reveal, prayer card glow, gold node illumination on tab focus. |
+| **Haptic vocabulary** | Light tap for nav, medium for splash reveal / prayer alert, heavy for urgent. |
 | **RTL-native** | Built for Arabic from day one. Layouts flip automatically. |
-| **Offline-first** | Always functional. Network is a bonus, not a requirement. |
+| **Offline-first** | Aladhan API primary, adhan-js fallback. Always functional. |
+| **Admin-friendly** | Mosque admins are often non-technical. Zero jargon, guided flows, 60-second time-to-first-post. |
 
 <br>
 
@@ -432,19 +475,20 @@ id, mosque→, user→, role (admin|super_admin)
 
 - [x] Expo project scaffold with TypeScript
 - [x] Islamic design system (colors, spacing, elevation, typography)
-- [x] Prayer times screen with Aladhan API + adhan-js
+- [x] Prayer times screen with Aladhan API + adhan-js offline fallback
 - [x] Announcements feed with realtime support
 - [x] Events calendar with category filters
 - [x] Settings (location, method, reminders, time format)
 - [x] PocketBase client with full CRUD
 - [x] Push notification infrastructure
 - [x] Offline-first storage layer
+- [x] Convergent Arch brand identity (SVG mark, animated splash, tab icon, gold badge)
+- [x] Kozo paper texture background system
 - [ ] Custom Arabic/serif font loading (Reem Kufi, Playfair Display)
-- [ ] Islamic geometric pattern SVG backgrounds
 - [ ] PocketBase deployment on Coolify
 - [ ] User authentication flow (sign up / sign in)
 - [ ] Mosque search & nearby detection
-- [ ] Admin panel for mosque managers
+- [ ] Admin panel for mosque managers (non-technical-admin-first: guided flows, zero jargon, 60s to first post)
 - [ ] Notification sound customization (oud, ney, riq)
 - [ ] i18n (English ↔ Arabic)
 - [ ] EAS Build for TestFlight & Play Store
