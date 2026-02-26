@@ -1,6 +1,11 @@
 /**
  * Mosque Connect — Islamic architectural color palette
  * Inspired by Iznik tilework, Alhambra zellige, gilded Quranic manuscripts
+ *
+ * The Convergent Arch identity system uses these colors with specific intent:
+ * - Sacred Blue: the etched line of the mark
+ * - Divine Gold: the matte gold leaf node at the apex
+ * - Warm Ivory: Kozo paper substrate
  */
 
 export const palette = {

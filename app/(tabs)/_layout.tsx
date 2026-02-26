@@ -1,9 +1,10 @@
 import React from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from 'expo-router';
-import { useColorScheme } from 'react-native';
+import { StyleSheet, useColorScheme } from 'react-native';
 
 import { getColors } from '@/constants/Colors';
+import { BrandTabIcon } from '@/components/brand/BrandTabIcon';
 
 function TabBarIcon(props: {
   name: React.ComponentProps<typeof FontAwesome>['name'];
@@ -24,7 +25,7 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: colorScheme === 'dark' ? '#161B22' : '#FFFFFF',
           borderTopColor: colors.divider,
-          borderTopWidth: 0.5,
+          borderTopWidth: StyleSheet.hairlineWidth,
           paddingTop: 4,
           height: 88,
         },
@@ -43,7 +44,9 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Prayer Times',
-          tabBarIcon: ({ color }) => <TabBarIcon name="clock-o" color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <BrandTabIcon focused={focused} color={color} />
+          ),
           headerShown: false,
         }}
       />

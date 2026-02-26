@@ -15,6 +15,8 @@ import { getColors } from '@/constants/Colors';
 import { spacing, elevation, borderRadius, typography } from '@/constants/Theme';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { formatPrayerTime } from '@/lib/prayer';
+import { ConvergentArch } from '@/components/brand/ConvergentArch';
+import { KozoPaperBackground } from '@/components/ui/KozoPaperBackground';
 
 export default function PrayerTimesScreen() {
   const insets = useSafeAreaInsets();
@@ -31,20 +33,34 @@ export default function PrayerTimesScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background, paddingTop: insets.top }]}>
-      {/* Header */}
+    <KozoPaperBackground
+      color={colors.background}
+      showTexture={colorScheme !== 'dark'}
+      style={{ paddingTop: insets.top }}
+    >
+      {/* Header with brand mark */}
       <Animated.View entering={FadeIn.duration(600)} style={styles.header}>
-        <Text style={[typography.title1, { color: colors.text }]}>Prayer Times</Text>
-        {hijriDate && (
-          <Text style={[typography.callout, { color: colors.textSecondary, marginTop: spacing.xs }]}>
-            {hijriDate}
-          </Text>
-        )}
-        {source === 'cache' && (
-          <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 2 }]}>
-            Cached times
-          </Text>
-        )}
+        <View style={styles.headerRow}>
+          <View style={styles.headerText}>
+            <Text style={[typography.title1, { color: colors.text }]}>Prayer Times</Text>
+            {hijriDate && (
+              <Text style={[typography.callout, { color: colors.textSecondary, marginTop: spacing.xs }]}>
+                {hijriDate}
+              </Text>
+            )}
+            {source === 'cache' && (
+              <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 2 }]}>
+                Cached times
+              </Text>
+            )}
+          </View>
+          <ConvergentArch
+            size={44}
+            strokeColor={colors.tint}
+            lineWidth={1.0}
+            nodeRadius={2.5}
+          />
+        </View>
       </Animated.View>
 
       {isLoading && prayers.length === 0 ? (
@@ -143,7 +159,7 @@ export default function PrayerTimesScreen() {
           <View style={{ height: spacing['2xl'] }} />
         </ScrollView>
       )}
-    </View>
+    </KozoPaperBackground>
   );
 }
 
@@ -155,6 +171,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.lg,
     paddingBottom: spacing.md,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerText: {
+    flex: 1,
   },
   loading: {
     flex: 1,

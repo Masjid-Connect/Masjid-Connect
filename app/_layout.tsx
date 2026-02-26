@@ -3,11 +3,12 @@ import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 import 'react-native-reanimated';
 
 import Colors, { palette } from '@/constants/Colors';
+import { AnimatedSplash } from '@/components/brand/AnimatedSplash';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -26,7 +27,7 @@ const MosqueLight = {
     card: '#FFFFFF',
     text: palette.deepCharcoal,
     border: palette.softStone,
-    notification: palette.moorishTerracotta,
+    notification: palette.divineGold,
   },
 };
 
@@ -39,7 +40,7 @@ const MosqueDark = {
     card: palette.midnightCard,
     text: palette.softWhite,
     border: '#30363D',
-    notification: palette.moorishTerracotta,
+    notification: palette.mutedGold,
   },
 };
 
@@ -48,6 +49,7 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     ...FontAwesome.font,
   });
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     if (error) throw error;
@@ -55,15 +57,24 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
+      // Hide the native splash screen immediately — our AnimatedSplash takes over
       SplashScreen.hideAsync();
     }
   }, [loaded]);
+
+  const handleSplashComplete = useCallback(() => {
+    setShowSplash(false);
+  }, []);
 
   if (!loaded) {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return (
+    <AnimatedSplash isVisible={showSplash} onAnimationComplete={handleSplashComplete}>
+      <RootLayoutNav />
+    </AnimatedSplash>
+  );
 }
 
 function RootLayoutNav() {
