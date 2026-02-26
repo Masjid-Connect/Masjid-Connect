@@ -258,11 +258,9 @@ Only used when network is unavailable. Aladhan API is always preferred.
 ### Calculation Methods
 | Code | Method |
 |------|--------|
-| NorthAmerica | ISNA (North America) |
-| MuslimWorldLeague | Muslim World League |
+
 | UmmAlQura | Umm Al-Qura (Saudi) |
-| Egyptian | Egyptian General Authority |
-| Karachi | University of Islamic Sciences, Karachi |
+
 
 ### PocketBase API
 ```
