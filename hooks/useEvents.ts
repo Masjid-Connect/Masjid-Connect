@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
-import { events as eventsApi } from '@/lib/pocketbase';
+import { events as eventsApi } from '@/lib/api';
 import { getSubscribedMosqueIds } from '@/lib/storage';
 import type { MosqueEvent, EventCategory } from '@/types';
 
