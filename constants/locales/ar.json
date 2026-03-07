@@ -1,0 +1,96 @@
+{
+  "tabs": {
+    "prayerTimes": "أوقات الصلاة",
+    "announcements": "الإعلانات",
+    "events": "الفعاليات",
+    "settings": "الإعدادات"
+  },
+  "prayer": {
+    "fajr": "الفجر",
+    "sunrise": "الشروق",
+    "dhuhr": "الظهر",
+    "asr": "العصر",
+    "maghrib": "المغرب",
+    "isha": "العشاء",
+    "nextPrayer": "الصلاة التالية",
+    "timeRemaining": "{{hours}} ساعة {{minutes}} دقيقة متبقية",
+    "minutesRemaining": "{{minutes}} دقيقة متبقية",
+    "cached": "أوقات مخزنة مؤقتاً",
+    "offline": "حساب بدون اتصال"
+  },
+  "announcements": {
+    "title": "الإعلانات",
+    "urgent": "عاجل",
+    "empty": "لا توجد إعلانات",
+    "emptyHint": "اشترك في مسجد من الإعدادات لرؤية الإعلانات هنا.",
+    "readMore": "اقرأ المزيد"
+  },
+  "events": {
+    "title": "الفعاليات",
+    "empty": "لا توجد فعاليات قادمة",
+    "emptyHint": "اشترك في مسجد من الإعدادات لرؤية الفعاليات هنا.",
+    "addToCalendar": "أضف إلى التقويم",
+    "repeats": "يتكرر {{frequency}}",
+    "categories": {
+      "all": "الكل",
+      "lesson": "الدروس",
+      "lecture": "المحاضرات",
+      "quran_circle": "حلقات القرآن",
+      "youth": "الشباب",
+      "sisters": "الأخوات",
+      "community": "المجتمع"
+    }
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "myMosques": "مساجدي",
+    "searchMosques": "ابحث حسب المدينة...",
+    "nearby": "القريبة",
+    "subscribe": "اشتراك",
+    "unsubscribe": "إلغاء الاشتراك",
+    "location": "الموقع",
+    "detectLocation": "تحديد الموقع",
+    "calculationMethod": "طريقة الحساب",
+    "prayerReminder": "تذكير الصلاة",
+    "minutesBefore": "{{minutes}} دقيقة قبل",
+    "noReminder": "بدون تذكير",
+    "preferences": "التفضيلات",
+    "theme": "المظهر",
+    "themeLight": "فاتح",
+    "themeDark": "داكن",
+    "themeSystem": "النظام",
+    "use24h": "تنسيق ٢٤ ساعة",
+    "account": "الحساب",
+    "signIn": "تسجيل الدخول",
+    "signOut": "تسجيل الخروج",
+    "appInfo": "معلومات التطبيق",
+    "version": "الإصدار {{version}}"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "name": "الاسم الكامل",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "noAccount": "ليس لديك حساب؟",
+    "hasAccount": "لديك حساب بالفعل؟"
+  },
+  "about": {
+    "title": "حول",
+    "tagline": "مجتمعك، متصل",
+    "version": "الإصدار",
+    "prayerTimes": "أوقات الصلاة",
+    "offlineFallback": "البديل بدون اتصال",
+    "framework": "إطار العمل",
+    "footer": "صُنع بعناية لخدمة المجتمع المسلم.\nبيانات أوقات الصلاة من Aladhan API."
+  },
+  "common": {
+    "loading": "جارٍ التحميل...",
+    "error": "حدث خطأ ما",
+    "retry": "إعادة المحاولة",
+    "cancel": "إلغاء",
+    "save": "حفظ",
+    "done": "تم"
+  }
+}

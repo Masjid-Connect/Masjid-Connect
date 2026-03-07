@@ -1,0 +1,96 @@
+{
+  "tabs": {
+    "prayerTimes": "Prayer Times",
+    "announcements": "Announcements",
+    "events": "Events",
+    "settings": "Settings"
+  },
+  "prayer": {
+    "fajr": "Fajr",
+    "sunrise": "Sunrise",
+    "dhuhr": "Dhuhr",
+    "asr": "Asr",
+    "maghrib": "Maghrib",
+    "isha": "Isha",
+    "nextPrayer": "Next Prayer",
+    "timeRemaining": "{{hours}}h {{minutes}}m remaining",
+    "minutesRemaining": "{{minutes}}m remaining",
+    "cached": "Cached times",
+    "offline": "Offline calculation"
+  },
+  "announcements": {
+    "title": "Announcements",
+    "urgent": "Urgent",
+    "empty": "No announcements",
+    "emptyHint": "Subscribe to a mosque in Settings to see announcements here.",
+    "readMore": "Read more"
+  },
+  "events": {
+    "title": "Events",
+    "empty": "No upcoming events",
+    "emptyHint": "Subscribe to a mosque in Settings to see events here.",
+    "addToCalendar": "Add to Calendar",
+    "repeats": "Repeats {{frequency}}",
+    "categories": {
+      "all": "All",
+      "lesson": "Lessons",
+      "lecture": "Lectures",
+      "quran_circle": "Quran",
+      "youth": "Youth",
+      "sisters": "Sisters",
+      "community": "Community"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "myMosques": "My Mosques",
+    "searchMosques": "Search by city...",
+    "nearby": "Nearby",
+    "subscribe": "Subscribe",
+    "unsubscribe": "Unsubscribe",
+    "location": "Location",
+    "detectLocation": "Detect Location",
+    "calculationMethod": "Calculation Method",
+    "prayerReminder": "Prayer Reminder",
+    "minutesBefore": "{{minutes}} min before",
+    "noReminder": "No reminder",
+    "preferences": "Preferences",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System",
+    "use24h": "24-hour time",
+    "account": "Account",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "appInfo": "App Info",
+    "version": "Version {{version}}"
+  },
+  "auth": {
+    "login": "Sign In",
+    "register": "Create Account",
+    "email": "Email",
+    "password": "Password",
+    "name": "Full Name",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?"
+  },
+  "about": {
+    "title": "About",
+    "tagline": "Your community, connected",
+    "version": "Version",
+    "prayerTimes": "Prayer Times",
+    "offlineFallback": "Offline Fallback",
+    "framework": "Framework",
+    "footer": "Built with care for the Muslim community.\nPrayer time data provided by Aladhan API."
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "done": "Done"
+  }
+}
