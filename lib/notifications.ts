@@ -1,8 +1,11 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
+import { format } from 'date-fns';
 import type { PrayerTimesData, PrayerName } from '@/types';
 import { PRAYER_LABELS } from '@/types';
+import { getPrayerTimes } from '@/lib/prayer';
+import { getCachedPrayerTimes, getReminderMinutes, getUserLocation, getCalculationMethod } from '@/lib/storage';
 
 /** Configure notification handler */
 Notifications.setNotificationHandler({
@@ -103,6 +106,22 @@ export async function schedulePrayerReminders(
       });
     }
   }
+}
+
+/** Reschedule prayer reminders using cached or freshly fetched times for today. Call after loading times or when user changes reminder preference. */
+export async function reschedulePrayerRemindersForToday(): Promise<void> {
+  const today = format(new Date(), 'yyyy-MM-dd');
+  let times: PrayerTimesData | null = await getCachedPrayerTimes(today);
+  if (!times) {
+    const location = await getUserLocation();
+    const method = await getCalculationMethod();
+    const lat = location?.latitude ?? 21.4225;
+    const lng = location?.longitude ?? 39.8262;
+    const result = await getPrayerTimes(lat, lng, method.code, method.name);
+    times = result.times;
+  }
+  const reminderMinutes = await getReminderMinutes();
+  await schedulePrayerReminders(times, reminderMinutes);
 }
 
 /** Cancel all prayer reminder notifications */

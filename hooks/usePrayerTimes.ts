@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { getPrayerTimes, buildPrayerEntries, getNextPrayer, getCountdown } from '@/lib/prayer';
-import { cachePrayerTimes, getCachedPrayerTimes, getUserLocation, getCalculationMethod } from '@/lib/storage';
+import { cachePrayerTimes, getCachedPrayerTimes, getUserLocation, getCalculationMethod, getReminderMinutes } from '@/lib/storage';
+import { reschedulePrayerRemindersForToday, schedulePrayerReminders } from '@/lib/notifications';
 import type { PrayerTimeEntry, PrayerName } from '@/types';
 
 interface UsePrayerTimesResult {
@@ -35,6 +36,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
         setNextPrayer(getNextPrayer(cached));
         setSource('cache');
         setIsLoading(false);
+        reschedulePrayerRemindersForToday().catch(() => {});
       }
 
       // Fetch fresh data
@@ -58,6 +60,10 @@ export function usePrayerTimes(): UsePrayerTimesResult {
 
       // Cache for offline use
       await cachePrayerTimes(result.times, today);
+
+      // Schedule prayer reminder notifications
+      const reminderMinutes = await getReminderMinutes();
+      await schedulePrayerReminders(result.times, reminderMinutes);
     } catch (error) {
       console.error('Failed to load prayer times:', error);
     } finally {

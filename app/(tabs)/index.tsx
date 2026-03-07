@@ -6,12 +6,12 @@ import {
   ScrollView,
   RefreshControl,
   ActivityIndicator,
-  useColorScheme,
 } from 'react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getColors } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, elevation, borderRadius, typography } from '@/constants/Theme';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { formatPrayerTime } from '@/lib/prayer';
@@ -20,8 +20,8 @@ import { KozoPaperBackground } from '@/components/ui/KozoPaperBackground';
 
 export default function PrayerTimesScreen() {
   const insets = useSafeAreaInsets();
-  const colorScheme = useColorScheme();
-  const colors = getColors(colorScheme);
+  const { effectiveScheme } = useTheme();
+  const colors = getColors(effectiveScheme);
   const { prayers, nextPrayer, countdown, hijriDate, isLoading, source, refresh } = usePrayerTimes();
 
   const [refreshing, setRefreshing] = React.useState(false);
@@ -35,7 +35,7 @@ export default function PrayerTimesScreen() {
   return (
     <KozoPaperBackground
       color={colors.background}
-      showTexture={colorScheme !== 'dark'}
+      showTexture={effectiveScheme !== 'dark'}
       style={{ paddingTop: insets.top }}
     >
       {/* Header with brand mark */}

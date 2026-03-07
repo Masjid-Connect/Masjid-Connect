@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -6,21 +6,26 @@ import {
   FlatList,
   RefreshControl,
   ActivityIndicator,
-  useColorScheme,
+  Modal,
+  TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { format, formatDistanceToNow } from 'date-fns';
 
 import { getColors } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, elevation, borderRadius, typography } from '@/constants/Theme';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
 import type { Announcement } from '@/types';
 
 export default function AnnouncementsScreen() {
-  const colorScheme = useColorScheme();
-  const colors = getColors(colorScheme);
+  const { effectiveScheme } = useTheme();
+  const colors = getColors(effectiveScheme);
   const { announcements, isLoading, refresh } = useAnnouncements();
-  const [refreshing, setRefreshing] = React.useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const expandedItem = announcements.find((a) => a.id === expandedId);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -39,46 +44,42 @@ export default function AnnouncementsScreen() {
       : '';
 
     return (
-      <Animated.View
-        entering={FadeInDown.delay(index * 60).duration(400).springify()}
-        style={[
-          styles.card,
-          {
-            backgroundColor: isUrgent
-              ? colorScheme === 'dark'
-                ? 'rgba(196, 69, 54, 0.15)'
-                : 'rgba(196, 69, 54, 0.06)'
-              : colors.card,
-            borderColor: isUrgent ? colors.urgent : colors.cardBorder,
-            ...elevation.elevated,
-          },
-        ]}>
-        {/* Priority badge */}
-        {isUrgent && (
-          <View style={[styles.urgentBadge, { backgroundColor: colors.urgent }]}>
-            <Text style={styles.urgentText}>URGENT</Text>
-          </View>
-        )}
-
-        {/* Mosque name */}
-        {mosqueName ? (
-          <Text style={[typography.caption, { color: colors.accent, marginBottom: spacing.xs }]}>
-            {mosqueName}
+      <Pressable onPress={() => setExpandedId(item.id)}>
+        <Animated.View
+          entering={FadeInDown.delay(index * 60).duration(400).springify()}
+          style={[
+            styles.card,
+            {
+              backgroundColor: isUrgent
+                ? effectiveScheme === 'dark'
+                  ? 'rgba(196, 69, 54, 0.15)'
+                  : 'rgba(196, 69, 54, 0.06)'
+                : colors.card,
+              borderColor: isUrgent ? colors.urgent : colors.cardBorder,
+              ...elevation.elevated,
+            },
+          ]}>
+          {isUrgent && (
+            <View style={[styles.urgentBadge, { backgroundColor: colors.urgent }]}>
+              <Text style={styles.urgentText}>URGENT</Text>
+            </View>
+          )}
+          {mosqueName ? (
+            <Text style={[typography.caption, { color: colors.accent, marginBottom: spacing.xs }]}>
+              {mosqueName}
+            </Text>
+          ) : null}
+          <Text style={[typography.title3, { color: colors.text }]}>{item.title}</Text>
+          <Text
+            style={[typography.body, { color: colors.textSecondary, marginTop: spacing.sm }]}
+            numberOfLines={4}>
+            {item.body}
           </Text>
-        ) : null}
-
-        <Text style={[typography.title3, { color: colors.text }]}>{item.title}</Text>
-
-        <Text
-          style={[typography.body, { color: colors.textSecondary, marginTop: spacing.sm }]}
-          numberOfLines={4}>
-          {item.body}
-        </Text>
-
-        <Text style={[typography.caption, { color: colors.textSecondary, marginTop: spacing.sm }]}>
-          {timeAgo}
-        </Text>
-      </Animated.View>
+          <Text style={[typography.caption, { color: colors.textSecondary, marginTop: spacing.sm }]}>
+            {timeAgo}
+          </Text>
+        </Animated.View>
+      </Pressable>
     );
   };
 
@@ -122,6 +123,36 @@ export default function AnnouncementsScreen() {
         }
         showsVerticalScrollIndicator={false}
       />
+      {expandedItem && (
+        <Modal visible={!!expandedId} transparent animationType="fade">
+          <Pressable style={styles.modalOverlay} onPress={() => setExpandedId(null)}>
+            <Pressable style={[styles.modalContent, { backgroundColor: colors.card }]} onPress={(e) => e.stopPropagation()}>
+              {expandedItem.priority === 'urgent' && (
+                <View style={[styles.urgentBadge, { backgroundColor: colors.urgent }]}>
+                  <Text style={styles.urgentText}>URGENT</Text>
+                </View>
+              )}
+              {expandedItem.expand?.mosque?.name ? (
+                <Text style={[typography.caption, { color: colors.accent, marginBottom: spacing.xs }]}>
+                  {expandedItem.expand.mosque.name}
+                </Text>
+              ) : null}
+              <Text style={[typography.title2, { color: colors.text }]}>{expandedItem.title}</Text>
+              <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.sm }]}>
+                {expandedItem.body}
+              </Text>
+              <Text style={[typography.caption, { color: colors.textSecondary, marginTop: spacing.sm }]}>
+                {expandedItem.published_at
+                  ? formatDistanceToNow(new Date(expandedItem.published_at), { addSuffix: true })
+                  : ''}
+              </Text>
+              <TouchableOpacity onPress={() => setExpandedId(null)} style={[styles.modalClose, { borderColor: colors.divider }]}>
+                <Text style={[typography.callout, { color: colors.tint }]}>Close</Text>
+              </TouchableOpacity>
+            </Pressable>
+          </Pressable>
+        </Modal>
+      )}
     </View>
   );
 }
@@ -157,5 +188,23 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    padding: spacing.xl,
+  },
+  modalContent: {
+    borderRadius: borderRadius.lg,
+    padding: spacing.xl,
+    maxHeight: '80%',
+  },
+  modalClose: {
+    marginTop: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    alignItems: 'center',
   },
 });
