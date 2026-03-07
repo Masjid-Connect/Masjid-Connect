@@ -6,7 +6,7 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
 ## Tech Stack
 - **Framework**: React Native + Expo (SDK 55, managed workflow, TypeScript)
 - **Navigation**: Expo Router (file-based routing)
-- **Backend**: PocketBase (self-hosted on Digital Ocean droplet via Coolify)
+- **Backend**: Django 5 + Django REST Framework (self-hosted on Digital Ocean)
 - **Prayer Times**: Aladhan API (primary, free, no key required) + `adhan` (adhan-js, offline-only fallback)
 - **Push Notifications**: Expo Notifications + Expo Push Service
 - **Local Storage**: expo-sqlite for offline-first caching
@@ -38,7 +38,7 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
   /announcements        # Announcement components
   /events               # Event components
 /lib                    # Utilities and services
-  /pocketbase.ts        # PocketBase client & helpers
+  /api.ts               # Django REST API client (auth, mosques, announcements, events, subscriptions)
   /prayer.ts            # Aladhan API + adhan-js offline fallback
   /notifications.ts     # Push notification logic
   /storage.ts           # Offline cache (AsyncStorage)
@@ -133,25 +133,75 @@ brand.badge.*        // Notification badge sizing
 - Notification badges are Divine Gold, never red — a glint, not an error
 - Brand mark appears in prayer times header and as the home tab icon
 
-## Backend — PocketBase Collections
+## Backend — Django REST Framework
 
-### mosques
-`id, name, address, city, latitude, longitude, calculation_method (int, default 2), jumua_time, contact_phone, website, created, updated`
+The backend lives in `/backend/` and uses Django 5 + DRF with Token authentication.
 
-### announcements
-`id, mosque (rel→mosques), title, body, priority (normal|urgent), published_at, expires_at, author (rel→users)`
+### Project Structure
+```
+/backend
+  /config/              # Django settings, URLs, WSGI
+    settings.py         # Main settings (env-based via django-environ)
+    urls.py             # Root URL config
+  /core/                # Models and admin
+    models.py           # User, Mosque, Announcement, Event, UserSubscription, PushToken, MosqueAdmin
+    admin.py            # Unfold-themed admin (Sacred Blue brand)
+    management/commands/seed_data.py  # Sample data seeder
+  /api/                 # REST API
+    serializers.py      # DRF serializers
+    views.py            # ViewSets and auth views
+    urls.py             # API URL routing
+  manage.py
+  requirements.txt
+  .env / .env.example
+```
 
-### events
-`id, mosque (rel→mosques), title, description, speaker, event_date, start_time, end_time, location, recurring (null|weekly|monthly), category (lesson|lecture|quran_circle|youth|sisters|community), author (rel→users)`
+### API Endpoints
+```
+POST /api/v1/auth/register/          # Register + get token
+POST /api/v1/auth/login/             # Login + get token
+POST /api/v1/auth/logout/            # Invalidate token
+GET  /api/v1/auth/me/                # Current user
 
-### user_subscriptions
-`id, user (rel→users), mosque (rel→mosques), notify_prayers, notify_announcements, notify_events, prayer_reminder_minutes (default 15)`
+GET  /api/v1/mosques/                # List mosques (?city=, ?search=)
+GET  /api/v1/mosques/{id}/           # Mosque detail
+GET  /api/v1/mosques/nearby/?lat=&lng=&radius=  # Nearby mosques (haversine)
 
-### push_tokens
-`id, user (rel→users), token, platform (ios|android), created, updated`
+GET  /api/v1/announcements/?mosque_ids=id1,id2   # Announcements for mosques
+POST /api/v1/announcements/          # Create announcement (auth required)
 
-### mosque_admins
-`id, mosque (rel→mosques), user (rel→users), role (admin|super_admin)`
+GET  /api/v1/events/?mosque_ids=id1,id2&from_date=YYYY-MM-DD&category=lesson
+POST /api/v1/events/                 # Create event (auth required)
+
+GET  /api/v1/subscriptions/          # User's subscriptions (auth required)
+POST /api/v1/subscriptions/          # Subscribe to mosque
+DELETE /api/v1/subscriptions/{id}/   # Unsubscribe
+PATCH /api/v1/subscriptions/{id}/    # Update notification preferences
+
+POST /api/v1/push-tokens/            # Register push token
+
+GET  /health/                        # Health check
+GET  /admin/                         # Django admin (Unfold theme)
+```
+
+### Django Models
+- **User** — UUID PK, extends AbstractUser with `name` field
+- **Mosque** — name, address, city, state, country, lat/lng, calculation_method, jumua_time, contact info, photo
+- **Announcement** — mosque FK, title, body, priority (normal/urgent), published_at, expires_at, author FK
+- **Event** — mosque FK, title, description, speaker, event_date, start/end_time, recurring (weekly/monthly), category (lesson/lecture/quran_circle/youth/sisters/community)
+- **UserSubscription** — user FK, mosque FK, notify_prayers/announcements/events, prayer_reminder_minutes
+- **PushToken** — user FK, token (unique), platform (ios/android)
+- **MosqueAdmin** — mosque FK, user FK, role (admin/super_admin)
+
+### Backend Commands
+```bash
+cd backend
+pip install -r requirements.txt       # Install dependencies
+python manage.py migrate              # Run migrations
+python manage.py seed_data            # Seed sample data
+python manage.py createsuperuser      # Create admin user
+python manage.py runserver            # Start dev server (port 8000)
+```
 
 ## Commands
 
@@ -192,7 +242,7 @@ Mosque administrators (imams, board members, community volunteers) are often **n
 - **Mobile-first admin** — admin features must work on phones, not just desktop browsers
 - **Minimal training** — a volunteer who has never used the app should be able to post an announcement within 60 seconds of opening the admin panel
 
-This principle applies to PocketBase admin UI customizations, in-app admin screens, and any mosque management flows.
+This principle applies to Django admin customizations, in-app admin screens, and any mosque management flows.
 
 ## Code Conventions
 
@@ -219,7 +269,7 @@ This principle applies to PocketBase admin UI customizations, in-app admin scree
 
 ### Error Handling
 - Validate at system boundaries only (API responses, user input)
-- Use try/catch around PocketBase calls and notification scheduling
+- Use try/catch around API calls and notification scheduling
 - Show user-friendly error states, not raw errors
 - Offline-first: gracefully degrade when network unavailable
 
@@ -233,9 +283,11 @@ This principle applies to PocketBase admin UI customizations, in-app admin scree
 - **Primary prayer times**: Aladhan API (free, no key required) — `GET https://api.aladhan.com/v1/timings/{date}?latitude={lat}&longitude={lng}&method={method}`
 - **Offline fallback only**: adhan-js calculates locally from coordinates when network is unavailable — never used as primary source
 - **All times respect user's local timezone** and 12h/24h device locale
-- **PocketBase is self-hosted** on the same Digital Ocean droplet as other services, deployed via Coolify
+- **Django backend** is self-hosted on Digital Ocean (same pattern as Orphanages project)
 - **Expo managed workflow** — no native code ejection for MVP
 - **Never hardcode prayer times** — always calculate from coordinates + date + method
-- Calculation methods:  Umm Al-Qura 
-- Announcements update in real-time via PocketBase realtime subscriptions
+- Calculation methods: Umm Al-Qura
+- Announcements fetched via REST API with pull-to-refresh (no realtime subscriptions)
 - Prayer reminders use local scheduled notifications (not server-pushed)
+- **API client**: `lib/api.ts` wraps all Django REST calls with token auth, matching the old PocketBase interface
+- **Admin panel**: Django admin with Unfold theme at `/admin/` (Sacred Blue brand colors)

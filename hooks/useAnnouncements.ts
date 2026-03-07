@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { announcements as announcementsApi } from '@/lib/pocketbase';
+import { announcements as announcementsApi } from '@/lib/api';
 import { getSubscribedMosqueIds } from '@/lib/storage';
 import type { Announcement } from '@/types';
 
