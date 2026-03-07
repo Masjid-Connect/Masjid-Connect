@@ -39,7 +39,6 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
   /events               # Event components
 /lib                    # Utilities and services
   /api.ts               # Django REST API client (auth, mosques, announcements, events, subscriptions)
-  /pocketbase.ts        # DEPRECATED — replaced by api.ts
   /prayer.ts            # Aladhan API + adhan-js offline fallback
   /notifications.ts     # Push notification logic
   /storage.ts           # Offline cache (AsyncStorage)
