@@ -1,4 +1,4 @@
-"""API views — designed to match the PocketBase client calls in lib/pocketbase.ts."""
+"""API views for Masjid Connect."""
 
 import math
 

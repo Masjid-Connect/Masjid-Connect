@@ -1,7 +1,7 @@
 # Mosque Connect — Build Prompt
 
 ## Vision
-Build a premium mobile app called **Mosque Connect** using React Native with Expo and PocketBase as the self-hosted backend. The app serves local mosque communities with prayer time notifications, event/lesson listings, and community announcements.
+Build a premium mobile app called **Mosque Connect** using React Native with Expo and Django REST Framework as the self-hosted backend. The app serves local mosque communities with prayer time notifications, event/lesson listings, and community announcements.
 
 **Design philosophy**: God-tier, not SaaS. A serene, premium experience rooted in Islamic geometric art and calligraphic tradition. Better than an Apple experience.
 
@@ -13,7 +13,7 @@ Build a premium mobile app called **Mosque Connect** using React Native with Exp
 |-------|------|-----|
 | Cross-platform framework | React Native + Expo (SDK 55) | Single codebase → iOS, Android, web |
 | Navigation | Expo Router | File-based routing, deep linking, typed routes |
-| Backend / Database | PocketBase (self-hosted) | Single Go binary, SQLite, realtime, auth, admin UI |
+| Backend / Database | Django 5 + DRF (self-hosted) | Python, PostgreSQL, token auth, Unfold admin UI |
 | Hosting | Digital Ocean droplet + Coolify | Self-hosted, full control, no vendor lock-in |
 | Prayer times (primary) | Aladhan API | Free, no key required, accurate times + Hijri date |
 | Prayer times (fallback) | adhan-js | Offline-only fallback — local calculation when no network |
@@ -151,7 +151,7 @@ viewBox: `0 0 100 140`, apex at `(50, 10)`, path length ~280 units.
 - Kozo paper texture background
 
 ### Tab 2: Announcements
-- Real-time feed from PocketBase (realtime subscription on `announcements` collection)
+- Feed from Django REST API with pull-to-refresh
 - Cards with title, body, timestamp, mosque name
 - **Urgent announcements** — terracotta badge, pinned at top with subtle pulse
 - Filter by subscribed mosques
@@ -186,9 +186,9 @@ viewBox: `0 0 100 140`, apex at `(50, 10)`, path length ~280 units.
 - Configurable offset: at time, 5/10/15/30 min before
 
 ### Announcement/event alerts (remote)
-- PocketBase hook on `announcements` INSERT → calls Expo Push API
-- Store push tokens in `push_tokens` collection
-- Filter recipients by `user_subscriptions` (notify_announcements = true)
+- Django signal on Announcement `post_save` → calls Expo Push API
+- Store push tokens in `PushToken` model
+- Filter recipients by `UserSubscription` (notify_announcements = true)
 - Urgent announcements get high priority + sound
 
 ---
@@ -197,8 +197,8 @@ viewBox: `0 0 100 140`, apex at `(50, 10)`, path length ~280 units.
 
 Mosque administrators (imams, board members, community volunteers) are often **not tech-savvy**. The admin experience must be ultra-friendly:
 
-- Screens behind auth gate (check `mosque_admins` collection)
-- Login with PocketBase email/password auth
+- Screens behind auth gate (check `MosqueAdmin` model)
+- Login with Django token auth (email/password)
 - **Guided step-by-step flows** for creating announcements and events — not raw forms
 - **Zero jargon** — plain language labels ("Add an announcement", not "Create record")
 - **Sensible defaults** — pre-fill dates, times, calculation methods; minimize required fields
@@ -217,9 +217,9 @@ Mosque administrators (imams, board members, community volunteers) are often **n
 
 | Day | Focus |
 |-----|-------|
-| 1 | Project setup, PocketBase schema, adhan-js integration, Prayer Times screen |
+| 1 | Project setup, Django models + API, adhan-js integration, Prayer Times screen |
 | 2 | Auth (email sign-up), mosque selection, user subscriptions |
-| 3 | Announcements feed with PocketBase Realtime |
+| 3 | Announcements feed with REST API + pull-to-refresh |
 | 4 | Events/lessons calendar + list view |
 | 5 | Push notifications (local prayer reminders + remote announcements) |
 | 6 | Admin panel (web forms), settings screen, theme system |
@@ -262,15 +262,29 @@ Only used when network is unavailable. Aladhan API is always preferred.
 | UmmAlQura | Umm Al-Qura (Saudi) |
 
 
-### PocketBase API
+### Django REST API
 ```
-Base URL: https://pb.mosqueconnect.app/api/
+Base URL: https://api.mosqueconnect.app/api/v1
 
-GET    /collections/mosques/records          # List mosques
-GET    /collections/announcements/records    # List announcements
-POST   /collections/announcements/records    # Create announcement (admin)
-GET    /collections/events/records           # List events
-POST   /collections/events/records           # Create event (admin)
-POST   /collections/users/auth-with-password # Login
-POST   /collections/users/records            # Register
+POST /auth/register/                         # Register + get token
+POST /auth/login/                            # Login + get token
+POST /auth/logout/                           # Invalidate token
+GET  /auth/me/                               # Current user
+
+GET  /mosques/                               # List mosques (?city=, ?search=)
+GET  /mosques/{id}/                          # Mosque detail
+GET  /mosques/nearby/?lat=&lng=&radius=      # Nearby mosques (haversine)
+
+GET  /announcements/?mosque_ids=id1,id2      # Announcements for mosques
+POST /announcements/                         # Create announcement (auth required)
+
+GET  /events/?mosque_ids=id1,id2&from_date=YYYY-MM-DD&category=lesson
+POST /events/                                # Create event (auth required)
+
+GET  /subscriptions/                         # User's subscriptions (auth required)
+POST /subscriptions/                         # Subscribe to mosque
+DELETE /subscriptions/{id}/                  # Unsubscribe
+PATCH /subscriptions/{id}/                   # Update notification preferences
+
+POST /push-tokens/                           # Register push token
 ```

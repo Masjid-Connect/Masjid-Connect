@@ -289,5 +289,5 @@ This principle applies to Django admin customizations, in-app admin screens, and
 - Calculation methods: Umm Al-Qura
 - Announcements fetched via REST API with pull-to-refresh (no realtime subscriptions)
 - Prayer reminders use local scheduled notifications (not server-pushed)
-- **API client**: `lib/api.ts` wraps all Django REST calls with token auth, matching the old PocketBase interface
+- **API client**: `lib/api.ts` wraps all Django REST calls with token auth
 - **Admin panel**: Django admin with Unfold theme at `/admin/` (Sacred Blue brand colors)

@@ -19,7 +19,7 @@
   <img src="https://img.shields.io/badge/Expo-55-000020?style=flat-square&logo=expo" alt="Expo SDK 55" />
   <img src="https://img.shields.io/badge/React_Native-0.83-61DAFB?style=flat-square&logo=react" alt="React Native" />
   <img src="https://img.shields.io/badge/TypeScript-strict-3178C6?style=flat-square&logo=typescript" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/PocketBase-self--hosted-B8DBE4?style=flat-square" alt="PocketBase" />
+  <img src="https://img.shields.io/badge/Django_5-DRF-092E20?style=flat-square&logo=django" alt="Django REST Framework" />
   <img src="https://img.shields.io/badge/License-MIT-C8A951?style=flat-square" alt="MIT License" />
 </p>
 
@@ -99,7 +99,7 @@ The mark is a single, unbroken line that simultaneously suggests two things: the
 <td width="50%" valign="top">
 
 ### 📢 Announcements  ·  إعلانات
-- Real-time feed via PocketBase subscriptions
+- Feed via Django REST API with pull-to-refresh
 - Urgent announcements pinned with terracotta badge
 - Multi-mosque support — see updates from all your communities
 - Bismillah empty state (not a sad face icon)
@@ -201,15 +201,15 @@ The mark is a single, unbroken line that simultaneously suggests two things: the
                     │     (via Coolify)         │
                     │                          │
                     │  ┌────────────────────┐  │
-                    │  │    PocketBase       │  │
-                    │  │    ─────────        │  │
-                    │  │    SQLite DB        │  │
-                    │  │    Auth & Realtime  │  │
+                    │  │    Django 5 + DRF   │  │
+                    │  │    ─────────────    │  │
+                    │  │    PostgreSQL       │  │
+                    │  │    Token Auth       │  │
                     │  │    REST API         │  │
-                    │  │    Admin UI         │  │
-                    │  │    Push hooks (JS)  │  │
+                    │  │    Unfold Admin     │  │
+                    │  │    Push signals     │  │
                     │  └────────┬───────────┘  │
-                    │           │ :8090        │
+                    │           │ :8000        │
                     └───────────┼──────────────┘
                                 │
                         HTTPS   │   Let's Encrypt
@@ -227,7 +227,7 @@ The mark is a single, unbroken line that simultaneously suggests two things: the
               │  │                                 │ │
               │  │  Aladhan API → Prayer Times     │ │
               │  │  adhan-js   → Offline Fallback  │ │
-              │  │  PocketBase → Data & Realtime   │ │
+              │  │  Django API → Data (REST)       │ │
               │  │  AsyncStorage → Offline Cache   │ │
               │  │  Expo Notifs → Reminders        │ │
               │  └─────────────────────────────────┘ │
@@ -242,7 +242,7 @@ The mark is a single, unbroken line that simultaneously suggests two things: the
 |-------|--------|-----|
 | **Framework** | React Native + Expo SDK 55 | Single codebase, managed workflow, OTA updates |
 | **Navigation** | Expo Router | File-based routing, deep links, typed routes |
-| **Backend** | PocketBase (self-hosted) | One Go binary, SQLite, realtime, auth, admin UI |
+| **Backend** | Django 5 + DRF (self-hosted) | Python, PostgreSQL, token auth, Unfold admin UI |
 | **Prayer Times** | Aladhan API (primary) + adhan-js (offline fallback) | API for accuracy + Hijri dates; local calc when no network |
 | **Notifications** | Expo Notifications | Abstracts FCM/APNs, local scheduling |
 | **Storage** | AsyncStorage | Offline-first caching layer |
@@ -279,14 +279,14 @@ mosque-connect/
 │       └── KozoPaperBackground.tsx # Kozo paper fiber texture
 │
 ├── lib/                          # Core services
-│   ├── pocketbase.ts             # Backend client (auth, CRUD, realtime)
+│   ├── api.ts                    # Django REST API client (auth, CRUD)
 │   ├── prayer.ts                 # Aladhan API + adhan-js offline fallback
 │   ├── notifications.ts          # Push tokens, prayer reminders
 │   └── storage.ts                # AsyncStorage cache layer
 │
 ├── hooks/                        # React hooks
 │   ├── usePrayerTimes.ts         # Prayer data, countdown, Hijri date
-│   ├── useAnnouncements.ts       # Feed + realtime subscription
+│   ├── useAnnouncements.ts       # Feed + pull-to-refresh
 │   └── useEvents.ts              # Events + category filtering
 │
 ├── constants/                    # Design tokens
@@ -357,7 +357,7 @@ npx tsc --noEmit
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `EXPO_PUBLIC_POCKETBASE_URL` | Your PocketBase instance URL | `https://pb.mosqueconnect.app` |
+| `EXPO_PUBLIC_API_URL` | Django REST API base URL | `https://api.mosqueconnect.app/api/v1` |
 
 <br>
 
@@ -403,50 +403,50 @@ Mosque Connect uses a two-tier approach to ensure prayer times are always availa
 
 <br>
 
-## Backend — PocketBase Collections
+## Backend — Django REST Framework
 
 <details>
 <summary><strong>View full schema</strong></summary>
 
 <br>
 
-**`mosques`** — Registered mosque profiles
+**`Mosque`** — Registered mosque profiles
 ```
-id, name, address, city, state, country,
+id (UUID), name, address, city, state, country,
 latitude, longitude, calculation_method,
 jumua_time, contact_phone, contact_email, website, photo
 ```
 
-**`announcements`** — Community updates
+**`Announcement`** — Community updates
 ```
-id, mosque→, title, body, priority (normal|urgent),
-published_at, expires_at, author→users
+id (UUID), mosque FK, title, body, priority (normal|urgent),
+published_at, expires_at, author FK
 ```
 
-**`events`** — Lessons, lectures, community events
+**`Event`** — Lessons, lectures, community events
 ```
-id, mosque→, title, description, speaker,
+id (UUID), mosque FK, title, description, speaker,
 event_date, start_time, end_time, location,
-recurring (null|weekly|monthly),
+recurring (weekly|monthly|blank),
 category (lesson|lecture|quran_circle|youth|sisters|community),
-author→users
+author FK
 ```
 
-**`user_subscriptions`** — Per-mosque notification preferences
+**`UserSubscription`** — Per-mosque notification preferences
 ```
-id, user→, mosque→,
+id (UUID), user FK, mosque FK,
 notify_prayers, notify_announcements, notify_events,
 prayer_reminder_minutes (default: 15)
 ```
 
-**`push_tokens`** — Device push notification tokens
+**`PushToken`** — Device push notification tokens
 ```
-id, user→, token (Expo push token), platform (ios|android)
+id (UUID), user FK, token (Expo push token, unique), platform (ios|android)
 ```
 
-**`mosque_admins`** — Admin access control
+**`MosqueAdmin`** — Admin access control
 ```
-id, mosque→, user→, role (admin|super_admin)
+id (UUID), mosque FK, user FK, role (admin|super_admin)
 ```
 
 </details>
@@ -476,16 +476,17 @@ id, mosque→, user→, role (admin|super_admin)
 - [x] Expo project scaffold with TypeScript
 - [x] Islamic design system (colors, spacing, elevation, typography)
 - [x] Prayer times screen with Aladhan API + adhan-js offline fallback
-- [x] Announcements feed with realtime support
+- [x] Announcements feed with pull-to-refresh
 - [x] Events calendar with category filters
 - [x] Settings (location, method, reminders, time format)
-- [x] PocketBase client with full CRUD
+- [x] Django REST API backend with full CRUD
+- [x] Django admin with Unfold theme (Sacred Blue brand)
 - [x] Push notification infrastructure
 - [x] Offline-first storage layer
 - [x] Convergent Arch brand identity (SVG mark, animated splash, tab icon, gold badge)
 - [x] Kozo paper texture background system
 - [ ] Custom Arabic/serif font loading (Reem Kufi, Playfair Display)
-- [ ] PocketBase deployment on Coolify
+- [ ] Django deployment on Coolify
 - [ ] User authentication flow (sign up / sign in)
 - [ ] Mosque search & nearby detection
 - [ ] Admin panel for mosque managers (non-technical-admin-first: guided flows, zero jargon, 60s to first post)
