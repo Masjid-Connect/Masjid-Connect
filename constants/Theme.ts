@@ -86,42 +86,58 @@ export const borderRadius = {
   full: 9999,
 } as const;
 
+/** Font family constants */
+export const fonts = {
+  heading: 'PlayfairDisplay',
+  headingArabic: 'ReemKufi',
+  body: 'SourceSerif4',
+  bodyArabic: 'NotoNaskhArabic',
+  mono: 'SpaceMono',
+} as const;
+
 /** Type scale — serif-forward, editorial */
 export const typography: Record<string, TextStyle> = {
   display: {
     fontSize: 34,
+    fontFamily: fonts.heading,
     fontWeight: '700',
     letterSpacing: -0.5,
     lineHeight: 40,
   },
   title1: {
     fontSize: 28,
+    fontFamily: fonts.heading,
     fontWeight: '600',
     letterSpacing: -0.3,
     lineHeight: 34,
   },
   title2: {
     fontSize: 22,
+    fontFamily: fonts.heading,
     fontWeight: '600',
     lineHeight: 28,
   },
   title3: {
     fontSize: 18,
+    fontFamily: fonts.body,
     fontWeight: '500',
     lineHeight: 24,
   },
   body: {
     fontSize: 16,
+    fontFamily: fonts.body,
     fontWeight: '400',
     lineHeight: 24,
   },
   callout: {
     fontSize: 14,
+    fontFamily: fonts.body,
     fontWeight: '500',
     lineHeight: 20,
   },
   caption: {
     fontSize: 12,
+    fontFamily: fonts.body,
     fontWeight: '400',
     lineHeight: 16,
   },

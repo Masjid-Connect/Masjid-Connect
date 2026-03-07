@@ -1,6 +1,6 @@
 /**
- * Django REST API client — replaces PocketBase.
- * Matches the exact interface shapes expected by hooks and screens.
+ * Django REST API client for Masjid Connect.
+ * Wraps all REST endpoints with token auth.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Mosque, Announcement, MosqueEvent, UserSubscription } from '@/types';
@@ -138,8 +138,8 @@ function mapMosque(raw: Record<string, unknown>): Mosque {
 }
 
 export const mosques = {
-  async list(city?: string) {
-    const params = city ? `?city=${encodeURIComponent(city)}` : '';
+  async list(search?: string) {
+    const params = search ? `?search=${encodeURIComponent(search)}` : '';
     const data = await request<PaginatedResponse<Record<string, unknown>>>(`/mosques/${params}`);
     return {
       items: data.results.map(mapMosque),

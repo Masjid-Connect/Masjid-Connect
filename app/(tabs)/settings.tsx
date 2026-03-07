@@ -10,6 +10,7 @@ import {
   useColorScheme,
 } from 'react-native';
 import * as Location from 'expo-location';
+import { useRouter } from 'expo-router';
 
 import { getColors } from '@/constants/Colors';
 import { spacing, elevation, borderRadius, typography } from '@/constants/Theme';
@@ -22,8 +23,10 @@ import {
   setReminderMinutes,
   getUse24h,
   setUse24h,
+  getSubscribedMosqueIds,
 } from '@/lib/storage';
 import { CALCULATION_METHODS } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
 
 const REMINDER_OPTIONS = [
   { label: 'At athan time', value: 0 },
@@ -36,12 +39,15 @@ const REMINDER_OPTIONS = [
 export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const colors = getColors(colorScheme);
+  const router = useRouter();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [methodName, setMethodName] = useState('ISNA');
   const [reminderMin, setReminderMin] = useState(15);
   const [use24h, setUse24hState] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
+  const [mosqueCount, setMosqueCount] = useState(0);
 
   useEffect(() => {
     loadSettings();
@@ -60,6 +66,9 @@ export default function SettingsScreen() {
 
     const h24 = await getUse24h();
     setUse24hState(h24);
+
+    const ids = await getSubscribedMosqueIds();
+    setMosqueCount(ids.length);
   };
 
   const handleDetectLocation = async () => {
@@ -75,7 +84,7 @@ export default function SettingsScreen() {
       const { latitude, longitude } = loc.coords;
       await setUserLocation(latitude, longitude);
       setLocation({ latitude, longitude });
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Could not detect your location. Please try again.');
     } finally {
       setLocationLoading(false);
@@ -99,6 +108,19 @@ export default function SettingsScreen() {
     await setUse24h(value);
   };
 
+  const handleSignOut = () => {
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          await logout();
+        },
+      },
+    ]);
+  };
+
   const SectionHeader = ({ title }: { title: string }) => (
     <Text style={[typography.callout, { color: colors.textSecondary, marginTop: spacing.lg, marginBottom: spacing.sm, paddingHorizontal: spacing.xl, textTransform: 'uppercase', letterSpacing: 1 }]}>
       {title}
@@ -107,6 +129,44 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
+      {/* Account */}
+      {isAuthenticated && user && (
+        <>
+          <SectionHeader title="Account" />
+          <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...elevation.elevated }]}>
+            <View style={styles.row}>
+              <View style={[styles.avatar, { backgroundColor: colors.accent }]}>
+                <Text style={[typography.title2, { color: '#FFFFFF' }]}>
+                  {(user.name || user.email)[0].toUpperCase()}
+                </Text>
+              </View>
+              <View style={{ flex: 1, marginLeft: spacing.md }}>
+                <Text style={[typography.title3, { color: colors.text }]}>{user.name}</Text>
+                <Text style={[typography.caption, { color: colors.textSecondary }]}>{user.email}</Text>
+              </View>
+            </View>
+          </View>
+        </>
+      )}
+
+      {/* My Mosques */}
+      <SectionHeader title="My Mosques" />
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...elevation.elevated }]}>
+        <TouchableOpacity
+          style={styles.row}
+          onPress={() => router.push('/mosque-search')}>
+          <View style={{ flex: 1 }}>
+            <Text style={[typography.body, { color: colors.text }]}>
+              {mosqueCount > 0 ? `${mosqueCount} mosque${mosqueCount > 1 ? 's' : ''}` : 'No mosques yet'}
+            </Text>
+            <Text style={[typography.caption, { color: colors.textSecondary }]}>
+              Tap to find and join mosques
+            </Text>
+          </View>
+          <Text style={[typography.title3, { color: colors.accent }]}>+</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Location */}
       <SectionHeader title="Location" />
       <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...elevation.elevated }]}>
@@ -204,6 +264,17 @@ export default function SettingsScreen() {
         </View>
       </View>
 
+      {/* Sign Out */}
+      {isAuthenticated && (
+        <View style={{ marginTop: spacing['2xl'], marginHorizontal: spacing.xl }}>
+          <TouchableOpacity
+            onPress={handleSignOut}
+            style={[styles.signOutButton, { borderColor: colors.urgent }]}>
+            <Text style={[typography.callout, { color: colors.urgent }]}>Sign Out</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* App info */}
       <View style={styles.footer}>
         <Text style={[typography.caption, { color: colors.textSecondary, textAlign: 'center' }]}>
@@ -255,6 +326,13 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: '#FFFFFF',
   },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   button: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs + 2,
@@ -265,6 +343,12 @@ const styles = StyleSheet.create({
     margin: spacing.lg,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.sm,
+    alignItems: 'center',
+  },
+  signOutButton: {
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1.5,
     alignItems: 'center',
   },
   footer: {
