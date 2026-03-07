@@ -26,7 +26,7 @@
 <br>
 
 <p align="center">
-  <code>god-tier, not SaaS</code> — rooted in Islamic geometric art and calligraphic tradition
+  <code>not SaaS</code> — rooted in Islamic geometric art and calligraphic tradition
 </p>
 
 ---
