@@ -1,4 +1,4 @@
-"""Core models for Masjid Connect — maps 1:1 to the PocketBase collections."""
+"""Core models for Masjid Connect."""
 
 import uuid
 
