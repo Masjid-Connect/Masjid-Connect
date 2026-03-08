@@ -16,8 +16,8 @@ export default function AboutModal() {
           <ConvergentArch
             size={120}
             strokeColor={colors.tint}
-            nodeColor={palette.divineGold}
-            nodeOpacity={1}
+            goldColor={palette.divineGold}
+            goldOpacity={1}
           />
         </View>
 
