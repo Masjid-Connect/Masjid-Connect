@@ -5,7 +5,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Mosque, Announcement, MosqueEvent, UserSubscription } from '@/types';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.mosqueconnect.app/api/v1';
+const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.salafimasjid.app/api/v1';
 
 const KEYS = {
   AUTH_TOKEN: 'auth_token',
