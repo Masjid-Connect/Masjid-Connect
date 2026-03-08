@@ -1,4 +1,21 @@
-import { TextStyle } from 'react-native';
+import { Platform, TextStyle } from 'react-native';
+
+/**
+ * Font families — per CLAUDE.md brand spec.
+ * Arabic: Reem Kufi (headings), Noto Naskh Arabic (body)
+ * English: Playfair Display (headings), Source Serif 4 (body)
+ *
+ * Loaded via expo-font in _layout.tsx. Falls back to system serif if not loaded.
+ */
+export const fonts = {
+  heading: 'PlayfairDisplay-Bold',
+  headingSemiBold: 'PlayfairDisplay-SemiBold',
+  body: 'SourceSerif4-Regular',
+  bodyMedium: 'SourceSerif4-Medium',
+  arabicHeading: 'ReemKufi-Bold',
+  arabicBody: 'NotoNaskhArabic-Regular',
+  mono: 'SpaceMono',
+} as const;
 
 /** 8pt spacing grid — generous whitespace (30-50% more than typical) */
 export const spacing = {
@@ -90,40 +107,69 @@ export const borderRadius = {
 export const typography: Record<string, TextStyle> = {
   display: {
     fontSize: 34,
+    fontFamily: fonts.heading,
     fontWeight: '700',
     letterSpacing: -0.5,
     lineHeight: 40,
   },
   title1: {
     fontSize: 28,
+    fontFamily: fonts.headingSemiBold,
     fontWeight: '600',
     letterSpacing: -0.3,
     lineHeight: 34,
   },
   title2: {
     fontSize: 22,
+    fontFamily: fonts.headingSemiBold,
     fontWeight: '600',
     lineHeight: 28,
   },
   title3: {
     fontSize: 18,
+    fontFamily: fonts.bodyMedium,
     fontWeight: '500',
     lineHeight: 24,
   },
   body: {
     fontSize: 16,
+    fontFamily: fonts.body,
     fontWeight: '400',
     lineHeight: 24,
   },
   callout: {
     fontSize: 14,
+    fontFamily: fonts.bodyMedium,
     fontWeight: '500',
     lineHeight: 20,
   },
   caption: {
     fontSize: 12,
+    fontFamily: fonts.body,
     fontWeight: '400',
     lineHeight: 16,
+  },
+};
+
+/** Arabic typography — mirrors English scale with Arabic fonts */
+export const arabicTypography: Record<string, TextStyle> = {
+  heading: {
+    fontSize: 28,
+    fontFamily: fonts.arabicHeading,
+    fontWeight: '700',
+    lineHeight: 38,
+  },
+  body: {
+    fontSize: 16,
+    fontFamily: fonts.arabicBody,
+    fontWeight: '400',
+    lineHeight: 28,
+  },
+  caption: {
+    fontSize: 12,
+    fontFamily: fonts.arabicBody,
+    fontWeight: '400',
+    lineHeight: 20,
   },
 };
 
