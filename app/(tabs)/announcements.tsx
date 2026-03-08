@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { formatDistanceToNow } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -21,6 +22,7 @@ import type { Announcement } from '@/types';
 export default function AnnouncementsScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
+  const { t } = useTranslation();
   const { announcements, isLoading, refresh } = useAnnouncements();
   const [refreshing, setRefreshing] = useState(false);
   const [expandedItem, setExpandedItem] = useState<Announcement | null>(null);
@@ -59,7 +61,7 @@ export default function AnnouncementsScreen() {
               <>
                 <View style={[styles.urgentDot, { backgroundColor: colors.urgent }]} />
                 <Text style={[typography.caption2, { color: colors.urgent, fontWeight: '600', marginRight: spacing.xs }]}>
-                  URGENT
+                  {t('announcements.urgent')}
                 </Text>
                 {mosqueName ? (
                   <Text style={[typography.caption2, { color: colors.urgent, fontWeight: '600' }]}>
@@ -111,14 +113,14 @@ export default function AnnouncementsScreen() {
           ﷽
         </Text>
         <Text style={[typography.headline, { color: colors.textSecondary, textAlign: 'center' }]}>
-          Your mosque community awaits
+          {t('announcements.empty')}
         </Text>
         <Text
           style={[
             typography.subhead,
             { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm },
           ]}>
-          Find your mosque in Settings{'\n'}to see community announcements
+          {t('announcements.emptyHint')}
         </Text>
       </View>
     );
@@ -145,7 +147,7 @@ export default function AnnouncementsScreen() {
               <View style={styles.metaRow}>
                 <View style={[styles.urgentDot, { backgroundColor: colors.urgent }]} />
                 <Text style={[typography.caption2, { color: colors.urgent, fontWeight: '600' }]}>
-                  URGENT
+                  {t('announcements.urgent')}
                 </Text>
               </View>
             )}

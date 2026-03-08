@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter, Link } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -21,6 +22,7 @@ export default function LoginScreen() {
   const router = useRouter();
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
+  const { t } = useTranslation();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,7 +30,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email.trim() || !password) {
-      Alert.alert('Missing fields', 'Please enter email and password.');
+      Alert.alert(t('auth.missingFields'), t('auth.enterEmailPassword'));
       return;
     }
     setLoading(true);
@@ -36,8 +38,8 @@ export default function LoginScreen() {
       await auth.login(email.trim(), password);
       router.replace('/(tabs)');
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Login failed. Check your email and password.';
-      Alert.alert('Login failed', message);
+      const message = e instanceof Error ? e.message : t('auth.loginFailedHint');
+      Alert.alert(t('auth.loginFailed'), message);
     } finally {
       setLoading(false);
     }
@@ -49,10 +51,10 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.content}>
-        <Text style={[typography.title1, { color: colors.text, marginBottom: spacing.lg }]}>Sign in</Text>
+        <Text style={[typography.title1, { color: colors.text, marginBottom: spacing.lg }]}>{t('auth.login')}</Text>
         <TextInput
           style={[styles.input, { backgroundColor: colors.card, borderColor: colors.cardBorder, color: colors.text }]}
-          placeholder="Email"
+          placeholder={t('auth.email')}
           placeholderTextColor={colors.textSecondary}
           value={email}
           onChangeText={setEmail}
@@ -62,7 +64,7 @@ export default function LoginScreen() {
         />
         <TextInput
           style={[styles.input, { backgroundColor: colors.card, borderColor: colors.cardBorder, color: colors.text }]}
-          placeholder="Password"
+          placeholder={t('auth.password')}
           placeholderTextColor={colors.textSecondary}
           value={password}
           onChangeText={setPassword}
@@ -74,15 +76,15 @@ export default function LoginScreen() {
           disabled={loading}
           style={[styles.button, { backgroundColor: colors.tint }]}
         >
-          {loading ? <ActivityIndicator color="#FFF" /> : <Text style={[typography.callout, { color: '#FFFFFF' }]}>Sign in</Text>}
+          {loading ? <ActivityIndicator color="#FFF" /> : <Text style={[typography.callout, { color: '#FFFFFF' }]}>{t('auth.login')}</Text>}
         </TouchableOpacity>
         <Link href="/(auth)/register" asChild>
           <TouchableOpacity style={styles.link}>
-            <Text style={[typography.body, { color: colors.accent }]}>Create an account</Text>
+            <Text style={[typography.body, { color: colors.accent }]}>{t('auth.noAccount')}</Text>
           </TouchableOpacity>
         </Link>
         <TouchableOpacity onPress={() => router.back()} style={styles.link}>
-          <Text style={[typography.caption, { color: colors.textSecondary }]}>Back</Text>
+          <Text style={[typography.caption, { color: colors.textSecondary }]}>{t('auth.back')}</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

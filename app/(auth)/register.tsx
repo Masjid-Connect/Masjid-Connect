@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useRouter, Link } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -21,6 +22,7 @@ export default function RegisterScreen() {
   const router = useRouter();
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
+  const { t } = useTranslation();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -29,11 +31,11 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (!name.trim() || !email.trim() || !password) {
-      Alert.alert('Missing fields', 'Please enter name, email, and password.');
+      Alert.alert(t('auth.missingFields'), t('auth.enterAllFields'));
       return;
     }
     if (password.length < 8) {
-      Alert.alert('Weak password', 'Use at least 8 characters.');
+      Alert.alert(t('auth.weakPassword'), t('auth.weakPasswordHint'));
       return;
     }
     setLoading(true);
@@ -41,8 +43,8 @@ export default function RegisterScreen() {
       await auth.register(email.trim(), password, name.trim());
       router.replace('/(tabs)');
     } catch (e) {
-      const message = e instanceof Error ? e.message : 'Registration failed. Try again.';
-      Alert.alert('Registration failed', message);
+      const message = e instanceof Error ? e.message : t('auth.registerFailedHint');
+      Alert.alert(t('auth.registerFailed'), message);
     } finally {
       setLoading(false);
     }
@@ -54,10 +56,10 @@ export default function RegisterScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.content}>
-        <Text style={[typography.title1, { color: colors.text, marginBottom: spacing.lg }]}>Create account</Text>
+        <Text style={[typography.title1, { color: colors.text, marginBottom: spacing.lg }]}>{t('auth.register')}</Text>
         <TextInput
           style={[styles.input, { backgroundColor: colors.card, borderColor: colors.cardBorder, color: colors.text }]}
-          placeholder="Name"
+          placeholder={t('auth.name')}
           placeholderTextColor={colors.textSecondary}
           value={name}
           onChangeText={setName}
@@ -65,7 +67,7 @@ export default function RegisterScreen() {
         />
         <TextInput
           style={[styles.input, { backgroundColor: colors.card, borderColor: colors.cardBorder, color: colors.text }]}
-          placeholder="Email"
+          placeholder={t('auth.email')}
           placeholderTextColor={colors.textSecondary}
           value={email}
           onChangeText={setEmail}
@@ -75,7 +77,7 @@ export default function RegisterScreen() {
         />
         <TextInput
           style={[styles.input, { backgroundColor: colors.card, borderColor: colors.cardBorder, color: colors.text }]}
-          placeholder="Password (min 8 characters)"
+          placeholder={t('auth.passwordHint')}
           placeholderTextColor={colors.textSecondary}
           value={password}
           onChangeText={setPassword}
@@ -87,15 +89,15 @@ export default function RegisterScreen() {
           disabled={loading}
           style={[styles.button, { backgroundColor: colors.tint }]}
         >
-          {loading ? <ActivityIndicator color="#FFF" /> : <Text style={[typography.callout, { color: '#FFFFFF' }]}>Create account</Text>}
+          {loading ? <ActivityIndicator color="#FFF" /> : <Text style={[typography.callout, { color: '#FFFFFF' }]}>{t('auth.register')}</Text>}
         </TouchableOpacity>
         <Link href="/(auth)/login" asChild>
           <TouchableOpacity style={styles.link}>
-            <Text style={[typography.body, { color: colors.accent }]}>Already have an account? Sign in</Text>
+            <Text style={[typography.body, { color: colors.accent }]}>{t('auth.hasAccount')}</Text>
           </TouchableOpacity>
         </Link>
         <TouchableOpacity onPress={() => router.back()} style={styles.link}>
-          <Text style={[typography.caption, { color: colors.textSecondary }]}>Back</Text>
+          <Text style={[typography.caption, { color: colors.textSecondary }]}>{t('auth.back')}</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>

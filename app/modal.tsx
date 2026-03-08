@@ -1,4 +1,5 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { ConvergentArch } from '@/components/brand/ConvergentArch';
 import { KozoPaperBackground } from '@/components/ui/KozoPaperBackground';
 import { getColors, palette } from '@/constants/Colors';
@@ -8,6 +9,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 export default function AboutModal() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
+  const { t } = useTranslation();
 
   return (
     <KozoPaperBackground style={styles.container}>
@@ -26,22 +28,21 @@ export default function AboutModal() {
         </Text>
 
         <Text style={[typography.body, styles.tagline, { color: colors.textSecondary }]}>
-          Your community, connected
+          {t('about.tagline')}
         </Text>
 
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-          <InfoRow label="Version" value="1.0.0" color={colors.text} />
+          <InfoRow label={t('about.version')} value="1.0.0" color={colors.text} />
           <View style={[styles.divider, { backgroundColor: colors.divider }]} />
-          <InfoRow label="Prayer Times" value="Aladhan API" color={colors.text} />
+          <InfoRow label={t('about.prayerTimes')} value="Aladhan API" color={colors.text} />
           <View style={[styles.divider, { backgroundColor: colors.divider }]} />
-          <InfoRow label="Offline Fallback" value="adhan-js" color={colors.text} />
+          <InfoRow label={t('about.offlineFallback')} value="adhan-js" color={colors.text} />
           <View style={[styles.divider, { backgroundColor: colors.divider }]} />
-          <InfoRow label="Framework" value="React Native + Expo" color={colors.text} />
+          <InfoRow label={t('about.framework')} value="React Native + Expo" color={colors.text} />
         </View>
 
         <Text style={[typography.caption, styles.footer, { color: colors.textSecondary }]}>
-          Built with care for the Muslim community.{'\n'}
-          Prayer time data provided by Aladhan API.
+          {t('about.footer')}
         </Text>
       </ScrollView>
     </KozoPaperBackground>

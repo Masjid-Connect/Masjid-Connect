@@ -11,6 +11,8 @@ import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Line, Circle } from 'react-native-svg';
 
+import { useTranslation } from 'react-i18next';
+
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography } from '@/constants/Theme';
@@ -34,6 +36,7 @@ export default function PrayerTimesScreen() {
   const insets = useSafeAreaInsets();
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
+  const { t } = useTranslation();
   const { prayers, nextPrayer, countdown, hijriDate, isLoading, source, refresh } = usePrayerTimes();
 
   const [refreshing, setRefreshing] = React.useState(false);
@@ -56,7 +59,7 @@ export default function PrayerTimesScreen() {
       <Animated.View entering={FadeIn.duration(600)} style={styles.header}>
         <View style={styles.headerRow}>
           <View style={styles.headerText}>
-            <Text style={[typography.title1, { color: colors.text }]}>Prayer Times</Text>
+            <Text style={[typography.title1, { color: colors.text }]}>{t('tabs.prayerTimes')}</Text>
             {hijriDate && (
               <Text style={[typography.footnote, { color: colors.textSecondary, marginTop: spacing.xs }]}>
                 {hijriDate}
@@ -64,7 +67,7 @@ export default function PrayerTimesScreen() {
             )}
             {source === 'cache' && (
               <Text style={[typography.caption1, { color: colors.textSecondary, marginTop: spacing['2xs'] }]}>
-                Cached times
+                {t('prayer.cached')}
               </Text>
             )}
           </View>
@@ -81,7 +84,7 @@ export default function PrayerTimesScreen() {
         <View style={styles.loading}>
           <ActivityIndicator size="large" color={colors.accent} />
           <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.lg }]}>
-            Calculating prayer times...
+            {t('prayer.calculating')}
           </Text>
         </View>
       ) : (
@@ -107,7 +110,7 @@ export default function PrayerTimesScreen() {
                 {formatPrayerTime(nextPrayerData.time)}
               </Text>
               <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xs }]}>
-                in {countdown}
+                {t('prayer.timeRemaining', { countdown })}
               </Text>
               {nextPrayerData.arabicLabel && (
                 <Text style={[typography.footnote, { color: colors.textTertiary, textAlign: 'center', marginTop: spacing.xs, opacity: 0.7 }]}>
