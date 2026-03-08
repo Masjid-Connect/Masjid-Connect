@@ -11,9 +11,10 @@ bind = "0.0.0.0:8000"
 # ------------------------------------------------------------------
 # Workers
 # ------------------------------------------------------------------
-# Formula: 2 × CPU cores + 1. For a 1-vCPU droplet, 3 is ideal.
-# If you upgrade to a 2-vCPU droplet, change this to 5.
-workers = 3
+# Shared droplet (regimeflex-prod, 4 GB RAM with other services).
+# 2 workers keeps memory footprint low (~250 MB total).
+# If Masjid Connect gets its own droplet, increase to 3 or 2×CPU+1.
+workers = 2
 worker_class = "gthread"
 threads = 2
 

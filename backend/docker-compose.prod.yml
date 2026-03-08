@@ -33,7 +33,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256M
+          memory: 200M    # PostgreSQL is lightweight for this workload
 
   # -----------------------------------------------------------
   # Django Web Application (production settings)
@@ -58,7 +58,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M
+          memory: 384M    # ~128M per Gunicorn worker × 3 workers
 
 volumes:
   postgres_data:
