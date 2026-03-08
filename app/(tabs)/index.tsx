@@ -9,14 +9,26 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Line, Circle } from 'react-native-svg';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, elevation, borderRadius, typography } from '@/constants/Theme';
+import { spacing, typography } from '@/constants/Theme';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { formatPrayerTime } from '@/lib/prayer';
 import { ConvergentArch } from '@/components/brand/ConvergentArch';
 import { KozoPaperBackground } from '@/components/ui/KozoPaperBackground';
+
+/** Gold diamond divider — a thin line with a diamond at center */
+const GoldDivider = ({ color }: { color: string }) => (
+  <View style={styles.dividerContainer}>
+    <Svg height={12} width="100%" style={styles.dividerSvg}>
+      <Line x1="20%" y1="6" x2="45%" y2="6" stroke={color} strokeWidth={0.5} strokeOpacity={0.4} />
+      <Circle cx="50%" cy="6" r="2.5" fill={color} fillOpacity={0.6} />
+      <Line x1="55%" y1="6" x2="80%" y2="6" stroke={color} strokeWidth={0.5} strokeOpacity={0.4} />
+    </Svg>
+  </View>
+);
 
 export default function PrayerTimesScreen() {
   const insets = useSafeAreaInsets();
@@ -32,24 +44,26 @@ export default function PrayerTimesScreen() {
     setRefreshing(false);
   };
 
+  const nextPrayerData = prayers.find((p) => p.name === nextPrayer);
+
   return (
     <KozoPaperBackground
       color={colors.background}
       showTexture={effectiveScheme !== 'dark'}
       style={{ paddingTop: insets.top }}
     >
-      {/* Header with brand mark */}
+      {/* Header */}
       <Animated.View entering={FadeIn.duration(600)} style={styles.header}>
         <View style={styles.headerRow}>
           <View style={styles.headerText}>
             <Text style={[typography.title1, { color: colors.text }]}>Prayer Times</Text>
             {hijriDate && (
-              <Text style={[typography.callout, { color: colors.textSecondary, marginTop: spacing.xs }]}>
+              <Text style={[typography.footnote, { color: colors.textSecondary, marginTop: spacing.xs }]}>
                 {hijriDate}
               </Text>
             )}
             {source === 'cache' && (
-              <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 2 }]}>
+              <Text style={[typography.caption1, { color: colors.textSecondary, marginTop: spacing['2xs'] }]}>
                 Cached times
               </Text>
             )}
@@ -66,7 +80,7 @@ export default function PrayerTimesScreen() {
       {isLoading && prayers.length === 0 ? (
         <View style={styles.loading}>
           <ActivityIndicator size="large" color={colors.accent} />
-          <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.md }]}>
+          <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.lg }]}>
             Calculating prayer times...
           </Text>
         </View>
@@ -77,86 +91,96 @@ export default function PrayerTimesScreen() {
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
           }
           showsVerticalScrollIndicator={false}>
-          {/* Next Prayer Countdown */}
-          {nextPrayer && (
+
+          {/* Hero countdown section */}
+          {nextPrayerData && (
             <Animated.View
               entering={FadeInDown.duration(500).springify()}
-              style={[
-                styles.countdownCard,
-                {
-                  backgroundColor: colors.prayerActiveGlow,
-                  borderColor: colors.prayerActive,
-                },
-              ]}>
-              <Text style={[typography.callout, { color: colors.textSecondary }]}>Next Prayer</Text>
-              <Text style={[typography.display, { color: colors.prayerActive, marginTop: spacing.xs }]}>
-                {prayers.find((p) => p.name === nextPrayer)?.label}
+              style={styles.countdownSection}
+            >
+              <GoldDivider color={colors.accent} />
+
+              <Text style={[typography.sectionHeader, { color: colors.textSecondary, marginTop: spacing['2xl'], textAlign: 'center' }]}>
+                {nextPrayerData.label}
               </Text>
-              <Text style={[typography.title2, { color: colors.text, marginTop: spacing.xs }]}>
-                {countdown}
+              <Text style={[typography.prayerCountdown, { color: colors.text, textAlign: 'center', marginTop: spacing.xs }]}>
+                {formatPrayerTime(nextPrayerData.time)}
               </Text>
-              <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 2 }]}>
-                {prayers.find((p) => p.name === nextPrayer)?.arabicLabel}
+              <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xs }]}>
+                in {countdown}
               </Text>
+              {nextPrayerData.arabicLabel && (
+                <Text style={[typography.footnote, { color: colors.textTertiary, textAlign: 'center', marginTop: spacing.xs, opacity: 0.7 }]}>
+                  {nextPrayerData.arabicLabel}
+                </Text>
+              )}
+
+              <GoldDivider color={colors.accent} />
             </Animated.View>
           )}
 
-          {/* Prayer List */}
-          {prayers.map((prayer, index) => {
-            const isNext = prayer.name === nextPrayer;
-            const isPassed = !isNext && prayer.time < new Date() && prayer.name !== 'sunrise';
+          {/* Prayer list — bare rows, no cards */}
+          <View style={styles.prayerList}>
+            {prayers.map((prayer, index) => {
+              const isNext = prayer.name === nextPrayer;
+              const isPassed = !isNext && prayer.time < new Date() && prayer.name !== 'sunrise';
 
-            return (
-              <Animated.View
-                key={prayer.name}
-                entering={FadeInDown.delay(index * 80).duration(400).springify()}
-                style={[
-                  styles.prayerRow,
-                  {
-                    backgroundColor: isNext ? colors.prayerActiveGlow : colors.card,
-                    borderColor: isNext ? colors.prayerActive : colors.cardBorder,
-                    ...(isNext ? elevation.floating : elevation.elevated),
-                  },
-                ]}>
-                {/* Active indicator */}
-                {isNext && <View style={[styles.activeIndicator, { backgroundColor: colors.prayerActive }]} />}
+              return (
+                <Animated.View
+                  key={prayer.name}
+                  entering={FadeInDown.delay(index * 50).duration(350).springify()}
+                  style={[
+                    styles.prayerRow,
+                    index < prayers.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator },
+                  ]}>
+                  {/* Gold dot for active prayer */}
+                  <View style={styles.dotContainer}>
+                    {isNext && (
+                      <View style={[styles.activeDot, { backgroundColor: colors.prayerActive }]} />
+                    )}
+                  </View>
 
-                <View style={styles.prayerInfo}>
                   <Text
                     style={[
-                      typography.title3,
+                      typography.body,
                       {
                         color: isPassed ? colors.textSecondary : colors.text,
-                        opacity: isPassed ? 0.6 : 1,
+                        flex: 1,
+                        opacity: isPassed ? 0.7 : 1,
                       },
                     ]}>
                     {prayer.label}
                   </Text>
+
                   <Text
                     style={[
-                      typography.caption,
-                      { color: colors.textSecondary, opacity: isPassed ? 0.5 : 0.8 },
+                      typography.footnote,
+                      {
+                        color: isPassed ? colors.textSecondary : colors.textSecondary,
+                        marginRight: spacing.lg,
+                        opacity: isPassed ? 0.5 : 0.8,
+                      },
                     ]}>
                     {prayer.arabicLabel}
                   </Text>
-                </View>
 
-                <Text
-                  style={[
-                    typography.title3,
-                    {
-                      color: isNext ? colors.prayerActive : isPassed ? colors.textSecondary : colors.text,
-                      fontVariant: ['tabular-nums'],
-                      opacity: isPassed ? 0.6 : 1,
-                    },
-                  ]}>
-                  {formatPrayerTime(prayer.time)}
-                </Text>
-              </Animated.View>
-            );
-          })}
+                  <Text
+                    style={[
+                      typography.prayerTime,
+                      {
+                        color: isNext ? colors.prayerActive : isPassed ? colors.textSecondary : colors.text,
+                        fontVariant: ['tabular-nums'],
+                        opacity: isPassed ? 0.7 : 1,
+                      },
+                    ]}>
+                    {formatPrayerTime(prayer.time)}
+                  </Text>
+                </Animated.View>
+              );
+            })}
+          </View>
 
-          <View style={{ height: spacing['2xl'] }} />
+          <View style={{ height: spacing['4xl'] }} />
         </ScrollView>
       )}
     </KozoPaperBackground>
@@ -164,13 +188,10 @@ export default function PrayerTimesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   header: {
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
+    paddingHorizontal: spacing['3xl'],
+    paddingTop: spacing['2xl'],
+    paddingBottom: spacing.lg,
   },
   headerRow: {
     flexDirection: 'row',
@@ -186,37 +207,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scrollContent: {
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.sm,
+    paddingHorizontal: spacing['3xl'],
   },
-  countdownCard: {
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-    alignItems: 'center',
+  countdownSection: {
+    paddingVertical: spacing.lg,
+  },
+  dividerContainer: {
+    paddingVertical: spacing.xl,
+  },
+  dividerSvg: {
+    // SVG fills container
+  },
+  prayerList: {
+    marginTop: spacing.sm,
   },
   prayerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    borderRadius: borderRadius.md,
-    borderWidth: 0.5,
-    padding: spacing.lg,
-    paddingVertical: spacing.md + 4,
-    marginBottom: spacing.sm,
-    overflow: 'hidden',
+    paddingVertical: spacing.lg,
   },
-  activeIndicator: {
-    position: 'absolute',
-    left: 0,
-    top: 0,
-    bottom: 0,
-    width: 3,
-    borderTopLeftRadius: borderRadius.md,
-    borderBottomLeftRadius: borderRadius.md,
+  dotContainer: {
+    width: 20,
+    alignItems: 'center',
   },
-  prayerInfo: {
-    flex: 1,
+  activeDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
   },
 });

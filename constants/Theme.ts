@@ -1,42 +1,42 @@
-import { Platform, TextStyle } from 'react-native';
+import { TextStyle } from 'react-native';
 
 /**
- * Font families — per CLAUDE.md brand spec.
- * Arabic: Reem Kufi (headings), Noto Naskh Arabic (body)
- * English: Playfair Display (headings), Source Serif 4 (body)
- *
- * Loaded via expo-font in _layout.tsx. Falls back to system serif if not loaded.
+ * Font families — system-first strategy.
+ * Apple uses one family (SF Pro) with weight variation. We do the same:
+ * system fonts for everything, SpaceMono for technical accents only.
  */
 export const fonts = {
-  heading: 'PlayfairDisplay-Bold',
-  headingSemiBold: 'PlayfairDisplay-SemiBold',
-  body: 'SourceSerif4-Regular',
-  bodyMedium: 'SourceSerif4-Medium',
-  arabicHeading: 'ReemKufi-Bold',
-  arabicBody: 'NotoNaskhArabic-Regular',
+  heading: undefined, // system default (SF Pro / Roboto)
+  headingSemiBold: undefined,
+  body: undefined,
+  bodyMedium: undefined,
+  arabicHeading: undefined, // system Arabic (SF Arabic / Noto)
+  arabicBody: undefined,
   mono: 'SpaceMono',
 } as const;
 
-/** 8pt spacing grid — generous whitespace (30-50% more than typical) */
+/**
+ * Spacing scale — expanded from 8pt grid.
+ * Screen edge insets: spacing['3xl'] (32px).
+ * Prayer row height target: 52px.
+ */
 export const spacing = {
+  '2xs': 2,
   xs: 4,
   sm: 8,
-  md: 16,
-  lg: 24,
-  xl: 32,
-  '2xl': 48,
-  '3xl': 64,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  '2xl': 24,
+  '3xl': 32,
+  '4xl': 48,
+  '5xl': 64,
 } as const;
 
 /**
  * Brand Identity — The Convergent Arch
- *
- * Timing, sizing, and material constants for the living identity system.
- * These tokens govern how the mark behaves across the splash screen,
- * tab bar, app icon, and notification badges.
  */
 export const brand = {
-  /** Splash screen animation timing (ms) */
   splash: {
     pauseBeforeDraw: 1000,
     drawDuration: 1500,
@@ -45,33 +45,61 @@ export const brand = {
     contentFadeDelay: 400,
     contentFadeDuration: 800,
   },
-  /** Mark stroke weights in viewBox units */
   stroke: {
     splash: 1.5,
     tabBar: 1.2,
     tabBarActive: 1.5,
     header: 1.0,
   },
-  /** Gold node radii in viewBox units */
   node: {
     splash: 4,
     tabBar: 2.5,
     tabBarActive: 3.5,
     header: 3,
   },
-  /** Tab bar icon sizing */
   tabIcon: {
     size: 26,
   },
-  /** Notification badge */
   badge: {
     dotSize: 8,
     countSize: 18,
   },
 } as const;
 
-/** Muqarnas-inspired depth system */
+/**
+ * Elevation — black shadows only (Apple convention).
+ * Colored glow reserved for intentional brand moments.
+ */
 export const elevation = {
+  none: {
+    shadowColor: 'transparent',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    elevation: 0,
+  },
+  sm: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  md: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  lg: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  // Keep old names as aliases for compatibility during migration
   ground: {
     shadowColor: 'transparent',
     shadowOffset: { width: 0, height: 0 },
@@ -80,14 +108,14 @@ export const elevation = {
     elevation: 0,
   },
   elevated: {
-    shadowColor: '#1B4965',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
-    elevation: 2,
+    elevation: 3,
   },
   floating: {
-    shadowColor: '#1B4965',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.12,
     shadowRadius: 24,
@@ -96,78 +124,133 @@ export const elevation = {
 } as const;
 
 export const borderRadius = {
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 24,
+  xs: 6,
+  sm: 10,
+  md: 14,
+  lg: 20,
+  xl: 28,
   full: 9999,
 } as const;
 
-/** Type scale — serif-forward, editorial */
+/**
+ * Typography — Apple's Human Interface type scale.
+ * System fonts with weight variation. No custom fonts needed for MVP.
+ */
 export const typography: Record<string, TextStyle> = {
-  display: {
+  largeTitle: {
     fontSize: 34,
-    fontFamily: fonts.heading,
     fontWeight: '700',
-    letterSpacing: -0.5,
-    lineHeight: 40,
+    letterSpacing: 0.37,
+    lineHeight: 41,
   },
   title1: {
     fontSize: 28,
-    fontFamily: fonts.headingSemiBold,
-    fontWeight: '600',
-    letterSpacing: -0.3,
+    fontWeight: '700',
+    letterSpacing: 0.36,
     lineHeight: 34,
   },
   title2: {
     fontSize: 22,
-    fontFamily: fonts.headingSemiBold,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.35,
     lineHeight: 28,
   },
   title3: {
-    fontSize: 18,
-    fontFamily: fonts.bodyMedium,
-    fontWeight: '500',
-    lineHeight: 24,
+    fontSize: 20,
+    fontWeight: '600',
+    letterSpacing: 0.38,
+    lineHeight: 25,
+  },
+  headline: {
+    fontSize: 17,
+    fontWeight: '600',
+    letterSpacing: -0.41,
+    lineHeight: 22,
   },
   body: {
-    fontSize: 16,
-    fontFamily: fonts.body,
+    fontSize: 17,
     fontWeight: '400',
-    lineHeight: 24,
+    letterSpacing: -0.41,
+    lineHeight: 22,
   },
   callout: {
-    fontSize: 14,
-    fontFamily: fonts.bodyMedium,
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: '400',
+    letterSpacing: -0.32,
+    lineHeight: 21,
+  },
+  subhead: {
+    fontSize: 15,
+    fontWeight: '400',
+    letterSpacing: -0.24,
     lineHeight: 20,
+  },
+  footnote: {
+    fontSize: 13,
+    fontWeight: '400',
+    letterSpacing: -0.08,
+    lineHeight: 18,
+  },
+  caption1: {
+    fontSize: 12,
+    fontWeight: '400',
+    letterSpacing: 0,
+    lineHeight: 16,
+  },
+  caption2: {
+    fontSize: 11,
+    fontWeight: '400',
+    letterSpacing: 0.07,
+    lineHeight: 13,
+  },
+  // Special purpose
+  prayerCountdown: {
+    fontSize: 54,
+    fontWeight: '200',
+    letterSpacing: -1.5,
+    lineHeight: 60,
+  },
+  prayerTime: {
+    fontSize: 17,
+    fontWeight: '600',
+    lineHeight: 22,
+  },
+  sectionHeader: {
+    fontSize: 13,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    lineHeight: 18,
+    textTransform: 'uppercase',
+  },
+  // Legacy aliases for compatibility
+  display: {
+    fontSize: 34,
+    fontWeight: '700',
+    letterSpacing: 0.37,
+    lineHeight: 41,
   },
   caption: {
     fontSize: 12,
-    fontFamily: fonts.body,
     fontWeight: '400',
+    letterSpacing: 0,
     lineHeight: 16,
   },
 };
 
-/** Arabic typography — mirrors English scale with Arabic fonts */
+/** Arabic typography — mirrors English scale */
 export const arabicTypography: Record<string, TextStyle> = {
   heading: {
     fontSize: 28,
-    fontFamily: fonts.arabicHeading,
     fontWeight: '700',
     lineHeight: 38,
   },
   body: {
     fontSize: 16,
-    fontFamily: fonts.arabicBody,
     fontWeight: '400',
     lineHeight: 28,
   },
   caption: {
     fontSize: 12,
-    fontFamily: fonts.arabicBody,
     fontWeight: '400',
     lineHeight: 20,
   },

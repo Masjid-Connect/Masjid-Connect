@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   },
   paperBackground: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: palette.warmIvory,
+    backgroundColor: palette.limestone,
   },
   markContainer: {
     alignItems: 'center',

@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import * as Location from 'expo-location';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -113,7 +114,7 @@ export default function SettingsScreen() {
       const { latitude, longitude } = loc.coords;
       await setUserLocation(latitude, longitude);
       setLocation({ latitude, longitude });
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'Could not detect your location. Please try again.');
     } finally {
       setLocationLoading(false);
@@ -184,72 +185,92 @@ export default function SettingsScreen() {
     }
   };
 
+  const subscribedIds = subscribedMosques.map((m) => m.id);
+
   const SectionHeader = ({ title }: { title: string }) => (
-    <Text style={[typography.callout, { color: colors.textSecondary, marginTop: spacing.lg, marginBottom: spacing.sm, paddingHorizontal: spacing.xl, textTransform: 'uppercase', letterSpacing: 1 }]}>
+    <Text style={[typography.sectionHeader, { color: colors.textSecondary, marginTop: spacing['2xl'], marginBottom: spacing.sm, paddingHorizontal: spacing['3xl'] }]}>
       {title}
     </Text>
   );
 
-  const subscribedIds = subscribedMosques.map((m) => m.id);
+  const CheckRow = ({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) => (
+    <TouchableOpacity
+      onPress={onPress}
+      style={[styles.row, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}
+    >
+      <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{label}</Text>
+      {selected && <Ionicons name="checkmark" size={20} color={colors.tint} />}
+    </TouchableOpacity>
+  );
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={styles.content}
+    >
       {/* My Mosques */}
       <SectionHeader title="My mosques" />
-      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...elevation.elevated }]}>
+      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
         {subscribedMosques.length === 0 ? (
-          <View style={styles.mosqueEmpty}>
-            <Text style={[typography.body, { color: colors.textSecondary, textAlign: 'center' }]}>
+          <View style={styles.emptyMosque}>
+            <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center' }]}>
               No mosques yet. Add one below to see announcements and events.
             </Text>
           </View>
         ) : (
-          subscribedMosques.map((m) => (
-            <View key={m.id} style={[styles.optionRow, { borderBottomColor: colors.divider }]}>
+          subscribedMosques.map((m, i) => (
+            <View key={m.id} style={[styles.row, i < subscribedMosques.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}>
               <Text style={[typography.body, { color: colors.text, flex: 1 }]} numberOfLines={1}>{m.name}</Text>
               <TouchableOpacity onPress={() => handleUnsubscribe(m.id)}>
-                <Text style={[typography.callout, { color: colors.urgent }]}>Unsubscribe</Text>
+                <Text style={[typography.subhead, { color: colors.urgent }]}>Remove</Text>
               </TouchableOpacity>
             </View>
           ))
         )}
-        <View style={[styles.mosqueSearchRow, { borderTopWidth: 0.5, borderTopColor: colors.divider }]}>
-          <Text style={[typography.callout, { color: colors.textSecondary, marginBottom: spacing.xs }]}>Add mosque</Text>
+
+        {/* Search section */}
+        <View style={[styles.searchSection, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.separator }]}>
+          <Text style={[typography.footnote, { color: colors.textSecondary, marginBottom: spacing.sm }]}>Add mosque</Text>
           <TextInput
-            style={[styles.input, { backgroundColor: colors.background, borderColor: colors.cardBorder, color: colors.text }]}
+            style={[styles.input, { backgroundColor: colors.backgroundGrouped, borderColor: colors.separator, color: colors.text }]}
             placeholder="City name"
             placeholderTextColor={colors.textSecondary}
             value={searchCity}
             onChangeText={setSearchCity}
+            returnKeyType="search"
+            onSubmitEditing={handleSearchByCity}
           />
-          <View style={styles.mosqueButtons}>
+          <View style={styles.searchButtons}>
             <TouchableOpacity
               onPress={handleSearchByCity}
               disabled={searchLoading}
-              style={[styles.mosqueButton, { backgroundColor: colors.tint }]}>
-              {searchLoading ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={[typography.callout, { color: '#FFFFFF' }]}>Search</Text>}
+              style={[styles.searchBtn, { backgroundColor: colors.tint }]}
+            >
+              {searchLoading ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>Search</Text>}
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleNearby}
               disabled={nearbyLoading}
-              style={[styles.mosqueButton, { backgroundColor: colors.accent }]}>
-              {nearbyLoading ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={[typography.callout, { color: '#FFFFFF' }]}>Nearby</Text>}
+              style={[styles.searchBtn, { backgroundColor: colors.accent }]}
+            >
+              {nearbyLoading ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>Nearby</Text>}
             </TouchableOpacity>
           </View>
         </View>
+
         {searchResults.length > 0 && (
-          <View style={[styles.searchResults, { borderTopColor: colors.divider }]}>
-            <Text style={[typography.caption, { color: colors.textSecondary, marginBottom: spacing.xs }]}>Results</Text>
-            {searchResults.map((m) => {
+          <View style={[styles.searchSection, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.separator }]}>
+            <Text style={[typography.footnote, { color: colors.textSecondary, marginBottom: spacing.sm }]}>Results</Text>
+            {searchResults.map((m, i) => {
               const isSubscribed = subscribedIds.includes(m.id);
               return (
-                <View key={m.id} style={[styles.optionRow, { borderBottomColor: colors.divider }]}>
+                <View key={m.id} style={[styles.row, i < searchResults.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}>
                   <Text style={[typography.body, { color: colors.text, flex: 1 }]} numberOfLines={1}>{m.name}</Text>
                   {isSubscribed ? (
-                    <Text style={[typography.caption, { color: colors.textSecondary }]}>Subscribed</Text>
+                    <Ionicons name="checkmark-circle" size={20} color={colors.success} />
                   ) : (
                     <TouchableOpacity onPress={() => handleSubscribe(m.id)}>
-                      <Text style={[typography.callout, { color: colors.accent }]}>Subscribe</Text>
+                      <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>Add</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -261,22 +282,22 @@ export default function SettingsScreen() {
 
       {/* Location */}
       <SectionHeader title="Location" />
-      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...elevation.elevated }]}>
+      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
         {location ? (
           <View style={styles.row}>
             <View style={{ flex: 1 }}>
               <Text style={[typography.body, { color: colors.text }]}>Location detected</Text>
-              <Text style={[typography.caption, { color: colors.textSecondary }]}>
+              <Text style={[typography.caption1, { color: colors.textSecondary }]}>
                 {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
               </Text>
             </View>
-            <TouchableOpacity onPress={handleDetectLocation} style={[styles.button, { borderColor: colors.accent }]}>
-              <Text style={[typography.callout, { color: colors.accent }]}>Update</Text>
+            <TouchableOpacity onPress={handleDetectLocation}>
+              <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>Update</Text>
             </TouchableOpacity>
           </View>
         ) : (
-          <TouchableOpacity onPress={handleDetectLocation} style={[styles.detectButton, { backgroundColor: colors.tint }]}>
-            <Text style={[typography.callout, { color: '#FFFFFF' }]}>
+          <TouchableOpacity onPress={handleDetectLocation} style={[styles.actionBtn, { backgroundColor: colors.tint }]}>
+            <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>
               {locationLoading ? 'Detecting...' : 'Detect My Location'}
             </Text>
           </TouchableOpacity>
@@ -285,96 +306,47 @@ export default function SettingsScreen() {
 
       {/* Calculation Method */}
       <SectionHeader title="Calculation Method" />
-      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...elevation.elevated }]}>
-        {Object.entries(CALCULATION_METHODS).map(([key, value]) => {
-          const isSelected = key === methodName;
-          return (
-            <TouchableOpacity
-              key={key}
-              onPress={() => handleMethodChange(key)}
-              style={[
-                styles.optionRow,
-                { borderBottomColor: colors.divider },
-              ]}>
-              <Text style={[typography.body, { color: colors.text, flex: 1 }]}>
-                {value.label}
-              </Text>
-              <View
-                style={[
-                  styles.radio,
-                  {
-                    borderColor: isSelected ? colors.accent : colors.cardBorder,
-                    backgroundColor: isSelected ? colors.accent : 'transparent',
-                  },
-                ]}>
-                {isSelected && <View style={styles.radioInner} />}
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
+        {Object.entries(CALCULATION_METHODS).map(([key, value], i, arr) => (
+          <CheckRow
+            key={key}
+            label={value.label}
+            selected={key === methodName}
+            onPress={() => handleMethodChange(key)}
+          />
+        ))}
       </View>
 
       {/* Prayer Reminders */}
       <SectionHeader title="Prayer Reminder" />
-      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...elevation.elevated }]}>
-        {REMINDER_OPTIONS.map((opt) => {
-          const isSelected = opt.value === reminderMin;
-          return (
-            <TouchableOpacity
-              key={opt.value}
-              onPress={() => handleReminderChange(opt.value)}
-              style={[styles.optionRow, { borderBottomColor: colors.divider }]}>
-              <Text style={[typography.body, { color: colors.text, flex: 1 }]}>
-                {opt.label}
-              </Text>
-              <View
-                style={[
-                  styles.radio,
-                  {
-                    borderColor: isSelected ? colors.accent : colors.cardBorder,
-                    backgroundColor: isSelected ? colors.accent : 'transparent',
-                  },
-                ]}>
-                {isSelected && <View style={styles.radioInner} />}
-              </View>
-            </TouchableOpacity>
-          );
-        })}
+      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
+        {REMINDER_OPTIONS.map((opt) => (
+          <CheckRow
+            key={opt.value}
+            label={opt.label}
+            selected={opt.value === reminderMin}
+            onPress={() => handleReminderChange(opt.value)}
+          />
+        ))}
       </View>
 
       {/* Preferences */}
-      <SectionHeader title="Preferences" />
-      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...elevation.elevated }]}>
-        <View style={[styles.row, { borderBottomWidth: 0.5, borderBottomColor: colors.divider }]}>
-          <Text style={[typography.body, { color: colors.text, flex: 1 }]}>Appearance</Text>
-        </View>
-        {THEME_OPTIONS.map((opt) => {
-          const isSelected = themePreference === opt.value;
-          return (
-            <TouchableOpacity
-              key={opt.value}
-              onPress={() => setThemePreference(opt.value)}
-              style={[styles.optionRow, { borderBottomColor: colors.divider }]}>
-              <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{opt.label}</Text>
-              <View
-                style={[
-                  styles.radio,
-                  {
-                    borderColor: isSelected ? colors.accent : colors.cardBorder,
-                    backgroundColor: isSelected ? colors.accent : 'transparent',
-                  },
-                ]}>
-                {isSelected && <View style={styles.radioInner} />}
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-        <View style={styles.row}>
+      <SectionHeader title="Appearance" />
+      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
+        {THEME_OPTIONS.map((opt) => (
+          <CheckRow
+            key={opt.value}
+            label={opt.label}
+            selected={themePreference === opt.value}
+            onPress={() => setThemePreference(opt.value)}
+          />
+        ))}
+        <View style={[styles.row, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.separator }]}>
           <Text style={[typography.body, { color: colors.text, flex: 1 }]}>24-hour time</Text>
           <Switch
             value={use24h}
             onValueChange={handleToggle24h}
-            trackColor={{ false: colors.divider, true: colors.accent }}
+            trackColor={{ false: colors.separator, true: colors.tint }}
             thumbColor="#FFFFFF"
           />
         </View>
@@ -382,38 +354,34 @@ export default function SettingsScreen() {
 
       {/* Account */}
       <SectionHeader title="Account" />
-      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder, ...elevation.elevated }]}>
+      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
         {isLoggedIn && user ? (
           <View style={styles.row}>
             <View style={{ flex: 1 }}>
               <Text style={[typography.body, { color: colors.text }]}>{user.name || user.email}</Text>
-              <Text style={[typography.caption, { color: colors.textSecondary }]}>{user.email}</Text>
+              <Text style={[typography.caption1, { color: colors.textSecondary }]}>{user.email}</Text>
             </View>
-            <TouchableOpacity
-              onPress={async () => {
-                await auth.logout();
-              }}
-            >
-              <Text style={[typography.callout, { color: colors.urgent }]}>Sign out</Text>
+            <TouchableOpacity onPress={async () => { await auth.logout(); }}>
+              <Text style={[typography.subhead, { color: colors.urgent }]}>Sign out</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <TouchableOpacity
             onPress={() => router.push('/(auth)/login')}
-            style={[styles.detectButton, { backgroundColor: colors.tint }]}
+            style={[styles.actionBtn, { backgroundColor: colors.tint }]}
           >
-            <Text style={[typography.callout, { color: '#FFFFFF' }]}>Sign in</Text>
+            <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>Sign in</Text>
           </TouchableOpacity>
         )}
       </View>
 
       {/* App info */}
       <View style={styles.footer}>
-        <Text style={[typography.caption, { color: colors.textSecondary, textAlign: 'center' }]}>
+        <Text style={[typography.caption1, { color: colors.textSecondary, textAlign: 'center' }]}>
           Mosque Connect v1.0.0
         </Text>
-        <Text style={[typography.caption, { color: colors.textSecondary, textAlign: 'center', marginTop: 4 }]}>
-          Prayer times via Aladhan API + adhan-js
+        <Text style={[typography.caption1, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xs }]}>
+          Prayer times via Aladhan API
         </Text>
       </View>
     </ScrollView>
@@ -425,81 +393,51 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingBottom: spacing['3xl'],
+    paddingBottom: spacing['5xl'],
   },
   card: {
-    marginHorizontal: spacing.xl,
+    marginHorizontal: spacing['3xl'],
     borderRadius: borderRadius.md,
-    borderWidth: 0.5,
     overflow: 'hidden',
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+  },
+  emptyMosque: {
     padding: spacing.lg,
   },
-  optionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  searchSection: {
     padding: spacing.lg,
-    borderBottomWidth: 0.5,
   },
-  radio: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  radioInner: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#FFFFFF',
-  },
-  button: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs + 2,
+  input: {
+    borderWidth: StyleSheet.hairlineWidth,
     borderRadius: borderRadius.sm,
-    borderWidth: 1,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    fontSize: 17,
   },
-  detectButton: {
-    margin: spacing.lg,
+  searchButtons: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  searchBtn: {
+    flex: 1,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.sm,
     alignItems: 'center',
   },
-  footer: {
-    marginTop: spacing['2xl'],
-    paddingHorizontal: spacing.xl,
-  },
-  mosqueEmpty: {
-    padding: spacing.lg,
-  },
-  mosqueSearchRow: {
-    padding: spacing.lg,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: borderRadius.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    fontSize: 16,
-    marginBottom: spacing.sm,
-  },
-  mosqueButtons: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  mosqueButton: {
-    flex: 1,
-    paddingVertical: spacing.sm,
+  actionBtn: {
+    margin: spacing.lg,
+    paddingVertical: spacing.lg,
     borderRadius: borderRadius.sm,
     alignItems: 'center',
   },
-  searchResults: {
-    padding: spacing.lg,
-    borderTopWidth: 0.5,
+  footer: {
+    marginTop: spacing['4xl'],
+    paddingHorizontal: spacing['3xl'],
   },
 });

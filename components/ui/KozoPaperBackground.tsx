@@ -5,9 +5,7 @@
  * known for its incredible strength, long fibers, and subtle natural luster.
  *
  * The texture is rendered as a barely-there organic grain: faint,
- * hair-thin fiber lines scattered across the warm ivory substrate.
- * The effect suggests something handmade and intentional, far more
- * premium than a flat color.
+ * hair-thin fiber lines scattered across the limestone substrate.
  */
 
 import React from 'react';
@@ -42,9 +40,9 @@ const FIBER_DATA = [
 ] as const;
 
 interface KozoPaperBackgroundProps {
-  /** Background color — defaults to warm ivory Kozo paper */
+  /** Background color — defaults to limestone */
   color?: string;
-  /** Fiber/grain color — defaults to deep charcoal */
+  /** Fiber/grain color — defaults to ink */
   fiberColor?: string;
   /** Whether to show the subtle fiber texture */
   showTexture?: boolean;
@@ -55,8 +53,8 @@ interface KozoPaperBackgroundProps {
 }
 
 export const KozoPaperBackground = ({
-  color = palette.warmIvory,
-  fiberColor = palette.deepCharcoal,
+  color = palette.limestone,
+  fiberColor = palette.ink,
   showTexture = true,
   children,
   style,
@@ -72,7 +70,7 @@ export const KozoPaperBackground = ({
               y="0"
               width="100"
               height="100"
-              fill={palette.softStone}
+              fill={palette.limestoneTertiary}
               opacity={0.04}
             />
             {/* Long, hair-thin fibers characteristic of Kozo paper */}

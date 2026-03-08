@@ -1,51 +1,49 @@
 import React from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
-import { StyleSheet } from 'react-native';
+import { Platform } from 'react-native';
 
 import { getColors } from '@/constants/Colors';
 import { BrandTabIcon } from '@/components/brand/BrandTabIcon';
 import { useTheme } from '@/contexts/ThemeContext';
 
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={24} style={{ marginBottom: -2 }} {...props} />;
-}
-
 export default function TabLayout() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
+  const isDark = effectiveScheme === 'dark';
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.tint,
+        tabBarActiveTintColor: colors.tabIconSelected,
         tabBarInactiveTintColor: colors.tabIconDefault,
         tabBarStyle: {
-          backgroundColor: effectiveScheme === 'dark' ? '#161B22' : '#FFFFFF',
-          borderTopColor: colors.divider,
-          borderTopWidth: StyleSheet.hairlineWidth,
+          backgroundColor: isDark ? 'rgba(0,0,0,0.85)' : 'rgba(248,246,241,0.85)',
+          borderTopWidth: 0,
           paddingTop: 4,
-          height: 88,
+          height: Platform.OS === 'ios' ? 83 : 64,
+          ...(Platform.OS === 'ios' ? {} : { paddingBottom: 8 }),
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: '500',
           marginTop: 2,
         },
         headerStyle: {
-          backgroundColor: effectiveScheme === 'dark' ? '#161B22' : '#FFFFFF',
+          backgroundColor: isDark ? '#000000' : '#F8F6F1',
         },
         headerTintColor: colors.text,
         headerShadowVisible: false,
+        headerTitleStyle: {
+          fontSize: 17,
+          fontWeight: '600',
+        },
       }}>
       <Tabs.Screen
         name="index"
         options={{
           title: 'Prayer Times',
-          tabBarIcon: ({ color, focused }) => (
+          tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
             <BrandTabIcon focused={focused} color={color} />
           ),
           headerShown: false,
@@ -55,21 +53,39 @@ export default function TabLayout() {
         name="announcements"
         options={{
           title: 'Announcements',
-          tabBarIcon: ({ color }) => <TabBarIcon name="bullhorn" color={color} />,
+          tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
+            <Ionicons
+              name={focused ? 'megaphone' : 'megaphone-outline'}
+              size={24}
+              color={color}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="events"
         options={{
           title: 'Events',
-          tabBarIcon: ({ color }) => <TabBarIcon name="calendar" color={color} />,
+          tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
+            <Ionicons
+              name={focused ? 'calendar' : 'calendar-outline'}
+              size={24}
+              color={color}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
-          tabBarIcon: ({ color }) => <TabBarIcon name="cog" color={color} />,
+          tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
+            <Ionicons
+              name={focused ? 'person' : 'person-outline'}
+              size={24}
+              color={color}
+            />
+          ),
         }}
       />
     </Tabs>

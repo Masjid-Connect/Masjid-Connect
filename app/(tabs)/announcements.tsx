@@ -6,17 +6,16 @@ import {
   FlatList,
   RefreshControl,
   ActivityIndicator,
-  Modal,
-  TouchableOpacity,
   Pressable,
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, elevation, borderRadius, typography } from '@/constants/Theme';
+import { spacing, typography, borderRadius } from '@/constants/Theme';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
+import { BottomSheet } from '@/components/ui/BottomSheet';
 import type { Announcement } from '@/types';
 
 export default function AnnouncementsScreen() {
@@ -24,8 +23,7 @@ export default function AnnouncementsScreen() {
   const colors = getColors(effectiveScheme);
   const { announcements, isLoading, refresh } = useAnnouncements();
   const [refreshing, setRefreshing] = useState(false);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const expandedItem = announcements.find((a) => a.id === expandedId);
+  const [expandedItem, setExpandedItem] = useState<Announcement | null>(null);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -35,6 +33,7 @@ export default function AnnouncementsScreen() {
 
   const urgentAnnouncements = announcements.filter((a) => a.priority === 'urgent');
   const normalAnnouncements = announcements.filter((a) => a.priority !== 'urgent');
+  const sortedAnnouncements = [...urgentAnnouncements, ...normalAnnouncements];
 
   const renderAnnouncement = ({ item, index }: { item: Announcement; index: number }) => {
     const isUrgent = item.priority === 'urgent';
@@ -44,38 +43,52 @@ export default function AnnouncementsScreen() {
       : '';
 
     return (
-      <Pressable onPress={() => setExpandedId(item.id)}>
+      <Pressable onPress={() => setExpandedItem(item)}>
         <Animated.View
-          entering={FadeInDown.delay(index * 60).duration(400).springify()}
+          entering={FadeInDown.delay(index * 50).duration(350).springify()}
           style={[
-            styles.card,
-            {
-              backgroundColor: isUrgent
-                ? effectiveScheme === 'dark'
-                  ? 'rgba(196, 69, 54, 0.15)'
-                  : 'rgba(196, 69, 54, 0.06)'
-                : colors.card,
-              borderColor: isUrgent ? colors.urgent : colors.cardBorder,
-              ...elevation.elevated,
+            styles.row,
+            index < sortedAnnouncements.length - 1 && {
+              borderBottomWidth: StyleSheet.hairlineWidth,
+              borderBottomColor: colors.separator,
             },
           ]}>
-          {isUrgent && (
-            <View style={[styles.urgentBadge, { backgroundColor: colors.urgent }]}>
-              <Text style={styles.urgentText}>URGENT</Text>
-            </View>
-          )}
-          {mosqueName ? (
-            <Text style={[typography.caption, { color: colors.accent, marginBottom: spacing.xs }]}>
-              {mosqueName}
-            </Text>
-          ) : null}
-          <Text style={[typography.title3, { color: colors.text }]}>{item.title}</Text>
+          {/* Mosque name as category */}
+          <View style={styles.metaRow}>
+            {isUrgent && (
+              <>
+                <View style={[styles.urgentDot, { backgroundColor: colors.urgent }]} />
+                <Text style={[typography.caption2, { color: colors.urgent, fontWeight: '600', marginRight: spacing.xs }]}>
+                  URGENT
+                </Text>
+                {mosqueName ? (
+                  <Text style={[typography.caption2, { color: colors.urgent, fontWeight: '600' }]}>
+                    · {mosqueName.toUpperCase()}
+                  </Text>
+                ) : null}
+              </>
+            )}
+            {!isUrgent && mosqueName ? (
+              <Text style={[typography.caption2, { color: colors.textSecondary, fontWeight: '600', letterSpacing: 0.5 }]}>
+                {mosqueName.toUpperCase()}
+              </Text>
+            ) : null}
+          </View>
+
+          {/* Title */}
+          <Text style={[typography.headline, { color: colors.text, marginTop: spacing.xs }]}>
+            {item.title}
+          </Text>
+
+          {/* Body preview */}
           <Text
-            style={[typography.body, { color: colors.textSecondary, marginTop: spacing.sm }]}
-            numberOfLines={4}>
+            style={[typography.subhead, { color: colors.textSecondary, marginTop: spacing.xs }]}
+            numberOfLines={2}>
             {item.body}
           </Text>
-          <Text style={[typography.caption, { color: colors.textSecondary, marginTop: spacing.sm }]}>
+
+          {/* Time */}
+          <Text style={[typography.caption1, { color: colors.textTertiary, marginTop: spacing.sm, opacity: 0.7 }]}>
             {timeAgo}
           </Text>
         </Animated.View>
@@ -94,18 +107,18 @@ export default function AnnouncementsScreen() {
   if (announcements.length === 0) {
     return (
       <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
-        <Text style={[typography.display, { color: colors.accent, marginBottom: spacing.md }]}>
+        <Text style={[typography.largeTitle, { color: colors.accent, marginBottom: spacing.lg }]}>
           ﷽
         </Text>
-        <Text style={[typography.title3, { color: colors.textSecondary, textAlign: 'center' }]}>
-          No announcements yet
+        <Text style={[typography.headline, { color: colors.textSecondary, textAlign: 'center' }]}>
+          Your mosque community awaits
         </Text>
         <Text
           style={[
-            typography.body,
+            typography.subhead,
             { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm },
           ]}>
-          Subscribe to a mosque in Settings{'\n'}to receive community updates
+          Find your mosque in Settings{'\n'}to see community announcements
         </Text>
       </View>
     );
@@ -114,7 +127,7 @@ export default function AnnouncementsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <FlatList
-        data={[...urgentAnnouncements, ...normalAnnouncements]}
+        data={sortedAnnouncements}
         keyExtractor={(item) => item.id}
         renderItem={renderAnnouncement}
         contentContainerStyle={styles.listContent}
@@ -123,36 +136,38 @@ export default function AnnouncementsScreen() {
         }
         showsVerticalScrollIndicator={false}
       />
-      {expandedItem && (
-        <Modal visible={!!expandedId} transparent animationType="fade">
-          <Pressable style={styles.modalOverlay} onPress={() => setExpandedId(null)}>
-            <Pressable style={[styles.modalContent, { backgroundColor: colors.card }]} onPress={(e) => e.stopPropagation()}>
-              {expandedItem.priority === 'urgent' && (
-                <View style={[styles.urgentBadge, { backgroundColor: colors.urgent }]}>
-                  <Text style={styles.urgentText}>URGENT</Text>
-                </View>
-              )}
-              {expandedItem.expand?.mosque?.name ? (
-                <Text style={[typography.caption, { color: colors.accent, marginBottom: spacing.xs }]}>
-                  {expandedItem.expand.mosque.name}
+
+      {/* Detail bottom sheet */}
+      <BottomSheet visible={!!expandedItem} onDismiss={() => setExpandedItem(null)}>
+        {expandedItem && (
+          <View>
+            {expandedItem.priority === 'urgent' && (
+              <View style={styles.metaRow}>
+                <View style={[styles.urgentDot, { backgroundColor: colors.urgent }]} />
+                <Text style={[typography.caption2, { color: colors.urgent, fontWeight: '600' }]}>
+                  URGENT
                 </Text>
-              ) : null}
-              <Text style={[typography.title2, { color: colors.text }]}>{expandedItem.title}</Text>
-              <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.sm }]}>
-                {expandedItem.body}
+              </View>
+            )}
+            {expandedItem.expand?.mosque?.name ? (
+              <Text style={[typography.caption2, { color: colors.textSecondary, fontWeight: '600', letterSpacing: 0.5, marginTop: spacing.xs }]}>
+                {expandedItem.expand.mosque.name.toUpperCase()}
               </Text>
-              <Text style={[typography.caption, { color: colors.textSecondary, marginTop: spacing.sm }]}>
-                {expandedItem.published_at
-                  ? formatDistanceToNow(new Date(expandedItem.published_at), { addSuffix: true })
-                  : ''}
-              </Text>
-              <TouchableOpacity onPress={() => setExpandedId(null)} style={[styles.modalClose, { borderColor: colors.divider }]}>
-                <Text style={[typography.callout, { color: colors.tint }]}>Close</Text>
-              </TouchableOpacity>
-            </Pressable>
-          </Pressable>
-        </Modal>
-      )}
+            ) : null}
+            <Text style={[typography.title2, { color: colors.text, marginTop: spacing.sm }]}>
+              {expandedItem.title}
+            </Text>
+            <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.md }]}>
+              {expandedItem.body}
+            </Text>
+            <Text style={[typography.footnote, { color: colors.textTertiary, marginTop: spacing.lg, opacity: 0.7 }]}>
+              {expandedItem.published_at
+                ? formatDistanceToNow(new Date(expandedItem.published_at), { addSuffix: true })
+                : ''}
+            </Text>
+          </View>
+        )}
+      </BottomSheet>
     </View>
   );
 }
@@ -164,47 +179,23 @@ const styles = StyleSheet.create({
   centered: {
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.xl,
+    padding: spacing['3xl'],
   },
   listContent: {
-    padding: spacing.xl,
+    paddingHorizontal: spacing['3xl'],
     paddingTop: spacing.md,
   },
-  card: {
-    borderRadius: borderRadius.md,
-    borderWidth: 0.5,
-    padding: spacing.lg,
-    marginBottom: spacing.md,
+  row: {
+    paddingVertical: spacing.xl,
   },
-  urgentBadge: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: borderRadius.sm,
-    marginBottom: spacing.sm,
-  },
-  urgentText: {
-    color: '#FFFFFF',
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    padding: spacing.xl,
-  },
-  modalContent: {
-    borderRadius: borderRadius.lg,
-    padding: spacing.xl,
-    maxHeight: '80%',
-  },
-  modalClose: {
-    marginTop: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.sm,
-    borderWidth: 1,
+  metaRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+  },
+  urgentDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: spacing.xs,
   },
 });

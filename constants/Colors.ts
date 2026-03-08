@@ -1,67 +1,106 @@
 /**
- * Mosque Connect — Islamic architectural color palette
- * Inspired by Iznik tilework, Alhambra zellige, gilded Quranic manuscripts
+ * Mosque Connect — Apple-inspired color system with Islamic soul
  *
- * The Convergent Arch identity system uses these colors with specific intent:
- * - Sacred Blue: the etched line of the mark
- * - Divine Gold: the matte gold leaf node at the apex
- * - Warm Ivory: Kozo paper substrate
+ * Light mode: "Morning Light in the Musalla"
+ * Dark mode: "Midnight in the Masjid"
+ *
+ * Every color is intentional. Backgrounds are sunlit limestone, not yellowed
+ * parchment. Gold is matte leaf, not digital yellow. True black dark mode
+ * for OLED efficiency.
  */
 
 export const palette = {
-  warmIvory: '#FAF7F2',
-  sacredBlue: '#1B4965',
-  sacredBlueMuted: '#2A6A8F',
-  divineGold: '#C8A951',
-  divineGoldLight: '#E8D9A0',
+  // Backgrounds — light
+  limestone: '#F8F6F1',
+  limestoneSecondary: '#F2EFEA',
+  limestoneTertiary: '#EDEAE4',
+
+  // Text
+  ink: '#1C1C1E',
+  inkSecondary: '#636366',
+  inkTertiary: '#AEAEB2',
+
+  // Brand
+  sacredBlue: '#1A5276',
+  sacredBlueLight: '#6AADDB',
+  divineGold: '#BFA14E',
+  divineGoldBright: '#D4B85C',
+  divineGoldGlow: 'rgba(191, 161, 78, 0.08)',
+
+  // Semantic
   paradiseGreen: '#2D6A4F',
   paradiseGreenLight: '#52B788',
   moorishTerracotta: '#C44536',
-  deepCharcoal: '#2B2D42',
-  softStone: '#E8E4DE',
-  softStoneDark: '#D1CCC4',
+  moorishTerracottaLight: '#E05A4A',
+  steelBlue: '#5B7FA5',
+  steelBlueLight: '#7BA4C7',
 
-  // Dark mode
-  nightSky: '#0D1117',
-  midnightBlue: '#161B22',
-  midnightCard: '#1C2129',
-  mutedGold: '#B8952E',
-  softWhite: '#E6E1D8',
-  mutedBlue: '#8B949E',
-};
+  // Interactive
+  tintLight: '#E8F0F6',
+
+  // Separators
+  separatorLight: '#E5E5EA',
+  separatorDark: '#38383A',
+
+  // Tab bar
+  tabInactive: '#8E8E93',
+
+  // Dark backgrounds
+  black: '#000000',
+  darkElevated: '#1C1C1E',
+  darkGrouped: '#2C2C2E',
+  darkCardBorder: '#38383A',
+
+  // Light text on dark
+  snow: '#F5F5F7',
+  snowSecondary: '#8E8E93',
+  snowTertiary: '#636366',
+} as const;
 
 const Colors = {
   light: {
-    text: palette.deepCharcoal,
-    textSecondary: palette.sacredBlueMuted,
-    background: palette.warmIvory,
+    text: palette.ink,
+    textSecondary: palette.inkSecondary,
+    textTertiary: palette.inkTertiary,
+    background: palette.limestone,
+    backgroundSecondary: palette.limestoneSecondary,
+    backgroundGrouped: palette.limestoneTertiary,
     card: '#FFFFFF',
-    cardBorder: palette.softStone,
+    cardBorder: palette.separatorLight,
     tint: palette.sacredBlue,
+    tintLight: palette.tintLight,
     accent: palette.divineGold,
     success: palette.paradiseGreen,
     urgent: palette.moorishTerracotta,
-    tabIconDefault: palette.softStoneDark,
+    info: palette.steelBlue,
+    tabIconDefault: palette.tabInactive,
     tabIconSelected: palette.sacredBlue,
-    divider: palette.softStone,
+    divider: palette.separatorLight,
     prayerActive: palette.divineGold,
-    prayerActiveGlow: 'rgba(200, 169, 81, 0.15)',
+    prayerActiveGlow: palette.divineGoldGlow,
+    separator: palette.separatorLight,
   },
   dark: {
-    text: palette.softWhite,
-    textSecondary: palette.mutedBlue,
-    background: palette.nightSky,
-    card: palette.midnightCard,
-    cardBorder: '#30363D',
-    tint: palette.mutedGold,
-    accent: palette.mutedGold,
+    text: palette.snow,
+    textSecondary: palette.snowSecondary,
+    textTertiary: palette.snowTertiary,
+    background: palette.black,
+    backgroundSecondary: palette.darkElevated,
+    backgroundGrouped: palette.darkGrouped,
+    card: palette.darkElevated,
+    cardBorder: palette.darkCardBorder,
+    tint: palette.sacredBlueLight,
+    tintLight: 'rgba(26, 82, 118, 0.12)',
+    accent: palette.divineGoldBright,
     success: palette.paradiseGreenLight,
-    urgent: palette.moorishTerracotta,
-    tabIconDefault: palette.mutedBlue,
-    tabIconSelected: palette.mutedGold,
-    divider: '#21262D',
-    prayerActive: palette.mutedGold,
-    prayerActiveGlow: 'rgba(184, 149, 46, 0.2)',
+    urgent: palette.moorishTerracottaLight,
+    info: palette.steelBlueLight,
+    tabIconDefault: palette.snowSecondary,
+    tabIconSelected: palette.divineGoldBright,
+    divider: palette.separatorDark,
+    prayerActive: palette.divineGoldBright,
+    prayerActiveGlow: 'rgba(212, 184, 92, 0.15)',
+    separator: palette.separatorDark,
   },
 };
 

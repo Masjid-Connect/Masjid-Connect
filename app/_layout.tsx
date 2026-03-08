@@ -1,10 +1,9 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useState } from 'react';
-import { AppState, I18nManager, useColorScheme } from 'react-native';
+import { AppState } from 'react-native';
 import 'react-native-reanimated';
 
 import { palette } from '@/constants/Colors';
@@ -27,10 +26,10 @@ const MosqueLight = {
   colors: {
     ...DefaultTheme.colors,
     primary: palette.sacredBlue,
-    background: palette.warmIvory,
+    background: palette.limestone,
     card: '#FFFFFF',
-    text: palette.deepCharcoal,
-    border: palette.softStone,
+    text: palette.ink,
+    border: palette.separatorLight,
     notification: palette.divineGold,
   },
 };
@@ -39,26 +38,18 @@ const MosqueDark = {
   ...DarkTheme,
   colors: {
     ...DarkTheme.colors,
-    primary: palette.mutedGold,
-    background: palette.nightSky,
-    card: palette.midnightCard,
-    text: palette.softWhite,
-    border: '#30363D',
-    notification: palette.mutedGold,
+    primary: palette.divineGoldBright,
+    background: palette.black,
+    card: palette.darkElevated,
+    text: palette.snow,
+    border: palette.separatorDark,
+    notification: palette.divineGoldBright,
   },
 };
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    // Custom brand fonts — add .ttf files to assets/fonts/ after downloading from Google Fonts
-    // 'PlayfairDisplay-Bold': require('../assets/fonts/PlayfairDisplay-Bold.ttf'),
-    // 'PlayfairDisplay-SemiBold': require('../assets/fonts/PlayfairDisplay-SemiBold.ttf'),
-    // 'SourceSerif4-Regular': require('../assets/fonts/SourceSerif4-Regular.ttf'),
-    // 'SourceSerif4-Medium': require('../assets/fonts/SourceSerif4-Medium.ttf'),
-    // 'ReemKufi-Bold': require('../assets/fonts/ReemKufi-Bold.ttf'),
-    // 'NotoNaskhArabic-Regular': require('../assets/fonts/NotoNaskhArabic-Regular.ttf'),
-    ...FontAwesome.font,
   });
   const [showSplash, setShowSplash] = useState(true);
 
@@ -110,7 +101,7 @@ function RootLayoutNav() {
           options={{
             presentation: 'modal',
             headerTitle: 'About',
-            headerTintColor: effectiveScheme === 'dark' ? palette.mutedGold : palette.sacredBlue,
+            headerTintColor: effectiveScheme === 'dark' ? palette.divineGoldBright : palette.sacredBlue,
           }}
         />
       </Stack>
