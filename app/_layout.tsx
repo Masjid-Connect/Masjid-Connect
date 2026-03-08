@@ -12,6 +12,7 @@ import { ThemeProvider as AppThemeProvider, useTheme } from '@/contexts/ThemeCon
 import { auth } from '@/lib/api';
 import { reschedulePrayerRemindersForToday } from '@/lib/notifications';
 import '@/lib/i18n';
+import { configureRTL } from '@/lib/rtl';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -59,6 +60,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
+      configureRTL();
       SplashScreen.hideAsync();
       auth.hydrate();
     }

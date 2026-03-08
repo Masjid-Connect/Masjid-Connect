@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import * as Location from 'expo-location';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -35,24 +36,24 @@ import { CALCULATION_METHODS } from '@/types';
 import type { Mosque } from '@/types';
 import { useRouter } from 'expo-router';
 
-const REMINDER_OPTIONS = [
-  { label: 'At athan time', value: 0 },
-  { label: '5 min before', value: 5 },
-  { label: '10 min before', value: 10 },
-  { label: '15 min before', value: 15 },
-  { label: '30 min before', value: 30 },
-];
-
-const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
-  { value: 'light', label: 'Light' },
-  { value: 'dark', label: 'Dark' },
-  { value: 'system', label: 'System' },
-];
+const REMINDER_VALUES = [0, 5, 10, 15, 30];
+const THEME_VALUES: ThemePreference[] = ['light', 'dark', 'system'];
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { effectiveScheme, themePreference, setThemePreference } = useTheme();
   const colors = getColors(effectiveScheme);
+  const { t } = useTranslation();
+
+  const REMINDER_OPTIONS = REMINDER_VALUES.map((v) => ({
+    label: v === 0 ? t('settings.atAthanTime') : t('settings.minutesBefore', { minutes: v }),
+    value: v,
+  }));
+
+  const THEME_OPTIONS = THEME_VALUES.map((v) => ({
+    value: v,
+    label: t(`settings.theme${v.charAt(0).toUpperCase() + v.slice(1)}`),
+  }));
   const isLoggedIn = auth.isLoggedIn;
   const user = auth.user;
 
@@ -106,7 +107,7 @@ export default function SettingsScreen() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission needed', 'Location permission is required to detect nearby mosques and calculate prayer times.');
+        Alert.alert(t('common.permissionNeeded'), t('common.locationPermission'));
         return;
       }
 
@@ -115,7 +116,7 @@ export default function SettingsScreen() {
       await setUserLocation(latitude, longitude);
       setLocation({ latitude, longitude });
     } catch {
-      Alert.alert('Error', 'Could not detect your location. Please try again.');
+      Alert.alert(t('common.error'), t('common.locationError'));
     } finally {
       setLocationLoading(false);
     }
@@ -160,7 +161,7 @@ export default function SettingsScreen() {
       const { items } = await mosquesApi.list(searchCity.trim());
       setSearchResults(items);
     } catch {
-      Alert.alert('Search failed', 'Could not search mosques. Check your connection.');
+      Alert.alert(t('common.error'), t('common.searchFailed'));
     } finally {
       setSearchLoading(false);
     }
@@ -171,7 +172,7 @@ export default function SettingsScreen() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission needed', 'Location is required to find nearby mosques.');
+        Alert.alert(t('common.permissionNeeded'), t('common.locationPermission'));
         setNearbyLoading(false);
         return;
       }
@@ -179,7 +180,7 @@ export default function SettingsScreen() {
       const list = await mosquesApi.nearby(loc.coords.latitude, loc.coords.longitude);
       setSearchResults(list);
     } catch {
-      Alert.alert('Error', 'Could not find nearby mosques. Check your connection.');
+      Alert.alert(t('common.error'), t('common.nearbyFailed'));
     } finally {
       setNearbyLoading(false);
     }
@@ -209,12 +210,12 @@ export default function SettingsScreen() {
       contentContainerStyle={styles.content}
     >
       {/* My Mosques */}
-      <SectionHeader title="My mosques" />
+      <SectionHeader title={t('settings.myMosques')} />
       <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
         {subscribedMosques.length === 0 ? (
           <View style={styles.emptyMosque}>
             <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center' }]}>
-              No mosques yet. Add one below to see announcements and events.
+              {t('settings.noMosques')}
             </Text>
           </View>
         ) : (
@@ -222,7 +223,7 @@ export default function SettingsScreen() {
             <View key={m.id} style={[styles.row, i < subscribedMosques.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}>
               <Text style={[typography.body, { color: colors.text, flex: 1 }]} numberOfLines={1}>{m.name}</Text>
               <TouchableOpacity onPress={() => handleUnsubscribe(m.id)}>
-                <Text style={[typography.subhead, { color: colors.urgent }]}>Remove</Text>
+                <Text style={[typography.subhead, { color: colors.urgent }]}>{t('settings.remove')}</Text>
               </TouchableOpacity>
             </View>
           ))
@@ -230,10 +231,10 @@ export default function SettingsScreen() {
 
         {/* Search section */}
         <View style={[styles.searchSection, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.separator }]}>
-          <Text style={[typography.footnote, { color: colors.textSecondary, marginBottom: spacing.sm }]}>Add mosque</Text>
+          <Text style={[typography.footnote, { color: colors.textSecondary, marginBottom: spacing.sm }]}>{t('settings.addMosque')}</Text>
           <TextInput
             style={[styles.input, { backgroundColor: colors.backgroundGrouped, borderColor: colors.separator, color: colors.text }]}
-            placeholder="City name"
+            placeholder={t('settings.cityName')}
             placeholderTextColor={colors.textSecondary}
             value={searchCity}
             onChangeText={setSearchCity}
@@ -246,21 +247,21 @@ export default function SettingsScreen() {
               disabled={searchLoading}
               style={[styles.searchBtn, { backgroundColor: colors.tint }]}
             >
-              {searchLoading ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>Search</Text>}
+              {searchLoading ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>{t('settings.search')}</Text>}
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleNearby}
               disabled={nearbyLoading}
               style={[styles.searchBtn, { backgroundColor: colors.accent }]}
             >
-              {nearbyLoading ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>Nearby</Text>}
+              {nearbyLoading ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>{t('settings.nearby')}</Text>}
             </TouchableOpacity>
           </View>
         </View>
 
         {searchResults.length > 0 && (
           <View style={[styles.searchSection, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.separator }]}>
-            <Text style={[typography.footnote, { color: colors.textSecondary, marginBottom: spacing.sm }]}>Results</Text>
+            <Text style={[typography.footnote, { color: colors.textSecondary, marginBottom: spacing.sm }]}>{t('settings.results')}</Text>
             {searchResults.map((m, i) => {
               const isSubscribed = subscribedIds.includes(m.id);
               return (
@@ -270,7 +271,7 @@ export default function SettingsScreen() {
                     <Ionicons name="checkmark-circle" size={20} color={colors.success} />
                   ) : (
                     <TouchableOpacity onPress={() => handleSubscribe(m.id)}>
-                      <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>Add</Text>
+                      <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>{t('settings.add')}</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -281,31 +282,31 @@ export default function SettingsScreen() {
       </View>
 
       {/* Location */}
-      <SectionHeader title="Location" />
+      <SectionHeader title={t('settings.location')} />
       <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
         {location ? (
           <View style={styles.row}>
             <View style={{ flex: 1 }}>
-              <Text style={[typography.body, { color: colors.text }]}>Location detected</Text>
+              <Text style={[typography.body, { color: colors.text }]}>{t('settings.locationDetected')}</Text>
               <Text style={[typography.caption1, { color: colors.textSecondary }]}>
                 {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
               </Text>
             </View>
             <TouchableOpacity onPress={handleDetectLocation}>
-              <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>Update</Text>
+              <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>{t('settings.update')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <TouchableOpacity onPress={handleDetectLocation} style={[styles.actionBtn, { backgroundColor: colors.tint }]}>
             <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>
-              {locationLoading ? 'Detecting...' : 'Detect My Location'}
+              {locationLoading ? t('settings.detecting') : t('settings.detectLocation')}
             </Text>
           </TouchableOpacity>
         )}
       </View>
 
       {/* Calculation Method */}
-      <SectionHeader title="Calculation Method" />
+      <SectionHeader title={t('settings.calculationMethod')} />
       <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
         {Object.entries(CALCULATION_METHODS).map(([key, value], i, arr) => (
           <CheckRow
@@ -318,7 +319,7 @@ export default function SettingsScreen() {
       </View>
 
       {/* Prayer Reminders */}
-      <SectionHeader title="Prayer Reminder" />
+      <SectionHeader title={t('settings.prayerReminder')} />
       <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
         {REMINDER_OPTIONS.map((opt) => (
           <CheckRow
@@ -331,7 +332,7 @@ export default function SettingsScreen() {
       </View>
 
       {/* Preferences */}
-      <SectionHeader title="Appearance" />
+      <SectionHeader title={t('settings.appearance')} />
       <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
         {THEME_OPTIONS.map((opt) => (
           <CheckRow
@@ -342,7 +343,7 @@ export default function SettingsScreen() {
           />
         ))}
         <View style={[styles.row, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.separator }]}>
-          <Text style={[typography.body, { color: colors.text, flex: 1 }]}>24-hour time</Text>
+          <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{t('settings.use24h')}</Text>
           <Switch
             value={use24h}
             onValueChange={handleToggle24h}
@@ -353,7 +354,7 @@ export default function SettingsScreen() {
       </View>
 
       {/* Account */}
-      <SectionHeader title="Account" />
+      <SectionHeader title={t('settings.account')} />
       <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
         {isLoggedIn && user ? (
           <View style={styles.row}>
@@ -362,7 +363,7 @@ export default function SettingsScreen() {
               <Text style={[typography.caption1, { color: colors.textSecondary }]}>{user.email}</Text>
             </View>
             <TouchableOpacity onPress={async () => { await auth.logout(); }}>
-              <Text style={[typography.subhead, { color: colors.urgent }]}>Sign out</Text>
+              <Text style={[typography.subhead, { color: colors.urgent }]}>{t('settings.signOut')}</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -370,7 +371,7 @@ export default function SettingsScreen() {
             onPress={() => router.push('/(auth)/login')}
             style={[styles.actionBtn, { backgroundColor: colors.tint }]}
           >
-            <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>Sign in</Text>
+            <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>{t('settings.signIn')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -378,10 +379,10 @@ export default function SettingsScreen() {
       {/* App info */}
       <View style={styles.footer}>
         <Text style={[typography.caption1, { color: colors.textSecondary, textAlign: 'center' }]}>
-          Mosque Connect v1.0.0
+          {t('settings.version', { version: '1.0.0' })}
         </Text>
         <Text style={[typography.caption1, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xs }]}>
-          Prayer times via Aladhan API
+          {t('settings.prayerSource')}
         </Text>
       </View>
     </ScrollView>

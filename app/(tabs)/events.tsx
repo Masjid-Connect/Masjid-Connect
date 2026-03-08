@@ -16,6 +16,8 @@ import { format } from 'date-fns';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Calendar, DateData } from 'react-native-calendars';
 
+import { useTranslation } from 'react-i18next';
+
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, elevation, borderRadius, typography } from '@/constants/Theme';
@@ -24,19 +26,17 @@ import { BottomSheet } from '@/components/ui/BottomSheet';
 import type { MosqueEvent, EventCategory } from '@/types';
 import { EVENT_CATEGORY_COLORS } from '@/types';
 
-const CATEGORIES: { key: EventCategory | null; label: string }[] = [
-  { key: null, label: 'All' },
-  { key: 'lesson', label: 'Lessons' },
-  { key: 'lecture', label: 'Lectures' },
-  { key: 'quran_circle', label: 'Quran' },
-  { key: 'youth', label: 'Youth' },
-  { key: 'sisters', label: 'Sisters' },
-  { key: 'community', label: 'Community' },
-];
+const CATEGORY_KEYS: (EventCategory | null)[] = [null, 'lesson', 'lecture', 'quran_circle', 'youth', 'sisters', 'community'];
 
 export default function EventsScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
+  const { t } = useTranslation();
+
+  const CATEGORIES = CATEGORY_KEYS.map((key) => ({
+    key,
+    label: t(`events.categories.${key || 'all'}`),
+  }));
   const { events, isLoading, selectedCategory, setSelectedCategory, refresh } = useEvents();
   const [refreshing, setRefreshing] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
@@ -95,7 +95,7 @@ export default function EventsScreen() {
 
   const handleAddToCalendar = (event: MosqueEvent) => {
     const url = buildAddToCalendarUrl(event);
-    Linking.openURL(url).catch(() => Alert.alert('Error', 'Could not open calendar.'));
+    Linking.openURL(url).catch(() => Alert.alert(t('common.error'), t('common.calendarError')));
   };
 
   const renderEvent = ({ item, index }: { item: MosqueEvent; index: number }) => {
@@ -132,7 +132,7 @@ export default function EventsScreen() {
             ) : null}
             {item.recurring && (
               <Text style={[typography.caption1, { color: colors.success, marginTop: spacing.xs, fontWeight: '500' }]}>
-                Repeats {item.recurring}
+                {t('events.repeats', { frequency: item.recurring })}
               </Text>
             )}
           </View>
@@ -155,7 +155,7 @@ export default function EventsScreen() {
             color={showCalendar ? colors.accent : colors.textSecondary}
           />
           <Text style={[typography.subhead, { color: showCalendar ? colors.accent : colors.textSecondary, marginLeft: spacing.xs }]}>
-            Calendar
+            {t('events.calendar')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -164,7 +164,7 @@ export default function EventsScreen() {
         >
           <Ionicons name="funnel-outline" size={18} color={selectedCategory ? colors.accent : colors.textSecondary} />
           <Text style={[typography.subhead, { color: selectedCategory ? colors.accent : colors.textSecondary, marginLeft: spacing.xs }]}>
-            {selectedCategory ? CATEGORIES.find((c) => c.key === selectedCategory)?.label : 'Filter'}
+            {selectedCategory ? CATEGORIES.find((c) => c.key === selectedCategory)?.label : t('events.filter')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -207,11 +207,11 @@ export default function EventsScreen() {
       ) : filteredByDate.length === 0 ? (
         <View style={[styles.centered, { padding: spacing['3xl'] }]}>
           <Text style={[typography.headline, { color: colors.textSecondary, textAlign: 'center' }]}>
-            No upcoming events
+            {t('events.empty')}
           </Text>
           <Text
             style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm }]}>
-            Find your mosque to see events
+            {t('events.emptyHint')}
           </Text>
         </View>
       ) : (
@@ -229,7 +229,7 @@ export default function EventsScreen() {
 
       {/* Filter bottom sheet */}
       <BottomSheet visible={showFilters} onDismiss={() => setShowFilters(false)}>
-        <Text style={[typography.title3, { color: colors.text, marginBottom: spacing.lg }]}>Filter Events</Text>
+        <Text style={[typography.title3, { color: colors.text, marginBottom: spacing.lg }]}>{t('events.filterEvents')}</Text>
         {CATEGORIES.map((cat) => {
           const isActive = selectedCategory === cat.key;
           return (
@@ -267,7 +267,7 @@ export default function EventsScreen() {
             ) : null}
             {detailEvent.speaker ? (
               <Text style={[typography.subhead, { color: colors.textSecondary, marginTop: spacing.sm }]}>
-                Speaker: {detailEvent.speaker}
+                {t('events.speaker', { name: detailEvent.speaker })}
               </Text>
             ) : null}
             <Text style={[typography.footnote, { color: colors.textSecondary, marginTop: spacing.sm }]}>
@@ -281,7 +281,7 @@ export default function EventsScreen() {
             ) : null}
             {detailEvent.recurring && (
               <Text style={[typography.footnote, { color: colors.success, marginTop: spacing.xs, fontWeight: '500' }]}>
-                Repeats {detailEvent.recurring}
+                {t('events.repeats', { frequency: detailEvent.recurring })}
               </Text>
             )}
             <TouchableOpacity
@@ -289,7 +289,7 @@ export default function EventsScreen() {
               style={[styles.addBtn, { backgroundColor: colors.tint }]}
             >
               <Ionicons name="calendar-outline" size={18} color="#FFFFFF" style={{ marginRight: spacing.sm }} />
-              <Text style={[typography.headline, { color: '#FFFFFF' }]}>Add to Calendar</Text>
+              <Text style={[typography.headline, { color: '#FFFFFF' }]}>{t('events.addToCalendar')}</Text>
             </TouchableOpacity>
           </View>
         )}

@@ -7,14 +7,18 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
 - **Framework**: React Native + Expo (SDK 55, managed workflow, TypeScript)
 - **Navigation**: Expo Router (file-based routing)
 - **Backend**: Django 5 + Django REST Framework (self-hosted on Digital Ocean)
+- **API Documentation**: drf-spectacular (OpenAPI schema at `/api/schema/`, Swagger UI at `/api/docs/`)
 - **Prayer Times**: Aladhan API (primary, free, no key required) + `adhan` (adhan-js, offline-only fallback)
 - **Push Notifications**: Expo Notifications + Expo Push Service
 - **Local Storage**: expo-sqlite for offline-first caching
 - **Animations**: react-native-reanimated
 - **SVG**: react-native-svg (brand mark, textures)
 - **Haptics**: expo-haptics (splash reveal, meaningful interactions)
+- **Icons**: @expo/vector-icons/Ionicons (outline/filled pairs)
 - **Date Handling**: date-fns
+- **i18n**: i18next + react-i18next (English + Arabic, RTL-ready)
 - **Language**: TypeScript (strict mode)
+- **CI/CD**: GitHub Actions (TypeScript check, ESLint, Jest, Django tests)
 
 ## Project Structure
 ```
@@ -34,6 +38,7 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
     index.ts            # Re-exports for clean imports
   /ui                   # Base design system components
     KozoPaperBackground.tsx  # Kozo paper texture substrate
+    BottomSheet.tsx      # Spring-animated bottom sheet (replaces centered modals)
   /prayer               # Prayer time components
   /announcements        # Announcement components
   /events               # Event components
@@ -42,10 +47,14 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
   /prayer.ts            # Aladhan API + adhan-js offline fallback
   /notifications.ts     # Push notification logic
   /storage.ts           # Offline cache (AsyncStorage)
+  /i18n.ts              # i18next initialization (en + ar)
+  /rtl.ts               # RTL layout configuration
 /hooks                  # Custom React hooks
 /constants              # App constants, enums
+  /locales/en.json      # English translations (100+ keys)
+  /locales/ar.json      # Arabic translations (100+ keys)
 /assets                 # Fonts, images, patterns, sounds
-  /fonts                # Reem Kufi, Noto Naskh Arabic, Playfair Display, Source Serif 4
+  /fonts                # SpaceMono (system fonts used for all other text)
   /patterns             # Islamic geometric SVG patterns
   /sounds               # Oud, ney, riq notification sounds
 ```
@@ -63,9 +72,9 @@ The two curves meet at a single elevated point — the **apex** — creating a u
 ### Material & Execution
 The execution is more crucial than the form. This isn't a digital graphic; it's a rendering of a physical object.
 
-- **The Substrate**: Not just `#FAF7F2`. A digital interpretation of **Kozo paper** — Japanese mulberry paper known for its incredible strength, long fibers, and subtle natural luster. The `KozoPaperBackground` component renders this with barely-visible organic fiber texture.
-- **The Line Work**: A single, continuous line in Sacred Blue (`#1B4965`). Consistent weight, suggesting precision and engineering. It feels etched.
-- **The Gilding**: At the apex where the two curves meet — a single, matte **gold leaf node** (`#C8A951`). Not decoration; a structural pin, a point of convergence. The gold has the soft, non-reflective quality of gold leaf burnished into paper.
+- **The Substrate**: Not just `#F8F6F1`. A digital interpretation of **Kozo paper** — Japanese mulberry paper known for its incredible strength, long fibers, and subtle natural luster. The `KozoPaperBackground` component renders this with barely-visible organic fiber texture.
+- **The Line Work**: A single, continuous line in Sacred Blue (`#1A5276`). Consistent weight, suggesting precision and engineering. It feels etched.
+- **The Gilding**: At the apex where the two curves meet — a single, matte **gold leaf node** (`#BFA14E`). Not decoration; a structural pin, a point of convergence. The gold has the soft, non-reflective quality of gold leaf burnished into paper.
 - **The Depth**: A blind emboss sensibility. Soft ambient lighting from above creates the faintest shadows. The gold node sits atop the surface, the only element with its own materiality.
 
 ### The Living Identity System
@@ -107,31 +116,48 @@ brand.badge.*        // Notification badge sizing
 
 ## Design System
 
-### Color Palette (from Islamic architectural tradition)
-- **Warm Ivory** `#FAF7F2` — Kozo paper substrate
-- **Sacred Blue** `#1B4965` — the etched line of the mark (Iznik tile blue)
-- **Divine Gold** `#C8A951` — the matte gold leaf node (gilded manuscript)
-- **Paradise Green** `#2D6A4F` — success states, prayer indicators (garden of paradise)
-- **Moorish Terracotta** `#C44536` — urgent/alert states (Alhambra clay)
-- **Deep Charcoal** `#2B2D42` — secondary text
-- **Soft Stone** `#E8E4DE` — dividers, card backgrounds
+### Color Palette (Apple-inspired with Islamic soul)
 
-### Typography
-- **Arabic**: Reem Kufi (headings), Noto Naskh Arabic (body)
-- **English**: Playfair Display (headings), Source Serif 4 (body)
-- System monospace for times/numbers
+**Light mode — "Morning Light in the Musalla":**
+- **Limestone** `#F8F6F1` — Kozo paper substrate (warm ivory)
+- **Limestone Secondary** `#F2EFEA` — grouped backgrounds
+- **Ink** `#1C1C1E` — primary text (true near-black)
+- **Ink Secondary** `#636366` — secondary text
+- **Sacred Blue** `#1A5276` — primary tint, tab selection, brand line
+- **Divine Gold** `#BFA14E` — accent, prayer active indicator, notification badges
+- **Paradise Green** `#2D6A4F` — success states
+- **Moorish Terracotta** `#C44536` — urgent/alert states
+- **Separator** `#E5E5EA` — hairline dividers
+
+**Dark mode — "Midnight in the Masjid" (true black OLED):**
+- **Background** `#000000` — true black for OLED efficiency
+- **Elevated** `#1C1C1E` — card surfaces, modal backgrounds
+- **Grouped** `#2C2C2E` — grouped list backgrounds
+- **Text** `#F5F5F7` — snow white primary text
+- **Tint** `#6AADDB` — lighter Sacred Blue for dark backgrounds
+- **Accent** `#D4B85C` — brighter Divine Gold for dark contrast
+
+### Typography (Apple HIG Type Scale)
+- **System fonts** — SF Pro (iOS) / Roboto (Android) with weight variation, no custom font loading
+- **14 named styles**: largeTitle (34/700), title1 (28/700), title2 (22/700), title3 (20/600), headline (17/600), body (17/400), callout (16/400), subhead (15/400), footnote (13/400), caption1 (12/400), caption2 (11/400)
+- **Special purpose**: prayerCountdown (54/200, ultralight), prayerTime (17/600), sectionHeader (13/600, uppercase + letter-spacing)
+- **Arabic**: System Arabic fonts (SF Arabic / Noto) with mirrored scale
 - `tabular-nums` font variant for prayer times — thin, confident, extension of mark line work
+- SpaceMono for technical accents only
 
 ### Design Principles
-- 30–50% more padding than typical apps (generous whitespace)
-- Muqarnas-inspired 3-tier depth system (ground/elevated/floating)
-- RTL-native from day one
-- Spring-based animations (Reanimated), no linear easing
+- **Apple HIG influence** — system fonts, SF-style type scale, grouped list patterns, checkmarks over radio buttons
+- Generous whitespace — 32px screen-edge insets (`spacing['3xl']`)
+- 3-tier elevation system: none/sm/md/lg (black shadows only, Apple convention)
+- RTL-native from day one via `I18nManager.forceRTL()`
+- Spring-based animations (Reanimated `springs.gentle/snappy/bouncy`), no linear easing
+- **BottomSheet pattern** — spring-animated, gesture-dismissible sheets replace all centered modals
 - Haptic feedback on meaningful interactions (splash reveal, prayer transitions)
-- No generic Material/iOS chrome — custom Islamic aesthetic throughout
+- **Ionicons** (outline/filled pairs) for tab bar and UI icons — no FontAwesome
 - Kozo paper texture on light-mode backgrounds via `KozoPaperBackground`
 - Notification badges are Divine Gold, never red — a glint, not an error
 - Brand mark appears in prayer times header and as the home tab icon
+- **i18n throughout** — all user-facing strings via `t()` calls, English + Arabic locale files
 
 ## Backend — Django REST Framework
 
@@ -179,6 +205,9 @@ DELETE /api/v1/subscriptions/{id}/   # Unsubscribe
 PATCH /api/v1/subscriptions/{id}/    # Update notification preferences
 
 POST /api/v1/push-tokens/            # Register push token
+
+GET  /api/schema/                     # OpenAPI schema (drf-spectacular)
+GET  /api/docs/                      # Swagger UI (interactive API docs)
 
 GET  /health/                        # Health check
 GET  /admin/                         # Django admin (Unfold theme)
@@ -252,7 +281,7 @@ This principle applies to Django admin customizations, in-app admin screens, and
 - Named exports (not default exports) for components
 - Use `const` arrow functions for components: `export const PrayerCard = () => {}`
 - Colocate styles with components using StyleSheet.create()
-- All user-facing strings should support i18n (English + Arabic at minimum)
+- All user-facing strings via i18n `t()` calls — never hardcode display text (English + Arabic)
 
 ### Naming
 - Components: PascalCase (`PrayerTimeCard.tsx`)

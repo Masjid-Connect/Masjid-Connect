@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
     "corsheaders",
     "django_filters",
+    "drf_spectacular",
     # Local
     "core",
     "api",
@@ -118,6 +119,7 @@ REST_FRAMEWORK = {
     ],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 50,
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
@@ -160,6 +162,13 @@ LOGGING = {
             "propagate": False,
         },
     },
+}
+
+# API Documentation
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Masjid Connect API",
+    "DESCRIPTION": "REST API for Masjid Connect — prayer times, mosque management, announcements, and events.",
+    "VERSION": "1.0.0",
 }
 
 # CORS
