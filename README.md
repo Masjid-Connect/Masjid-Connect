@@ -485,14 +485,19 @@ id (UUID), mosque FK, user FK, role (admin|super_admin)
 - [x] Offline-first storage layer
 - [x] Convergent Arch brand identity (SVG mark, animated splash, tab icon, gold badge)
 - [x] Kozo paper texture background system
+- [x] User authentication flow (sign up / sign in)
+- [x] Mosque search & nearby detection
+- [x] i18n (English ↔ Arabic) with RTL support
+- [x] Apple-inspired redesign (HIG type scale, true-black OLED dark mode, BottomSheet, Ionicons)
+- [x] CI/CD pipeline (GitHub Actions: TypeScript, ESLint, Jest, Django tests)
+- [x] API documentation (drf-spectacular OpenAPI + Swagger UI)
+
+**Next:**
 - [ ] Custom Arabic/serif font loading (Reem Kufi, Playfair Display)
-- [ ] Django deployment on Coolify
-- [ ] User authentication flow (sign up / sign in)
-- [ ] Mosque search & nearby detection
-- [ ] Admin panel for mosque managers (non-technical-admin-first: guided flows, zero jargon, 60s to first post)
-- [ ] Notification sound customization (oud, ney, riq)
-- [ ] i18n (English ↔ Arabic)
 - [ ] EAS Build for TestFlight & Play Store
+- [ ] Notification sound customization (oud, ney, riq)
+- [ ] Admin panel for mosque managers (non-technical-admin-first: guided flows, zero jargon, 60s to first post)
+- [ ] Django deployment on Coolify
 
 <br>
 
