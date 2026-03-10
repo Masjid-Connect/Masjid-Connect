@@ -17,13 +17,14 @@ import { useTranslation } from 'react-i18next';
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, borderRadius, typography } from '@/constants/Theme';
-import { auth } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function RegisterScreen() {
   const router = useRouter();
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
+  const { register } = useAuth();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -41,8 +42,8 @@ export default function RegisterScreen() {
     }
     setLoading(true);
     try {
-      await auth.register(email.trim(), password, name.trim());
-      router.replace('/(tabs)');
+      await register(email.trim(), password, name.trim());
+      // AuthContext updates isAuthenticated → _layout.tsx redirects to /(tabs)
     } catch (e) {
       const message = e instanceof Error ? e.message : t('auth.registerFailedHint');
       Alert.alert(t('auth.registerFailed'), message);

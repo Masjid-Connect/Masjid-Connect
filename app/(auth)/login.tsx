@@ -11,19 +11,19 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { useRouter, Link } from 'expo-router';
+import { Link } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, borderRadius, typography } from '@/constants/Theme';
-import { auth } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginScreen() {
-  const router = useRouter();
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
+  const { login } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,8 +36,8 @@ export default function LoginScreen() {
     }
     setLoading(true);
     try {
-      await auth.login(email.trim(), password);
-      router.replace('/(tabs)');
+      await login(email.trim(), password);
+      // AuthContext updates isAuthenticated → _layout.tsx redirects to /(tabs)
     } catch (e) {
       const message = e instanceof Error ? e.message : t('auth.loginFailedHint');
       Alert.alert(t('auth.loginFailed'), message);
@@ -91,9 +91,6 @@ export default function LoginScreen() {
             <Text style={[typography.body, { color: colors.accent }]}>{t('auth.noAccount')}</Text>
           </TouchableOpacity>
         </Link>
-        <TouchableOpacity onPress={() => router.back()} style={styles.link}>
-          <Text style={[typography.caption, { color: colors.textSecondary }]}>{t('auth.back')}</Text>
-        </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
