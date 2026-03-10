@@ -9,6 +9,7 @@ import {
   Pressable,
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { formatDistanceToNow } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 
@@ -23,7 +24,7 @@ export default function AnnouncementsScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
-  const { announcements, isLoading, refresh } = useAnnouncements();
+  const { announcements, isLoading, error, refresh } = useAnnouncements();
   const [refreshing, setRefreshing] = useState(false);
   const [expandedItem, setExpandedItem] = useState<Announcement | null>(null);
 
@@ -102,6 +103,20 @@ export default function AnnouncementsScreen() {
     return (
       <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.accent} />
+      </View>
+    );
+  }
+
+  if (error && announcements.length === 0) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+        <Ionicons name="cloud-offline-outline" size={48} color={colors.textSecondary} />
+        <Text style={[typography.headline, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.lg }]}>
+          {t('common.networkError')}
+        </Text>
+        <Pressable onPress={handleRefresh} style={[styles.retryBtn, { borderColor: colors.tint }]}>
+          <Text style={[typography.subhead, { color: colors.tint }]}>{t('common.retry')}</Text>
+        </Pressable>
       </View>
     );
   }
@@ -199,5 +214,12 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
     marginRight: spacing.xs,
+  },
+  retryBtn: {
+    marginTop: spacing.xl,
+    paddingHorizontal: spacing['2xl'],
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
   },
 });

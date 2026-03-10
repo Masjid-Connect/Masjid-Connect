@@ -4,15 +4,18 @@ import math
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from rest_framework import generics, permissions, status, viewsets
+from django.utils.dateparse import parse_date
+from rest_framework import permissions, status, viewsets
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.decorators import action, api_view, permission_classes, throttle_classes
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 
 from core.models import (
     Announcement,
     Event,
     Mosque,
+    MosqueAdmin,
     PushToken,
     UserSubscription,
 )
@@ -31,11 +34,42 @@ from .serializers import (
 User = get_user_model()
 
 
-# ── Auth ──────────────────────────────────────────────────────────────
+# ── Throttles ────────────────────────────────────────────────────────
+
+
+class AuthRateThrottle(AnonRateThrottle):
+    """Strict rate limit for auth endpoints to prevent brute-force."""
+
+    rate = "5/minute"
+
+
+# ── Permissions ──────────────────────────────────────────────────────
+
+
+class IsMosqueAdminOrReadOnly(permissions.BasePermission):
+    """Allow write operations only if the user is a mosque admin for the target mosque."""
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        if not request.user or not request.user.is_authenticated:
+            return False
+        # Staff users can edit anything
+        if request.user.is_staff:
+            return True
+        # Check if user is admin for this mosque
+        mosque_id = getattr(obj, "mosque_id", None)
+        if mosque_id is None:
+            return False
+        return MosqueAdmin.objects.filter(user=request.user, mosque_id=mosque_id).exists()
+
+
+# ── Auth ─────────────────────────────────────────────────────────────
 
 
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
+@throttle_classes([AuthRateThrottle])
 def register(request):
     """Register a new user and return auth token."""
     serializer = RegisterSerializer(data=request.data)
@@ -50,6 +84,7 @@ def register(request):
 
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
+@throttle_classes([AuthRateThrottle])
 def login(request):
     """Authenticate and return token. Accepts email (primary) or username as fallback."""
     email = request.data.get("email", "")
@@ -71,6 +106,7 @@ def login(request):
 
 
 @api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
 def logout(request):
     """Delete the user's auth token."""
     if hasattr(request.user, "auth_token"):
@@ -79,12 +115,13 @@ def logout(request):
 
 
 @api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
 def me(request):
     """Return current authenticated user."""
     return Response(UserSerializer(request.user).data)
 
 
-# ── Mosques ───────────────────────────────────────────────────────────
+# ── Mosques ──────────────────────────────────────────────────────────
 
 
 class MosqueViewSet(viewsets.ReadOnlyModelViewSet):
@@ -102,7 +139,7 @@ class MosqueViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=["get"])
     def nearby(self, request):
-        """Return mosques within `radius` km of `lat`/`lng` (haversine, client-side for MVP)."""
+        """Return mosques within `radius` km of `lat`/`lng` (haversine)."""
         try:
             lat = float(request.query_params["lat"])
             lng = float(request.query_params["lng"])
@@ -122,20 +159,25 @@ class MosqueViewSet(viewsets.ReadOnlyModelViewSet):
                 results.append(data)
 
         results.sort(key=lambda x: x["distance"])
+
+        # Paginate the nearby results consistently with other list endpoints
+        page = self.paginate_queryset(results)
+        if page is not None:
+            return self.get_paginated_response(page)
         return Response(results)
 
 
-# ── Announcements ─────────────────────────────────────────────────────
+# ── Announcements ────────────────────────────────────────────────────
 
 
 class AnnouncementViewSet(viewsets.ModelViewSet):
     """
-    Announcements for subscribed mosques.
+    Announcements for mosques.
     GET params: ?mosque_ids=uuid1,uuid2 (comma-separated)
     """
 
     serializer_class = AnnouncementSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsMosqueAdminOrReadOnly]
 
     def get_queryset(self):
         qs = Announcement.objects.select_related("mosque", "author")
@@ -148,7 +190,7 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         qs = qs.filter(
             models_q_expires_or_null(now),
         )
-        return qs
+        return qs.order_by("-published_at")
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -161,17 +203,17 @@ def models_q_expires_or_null(now):
     return Q(expires_at__isnull=True) | Q(expires_at__gt=now)
 
 
-# ── Events ────────────────────────────────────────────────────────────
+# ── Events ───────────────────────────────────────────────────────────
 
 
 class EventViewSet(viewsets.ModelViewSet):
     """
-    Events for subscribed mosques.
+    Events for mosques.
     GET params: ?mosque_ids=uuid1,uuid2&from_date=YYYY-MM-DD&category=lesson
     """
 
     serializer_class = EventSerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsMosqueAdminOrReadOnly]
 
     def get_queryset(self):
         qs = Event.objects.select_related("mosque", "author")
@@ -182,19 +224,23 @@ class EventViewSet(viewsets.ModelViewSet):
 
         from_date = self.request.query_params.get("from_date")
         if from_date:
-            qs = qs.filter(event_date__gte=from_date)
+            parsed = parse_date(from_date)
+            if parsed is None:
+                # Invalid date format — return empty rather than 500
+                return qs.none()
+            qs = qs.filter(event_date__gte=parsed)
 
         category = self.request.query_params.get("category")
         if category:
             qs = qs.filter(category=category)
 
-        return qs
+        return qs.order_by("event_date", "start_time")
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
 
-# ── Subscriptions ─────────────────────────────────────────────────────
+# ── Subscriptions ────────────────────────────────────────────────────
 
 
 class UserSubscriptionViewSet(viewsets.ModelViewSet):
@@ -210,10 +256,11 @@ class UserSubscriptionViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-# ── Push Tokens ───────────────────────────────────────────────────────
+# ── Push Tokens ──────────────────────────────────────────────────────
 
 
 @api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
 def register_push_token(request):
     """Register or update a push token for the authenticated user."""
     token_str = request.data.get("token")
@@ -235,7 +282,7 @@ def register_push_token(request):
     )
 
 
-# ── Helpers ───────────────────────────────────────────────────────────
+# ── Helpers ──────────────────────────────────────────────────────────
 
 
 def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:

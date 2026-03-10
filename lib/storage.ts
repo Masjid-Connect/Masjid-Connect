@@ -5,6 +5,7 @@ const KEYS = {
   PRAYER_TIMES: 'cached_prayer_times',
   PRAYER_DATE: 'cached_prayer_date',
   SUBSCRIBED_MOSQUES: 'subscribed_mosque_ids',
+  SELECTED_MOSQUE: 'selected_mosque_id',
   USER_LOCATION: 'user_location',
   CALCULATION_METHOD: 'calculation_method',
   CALCULATION_METHOD_NAME: 'calculation_method_name',
@@ -53,6 +54,19 @@ export async function getSubscribedMosqueIds(): Promise<string[]> {
 
 export async function setSubscribedMosqueIds(ids: string[]): Promise<void> {
   await AsyncStorage.setItem(KEYS.SUBSCRIBED_MOSQUES, JSON.stringify(ids));
+}
+
+/** Selected mosque for guest users (no account needed) */
+export async function getSelectedMosqueId(): Promise<string | null> {
+  return AsyncStorage.getItem(KEYS.SELECTED_MOSQUE);
+}
+
+export async function setSelectedMosqueId(id: string | null): Promise<void> {
+  if (id) {
+    await AsyncStorage.setItem(KEYS.SELECTED_MOSQUE, id);
+  } else {
+    await AsyncStorage.removeItem(KEYS.SELECTED_MOSQUE);
+  }
 }
 
 /** User location */

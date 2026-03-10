@@ -181,8 +181,7 @@ function mapAnnouncement(raw: Record<string, unknown>): Announcement {
 
 export const announcements = {
   async list(mosqueIds: string[]) {
-    if (mosqueIds.length === 0) return { items: [], totalItems: 0 };
-    const params = `?mosque_ids=${mosqueIds.join(',')}`;
+    const params = mosqueIds.length > 0 ? `?mosque_ids=${mosqueIds.join(',')}` : '';
     const data = await request<PaginatedResponse<Record<string, unknown>>>(`/announcements/${params}`);
     return {
       items: data.results.map(mapAnnouncement),
@@ -226,9 +225,10 @@ function mapEvent(raw: Record<string, unknown>): MosqueEvent {
 
 export const events = {
   async list(mosqueIds: string[], fromDate?: string) {
-    if (mosqueIds.length === 0) return { items: [], totalItems: 0 };
-    let params = `?mosque_ids=${mosqueIds.join(',')}`;
-    if (fromDate) params += `&from_date=${fromDate}`;
+    const parts: string[] = [];
+    if (mosqueIds.length > 0) parts.push(`mosque_ids=${mosqueIds.join(',')}`);
+    if (fromDate) parts.push(`from_date=${fromDate}`);
+    const params = parts.length > 0 ? `?${parts.join('&')}` : '';
     const data = await request<PaginatedResponse<Record<string, unknown>>>(`/events/${params}`);
     return {
       items: data.results.map(mapEvent),

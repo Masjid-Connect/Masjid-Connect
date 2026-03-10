@@ -102,9 +102,9 @@ function RootLayoutNav() {
 
     const inAuthGroup = segments[0] === '(auth)';
 
-    if (!isAuthenticated && !inAuthGroup) {
-      router.replace('/(auth)/login');
-    } else if (isAuthenticated && inAuthGroup) {
+    // Allow unauthenticated users to browse tabs (anonymous browsing).
+    // Only redirect authenticated users away from auth screens.
+    if (isAuthenticated && inAuthGroup) {
       router.replace('/(tabs)');
     }
   }, [isAuthenticated, isLoading, segments]);

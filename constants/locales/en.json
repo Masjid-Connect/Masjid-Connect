@@ -127,6 +127,7 @@
     "locationError": "Could not detect your location. Please try again.",
     "searchFailed": "Could not search mosques. Check your connection.",
     "nearbyFailed": "Could not find nearby mosques. Check your connection.",
-    "calendarError": "Could not open calendar."
+    "calendarError": "Could not open calendar.",
+    "networkError": "Unable to connect. Please check your internet and try again."
   }
 }

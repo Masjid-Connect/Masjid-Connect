@@ -37,7 +37,7 @@ export default function EventsScreen() {
     key,
     label: t(`events.categories.${key || 'all'}`),
   }));
-  const { events, isLoading, selectedCategory, setSelectedCategory, refresh } = useEvents();
+  const { events, isLoading, error, selectedCategory, setSelectedCategory, refresh } = useEvents();
   const [refreshing, setRefreshing] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -204,6 +204,16 @@ export default function EventsScreen() {
         <View style={styles.centered}>
           <ActivityIndicator size="large" color={colors.accent} />
         </View>
+      ) : error && events.length === 0 ? (
+        <View style={[styles.centered, { padding: spacing['3xl'] }]}>
+          <Ionicons name="cloud-offline-outline" size={48} color={colors.textSecondary} />
+          <Text style={[typography.headline, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.lg }]}>
+            {t('common.networkError')}
+          </Text>
+          <Pressable onPress={handleRefresh} style={[styles.retryBtn, { borderColor: colors.tint }]}>
+            <Text style={[typography.subhead, { color: colors.tint }]}>{t('common.retry')}</Text>
+          </Pressable>
+        </View>
       ) : filteredByDate.length === 0 ? (
         <View style={[styles.centered, { padding: spacing['3xl'] }]}>
           <Text style={[typography.headline, { color: colors.textSecondary, textAlign: 'center' }]}>
@@ -358,5 +368,12 @@ const styles = StyleSheet.create({
     marginTop: spacing['2xl'],
     paddingVertical: spacing.lg,
     borderRadius: borderRadius.sm,
+  },
+  retryBtn: {
+    marginTop: spacing.xl,
+    paddingHorizontal: spacing['2xl'],
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
   },
 });

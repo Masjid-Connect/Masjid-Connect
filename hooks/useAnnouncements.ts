@@ -1,50 +1,38 @@
 import { useState, useEffect, useCallback } from 'react';
 import { announcements as announcementsApi } from '@/lib/api';
-import { getSubscribedMosqueIds } from '@/lib/storage';
+import { getSubscribedMosqueIds, getSelectedMosqueId } from '@/lib/storage';
 import type { Announcement } from '@/types';
 
 interface UseAnnouncementsResult {
   announcements: Announcement[];
   isLoading: boolean;
+  error: string | null;
   refresh: () => Promise<void>;
 }
 
 export function useAnnouncements(): UseAnnouncementsResult {
   const [items, setItems] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const loadAnnouncements = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
-      const mosqueIds = await getSubscribedMosqueIds();
+      // Use subscribed mosques if available, otherwise fall back to selected mosque (guest mode)
+      let mosqueIds = await getSubscribedMosqueIds();
+      if (mosqueIds.length === 0) {
+        const selectedId = await getSelectedMosqueId();
+        if (selectedId) mosqueIds = [selectedId];
+      }
       const result = await announcementsApi.list(mosqueIds);
       setItems(result.items);
-    } catch (error) {
-      console.error('Failed to load announcements:', error);
+    } catch (err) {
+      console.error('Failed to load announcements:', err);
+      setError('Unable to load announcements. Pull down to retry.');
     } finally {
       setIsLoading(false);
     }
-  }, []);
-
-  // Subscribe to realtime updates
-  useEffect(() => {
-    let unsubscribed = false;
-
-    const setup = async () => {
-      const mosqueIds = await getSubscribedMosqueIds();
-      if (mosqueIds.length === 0 || unsubscribed) return;
-
-      announcementsApi.subscribe(mosqueIds, (newAnnouncement) => {
-        setItems((prev) => [newAnnouncement, ...prev]);
-      });
-    };
-
-    setup();
-
-    return () => {
-      unsubscribed = true;
-      announcementsApi.unsubscribe();
-    };
   }, []);
 
   useEffect(() => {
@@ -54,6 +42,7 @@ export function useAnnouncements(): UseAnnouncementsResult {
   return {
     announcements: items,
     isLoading,
+    error,
     refresh: loadAnnouncements,
   };
 }
