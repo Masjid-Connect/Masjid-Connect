@@ -51,13 +51,17 @@ def register(request):
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
 def login(request):
-    """Authenticate and return token."""
+    """Authenticate and return token. Accepts email (primary) or username as fallback."""
     email = request.data.get("email", "")
     password = request.data.get("password", "")
     try:
         user = User.objects.get(email=email)
     except User.DoesNotExist:
-        return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+        # Fallback: try username for legacy superusers created via createsuperuser
+        try:
+            user = User.objects.get(username=email)
+        except User.DoesNotExist:
+            return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
 
     if not user.check_password(password):
         return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)

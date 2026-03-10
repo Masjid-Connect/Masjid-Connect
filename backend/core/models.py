@@ -8,16 +8,20 @@ from django.db import models
 
 
 class User(AbstractUser):
-    """Extended user with mobile-app fields."""
+    """Extended user with mobile-app fields. Uses email as primary login field."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, blank=True)
+    email = models.EmailField("email address", unique=True)
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username", "name"]
 
     class Meta:
         ordering = ["-date_joined"]
 
     def __str__(self):
-        return self.name or self.username
+        return self.name or self.email
 
 
 class Mosque(models.Model):
