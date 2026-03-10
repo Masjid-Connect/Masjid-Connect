@@ -115,25 +115,25 @@ interface PaginatedResponse<T> {
 
 // ── Mosques ──────────────────────────────────────────────────────────
 
-/** Map API mosque → frontend Mosque type */
+/** Map API mosque → frontend Mosque type. Handles both full detail and list (subset) responses. */
 function mapMosque(raw: Record<string, unknown>): Mosque {
   return {
     id: raw.id as string,
     name: raw.name as string,
-    address: raw.address as string,
-    city: raw.city as string,
-    state: raw.state as string,
-    country: raw.country as string,
-    latitude: raw.latitude as number,
-    longitude: raw.longitude as number,
-    calculation_method: String(raw.calculation_method),
+    address: (raw.address as string) || '',
+    city: (raw.city as string) || '',
+    state: (raw.state as string) || '',
+    country: (raw.country as string) || '',
+    latitude: (raw.latitude as number) || 0,
+    longitude: (raw.longitude as number) || 0,
+    calculation_method: String(raw.calculation_method ?? ''),
     jumua_time: (raw.jumua_time as string) || null,
     contact_phone: (raw.contact_phone as string) || '',
     contact_email: (raw.contact_email as string) || '',
     website: (raw.website as string) || '',
     photo: (raw.photo as string) || '',
-    created: raw.created as string,
-    updated: raw.updated as string,
+    created: (raw.created as string) || '',
+    updated: (raw.updated as string) || '',
   };
 }
 

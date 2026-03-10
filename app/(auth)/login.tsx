@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Image,
   StyleSheet,
   View,
   Text,
@@ -51,6 +52,13 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.content}>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('@/assets/images/Masjid_Logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
         <Text style={[typography.title1, { color: colors.text, marginBottom: spacing.lg }]}>{t('auth.login')}</Text>
         <TextInput
           style={[styles.input, { backgroundColor: colors.card, borderColor: colors.cardBorder, color: colors.text }]}
@@ -98,6 +106,14 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: spacing.xl,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  logo: {
+    width: 260,
+    height: 72,
   },
   input: {
     borderWidth: 1,

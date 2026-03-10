@@ -1,8 +1,7 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { ConvergentArch } from '@/components/brand/ConvergentArch';
 import { KozoPaperBackground } from '@/components/ui/KozoPaperBackground';
-import { getColors, palette } from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import { spacing, typography } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
 
@@ -14,12 +13,11 @@ export default function AboutModal() {
   return (
     <KozoPaperBackground style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.markContainer}>
-          <ConvergentArch
-            size={120}
-            strokeColor={colors.tint}
-            goldColor={palette.divineGold}
-            goldOpacity={1}
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('@/assets/images/Masjid_Logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
           />
         </View>
 
@@ -68,8 +66,13 @@ const styles = StyleSheet.create({
     paddingTop: spacing['2xl'],
     paddingBottom: spacing['3xl'],
   },
-  markContainer: {
+  logoContainer: {
+    alignItems: 'center',
     marginBottom: spacing.lg,
+  },
+  logo: {
+    width: 280,
+    height: 78,
   },
   title: {
     textAlign: 'center',

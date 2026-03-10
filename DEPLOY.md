@@ -362,7 +362,71 @@ If you see that, your Django app is running!
 
 ---
 
-## Part E — Automatic Backups (5 minutes)
+## Part E — Set Up HTTPS (the Lock Icon) (10 minutes)
+
+### Step 1: Configure Nginx
+
+Switch back to root (you need admin powers for this):
+
+```bash
+sudo cp /home/mosque/Masjid-Connect/backend/nginx.conf /etc/nginx/sites-available/salafimasjid
+sudo ln -sf /etc/nginx/sites-available/salafimasjid /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
+```
+
+### Step 2: Get Your SSL Certificate
+
+```bash
+sudo certbot --nginx -d api.salafimasjid.app
+```
+
+It will ask:
+- **Email**: Your email (for renewal reminders)
+- **Terms of Service**: Type `Y` to agree
+- **Share email with EFF**: Your choice (`Y` or `N`)
+
+Certbot will automatically:
+1. Verify you own the domain
+2. Get a free certificate
+3. Configure Nginx to use it
+4. Set up auto-renewal
+
+### Step 3: Test Auto-Renewal
+
+```bash
+sudo certbot renew --dry-run
+```
+
+If you see "Congratulations", auto-renewal is working. Your certificate will renew itself every 90 days, automatically, forever.
+
+### Step 4: Restart Nginx
+
+```bash
+sudo nginx -t          # Check config is valid
+sudo systemctl reload nginx
+```
+
+### Step 5: Test from the Internet
+
+Open your web browser and go to:
+
+```
+https://api.salafimasjid.app/health/
+```
+
+You should see `{"status": "ok"}` and a lock icon in the address bar.
+
+Try the admin panel:
+
+```
+https://api.salafimasjid.app/admin/
+```
+
+You should see a beautiful Sacred Blue login page.
+
+---
+
+## Part F — Automatic Backups (5 minutes)
 
 ### Step 1: Create the Backup Directory
 
