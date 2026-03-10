@@ -13,9 +13,11 @@ import {
 import * as Location from 'expo-location';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { spacing, elevation, borderRadius, typography } from '@/constants/Theme';
 import {
   getUserLocation,
@@ -31,10 +33,9 @@ import {
 } from '@/lib/storage';
 import type { ThemePreference } from '@/contexts/ThemeContext';
 import { reschedulePrayerRemindersForToday } from '@/lib/notifications';
-import { auth, mosques as mosquesApi } from '@/lib/api';
+import { mosques as mosquesApi } from '@/lib/api';
 import { CALCULATION_METHODS } from '@/types';
 import type { Mosque } from '@/types';
-import { useRouter } from 'expo-router';
 
 const REMINDER_VALUES = [0, 5, 10, 15, 30];
 const THEME_VALUES: ThemePreference[] = ['light', 'dark', 'system'];
@@ -44,6 +45,7 @@ export default function SettingsScreen() {
   const { effectiveScheme, themePreference, setThemePreference } = useTheme();
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
+  const { user, isAuthenticated, logout } = useAuth();
 
   const REMINDER_OPTIONS = REMINDER_VALUES.map((v) => ({
     label: v === 0 ? t('settings.atAthanTime') : t('settings.minutesBefore', { minutes: v }),
@@ -54,8 +56,6 @@ export default function SettingsScreen() {
     value: v,
     label: t(`settings.theme${v.charAt(0).toUpperCase() + v.slice(1)}`),
   }));
-  const isLoggedIn = auth.isLoggedIn;
-  const user = auth.user;
 
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [methodName, setMethodName] = useState('ISNA');
@@ -140,6 +140,19 @@ export default function SettingsScreen() {
     await setUse24h(value);
   };
 
+  const handleSignOut = () => {
+    Alert.alert(t('settings.signOut'), t('settings.signOutConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('settings.signOut'),
+        style: 'destructive',
+        onPress: async () => {
+          await logout();
+        },
+      },
+    ]);
+  };
+
   const handleSubscribe = async (mosqueId: string) => {
     const ids = await getSubscribedMosqueIds();
     if (ids.includes(mosqueId)) return;
@@ -209,6 +222,34 @@ export default function SettingsScreen() {
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={styles.content}
     >
+      {/* Account */}
+      <SectionHeader title={t('settings.account')} />
+      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
+        {isAuthenticated && user ? (
+          <View style={styles.row}>
+            <View style={[styles.avatar, { backgroundColor: colors.accent }]}>
+              <Text style={[typography.title2, { color: '#FFFFFF' }]}>
+                {(user.name || user.email)[0].toUpperCase()}
+              </Text>
+            </View>
+            <View style={{ flex: 1, marginLeft: spacing.md }}>
+              <Text style={[typography.body, { color: colors.text }]}>{user.name || user.email}</Text>
+              <Text style={[typography.caption1, { color: colors.textSecondary }]}>{user.email}</Text>
+            </View>
+            <TouchableOpacity onPress={handleSignOut}>
+              <Text style={[typography.subhead, { color: colors.urgent }]}>{t('settings.signOut')}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            onPress={() => router.push('/(auth)/login')}
+            style={[styles.actionBtn, { backgroundColor: colors.tint }]}
+          >
+            <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>{t('settings.signIn')}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
       {/* My Mosques */}
       <SectionHeader title={t('settings.myMosques')} />
       <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
@@ -308,7 +349,7 @@ export default function SettingsScreen() {
       {/* Calculation Method */}
       <SectionHeader title={t('settings.calculationMethod')} />
       <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
-        {Object.entries(CALCULATION_METHODS).map(([key, value], i, arr) => (
+        {Object.entries(CALCULATION_METHODS).map(([key, value]) => (
           <CheckRow
             key={key}
             label={value.label}
@@ -351,29 +392,6 @@ export default function SettingsScreen() {
             thumbColor="#FFFFFF"
           />
         </View>
-      </View>
-
-      {/* Account */}
-      <SectionHeader title={t('settings.account')} />
-      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
-        {isLoggedIn && user ? (
-          <View style={styles.row}>
-            <View style={{ flex: 1 }}>
-              <Text style={[typography.body, { color: colors.text }]}>{user.name || user.email}</Text>
-              <Text style={[typography.caption1, { color: colors.textSecondary }]}>{user.email}</Text>
-            </View>
-            <TouchableOpacity onPress={async () => { await auth.logout(); }}>
-              <Text style={[typography.subhead, { color: colors.urgent }]}>{t('settings.signOut')}</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity
-            onPress={() => router.push('/(auth)/login')}
-            style={[styles.actionBtn, { backgroundColor: colors.tint }]}
-          >
-            <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>{t('settings.signIn')}</Text>
-          </TouchableOpacity>
-        )}
       </View>
 
       {/* App info */}
@@ -435,6 +453,13 @@ const styles = StyleSheet.create({
     margin: spacing.lg,
     paddingVertical: spacing.lg,
     borderRadius: borderRadius.sm,
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   footer: {

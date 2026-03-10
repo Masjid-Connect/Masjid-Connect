@@ -80,6 +80,7 @@
     "account": "Account",
     "signIn": "Sign in",
     "signOut": "Sign out",
+    "signOutConfirm": "Are you sure you want to sign out?",
     "appInfo": "App Info",
     "version": "Mosque Connect v{{version}}",
     "prayerSource": "Prayer times via Aladhan API"

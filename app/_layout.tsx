@@ -1,6 +1,6 @@
 import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useState } from 'react';
 import { AppState } from 'react-native';
@@ -9,7 +9,7 @@ import 'react-native-reanimated';
 import { palette } from '@/constants/Colors';
 import { AnimatedSplash } from '@/components/brand/AnimatedSplash';
 import { ThemeProvider as AppThemeProvider, useTheme } from '@/contexts/ThemeContext';
-import { auth } from '@/lib/api';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { reschedulePrayerRemindersForToday } from '@/lib/notifications';
 import '@/lib/i18n';
 import { configureRTL } from '@/lib/rtl';
@@ -62,7 +62,6 @@ export default function RootLayout() {
     if (loaded) {
       configureRTL();
       SplashScreen.hideAsync();
-      auth.hydrate();
     }
   }, [loaded]);
 
@@ -82,16 +81,33 @@ export default function RootLayout() {
   }
 
   return (
-    <AnimatedSplash isVisible={showSplash} onAnimationComplete={handleSplashComplete}>
-      <AppThemeProvider>
-        <RootLayoutNav />
-      </AppThemeProvider>
-    </AnimatedSplash>
+    <AuthProvider>
+      <AnimatedSplash isVisible={showSplash} onAnimationComplete={handleSplashComplete}>
+        <AppThemeProvider>
+          <RootLayoutNav />
+        </AppThemeProvider>
+      </AnimatedSplash>
+    </AuthProvider>
   );
 }
 
 function RootLayoutNav() {
   const { effectiveScheme } = useTheme();
+  const { isAuthenticated, isLoading } = useAuth();
+  const segments = useSegments();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (!isAuthenticated && !inAuthGroup) {
+      router.replace('/(auth)/login');
+    } else if (isAuthenticated && inAuthGroup) {
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated, isLoading, segments]);
 
   return (
     <ThemeProvider value={effectiveScheme === 'dark' ? MosqueDark : MosqueLight}>

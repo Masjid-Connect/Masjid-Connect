@@ -139,6 +139,7 @@ export const borderRadius = {
 export const typography: Record<string, TextStyle> = {
   largeTitle: {
     fontSize: 34,
+    fontFamily: fonts.heading,
     fontWeight: '700',
     letterSpacing: 0.37,
     lineHeight: 41,
@@ -231,6 +232,7 @@ export const typography: Record<string, TextStyle> = {
   },
   caption: {
     fontSize: 12,
+    fontFamily: fonts.body,
     fontWeight: '400',
     letterSpacing: 0,
     lineHeight: 16,
