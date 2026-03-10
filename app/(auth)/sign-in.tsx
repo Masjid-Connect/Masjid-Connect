@@ -72,7 +72,7 @@ export default function SignInScreen() {
           {/* Brand Logo */}
           <View style={styles.logoContainer}>
             <Image
-              source={require('@/assets/images/splash-logo.png')}
+              source={require('@/assets/images/Masjid_Logo.png')}
               style={styles.logo}
               resizeMode="contain"
             />
@@ -152,8 +152,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   logo: {
-    width: 220,
-    height: 132,
+    width: 260,
+    height: 72,
   },
   form: {
     marginBottom: spacing.lg,

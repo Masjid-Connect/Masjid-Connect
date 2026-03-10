@@ -15,7 +15,7 @@ export default function AboutModal() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.logoContainer}>
           <Image
-            source={require('@/assets/images/splash-logo.png')}
+            source={require('@/assets/images/Masjid_Logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -71,8 +71,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   logo: {
-    width: 240,
-    height: 144,
+    width: 280,
+    height: 78,
   },
   title: {
     textAlign: 'center',
