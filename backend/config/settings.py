@@ -1,7 +1,10 @@
 """Django settings for Masjid Connect."""
 
 import os
+import sys
 from pathlib import Path
+
+TESTING = "test" in sys.argv
 
 import environ
 
@@ -121,7 +124,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 50,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-    "DEFAULT_THROTTLE_CLASSES": [
+    "DEFAULT_THROTTLE_CLASSES": [] if TESTING else [
         "rest_framework.throttling.AnonRateThrottle",
         "rest_framework.throttling.UserRateThrottle",
     ],

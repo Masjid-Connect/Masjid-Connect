@@ -125,7 +125,7 @@ export default function SignInScreen() {
           {/* Sign Up Link */}
           <View style={styles.footer}>
             <Text style={[typography.body, { color: colors.textSecondary }]}>
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
             </Text>
             <TouchableOpacity onPress={() => router.push('/(auth)/sign-up')}>
               <Text style={[typography.body, { color: colors.tint, fontWeight: '600' }]}>

@@ -94,6 +94,7 @@ class MosqueNearbyTests(TestCase):
             "radius": 10,
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        names = [m["name"] for m in response.data]
+        results = response.data.get("results", response.data)
+        names = [m["name"] for m in results]
         self.assertIn("Close Mosque", names)
         self.assertNotIn("Far Mosque", names)

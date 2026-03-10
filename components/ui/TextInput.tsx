@@ -80,6 +80,8 @@ export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
   }
 );
 
+TextInput.displayName = 'TextInput';
+
 const styles = StyleSheet.create({
   wrapper: {
     marginBottom: spacing.md,

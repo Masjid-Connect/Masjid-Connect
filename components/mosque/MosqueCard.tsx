@@ -85,7 +85,7 @@ export const MosqueCard = ({ mosque, isSubscribed, onToggleSubscribe }: MosqueCa
           ) : null}
           {mosque.jumua_time ? (
             <Text style={[typography.caption, { color: colors.accent, marginTop: 4 }]}>
-              Jumu'ah: {mosque.jumua_time}
+              Jumu&apos;ah: {mosque.jumua_time}
             </Text>
           ) : null}
         </View>
