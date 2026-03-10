@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import {
+  Image,
   StyleSheet,
   View,
   Text,
@@ -15,7 +16,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getColors } from '@/constants/Colors';
 import { spacing, typography } from '@/constants/Theme';
-import { ConvergentArch } from '@/components/brand/ConvergentArch';
 import { KozoPaperBackground } from '@/components/ui/KozoPaperBackground';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
@@ -84,9 +84,13 @@ export default function SignUpScreen() {
             { paddingTop: insets.top + spacing['2xl'] },
           ]}
           keyboardShouldPersistTaps="handled">
-          {/* Brand Mark */}
-          <View style={styles.markContainer}>
-            <ConvergentArch size={80} />
+          {/* Brand Logo */}
+          <View style={styles.logoContainer}>
+            <Image
+              source={require('@/assets/images/splash-logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
           </View>
 
           {/* Heading */}
@@ -183,9 +187,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingBottom: spacing['3xl'],
   },
-  markContainer: {
+  logoContainer: {
     alignItems: 'center',
     marginBottom: spacing.lg,
+  },
+  logo: {
+    width: 220,
+    height: 132,
   },
   form: {
     marginBottom: spacing.lg,

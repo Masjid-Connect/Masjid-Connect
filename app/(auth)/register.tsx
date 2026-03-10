@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Image,
   StyleSheet,
   View,
   Text,
@@ -56,6 +57,13 @@ export default function RegisterScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.content}>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('@/assets/images/splash-logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
         <Text style={[typography.title1, { color: colors.text, marginBottom: spacing.lg }]}>{t('auth.register')}</Text>
         <TextInput
           style={[styles.input, { backgroundColor: colors.card, borderColor: colors.cardBorder, color: colors.text }]}
@@ -111,6 +119,14 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: spacing.xl,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  logo: {
+    width: 220,
+    height: 132,
   },
   input: {
     borderWidth: 1,
