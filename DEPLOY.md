@@ -29,7 +29,7 @@ Think of this like a recipe — gather your ingredients first:
 | Item | What It Is | Cost |
 |------|-----------|------|
 | **DigitalOcean account** | A company that rents computers on the internet | $6/month |
-| **Domain name** | Your app's address (like `mosqueconnect.app`) | ~$12/year |
+| **Domain name** | Your app's address (like `salafimasjid.app`) | ~$12/year |
 | **GitHub account** | Where your code lives | Free |
 | **Apple Developer account** | Needed to put app on iPhones | $99/year |
 | **Google Play Developer account** | Needed to put app on Android phones | $25 one time |
@@ -115,7 +115,7 @@ My server IP: ___.___.___.___
 
 ## Part B — Point Your Domain Name (10 minutes)
 
-A domain name is like a nickname for your server's IP address. Instead of telling people to visit `164.90.123.45`, they visit `api.mosqueconnect.app`.
+A domain name is like a nickname for your server's IP address. Instead of telling people to visit `164.90.123.45`, they visit `api.salafimasjid.app`.
 
 ### Step 1: Buy a Domain
 
@@ -123,7 +123,7 @@ Go to one of these websites and buy a domain:
 - **Namecheap** (`namecheap.com`) — good prices, easy to use
 - **Cloudflare** (`cloudflare.com/products/registrar`) — cheapest, slightly more technical
 
-Search for and buy: `mosqueconnect.app` (or whatever you want)
+Search for and buy: `salafimasjid.app` (or whatever you want)
 
 ### Step 2: Add DNS Records
 
@@ -138,8 +138,8 @@ Go to your domain registrar's DNS settings and add these records:
 
 Replace `YOUR_SERVER_IP` with the number from Step A5.
 
-- The `@` record means: `mosqueconnect.app` → your server
-- The `api` record means: `api.mosqueconnect.app` → your server
+- The `@` record means: `salafimasjid.app` → your server
+- The `api` record means: `api.salafimasjid.app` → your server
 
 ### Step 3: Wait for DNS
 
@@ -148,7 +148,7 @@ DNS changes can take 5 minutes to 48 hours to spread across the internet. Usuall
 To check if it's working, open Terminal and type:
 
 ```bash
-ping api.mosqueconnect.app
+ping api.salafimasjid.app
 ```
 
 If you see responses with your server's IP, it's working! Press Ctrl+C to stop.
@@ -256,23 +256,7 @@ docker --version
 
 You should see something like `Docker version 27.x.x`.
 
-### Step 6: Install Nginx
-
-Nginx (pronounced "engine-x") is a traffic director. It sits in front of your app and handles HTTPS, forwards requests, and serves static files.
-
-```bash
-apt install nginx -y
-```
-
-### Step 7: Install Certbot
-
-Certbot automatically gets free HTTPS certificates from Let's Encrypt. HTTPS is the lock icon in your browser — it means the connection is encrypted and secure.
-
-```bash
-apt install certbot python3-certbot-nginx -y
-```
-
-### Step 8: Switch to the Mosque User
+### Step 6: Switch to the Mosque User
 
 From now on, we'll work as the `mosque` user:
 
@@ -282,7 +266,7 @@ su - mosque
 
 Your prompt should change from `root@masjid-connect` to `mosque@masjid-connect`.
 
-### Step 9: Clone the Code
+### Step 7: Clone the Code
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/Masjid-Connect.git
@@ -291,7 +275,7 @@ cd Masjid-Connect/backend
 
 Replace `YOUR_USERNAME` with your GitHub username.
 
-### Step 10: Create the Production Environment File
+### Step 8: Create the Production Environment File
 
 This file contains your app's secrets (passwords, keys). **Never share it or commit it to git.**
 
@@ -312,14 +296,14 @@ Fill in these values:
 # Run this in another terminal: python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 SECRET_KEY=paste-your-generated-key-here
 
-ALLOWED_HOSTS=api.mosqueconnect.app
+ALLOWED_HOSTS=api.salafimasjid.app
 DEBUG=False
 
 POSTGRES_DB=masjid_connect
 POSTGRES_USER=mosque
 POSTGRES_PASSWORD=pick-a-very-strong-password-here
 
-CORS_ALLOWED_ORIGINS=https://mosqueconnect.app
+CORS_ALLOWED_ORIGINS=https://salafimasjid.app
 ```
 
 To save in nano: Press **Ctrl+O**, then **Enter**, then **Ctrl+X**.
@@ -378,71 +362,7 @@ If you see that, your Django app is running!
 
 ---
 
-## Part E — Set Up HTTPS (the Lock Icon) (10 minutes)
-
-### Step 1: Configure Nginx
-
-Switch back to root (you need admin powers for this):
-
-```bash
-sudo cp /home/mosque/Masjid-Connect/backend/nginx.conf /etc/nginx/sites-available/mosqueconnect
-sudo ln -sf /etc/nginx/sites-available/mosqueconnect /etc/nginx/sites-enabled/
-sudo rm -f /etc/nginx/sites-enabled/default
-```
-
-### Step 2: Get Your SSL Certificate
-
-```bash
-sudo certbot --nginx -d api.mosqueconnect.app
-```
-
-It will ask:
-- **Email**: Your email (for renewal reminders)
-- **Terms of Service**: Type `Y` to agree
-- **Share email with EFF**: Your choice (`Y` or `N`)
-
-Certbot will automatically:
-1. Verify you own the domain
-2. Get a free certificate
-3. Configure Nginx to use it
-4. Set up auto-renewal
-
-### Step 3: Test Auto-Renewal
-
-```bash
-sudo certbot renew --dry-run
-```
-
-If you see "Congratulations", auto-renewal is working. Your certificate will renew itself every 90 days, automatically, forever.
-
-### Step 4: Restart Nginx
-
-```bash
-sudo nginx -t          # Check config is valid
-sudo systemctl reload nginx
-```
-
-### Step 5: Test from the Internet
-
-Open your web browser and go to:
-
-```
-https://api.mosqueconnect.app/health/
-```
-
-You should see `{"status": "ok"}` and a lock icon in the address bar.
-
-Try the admin panel:
-
-```
-https://api.mosqueconnect.app/admin/
-```
-
-You should see a beautiful Sacred Blue login page.
-
----
-
-## Part F — Automatic Backups (5 minutes)
+## Part E — Automatic Backups (5 minutes)
 
 ### Step 1: Create the Backup Directory
 
@@ -636,7 +556,7 @@ Print this out and put it on your wall. This is how you keep the app alive for 1
 Open your browser and visit:
 
 ```
-https://api.mosqueconnect.app/health/
+https://api.salafimasjid.app/health/
 ```
 
 If you see `{"status": "ok"}`, everything is fine. Move on with your life.
@@ -878,9 +798,9 @@ RESTART:   docker compose -f docker-compose.prod.yml restart
 STATUS:    docker compose -f docker-compose.prod.yml ps
 HEALTH:    curl http://localhost:8000/health/
 
-ADMIN:     https://api.mosqueconnect.app/admin/
-API DOCS:  https://api.mosqueconnect.app/api/docs/
-HEALTH:    https://api.mosqueconnect.app/health/
+ADMIN:     https://api.salafimasjid.app/admin/
+API DOCS:  https://api.salafimasjid.app/api/docs/
+HEALTH:    https://api.salafimasjid.app/health/
 ```
 
 ---

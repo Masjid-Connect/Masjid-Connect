@@ -357,7 +357,7 @@ npx tsc --noEmit
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `EXPO_PUBLIC_API_URL` | Django REST API base URL | `https://api.mosqueconnect.app/api/v1` |
+| `EXPO_PUBLIC_API_URL` | Django REST API base URL | `https://api.salafimasjid.app/api/v1` |
 
 <br>
 
