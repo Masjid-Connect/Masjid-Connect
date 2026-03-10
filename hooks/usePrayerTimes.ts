@@ -1,9 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { getPrayerTimes, buildPrayerEntries, getNextPrayer, getCountdown } from '@/lib/prayer';
-import { cachePrayerTimes, getCachedPrayerTimes, getUserLocation, getCalculationMethod, getReminderMinutes } from '@/lib/storage';
+import { cachePrayerTimes, getCachedPrayerTimes, getUserLocation, getReminderMinutes, getUse24h } from '@/lib/storage';
 import { reschedulePrayerRemindersForToday, schedulePrayerReminders } from '@/lib/notifications';
 import type { PrayerTimeEntry, PrayerName } from '@/types';
+
+/** Umm Al-Qura is the only calculation method used */
+const CALCULATION_METHOD_CODE = 4;
+const CALCULATION_METHOD_NAME = 'UmmAlQura';
 
 interface UsePrayerTimesResult {
   prayers: PrayerTimeEntry[];
@@ -12,6 +16,7 @@ interface UsePrayerTimesResult {
   hijriDate: string | null;
   isLoading: boolean;
   source: 'api' | 'offline' | 'cache';
+  use24h: boolean;
   refresh: () => Promise<void>;
 }
 
@@ -22,10 +27,15 @@ export function usePrayerTimes(): UsePrayerTimesResult {
   const [hijriDate, setHijriDate] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [source, setSource] = useState<'api' | 'offline' | 'cache'>('cache');
+  const [use24h, setUse24hState] = useState(false);
 
   const loadPrayerTimes = useCallback(async () => {
     setIsLoading(true);
     const today = format(new Date(), 'yyyy-MM-dd');
+
+    // Load 24h preference
+    const h24 = await getUse24h();
+    setUse24hState(h24);
 
     try {
       // Check cache first
@@ -41,13 +51,12 @@ export function usePrayerTimes(): UsePrayerTimesResult {
 
       // Fetch fresh data
       const location = await getUserLocation();
-      const method = await getCalculationMethod();
 
       // Default to Mecca coordinates if no location set
       const lat = location?.latitude ?? 21.4225;
       const lng = location?.longitude ?? 39.8262;
 
-      const result = await getPrayerTimes(lat, lng, method.code, method.name);
+      const result = await getPrayerTimes(lat, lng, CALCULATION_METHOD_CODE, CALCULATION_METHOD_NAME);
       const entries = buildPrayerEntries(result.times);
 
       setPrayers(entries);
@@ -118,6 +127,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     hijriDate,
     isLoading,
     source,
+    use24h,
     refresh: loadPrayerTimes,
   };
 }

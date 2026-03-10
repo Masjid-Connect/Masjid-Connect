@@ -37,7 +37,7 @@ export default function PrayerTimesScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
-  const { prayers, nextPrayer, countdown, hijriDate, isLoading, source, refresh } = usePrayerTimes();
+  const { prayers, nextPrayer, countdown, hijriDate, isLoading, source, use24h, refresh } = usePrayerTimes();
 
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -107,7 +107,7 @@ export default function PrayerTimesScreen() {
                 {nextPrayerData.label}
               </Text>
               <Text style={[typography.prayerCountdown, { color: colors.text, textAlign: 'center', marginTop: spacing.xs }]}>
-                {formatPrayerTime(nextPrayerData.time)}
+                {formatPrayerTime(nextPrayerData.time, use24h)}
               </Text>
               <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xs }]}>
                 {t('prayer.timeRemaining', { countdown })}
@@ -176,7 +176,7 @@ export default function PrayerTimesScreen() {
                         opacity: isPassed ? 0.7 : 1,
                       },
                     ]}>
-                    {formatPrayerTime(prayer.time)}
+                    {formatPrayerTime(prayer.time, use24h)}
                   </Text>
                 </Animated.View>
               );

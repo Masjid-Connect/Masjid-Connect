@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  Platform,
   TextInput,
   ActivityIndicator,
 } from 'react-native';
@@ -22,8 +23,6 @@ import { spacing, elevation, borderRadius, typography } from '@/constants/Theme'
 import {
   getUserLocation,
   setUserLocation,
-  getCalculationMethod,
-  setCalculationMethod,
   getReminderMinutes,
   setReminderMinutes,
   getUse24h,
@@ -33,9 +32,8 @@ import {
 } from '@/lib/storage';
 import type { ThemePreference } from '@/contexts/ThemeContext';
 import { reschedulePrayerRemindersForToday } from '@/lib/notifications';
-import { mosques as mosquesApi } from '@/lib/api';
-import { CALCULATION_METHODS } from '@/types';
-import type { Mosque } from '@/types';
+import { mosques as mosquesApi, subscriptions as subscriptionsApi } from '@/lib/api';
+import type { Mosque, UserSubscription } from '@/types';
 
 const REMINDER_VALUES = [0, 5, 10, 15, 30];
 const THEME_VALUES: ThemePreference[] = ['light', 'dark', 'system'];
@@ -58,18 +56,35 @@ export default function SettingsScreen() {
   }));
 
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [methodName, setMethodName] = useState('ISNA');
   const [reminderMin, setReminderMin] = useState(15);
   const [use24h, setUse24hState] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
   const [subscribedMosques, setSubscribedMosques] = useState<Mosque[]>([]);
+  const [backendSubscriptions, setBackendSubscriptions] = useState<UserSubscription[]>([]);
   const [searchCity, setSearchCity] = useState('');
   const [searchResults, setSearchResults] = useState<Mosque[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [nearbyLoading, setNearbyLoading] = useState(false);
 
   const loadSubscribedMosques = useCallback(async () => {
-    const ids = await getSubscribedMosqueIds();
+    let ids: string[] = [];
+
+    // If authenticated, sync from backend subscriptions
+    if (isAuthenticated) {
+      try {
+        const subs = await subscriptionsApi.list();
+        setBackendSubscriptions(subs);
+        ids = subs.map((s) => s.mosque);
+        // Sync backend subscriptions to local storage
+        await setSubscribedMosqueIds(ids);
+      } catch {
+        // Fall back to local storage
+        ids = await getSubscribedMosqueIds();
+      }
+    } else {
+      ids = await getSubscribedMosqueIds();
+    }
+
     const list: Mosque[] = [];
     for (const id of ids) {
       try {
@@ -80,7 +95,7 @@ export default function SettingsScreen() {
       }
     }
     setSubscribedMosques(list);
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     loadSettings();
@@ -90,10 +105,6 @@ export default function SettingsScreen() {
   const loadSettings = async () => {
     const loc = await getUserLocation();
     if (loc) setLocation(loc);
-
-    const method = await getCalculationMethod();
-    const entry = Object.entries(CALCULATION_METHODS).find(([, v]) => v.code === method.code);
-    if (entry) setMethodName(entry[0]);
 
     const mins = await getReminderMinutes();
     setReminderMin(mins);
@@ -122,13 +133,6 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleMethodChange = async (name: string) => {
-    const method = CALCULATION_METHODS[name];
-    if (!method) return;
-    setMethodName(name);
-    await setCalculationMethod(method.code, name);
-  };
-
   const handleReminderChange = async (minutes: number) => {
     setReminderMin(minutes);
     await setReminderMinutes(minutes);
@@ -140,23 +144,41 @@ export default function SettingsScreen() {
     await setUse24h(value);
   };
 
-  const handleSignOut = () => {
-    Alert.alert(t('settings.signOut'), t('settings.signOutConfirm'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('settings.signOut'),
-        style: 'destructive',
-        onPress: async () => {
-          await logout();
+  const handleSignOut = async () => {
+    if (Platform.OS === 'web') {
+      // Alert.alert is not supported on web — use window.confirm
+      const confirmed = window.confirm(t('settings.signOutConfirm'));
+      if (confirmed) {
+        await logout();
+      }
+    } else {
+      Alert.alert(t('settings.signOut'), t('settings.signOutConfirm'), [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('settings.signOut'),
+          style: 'destructive',
+          onPress: async () => {
+            await logout();
+          },
         },
-      },
-    ]);
+      ]);
+    }
   };
 
   const handleSubscribe = async (mosqueId: string) => {
     const ids = await getSubscribedMosqueIds();
     if (ids.includes(mosqueId)) return;
     await setSubscribedMosqueIds([...ids, mosqueId]);
+
+    // Also subscribe on backend if authenticated
+    if (isAuthenticated) {
+      try {
+        await subscriptionsApi.subscribe(mosqueId);
+      } catch {
+        // Local subscription saved; backend sync will retry on next load
+      }
+    }
+
     await loadSubscribedMosques();
     setSearchResults((prev) => prev.filter((m) => m.id !== mosqueId));
   };
@@ -164,6 +186,19 @@ export default function SettingsScreen() {
   const handleUnsubscribe = async (mosqueId: string) => {
     const ids = await getSubscribedMosqueIds();
     await setSubscribedMosqueIds(ids.filter((id) => id !== mosqueId));
+
+    // Also unsubscribe on backend if authenticated
+    if (isAuthenticated) {
+      const sub = backendSubscriptions.find((s) => s.mosque === mosqueId);
+      if (sub) {
+        try {
+          await subscriptionsApi.unsubscribe(sub.id);
+        } catch {
+          // Local unsubscription saved; backend sync will retry on next load
+        }
+      }
+    }
+
     await loadSubscribedMosques();
   };
 
@@ -356,14 +391,10 @@ export default function SettingsScreen() {
       {/* Calculation Method */}
       <SectionHeader title={t('settings.calculationMethod')} />
       <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
-        {Object.entries(CALCULATION_METHODS).map(([key, value]) => (
-          <CheckRow
-            key={key}
-            label={value.label}
-            selected={key === methodName}
-            onPress={() => handleMethodChange(key)}
-          />
-        ))}
+        <View style={styles.row}>
+          <Ionicons name="information-circle-outline" size={20} color={colors.tint} style={{ marginRight: spacing.sm }} />
+          <Text style={[typography.body, { color: colors.text, flex: 1 }]}>Umm Al-Qura (Makkah)</Text>
+        </View>
       </View>
 
       {/* Prayer Reminders */}
