@@ -264,7 +264,7 @@ Only used when network is unavailable. Aladhan API is always preferred.
 
 ### Django REST API
 ```
-Base URL: https://api.mosqueconnect.app/api/v1
+Base URL: https://api.salafimasjid.app/api/v1
 
 POST /auth/register/                         # Register + get token
 POST /auth/login/                            # Login + get token

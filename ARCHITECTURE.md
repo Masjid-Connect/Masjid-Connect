@@ -269,7 +269,7 @@ volumes:
 
 ### Coolify Configuration
 - **Service type**: Docker Compose
-- **Domain**: `api.mosqueconnect.app` → port 8000
+- **Domain**: `api.salafimasjid.app` → port 8000
 - **Database**: PostgreSQL 16 (persistent volume)
 - **Static files**: WhiteNoise (served by Django directly)
 - **Media files**: Persistent volume for uploaded images

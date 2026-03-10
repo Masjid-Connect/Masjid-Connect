@@ -44,7 +44,7 @@ services:
     # No ports exposed — Traefik connects via Docker network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.masjid-api.rule=Host(`api.mosqueconnect.app`)"
+      - "traefik.http.routers.masjid-api.rule=Host(`api.salafimasjid.app`)"
       - "traefik.http.routers.masjid-api.entrypoints=websecure"
       - "traefik.http.routers.masjid-api.tls.certresolver=letsencrypt"
       - "traefik.http.services.masjid-api.loadbalancer.server.port=8000"

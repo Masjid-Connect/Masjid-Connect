@@ -29,7 +29,7 @@ Think of this like a recipe — gather your ingredients first:
 | Item | What It Is | Cost |
 |------|-----------|------|
 | **DigitalOcean account** | A company that rents computers on the internet | $6/month |
-| **Domain name** | Your app's address (like `mosqueconnect.app`) | ~$12/year |
+| **Domain name** | Your app's address (like `salafimasjid.app`) | ~$12/year |
 | **GitHub account** | Where your code lives | Free |
 | **Apple Developer account** | Needed to put app on iPhones | $99/year |
 | **Google Play Developer account** | Needed to put app on Android phones | $25 one time |
@@ -115,7 +115,7 @@ My server IP: ___.___.___.___
 
 ## Part B — Point Your Domain Name (10 minutes)
 
-A domain name is like a nickname for your server's IP address. Instead of telling people to visit `164.90.123.45`, they visit `api.mosqueconnect.app`.
+A domain name is like a nickname for your server's IP address. Instead of telling people to visit `164.90.123.45`, they visit `api.salafimasjid.app`.
 
 ### Step 1: Buy a Domain
 
@@ -123,7 +123,7 @@ Go to one of these websites and buy a domain:
 - **Namecheap** (`namecheap.com`) — good prices, easy to use
 - **Cloudflare** (`cloudflare.com/products/registrar`) — cheapest, slightly more technical
 
-Search for and buy: `mosqueconnect.app` (or whatever you want)
+Search for and buy: `salafimasjid.app` (or whatever you want)
 
 ### Step 2: Add DNS Records
 
@@ -138,8 +138,8 @@ Go to your domain registrar's DNS settings and add these records:
 
 Replace `YOUR_SERVER_IP` with the number from Step A5.
 
-- The `@` record means: `mosqueconnect.app` → your server
-- The `api` record means: `api.mosqueconnect.app` → your server
+- The `@` record means: `salafimasjid.app` → your server
+- The `api` record means: `api.salafimasjid.app` → your server
 
 ### Step 3: Wait for DNS
 
@@ -148,7 +148,7 @@ DNS changes can take 5 minutes to 48 hours to spread across the internet. Usuall
 To check if it's working, open Terminal and type:
 
 ```bash
-ping api.mosqueconnect.app
+ping api.salafimasjid.app
 ```
 
 If you see responses with your server's IP, it's working! Press Ctrl+C to stop.
@@ -312,14 +312,14 @@ Fill in these values:
 # Run this in another terminal: python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 SECRET_KEY=paste-your-generated-key-here
 
-ALLOWED_HOSTS=api.mosqueconnect.app
+ALLOWED_HOSTS=api.salafimasjid.app
 DEBUG=False
 
 POSTGRES_DB=masjid_connect
 POSTGRES_USER=mosque
 POSTGRES_PASSWORD=pick-a-very-strong-password-here
 
-CORS_ALLOWED_ORIGINS=https://mosqueconnect.app
+CORS_ALLOWED_ORIGINS=https://salafimasjid.app
 ```
 
 To save in nano: Press **Ctrl+O**, then **Enter**, then **Ctrl+X**.
@@ -385,15 +385,15 @@ If you see that, your Django app is running!
 Switch back to root (you need admin powers for this):
 
 ```bash
-sudo cp /home/mosque/Masjid-Connect/backend/nginx.conf /etc/nginx/sites-available/mosqueconnect
-sudo ln -sf /etc/nginx/sites-available/mosqueconnect /etc/nginx/sites-enabled/
+sudo cp /home/mosque/Masjid-Connect/backend/nginx.conf /etc/nginx/sites-available/salafimasjid
+sudo ln -sf /etc/nginx/sites-available/salafimasjid /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default
 ```
 
 ### Step 2: Get Your SSL Certificate
 
 ```bash
-sudo certbot --nginx -d api.mosqueconnect.app
+sudo certbot --nginx -d api.salafimasjid.app
 ```
 
 It will ask:
@@ -427,7 +427,7 @@ sudo systemctl reload nginx
 Open your web browser and go to:
 
 ```
-https://api.mosqueconnect.app/health/
+https://api.salafimasjid.app/health/
 ```
 
 You should see `{"status": "ok"}` and a lock icon in the address bar.
@@ -435,7 +435,7 @@ You should see `{"status": "ok"}` and a lock icon in the address bar.
 Try the admin panel:
 
 ```
-https://api.mosqueconnect.app/admin/
+https://api.salafimasjid.app/admin/
 ```
 
 You should see a beautiful Sacred Blue login page.
@@ -636,7 +636,7 @@ Print this out and put it on your wall. This is how you keep the app alive for 1
 Open your browser and visit:
 
 ```
-https://api.mosqueconnect.app/health/
+https://api.salafimasjid.app/health/
 ```
 
 If you see `{"status": "ok"}`, everything is fine. Move on with your life.
@@ -878,9 +878,9 @@ RESTART:   docker compose -f docker-compose.prod.yml restart
 STATUS:    docker compose -f docker-compose.prod.yml ps
 HEALTH:    curl http://localhost:8000/health/
 
-ADMIN:     https://api.mosqueconnect.app/admin/
-API DOCS:  https://api.mosqueconnect.app/api/docs/
-HEALTH:    https://api.mosqueconnect.app/health/
+ADMIN:     https://api.salafimasjid.app/admin/
+API DOCS:  https://api.salafimasjid.app/api/docs/
+HEALTH:    https://api.salafimasjid.app/health/
 ```
 
 ---
