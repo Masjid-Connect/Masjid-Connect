@@ -256,23 +256,7 @@ docker --version
 
 You should see something like `Docker version 27.x.x`.
 
-### Step 6: Install Nginx
-
-Nginx (pronounced "engine-x") is a traffic director. It sits in front of your app and handles HTTPS, forwards requests, and serves static files.
-
-```bash
-apt install nginx -y
-```
-
-### Step 7: Install Certbot
-
-Certbot automatically gets free HTTPS certificates from Let's Encrypt. HTTPS is the lock icon in your browser — it means the connection is encrypted and secure.
-
-```bash
-apt install certbot python3-certbot-nginx -y
-```
-
-### Step 8: Switch to the Mosque User
+### Step 6: Switch to the Mosque User
 
 From now on, we'll work as the `mosque` user:
 
@@ -282,7 +266,7 @@ su - mosque
 
 Your prompt should change from `root@masjid-connect` to `mosque@masjid-connect`.
 
-### Step 9: Clone the Code
+### Step 7: Clone the Code
 
 ```bash
 git clone https://github.com/YOUR_USERNAME/Masjid-Connect.git
@@ -291,7 +275,7 @@ cd Masjid-Connect/backend
 
 Replace `YOUR_USERNAME` with your GitHub username.
 
-### Step 10: Create the Production Environment File
+### Step 8: Create the Production Environment File
 
 This file contains your app's secrets (passwords, keys). **Never share it or commit it to git.**
 
