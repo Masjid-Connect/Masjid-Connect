@@ -83,7 +83,20 @@
     "signOutConfirm": "Are you sure you want to sign out?",
     "appInfo": "App Info",
     "version": "Mosque Connect v{{version}}",
-    "prayerSource": "Prayer times via Aladhan API"
+    "prayerSource": "Prayer times via Aladhan API",
+    "guestHint": "Sign in to get push notifications and sync your mosques across devices."
+  },
+  "welcome": {
+    "title": "Your community, connected",
+    "subtitle": "Prayer times, announcements, and events from your local mosque",
+    "continueWithApple": "Continue with Apple",
+    "continueWithGoogle": "Continue with Google",
+    "createWithEmail": "Create account with email",
+    "haveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "continueAsGuest": "Continue as guest",
+    "or": "or",
+    "socialFailed": "Sign in failed. Please try again."
   },
   "auth": {
     "login": "Sign in",
@@ -127,6 +140,7 @@
     "locationError": "Could not detect your location. Please try again.",
     "searchFailed": "Could not search mosques. Check your connection.",
     "nearbyFailed": "Could not find nearby mosques. Check your connection.",
-    "calendarError": "Could not open calendar."
+    "calendarError": "Could not open calendar.",
+    "networkError": "Unable to connect. Please check your internet and try again."
   }
 }

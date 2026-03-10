@@ -83,7 +83,20 @@
     "signOutConfirm": "هل أنت متأكد أنك تريد تسجيل الخروج؟",
     "appInfo": "معلومات التطبيق",
     "version": "Mosque Connect v{{version}}",
-    "prayerSource": "أوقات الصلاة من Aladhan API"
+    "prayerSource": "أوقات الصلاة من Aladhan API",
+    "guestHint": "سجل الدخول للحصول على إشعارات ومزامنة مساجدك عبر الأجهزة."
+  },
+  "welcome": {
+    "title": "مجتمعك، متصل",
+    "subtitle": "أوقات الصلاة والإعلانات والفعاليات من مسجدك المحلي",
+    "continueWithApple": "المتابعة مع Apple",
+    "continueWithGoogle": "المتابعة مع Google",
+    "createWithEmail": "إنشاء حساب بالبريد الإلكتروني",
+    "haveAccount": "لديك حساب بالفعل؟",
+    "signIn": "تسجيل الدخول",
+    "continueAsGuest": "المتابعة كضيف",
+    "or": "أو",
+    "socialFailed": "فشل تسجيل الدخول. يرجى المحاولة مرة أخرى."
   },
   "auth": {
     "login": "تسجيل الدخول",
@@ -127,6 +140,7 @@
     "locationError": "تعذر تحديد موقعك. يرجى المحاولة مرة أخرى.",
     "searchFailed": "تعذر البحث عن المساجد. تحقق من اتصالك.",
     "nearbyFailed": "تعذر العثور على المساجد القريبة. تحقق من اتصالك.",
-    "calendarError": "تعذر فتح التقويم."
+    "calendarError": "تعذر فتح التقويم.",
+    "networkError": "تعذر الاتصال. يرجى التحقق من الإنترنت والمحاولة مرة أخرى."
   }
 }

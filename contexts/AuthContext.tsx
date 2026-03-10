@@ -1,7 +1,10 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { auth, pushTokens } from '@/lib/api';
 import { registerForPushNotifications } from '@/lib/notifications';
+
+const GUEST_KEY = 'has_chosen_guest';
 
 interface AuthUser {
   id: string;
@@ -13,9 +16,13 @@ interface AuthUser {
 interface AuthContextValue {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  isGuest: boolean;
   isLoading: boolean;
+  hasCompletedOnboarding: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithSocial: (provider: 'apple' | 'google', token: string, name?: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
+  continueAsGuest: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -24,6 +31,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGuest, setIsGuest] = useState(false);
 
   const syncPushToken = useCallback(async () => {
     try {
@@ -43,6 +51,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (auth.isLoggedIn && auth.user) {
           setUser(auth.user);
           syncPushToken();
+        } else {
+          // Check if user previously chose guest mode
+          const guestFlag = await AsyncStorage.getItem(GUEST_KEY);
+          if (guestFlag === 'true') {
+            setIsGuest(true);
+          }
         }
       } catch {
         // Token invalid or expired — stay logged out
@@ -55,28 +69,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (email: string, password: string) => {
     const data = await auth.login(email, password);
     setUser(data.user);
+    setIsGuest(false);
+    await AsyncStorage.removeItem(GUEST_KEY);
+    syncPushToken();
+  }, [syncPushToken]);
+
+  const loginWithSocial = useCallback(async (provider: 'apple' | 'google', token: string, name?: string) => {
+    const data = await auth.socialLogin(provider, token, name);
+    setUser(data.user);
+    setIsGuest(false);
+    await AsyncStorage.removeItem(GUEST_KEY);
     syncPushToken();
   }, [syncPushToken]);
 
   const register = useCallback(async (email: string, password: string, name: string) => {
     const data = await auth.register(email, password, name);
     setUser(data.user);
+    setIsGuest(false);
+    await AsyncStorage.removeItem(GUEST_KEY);
     syncPushToken();
   }, [syncPushToken]);
+
+  const continueAsGuest = useCallback(async () => {
+    setIsGuest(true);
+    await AsyncStorage.setItem(GUEST_KEY, 'true');
+  }, []);
 
   const logout = useCallback(async () => {
     await auth.logout();
     setUser(null);
+    setIsGuest(false);
+    await AsyncStorage.removeItem(GUEST_KEY);
   }, []);
+
+  const hasCompletedOnboarding = user !== null || isGuest;
 
   return (
     <AuthContext.Provider
       value={{
         user,
         isAuthenticated: user !== null,
+        isGuest,
         isLoading,
+        hasCompletedOnboarding,
         login,
+        loginWithSocial,
         register,
+        continueAsGuest,
         logout,
       }}>
       {children}

@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { events as eventsApi } from '@/lib/api';
-import { getSubscribedMosqueIds } from '@/lib/storage';
+import { getSubscribedMosqueIds, getSelectedMosqueId } from '@/lib/storage';
 import type { MosqueEvent, EventCategory } from '@/types';
 
 interface UseEventsResult {
   events: MosqueEvent[];
   isLoading: boolean;
+  error: string | null;
   selectedCategory: EventCategory | null;
   setSelectedCategory: (cat: EventCategory | null) => void;
   refresh: () => Promise<void>;
@@ -15,17 +16,25 @@ interface UseEventsResult {
 export function useEvents(): UseEventsResult {
   const [items, setItems] = useState<MosqueEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | null>(null);
 
   const loadEvents = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
-      const mosqueIds = await getSubscribedMosqueIds();
+      // Use subscribed mosques if available, otherwise fall back to selected mosque (guest mode)
+      let mosqueIds = await getSubscribedMosqueIds();
+      if (mosqueIds.length === 0) {
+        const selectedId = await getSelectedMosqueId();
+        if (selectedId) mosqueIds = [selectedId];
+      }
       const today = format(new Date(), 'yyyy-MM-dd');
       const result = await eventsApi.list(mosqueIds, today);
       setItems(result.items);
-    } catch (error) {
-      console.error('Failed to load events:', error);
+    } catch (err) {
+      console.error('Failed to load events:', err);
+      setError('Unable to load events. Pull down to retry.');
     } finally {
       setIsLoading(false);
     }
@@ -42,6 +51,7 @@ export function useEvents(): UseEventsResult {
   return {
     events: filteredEvents,
     isLoading,
+    error,
     selectedCategory,
     setSelectedCategory,
     refresh: loadEvents,
