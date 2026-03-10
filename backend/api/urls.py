@@ -13,6 +13,7 @@ urlpatterns = [
     # Auth
     path("auth/register/", views.register, name="register"),
     path("auth/login/", views.login, name="login"),
+    path("auth/social/", views.social_login, name="social-login"),
     path("auth/logout/", views.logout, name="logout"),
     path("auth/me/", views.me, name="me"),
     # Push tokens

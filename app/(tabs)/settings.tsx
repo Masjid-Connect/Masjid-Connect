@@ -45,7 +45,7 @@ export default function SettingsScreen() {
   const { effectiveScheme, themePreference, setThemePreference } = useTheme();
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isGuest, logout } = useAuth();
 
   const REMINDER_OPTIONS = REMINDER_VALUES.map((v) => ({
     label: v === 0 ? t('settings.atAthanTime') : t('settings.minutesBefore', { minutes: v }),
@@ -241,12 +241,19 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           </View>
         ) : (
-          <TouchableOpacity
-            onPress={() => router.push('/(auth)/login')}
-            style={[styles.actionBtn, { backgroundColor: colors.tint }]}
-          >
-            <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>{t('settings.signIn')}</Text>
-          </TouchableOpacity>
+          <View>
+            {isGuest && (
+              <Text style={[typography.footnote, { color: colors.textSecondary, textAlign: 'center', paddingTop: spacing.lg, paddingHorizontal: spacing.lg }]}>
+                {t('settings.guestHint')}
+              </Text>
+            )}
+            <TouchableOpacity
+              onPress={() => router.push('/(auth)/welcome')}
+              style={[styles.actionBtn, { backgroundColor: colors.tint }]}
+            >
+              <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>{t('settings.signIn')}</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
 

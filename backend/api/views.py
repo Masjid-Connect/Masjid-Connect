@@ -1,7 +1,10 @@
 """API views for Masjid Connect."""
 
+import logging
 import math
 
+import jwt
+import requests
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.utils.dateparse import parse_date
@@ -10,6 +13,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action, api_view, permission_classes, throttle_classes
 from rest_framework.response import Response
 from rest_framework.throttling import AnonRateThrottle
+
+logger = logging.getLogger(__name__)
 
 from core.models import (
     Announcement,
@@ -103,6 +108,123 @@ def login(request):
 
     token, _ = Token.objects.get_or_create(user=user)
     return Response({"token": token.key, "user": UserSerializer(user).data})
+
+
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+@throttle_classes([AuthRateThrottle])
+def social_login(request):
+    """
+    Authenticate via Apple or Google.
+    Expects: { "provider": "apple"|"google", "token": "<id_token>", "name": "optional" }
+    Creates user if first login, returns auth token.
+    """
+    provider = request.data.get("provider")
+    id_token = request.data.get("token")
+    name = request.data.get("name", "")
+
+    if not provider or not id_token:
+        return Response(
+            {"detail": "provider and token are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if provider not in ("apple", "google"):
+        return Response(
+            {"detail": "provider must be 'apple' or 'google'."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        if provider == "apple":
+            email, social_name = _verify_apple_token(id_token)
+        else:
+            email, social_name = _verify_google_token(id_token)
+    except ValueError as e:
+        return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # Use provided name, then social provider name, then email prefix
+    display_name = name or social_name or email.split("@")[0]
+
+    # Find or create user
+    user, created = User.objects.get_or_create(
+        email=email,
+        defaults={
+            "username": email,
+            "name": display_name,
+        },
+    )
+
+    if created:
+        # Set unusable password for social-only accounts
+        user.set_unusable_password()
+        user.save()
+
+    token, _ = Token.objects.get_or_create(user=user)
+    return Response(
+        {"token": token.key, "user": UserSerializer(user).data},
+        status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+    )
+
+
+def _verify_apple_token(id_token: str) -> tuple[str, str]:
+    """Verify Apple identity token and extract email + name."""
+    try:
+        # Decode without verification first to get the header
+        header = jwt.get_unverified_header(id_token)
+        kid = header.get("kid")
+
+        # Fetch Apple's public keys
+        resp = requests.get("https://appleid.apple.com/auth/keys", timeout=10)
+        resp.raise_for_status()
+        apple_keys = resp.json()["keys"]
+
+        # Find the matching key
+        key_data = next((k for k in apple_keys if k["kid"] == kid), None)
+        if not key_data:
+            raise ValueError("Apple key not found.")
+
+        public_key = jwt.algorithms.RSAAlgorithm.from_jwk(key_data)
+        payload = jwt.decode(
+            id_token,
+            public_key,
+            algorithms=["RS256"],
+            audience=["com.masjidconnect.app"],
+            issuer="https://appleid.apple.com",
+        )
+
+        email = payload.get("email", "")
+        if not email:
+            raise ValueError("No email in Apple token.")
+        return email, ""
+    except jwt.PyJWTError as e:
+        logger.warning("Apple token verification failed: %s", e)
+        raise ValueError("Invalid Apple token.") from e
+
+
+def _verify_google_token(id_token: str) -> tuple[str, str]:
+    """Verify Google ID token via Google's tokeninfo endpoint."""
+    try:
+        resp = requests.get(
+            f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}",
+            timeout=10,
+        )
+        if resp.status_code != 200:
+            raise ValueError("Invalid Google token.")
+
+        payload = resp.json()
+        email = payload.get("email", "")
+        name = payload.get("name", "")
+
+        if not email:
+            raise ValueError("No email in Google token.")
+        if not payload.get("email_verified"):
+            raise ValueError("Google email not verified.")
+
+        return email, name
+    except requests.RequestException as e:
+        logger.warning("Google token verification failed: %s", e)
+        raise ValueError("Could not verify Google token.") from e
 
 
 @api_view(["POST"])

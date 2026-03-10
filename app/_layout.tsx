@@ -93,7 +93,7 @@ export default function RootLayout() {
 
 function RootLayoutNav() {
   const { effectiveScheme } = useTheme();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, hasCompletedOnboarding } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
@@ -102,12 +102,14 @@ function RootLayoutNav() {
 
     const inAuthGroup = segments[0] === '(auth)';
 
-    // Allow unauthenticated users to browse tabs (anonymous browsing).
-    // Only redirect authenticated users away from auth screens.
-    if (isAuthenticated && inAuthGroup) {
+    if (!hasCompletedOnboarding && !inAuthGroup) {
+      // Not logged in and not guest → show welcome screen
+      router.replace('/(auth)/welcome');
+    } else if (isAuthenticated && inAuthGroup) {
+      // Logged in but still on auth screens → go to tabs
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, isLoading, segments]);
+  }, [isAuthenticated, isLoading, hasCompletedOnboarding, segments]);
 
   return (
     <ThemeProvider value={effectiveScheme === 'dark' ? MosqueDark : MosqueLight}>

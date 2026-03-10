@@ -104,6 +104,20 @@ export const auth = {
   async hydrate() {
     await loadToken();
   },
+
+  async socialLogin(provider: 'apple' | 'google', token: string, name?: string) {
+    const body: Record<string, string> = { provider, token };
+    if (name) body.name = name;
+    const data = await request<{ token: string; user: AuthUser }>('/auth/social/', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+    _token = data.token;
+    _user = data.user;
+    await AsyncStorage.setItem(KEYS.AUTH_TOKEN, data.token);
+    await AsyncStorage.setItem(KEYS.AUTH_USER, JSON.stringify(data.user));
+    return data;
+  },
 };
 
 // ── Paginated response shape from DRF ────────────────────────────────
