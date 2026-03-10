@@ -7,19 +7,23 @@ import { PRAYER_LABELS } from '@/types';
 import { getPrayerTimes } from '@/lib/prayer';
 import { getCachedPrayerTimes, getReminderMinutes, getUserLocation, getCalculationMethod } from '@/lib/storage';
 
-/** Configure notification handler */
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+/** Configure notification handler (native only) */
+if (Platform.OS !== 'web') {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 /** Request notification permissions and get push token */
 export async function registerForPushNotifications(): Promise<string | null> {
+  if (Platform.OS === 'web') return null;
+
   if (!Device.isDevice) {
     console.log('Push notifications require a physical device');
     return null;
@@ -61,6 +65,8 @@ export async function schedulePrayerReminders(
   times: PrayerTimesData,
   reminderMinutes: number = 15
 ): Promise<void> {
+  if (Platform.OS === 'web') return;
+
   // Cancel all existing prayer reminders
   await cancelPrayerReminders();
 
@@ -110,6 +116,7 @@ export async function schedulePrayerReminders(
 
 /** Reschedule prayer reminders using cached or freshly fetched times for today. Call after loading times or when user changes reminder preference. */
 export async function reschedulePrayerRemindersForToday(): Promise<void> {
+  if (Platform.OS === 'web') return;
   const today = format(new Date(), 'yyyy-MM-dd');
   let times: PrayerTimesData | null = await getCachedPrayerTimes(today);
   if (!times) {
@@ -126,6 +133,7 @@ export async function reschedulePrayerRemindersForToday(): Promise<void> {
 
 /** Cancel all prayer reminder notifications */
 export async function cancelPrayerReminders(): Promise<void> {
+  if (Platform.OS === 'web') return;
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
   for (const notification of scheduled) {
     if (
