@@ -152,7 +152,7 @@ class UserSubscription(models.Model):
 
 
 class PushToken(models.Model):
-    """Expo push notification token for a user's device."""
+    """Expo push notification token for a device. User is optional for anonymous devices."""
 
     class Platform(models.TextChoices):
         IOS = "ios", "iOS"
@@ -163,6 +163,8 @@ class PushToken(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="push_tokens",
+        null=True,
+        blank=True,
     )
     token = models.CharField(max_length=255, unique=True)
     platform = models.CharField(max_length=10, choices=Platform.choices)

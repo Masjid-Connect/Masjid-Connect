@@ -82,7 +82,7 @@
     "signOut": "تسجيل الخروج",
     "signOutConfirm": "هل أنت متأكد أنك تريد تسجيل الخروج؟",
     "appInfo": "معلومات التطبيق",
-    "version": "Mosque Connect v{{version}}",
+    "version": "Masjid Connect v{{version}}",
     "prayerSource": "أوقات الصلاة من Aladhan API"
   },
   "auth": {
@@ -104,7 +104,12 @@
     "loginFailed": "فشل تسجيل الدخول",
     "loginFailedHint": "تحقق من بريدك الإلكتروني وكلمة المرور.",
     "registerFailed": "فشل التسجيل",
-    "registerFailedHint": "حاول مرة أخرى."
+    "registerFailedHint": "حاول مرة أخرى.",
+    "continueWithApple": "المتابعة مع Apple",
+    "continueWithGoogle": "المتابعة مع Google",
+    "orWithEmail": "أو بالبريد الإلكتروني",
+    "skipForNow": "تخطي الآن",
+    "socialLoginFailed": "تعذر إكمال تسجيل الدخول. يرجى المحاولة مرة أخرى."
   },
   "about": {
     "title": "حول",

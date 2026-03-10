@@ -15,6 +15,7 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  loginWithSocial: (provider: 'apple' | 'google', identityToken: string, name?: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -45,7 +46,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           syncPushToken();
         }
       } catch {
-        // Token invalid or expired — stay logged out
+        // Token invalid or expired — stay logged out (anonymous mode)
       } finally {
         setIsLoading(false);
       }
@@ -54,6 +55,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (email: string, password: string) => {
     const data = await auth.login(email, password);
+    setUser(data.user);
+    syncPushToken();
+  }, [syncPushToken]);
+
+  const loginWithSocial = useCallback(async (provider: 'apple' | 'google', identityToken: string, name?: string) => {
+    const data = await auth.socialLogin(provider, identityToken, name);
     setUser(data.user);
     syncPushToken();
   }, [syncPushToken]);
@@ -76,6 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: user !== null,
         isLoading,
         login,
+        loginWithSocial,
         register,
         logout,
       }}>

@@ -15,6 +15,7 @@ urlpatterns = [
     path("auth/login/", views.login, name="login"),
     path("auth/logout/", views.logout, name="logout"),
     path("auth/me/", views.me, name="me"),
+    path("auth/social/", views.social_login, name="social-login"),
     # Push tokens
     path("push-tokens/", views.register_push_token, name="push-token"),
     # Router-generated CRUD

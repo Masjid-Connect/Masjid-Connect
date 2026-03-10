@@ -11,23 +11,29 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, borderRadius, typography } from '@/constants/Theme';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSocialAuth } from '@/hooks/useSocialAuth';
 
 export default function LoginScreen() {
+  const router = useRouter();
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
   const { login } = useAuth();
+  const { signInWithApple, signInWithGoogle, loading: socialLoading, appleAvailable } = useSocialAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const anyLoading = loading || socialLoading !== null;
 
   const handleLogin = async () => {
     if (!email.trim() || !password) {
@@ -37,7 +43,6 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await login(email.trim(), password);
-      // AuthContext updates isAuthenticated → _layout.tsx redirects to /(tabs)
     } catch (e) {
       const message = e instanceof Error ? e.message : t('auth.loginFailedHint');
       Alert.alert(t('auth.loginFailed'), message);
@@ -60,6 +65,54 @@ export default function LoginScreen() {
           />
         </View>
         <Text style={[typography.title1, { color: colors.text, marginBottom: spacing.lg }]}>{t('auth.login')}</Text>
+
+        {/* Social Login Buttons */}
+        {appleAvailable && (
+          <TouchableOpacity
+            onPress={signInWithApple}
+            disabled={anyLoading}
+            style={[styles.socialButton, { backgroundColor: effectiveScheme === 'dark' ? '#FFFFFF' : '#000000' }]}
+          >
+            {socialLoading === 'apple' ? (
+              <ActivityIndicator color={effectiveScheme === 'dark' ? '#000000' : '#FFFFFF'} />
+            ) : (
+              <>
+                <Ionicons name="logo-apple" size={20} color={effectiveScheme === 'dark' ? '#000000' : '#FFFFFF'} />
+                <Text style={[typography.callout, { color: effectiveScheme === 'dark' ? '#000000' : '#FFFFFF', marginLeft: spacing.sm }]}>
+                  {t('auth.continueWithApple')}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          onPress={signInWithGoogle}
+          disabled={anyLoading}
+          style={[styles.socialButton, { backgroundColor: colors.card, borderWidth: 1, borderColor: colors.cardBorder }]}
+        >
+          {socialLoading === 'google' ? (
+            <ActivityIndicator color={colors.text} />
+          ) : (
+            <>
+              <Ionicons name="logo-google" size={20} color="#4285F4" />
+              <Text style={[typography.callout, { color: colors.text, marginLeft: spacing.sm }]}>
+                {t('auth.continueWithGoogle')}
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+
+        {/* Divider */}
+        <View style={styles.divider}>
+          <View style={[styles.dividerLine, { backgroundColor: colors.separator }]} />
+          <Text style={[typography.caption1, { color: colors.textSecondary, marginHorizontal: spacing.md }]}>
+            {t('auth.orWithEmail')}
+          </Text>
+          <View style={[styles.dividerLine, { backgroundColor: colors.separator }]} />
+        </View>
+
+        {/* Email/Password */}
         <TextInput
           style={[styles.input, { backgroundColor: colors.card, borderColor: colors.cardBorder, color: colors.text }]}
           placeholder={t('auth.email')}
@@ -68,7 +121,7 @@ export default function LoginScreen() {
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
-          editable={!loading}
+          editable={!anyLoading}
         />
         <TextInput
           style={[styles.input, { backgroundColor: colors.card, borderColor: colors.cardBorder, color: colors.text }]}
@@ -77,11 +130,11 @@ export default function LoginScreen() {
           value={password}
           onChangeText={setPassword}
           secureTextEntry
-          editable={!loading}
+          editable={!anyLoading}
         />
         <TouchableOpacity
           onPress={handleLogin}
-          disabled={loading}
+          disabled={anyLoading}
           style={[styles.button, { backgroundColor: colors.tint }]}
         >
           {loading ? <ActivityIndicator color="#FFF" /> : <Text style={[typography.callout, { color: '#FFFFFF' }]}>{t('auth.login')}</Text>}
@@ -91,6 +144,9 @@ export default function LoginScreen() {
             <Text style={[typography.body, { color: colors.accent }]}>{t('auth.noAccount')}</Text>
           </TouchableOpacity>
         </Link>
+        <TouchableOpacity onPress={() => router.replace('/(tabs)')} style={styles.link}>
+          <Text style={[typography.caption1, { color: colors.textSecondary }]}>{t('auth.skipForNow')}</Text>
+        </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );
@@ -111,6 +167,23 @@ const styles = StyleSheet.create({
   logo: {
     width: 260,
     height: 72,
+  },
+  socialButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.md,
+    marginBottom: spacing.sm,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: spacing.lg,
+  },
+  dividerLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
   },
   input: {
     borderWidth: 1,

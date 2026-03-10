@@ -22,14 +22,14 @@
   "announcements": {
     "title": "Announcements",
     "urgent": "URGENT",
-    "empty": "Your mosque community awaits",
-    "emptyHint": "Find your mosque in Settings\nto see community announcements",
+    "empty": "Your masjid community awaits",
+    "emptyHint": "Find your masjid in Settings\nto see community announcements",
     "readMore": "Read more"
   },
   "events": {
     "title": "Events",
     "empty": "No upcoming events",
-    "emptyHint": "Find your mosque to see events",
+    "emptyHint": "Find your masjid to see events",
     "addToCalendar": "Add to Calendar",
     "repeats": "Repeats {{frequency}}",
     "calendar": "Calendar",
@@ -48,9 +48,9 @@
   },
   "settings": {
     "title": "Settings",
-    "myMosques": "My mosques",
-    "noMosques": "No mosques yet. Add one below to see announcements and events.",
-    "addMosque": "Add mosque",
+    "myMosques": "My masjids",
+    "noMosques": "No masjids yet. Add one below to see announcements and events.",
+    "addMosque": "Add masjid",
     "cityName": "City name",
     "search": "Search",
     "searchMosques": "Search by city...",
@@ -82,7 +82,7 @@
     "signOut": "Sign out",
     "signOutConfirm": "Are you sure you want to sign out?",
     "appInfo": "App Info",
-    "version": "Mosque Connect v{{version}}",
+    "version": "Masjid Connect v{{version}}",
     "prayerSource": "Prayer times via Aladhan API"
   },
   "auth": {
@@ -104,7 +104,12 @@
     "loginFailed": "Login failed",
     "loginFailedHint": "Check your email and password.",
     "registerFailed": "Registration failed",
-    "registerFailedHint": "Try again."
+    "registerFailedHint": "Try again.",
+    "continueWithApple": "Continue with Apple",
+    "continueWithGoogle": "Continue with Google",
+    "orWithEmail": "or with email",
+    "skipForNow": "Skip for now",
+    "socialLoginFailed": "Could not complete sign-in. Please try again."
   },
   "about": {
     "title": "About",
@@ -123,10 +128,10 @@
     "save": "Save",
     "done": "Done",
     "permissionNeeded": "Permission needed",
-    "locationPermission": "Location permission is required to detect nearby mosques and calculate prayer times.",
+    "locationPermission": "Location permission is required to detect nearby masjids and calculate prayer times.",
     "locationError": "Could not detect your location. Please try again.",
-    "searchFailed": "Could not search mosques. Check your connection.",
-    "nearbyFailed": "Could not find nearby mosques. Check your connection.",
+    "searchFailed": "Could not search masjids. Check your connection.",
+    "nearbyFailed": "Could not find nearby masjids. Check your connection.",
     "calendarError": "Could not open calendar."
   }
 }

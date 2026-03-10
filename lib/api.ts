@@ -100,6 +100,18 @@ export const auth = {
     return _user;
   },
 
+  async socialLogin(provider: 'apple' | 'google', identityToken: string, name?: string) {
+    const data = await request<{ token: string; user: AuthUser }>('/auth/social/', {
+      method: 'POST',
+      body: JSON.stringify({ provider, identity_token: identityToken, name }),
+    });
+    _token = data.token;
+    _user = data.user;
+    await AsyncStorage.setItem(KEYS.AUTH_TOKEN, data.token);
+    await AsyncStorage.setItem(KEYS.AUTH_USER, JSON.stringify(data.user));
+    return data;
+  },
+
   /** Call once on app startup to hydrate from storage */
   async hydrate() {
     await loadToken();
@@ -281,7 +293,6 @@ export const subscriptions = {
 
 export const pushTokens = {
   async register(token: string, platform: 'ios' | 'android') {
-    if (!auth.isLoggedIn) return;
     return request('/push-tokens/', {
       method: 'POST',
       body: JSON.stringify({ token, platform }),

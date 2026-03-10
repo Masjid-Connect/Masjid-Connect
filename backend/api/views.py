@@ -1,6 +1,9 @@
 """API views for Masjid Connect."""
 
+import logging
 import math
+import os
+import uuid
 
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -8,6 +11,8 @@ from rest_framework import generics, permissions, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
+
+logger = logging.getLogger(__name__)
 
 from core.models import (
     Announcement,
@@ -82,6 +87,126 @@ def logout(request):
 def me(request):
     """Return current authenticated user."""
     return Response(UserSerializer(request.user).data)
+
+
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+def social_login(request):
+    """
+    Authenticate via Apple or Google identity token.
+    Creates user on first login. Returns auth token.
+
+    Body: { provider: "apple"|"google", identity_token: "...", name?: "..." }
+    """
+    provider = request.data.get("provider")
+    identity_token = request.data.get("identity_token")
+    name = request.data.get("name", "")
+
+    if not provider or not identity_token:
+        return Response(
+            {"detail": "provider and identity_token are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if provider not in ("apple", "google"):
+        return Response(
+            {"detail": "provider must be 'apple' or 'google'."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        if provider == "google":
+            email, social_name = _verify_google_token(identity_token)
+        else:
+            email, social_name = _verify_apple_token(identity_token)
+    except ValueError as e:
+        return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+    # Use name from provider if client didn't send one
+    display_name = name or social_name or ""
+
+    # Find or create user by email
+    try:
+        user = User.objects.get(email=email)
+        if display_name and not user.name:
+            user.name = display_name
+            user.save(update_fields=["name"])
+    except User.DoesNotExist:
+        user = User.objects.create_user(
+            username=email,
+            email=email,
+            password=None,  # No password for social users
+            name=display_name,
+        )
+
+    token, _ = Token.objects.get_or_create(user=user)
+    return Response(
+        {"token": token.key, "user": UserSerializer(user).data},
+        status=status.HTTP_200_OK,
+    )
+
+
+def _verify_google_token(identity_token: str) -> tuple[str, str]:
+    """Verify a Google ID token and return (email, name)."""
+    try:
+        from google.oauth2 import id_token as google_id_token
+        from google.auth.transport import requests as google_requests
+
+        idinfo = google_id_token.verify_oauth2_token(
+            identity_token, google_requests.Request()
+        )
+        email = idinfo.get("email")
+        if not email:
+            raise ValueError("Google token missing email claim.")
+        return email, idinfo.get("name", "")
+    except ImportError:
+        raise ValueError("Google auth library not installed on server.")
+    except Exception as e:
+        logger.warning("Google token verification failed: %s", e)
+        raise ValueError("Invalid Google identity token.")
+
+
+def _verify_apple_token(identity_token: str) -> tuple[str, str]:
+    """Verify an Apple identity token (JWT) and return (email, name)."""
+    try:
+        import jwt
+        import requests as http_requests
+
+        # Fetch Apple's public keys
+        apple_keys_url = "https://appleid.apple.com/auth/keys"
+        resp = http_requests.get(apple_keys_url, timeout=10)
+        resp.raise_for_status()
+        apple_keys = resp.json()
+
+        # Decode header to find the right key
+        header = jwt.get_unverified_header(identity_token)
+        key = None
+        for k in apple_keys["keys"]:
+            if k["kid"] == header["kid"]:
+                key = jwt.algorithms.RSAAlgorithm.from_jwk(k)
+                break
+
+        if key is None:
+            raise ValueError("Apple public key not found.")
+
+        payload = jwt.decode(
+            identity_token,
+            key,
+            algorithms=["RS256"],
+            audience=os.environ.get("APPLE_BUNDLE_ID", "app.salafimasjid.mobile"),
+            issuer="https://appleid.apple.com",
+        )
+        email = payload.get("email")
+        if not email:
+            raise ValueError("Apple token missing email claim.")
+        return email, ""
+    except ImportError:
+        raise ValueError("PyJWT library not installed on server.")
+    except jwt.ExpiredSignatureError:
+        raise ValueError("Apple identity token has expired.")
+    except Exception as e:
+        logger.warning("Apple token verification failed: %s", e)
+        raise ValueError("Invalid Apple identity token.")
 
 
 # ── Mosques ───────────────────────────────────────────────────────────
@@ -214,8 +339,9 @@ class UserSubscriptionViewSet(viewsets.ModelViewSet):
 
 
 @api_view(["POST"])
+@permission_classes([permissions.AllowAny])
 def register_push_token(request):
-    """Register or update a push token for the authenticated user."""
+    """Register or update a push token. Works for both authenticated and anonymous users."""
     token_str = request.data.get("token")
     platform = request.data.get("platform")
     if not token_str or not platform:
@@ -224,10 +350,12 @@ def register_push_token(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    user = request.user if request.user.is_authenticated else None
+
+    # Use token as the unique key — update user/platform if token already exists
     push_token, created = PushToken.objects.update_or_create(
-        user=request.user,
         token=token_str,
-        defaults={"platform": platform},
+        defaults={"user": user, "platform": platform},
     )
     return Response(
         PushTokenSerializer(push_token).data,
