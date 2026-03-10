@@ -13,6 +13,7 @@ env = environ.Env(
     DATABASE_URL=(str, "sqlite:///db.sqlite3"),
     SECRET_KEY=(str, "change-me-in-production"),
     CORS_ALLOWED_ORIGINS=(list, []),
+    CSRF_TRUSTED_ORIGINS=(list, []),
 )
 
 env_file = BASE_DIR / ".env"
@@ -175,6 +176,9 @@ SPECTACULAR_SETTINGS = {
 CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS")
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
+
+# CSRF
+CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
 
 # Unfold admin theme
 UNFOLD = {
