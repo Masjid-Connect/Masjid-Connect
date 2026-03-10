@@ -16,7 +16,7 @@
  */
 
 import React, { useCallback, useEffect } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import { Dimensions, Platform, StyleSheet, View } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import Animated, {
   Easing,
@@ -72,6 +72,8 @@ export const AnimatedSplash = ({
   isVisible,
   children,
 }: AnimatedSplashProps) => {
+  const isWeb = Platform.OS === 'web';
+
   // Animation shared values
   const drawProgress = useSharedValue(0);
   const goldNodeOpacity = useSharedValue(0);
@@ -172,6 +174,12 @@ export const AnimatedSplash = ({
   const contentAnimatedStyle = useAnimatedStyle(() => ({
     opacity: contentOpacity.value,
   }));
+
+  // On web, skip the splash animation — the Animated.View wrappers
+  // break Expo Router's LinkingContext on web.
+  if (isWeb) {
+    return <>{children}</>;
+  }
 
   return (
     <View style={styles.root}>
