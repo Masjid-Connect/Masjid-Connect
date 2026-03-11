@@ -16,7 +16,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, borderRadius, springs } from '@/constants/Theme';
 
@@ -104,7 +104,7 @@ export const BottomSheet = ({ visible, onDismiss, children, maxHeight }: BottomS
 const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: palette.backdrop,
   },
   sheet: {
     position: 'absolute',

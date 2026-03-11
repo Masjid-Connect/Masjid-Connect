@@ -4,8 +4,9 @@ import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
+import { spacing, typography } from '@/constants/Theme';
 
 export default function TabLayout() {
   const { effectiveScheme } = useTheme();
@@ -21,23 +22,23 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: isDark ? 'rgba(0,0,0,0.85)' : 'rgba(248,246,241,0.85)',
           borderTopWidth: 0,
-          paddingTop: 4,
+          paddingTop: spacing.xs,
           height: Platform.OS === 'ios' ? 83 : 64,
-          ...(Platform.OS === 'ios' ? {} : { paddingBottom: 8 }),
+          ...(Platform.OS === 'ios' ? {} : { paddingBottom: spacing.sm }),
         },
         tabBarLabelStyle: {
-          fontSize: 10,
+          fontSize: typography.caption2.fontSize,
           fontWeight: '500',
-          marginTop: 2,
+          marginTop: spacing['2xs'],
         },
         headerStyle: {
-          backgroundColor: isDark ? '#000000' : '#F8F6F1',
+          backgroundColor: colors.background,
         },
         headerTintColor: colors.text,
         headerShadowVisible: false,
         headerTitleStyle: {
-          fontSize: 17,
-          fontWeight: '600',
+          fontSize: typography.headline.fontSize,
+          fontWeight: '600' as const,
         },
       }}>
       <Tabs.Screen

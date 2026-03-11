@@ -40,7 +40,7 @@ export const Button = ({
 
   const isPrimary = variant === 'primary';
   const bgColor = isPrimary ? colors.tint : 'transparent';
-  const textColor = isPrimary ? '#FFFFFF' : colors.tint;
+  const textColor = isPrimary ? colors.onPrimary : colors.tint;
   const borderColor = isPrimary ? colors.tint : colors.tint;
 
   return (

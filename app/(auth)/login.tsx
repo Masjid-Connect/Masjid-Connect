@@ -84,7 +84,7 @@ export default function LoginScreen() {
           disabled={loading}
           style={[styles.button, { backgroundColor: colors.tint }]}
         >
-          {loading ? <ActivityIndicator color="#FFF" /> : <Text style={[typography.callout, { color: '#FFFFFF' }]}>{t('auth.login')}</Text>}
+          {loading ? <ActivityIndicator color={colors.onPrimary} /> : <Text style={[typography.callout, { color: colors.onPrimary }]}>{t('auth.login')}</Text>}
         </TouchableOpacity>
         <Link href="/(auth)/register" asChild>
           <TouchableOpacity style={styles.link}>
