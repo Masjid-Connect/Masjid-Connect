@@ -25,13 +25,6 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import {
-  Canvas,
-  Circle,
-  RadialGradient,
-  vec,
-} from '@shopify/react-native-skia';
-
 import { getColors } from '@/constants/Colors';
 import { springs, spacing, typography } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -101,18 +94,11 @@ export const AmbientTabBar = ({ state, descriptors, navigation }: BottomTabBarPr
       ]}
     >
       {/* Ambient glow — positioned absolutely behind tabs */}
-      <Animated.View style={[styles.glowContainer, glowAnimatedStyle]} pointerEvents="none">
-        <Canvas style={styles.glowCanvas}>
-          <Circle cx={GLOW_RADIUS} cy={GLOW_RADIUS} r={GLOW_RADIUS} opacity={GLOW_OPACITY}>
-            <RadialGradient
-              c={vec(GLOW_RADIUS, GLOW_RADIUS)}
-              r={GLOW_RADIUS}
-              colors={[glowColor, 'transparent']}
-              positions={[0, 1]}
-            />
-          </Circle>
-        </Canvas>
-      </Animated.View>
+      {Platform.OS !== 'web' && (
+        <Animated.View style={[styles.glowContainer, glowAnimatedStyle]} pointerEvents="none">
+          <SkiaGlow color={glowColor} />
+        </Animated.View>
+      )}
 
       {/* Tab buttons */}
       {state.routes.map((route, index) => {
@@ -173,6 +159,23 @@ export const AmbientTabBar = ({ state, descriptors, navigation }: BottomTabBarPr
         );
       })}
     </View>
+  );
+};
+
+/** Skia glow — isolated to avoid import on web */
+const SkiaGlow = ({ color }: { color: string }) => {
+  const { Canvas, Circle, RadialGradient, vec } = require('@shopify/react-native-skia');
+  return (
+    <Canvas style={styles.glowCanvas}>
+      <Circle cx={GLOW_RADIUS} cy={GLOW_RADIUS} r={GLOW_RADIUS} opacity={GLOW_OPACITY}>
+        <RadialGradient
+          c={vec(GLOW_RADIUS, GLOW_RADIUS)}
+          r={GLOW_RADIUS}
+          colors={[color, 'transparent']}
+          positions={[0, 1]}
+        />
+      </Circle>
+    </Canvas>
   );
 };
 
