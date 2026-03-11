@@ -140,7 +140,7 @@ export default function PrayerTimesScreen() {
                 </Text>
 
                 <Text style={[styles.prayerName, { color: colors.text }]}>
-                  {nextPrayerData.label}
+                  {t(`prayer.${nextPrayerData.name}`)}
                 </Text>
 
                 {/* Large time — extension of the prayer name, not separate */}
@@ -196,24 +196,12 @@ export default function PrayerTimesScreen() {
                   )}
                 </View>
 
-                {/* Name */}
+                {/* Name — i18n-aware */}
                 <Text style={[
                   isNext ? typography.headline : typography.body,
                   { color: isPassed ? colors.textTertiary : colors.text, flex: 1 },
                 ]}>
-                  {prayer.label}
-                </Text>
-
-                {/* Arabic */}
-                <Text style={[
-                  typography.footnote,
-                  {
-                    color: isPassed ? colors.textTertiary : colors.textSecondary,
-                    marginRight: spacing.lg,
-                    opacity: isPassed ? 0.5 : 0.7,
-                  },
-                ]}>
-                  {prayer.arabicLabel}
+                  {t(`prayer.${prayer.name}`)}
                 </Text>
 
                 {/* Time — right-aligned, tabular */}
@@ -236,7 +224,7 @@ export default function PrayerTimesScreen() {
                         fontVariant: ['tabular-nums'],
                         textAlign: 'right',
                         opacity: isPassed ? 0.4 : 0.5,
-                        marginTop: 1,
+                        marginTop: 0,
                       },
                     ]}>
                       {formatPrayerTime(prayer.time, use24h)}

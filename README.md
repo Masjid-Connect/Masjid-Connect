@@ -43,28 +43,9 @@ This is an app your community _deserves_.
 
 <br>
 
-### The Convergent Arch — Brand Identity
+### Brand Identity
 
-The mark is a single, unbroken line that simultaneously suggests two things: the **mihrab niche** (inward-curving base) and the **dome** (outward arc at top). The two curves meet at a single elevated apex — a matte **gold leaf node** that is not decoration, but a structural point of convergence.
-
-```
-            ╭── gold node ──╮
-            │       •       │
-           ╱                 ╲       The SVG path:
-          ╱    dome curve     ╲      M 20 130 C 35 108, 28 48, 50 10
-         │                     │     C 72 48, 65 108, 80 130
-          ╲  mihrab curve    ╱
-           ╲               ╱        viewBox: 0 0 100 140
-            ╰             ╯         Apex: (50, 10)
-```
-
-**The Animated Splash (The Reveal):**
-1. Pure Kozo paper background for 1 second. Silence.
-2. Haptic `impact(Medium)`. Line draws in Sacred Blue over 1.5s.
-3. Microscopic pause. Gold node fades in with spring physics.
-4. App content crossfades in.
-
-**Material language:** The substrate is Kozo paper — Japanese mulberry paper with barely-visible organic fiber texture. The line feels etched. The gold has the soft quality of burnished gold leaf. Notification badges are Divine Gold, never red.
+The app uses **The Salafi Masjid** logo (PNG with transparent background) as the primary brand mark, appearing on the welcome screen, auth screens, and splash screen. The design language uses warm limestone tones, Sacred Blue tints, and Divine Gold accents. Notification badges are Divine Gold, never red.
 
 <br>
 
@@ -93,7 +74,7 @@ The mark is a single, unbroken line that simultaneously suggests two things: the
 - Next prayer countdown with golden glow
 - Hijri date display alongside Gregorian
 - 5 calculation methods (ISNA, MWL, Umm Al-Qura, Egyptian, Karachi)
-- Brand mark in header, Kozo paper background
+- Sky-calibrated atmospheric gradients per prayer window
 
 </td>
 <td width="50%" valign="top">
@@ -247,8 +228,8 @@ The mark is a single, unbroken line that simultaneously suggests two things: the
 | **Notifications** | Expo Notifications | Abstracts FCM/APNs, local scheduling |
 | **Storage** | AsyncStorage | Offline-first caching layer |
 | **Animations** | Reanimated | 60fps spring physics on the UI thread |
-| **SVG / Brand** | react-native-svg | Convergent Arch mark, Kozo paper textures |
-| **Haptics** | expo-haptics | Splash reveal, meaningful interaction feedback |
+| **SVG** | react-native-svg | SVG graphics and icons |
+| **Haptics** | expo-haptics | Meaningful interaction feedback |
 | **Dates** | date-fns | Lightweight, tree-shakeable formatting |
 | **Language** | TypeScript (strict) | Zero `any` types, full inference |
 
@@ -269,14 +250,11 @@ mosque-connect/
 │       └── settings.tsx          # ⚙ Preferences & mosque selection
 │
 ├── components/                   # Reusable UI components
-│   ├── brand/                    # Brand identity system (Convergent Arch)
-│   │   ├── ConvergentArch.tsx    # SVG mark — arch line + gold node
-│   │   ├── AnimatedSplash.tsx    # Splash reveal (vector-draw + spring)
-│   │   ├── BrandTabIcon.tsx      # Tab icon with gold illumination
+│   ├── brand/                    # Brand identity components
+│   │   ├── AnimatedSplash.tsx    # Splash screen animation
 │   │   ├── GoldBadge.tsx         # Divine Gold notification badge
 │   │   └── index.ts             # Re-exports
 │   └── ui/                       # Base design system components
-│       └── KozoPaperBackground.tsx # Kozo paper fiber texture
 │
 ├── lib/                          # Core services
 │   ├── api.ts                    # Django REST API client (auth, CRUD)
@@ -458,13 +436,12 @@ id (UUID), mosque FK, user FK, role (admin|super_admin)
 | Principle | Implementation |
 |-----------|---------------|
 | **God-tier, not SaaS** | No generic Material/iOS chrome. Custom Islamic aesthetic throughout. |
-| **The Convergent Arch** | Single continuous line (mihrab + dome) with gold node. Lives in splash, tab bar, headers. |
-| **Kozo paper substrate** | Warm Ivory background with barely-visible organic fiber texture. |
+| **Warm Ivory substrate** | Limestone `#F8F6F1` backgrounds with warm, natural tone. |
 | **Divine Gold, not red** | Notification badges are gold — a glint of light, not an error. |
 | **Breathe** | 30–50% more whitespace than typical apps. Content first. |
 | **Spring physics** | Reanimated springs (damping 15–20). Never linear easing. |
-| **Meaningful motion** | Splash reveal, prayer card glow, gold node illumination on tab focus. |
-| **Haptic vocabulary** | Light tap for nav, medium for splash reveal / prayer alert, heavy for urgent. |
+| **Meaningful motion** | Prayer card glow, atmospheric gradient shifts. |
+| **Haptic vocabulary** | Light tap for nav, medium for prayer alert, heavy for urgent. |
 | **RTL-native** | Built for Arabic from day one. Layouts flip automatically. |
 | **Offline-first** | Aladhan API primary, adhan-js fallback. Always functional. |
 | **Admin-friendly** | Mosque admins are often non-technical. Zero jargon, guided flows, 60-second time-to-first-post. |
@@ -483,8 +460,7 @@ id (UUID), mosque FK, user FK, role (admin|super_admin)
 - [x] Django admin with Unfold theme (Sacred Blue brand)
 - [x] Push notification infrastructure
 - [x] Offline-first storage layer
-- [x] Convergent Arch brand identity (SVG mark, animated splash, tab icon, gold badge)
-- [x] Kozo paper texture background system
+- [x] Brand identity (animated splash, Divine Gold badge)
 - [x] User authentication flow (sign up / sign in)
 - [x] Mosque search & nearby detection
 - [x] i18n (English ↔ Arabic) with RTL support

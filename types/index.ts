@@ -109,7 +109,6 @@ export type PrayerName = 'fajr' | 'sunrise' | 'dhuhr' | 'asr' | 'maghrib' | 'ish
 export interface PrayerTimeEntry {
   name: PrayerName;
   label: string;
-  arabicLabel: string;
   time: Date;
   jamaahTime: Date | null;
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { getPrayerTimes, fetchMosquePrayerTimes, buildPrayerEntries, getNextPrayer, getCountdown } from '@/lib/prayer';
-import { cachePrayerTimes, getCachedPrayerTimes, getUserLocation, getReminderMinutes, getUse24h, getSelectedMosqueId } from '@/lib/storage';
+import { cachePrayerTimes, getCachedPrayerTimes, getUserLocation, getReminderMinutes, getUse24h, getSelectedMosqueId, getSubscribedMosqueIds } from '@/lib/storage';
 import { reschedulePrayerRemindersForToday, schedulePrayerReminders } from '@/lib/notifications';
 import type { PrayerTimeEntry, PrayerName, JamaahTimesData } from '@/types';
 
@@ -53,7 +53,14 @@ export function usePrayerTimes(): UsePrayerTimesResult {
       }
 
       // Try mosque-specific scraped times first
-      const mosqueId = await getSelectedMosqueId();
+      // Use explicitly selected mosque, or fall back to first subscribed mosque
+      let mosqueId = await getSelectedMosqueId();
+      if (!mosqueId) {
+        const subscribedIds = await getSubscribedMosqueIds();
+        if (subscribedIds.length > 0) {
+          mosqueId = subscribedIds[0];
+        }
+      }
       let jamaahTimes: JamaahTimesData | null = null;
 
       if (mosqueId) {
