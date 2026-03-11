@@ -42,11 +42,11 @@ export const MosqueCard = ({ mosque, isSubscribed, onToggleSubscribe }: MosqueCa
           <Text style={[typography.title3, { color: colors.text }]} numberOfLines={1}>
             {mosque.name}
           </Text>
-          <Text style={[typography.caption, { color: colors.textSecondary, marginTop: 2 }]} numberOfLines={1}>
+          <Text style={[typography.caption, { color: colors.textSecondary, marginTop: spacing['2xs'] }]} numberOfLines={1}>
             {[mosque.city, mosque.country].filter(Boolean).join(', ')}
           </Text>
           {mosque.distance !== undefined && (
-            <Text style={[typography.caption, { color: colors.accent, marginTop: 4, fontFamily: fonts.mono }]}>
+            <Text style={[typography.caption, { color: colors.accent, marginTop: spacing.xs, fontFamily: fonts.mono }]}>
               {mosque.distance < 1
                 ? `${Math.round(mosque.distance * 1000)}m away`
                 : `${mosque.distance.toFixed(1)} km away`}
@@ -67,7 +67,7 @@ export const MosqueCard = ({ mosque, isSubscribed, onToggleSubscribe }: MosqueCa
             style={[
               typography.callout,
               {
-                color: isSubscribed ? '#FFFFFF' : colors.accent,
+                color: isSubscribed ? colors.onPrimary : colors.accent,
               },
             ]}>
             {isSubscribed ? 'Joined' : 'Join'}
@@ -84,7 +84,7 @@ export const MosqueCard = ({ mosque, isSubscribed, onToggleSubscribe }: MosqueCa
             </Text>
           ) : null}
           {mosque.jumua_time ? (
-            <Text style={[typography.caption, { color: colors.accent, marginTop: 4 }]}>
+            <Text style={[typography.caption, { color: colors.accent, marginTop: spacing.xs }]}>
               Jumu&apos;ah: {mosque.jumua_time}
             </Text>
           ) : null}

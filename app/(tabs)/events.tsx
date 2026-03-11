@@ -298,8 +298,8 @@ export default function EventsScreen() {
               onPress={() => handleAddToCalendar(detailEvent)}
               style={[styles.addBtn, { backgroundColor: colors.tint }]}
             >
-              <Ionicons name="calendar-outline" size={18} color="#FFFFFF" style={{ marginRight: spacing.sm }} />
-              <Text style={[typography.headline, { color: '#FFFFFF' }]}>{t('events.addToCalendar')}</Text>
+              <Ionicons name="calendar-outline" size={18} color={colors.onPrimary} style={{ marginRight: spacing.sm }} />
+              <Text style={[typography.headline, { color: colors.onPrimary }]}>{t('events.addToCalendar')}</Text>
             </TouchableOpacity>
           </View>
         )}

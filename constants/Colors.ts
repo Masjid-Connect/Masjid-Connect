@@ -55,6 +55,11 @@ export const palette = {
   snow: '#F5F5F7',
   snowSecondary: '#8E8E93',
   snowTertiary: '#636366',
+
+  // Fixed colors (theme-independent)
+  white: '#FFFFFF',
+  googleBlue: '#4285F4',
+  backdrop: 'rgba(0,0,0,0.4)',
 } as const;
 
 const Colors = {
@@ -79,6 +84,8 @@ const Colors = {
     prayerActive: palette.divineGold,
     prayerActiveGlow: palette.divineGoldGlow,
     separator: palette.separatorLight,
+    inverseText: palette.white,
+    onPrimary: palette.white,
   },
   dark: {
     text: palette.snow,
@@ -101,6 +108,8 @@ const Colors = {
     prayerActive: palette.divineGoldBright,
     prayerActiveGlow: 'rgba(212, 184, 92, 0.15)',
     separator: palette.separatorDark,
+    inverseText: palette.black,
+    onPrimary: palette.white,
   },
 };
 

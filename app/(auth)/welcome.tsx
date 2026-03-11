@@ -16,7 +16,7 @@ import * as AuthSession from 'expo-auth-session';
 import * as Crypto from 'expo-crypto';
 import { useTranslation } from 'react-i18next';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, borderRadius, typography } from '@/constants/Theme';
 import { KozoPaperBackground } from '@/components/ui/KozoPaperBackground';
@@ -143,11 +143,11 @@ export default function WelcomeScreen() {
               activeOpacity={0.8}
             >
               {appleLoading ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
+                <ActivityIndicator color={colors.onPrimary} size="small" />
               ) : (
                 <>
-                  <Ionicons name="logo-apple" size={20} color="#FFFFFF" />
-                  <Text style={[styles.socialButtonText, { color: '#FFFFFF' }]}>
+                  <Ionicons name="logo-apple" size={20} color={colors.onPrimary} />
+                  <Text style={[styles.socialButtonText, { color: colors.onPrimary }]}>
                     {t('welcome.continueWithApple')}
                   </Text>
                 </>
@@ -166,7 +166,7 @@ export default function WelcomeScreen() {
               <ActivityIndicator color={colors.text} size="small" />
             ) : (
               <>
-                <Ionicons name="logo-google" size={18} color="#4285F4" />
+                <Ionicons name="logo-google" size={18} color={palette.googleBlue} />
                 <Text style={[styles.socialButtonText, { color: colors.text }]}>
                   {t('welcome.continueWithGoogle')}
                 </Text>
@@ -190,8 +190,8 @@ export default function WelcomeScreen() {
             style={[styles.socialButton, { backgroundColor: colors.tint }]}
             activeOpacity={0.8}
           >
-            <Ionicons name="mail-outline" size={18} color="#FFFFFF" />
-            <Text style={[styles.socialButtonText, { color: '#FFFFFF' }]}>
+            <Ionicons name="mail-outline" size={18} color={colors.onPrimary} />
+            <Text style={[styles.socialButtonText, { color: colors.onPrimary }]}>
               {t('welcome.createWithEmail')}
             </Text>
           </TouchableOpacity>
@@ -249,10 +249,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   appleButton: {
-    backgroundColor: '#000000',
+    backgroundColor: palette.black,
   },
   googleButton: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: palette.white,
     borderWidth: 1,
   },
   socialButtonText: {

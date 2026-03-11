@@ -16,7 +16,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { spacing, elevation, borderRadius, typography } from '@/constants/Theme';
@@ -263,7 +263,7 @@ export default function SettingsScreen() {
         {isAuthenticated && user ? (
           <View style={styles.row}>
             <View style={[styles.avatar, { backgroundColor: colors.accent }]}>
-              <Text style={[typography.title2, { color: '#FFFFFF' }]}>
+              <Text style={[typography.title2, { color: colors.onPrimary }]}>
                 {(user.name || user.email)[0].toUpperCase()}
               </Text>
             </View>
@@ -286,7 +286,7 @@ export default function SettingsScreen() {
               onPress={() => router.push('/(auth)/welcome')}
               style={[styles.actionBtn, { backgroundColor: colors.tint }]}
             >
-              <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>{t('settings.signIn')}</Text>
+              <Text style={[typography.subhead, { color: colors.onPrimary, fontWeight: '600' }]}>{t('settings.signIn')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -330,14 +330,14 @@ export default function SettingsScreen() {
               disabled={searchLoading}
               style={[styles.searchBtn, { backgroundColor: colors.tint }]}
             >
-              {searchLoading ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>{t('settings.search')}</Text>}
+              {searchLoading ? <ActivityIndicator size="small" color={colors.onPrimary} /> : <Text style={[typography.subhead, { color: colors.onPrimary, fontWeight: '600' }]}>{t('settings.search')}</Text>}
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleNearby}
               disabled={nearbyLoading}
               style={[styles.searchBtn, { backgroundColor: colors.accent }]}
             >
-              {nearbyLoading ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>{t('settings.nearby')}</Text>}
+              {nearbyLoading ? <ActivityIndicator size="small" color={colors.onPrimary} /> : <Text style={[typography.subhead, { color: colors.onPrimary, fontWeight: '600' }]}>{t('settings.nearby')}</Text>}
             </TouchableOpacity>
           </View>
         </View>
@@ -381,7 +381,7 @@ export default function SettingsScreen() {
           </View>
         ) : (
           <TouchableOpacity onPress={handleDetectLocation} style={[styles.actionBtn, { backgroundColor: colors.tint }]}>
-            <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>
+            <Text style={[typography.subhead, { color: colors.onPrimary, fontWeight: '600' }]}>
               {locationLoading ? t('settings.detecting') : t('settings.detectLocation')}
             </Text>
           </TouchableOpacity>
@@ -427,7 +427,7 @@ export default function SettingsScreen() {
             value={use24h}
             onValueChange={handleToggle24h}
             trackColor={{ false: colors.separator, true: colors.tint }}
-            thumbColor="#FFFFFF"
+            thumbColor={palette.white}
           />
         </View>
       </View>
