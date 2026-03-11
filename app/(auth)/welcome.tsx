@@ -16,7 +16,7 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import * as AuthSession from 'expo-auth-session';
 import * as Crypto from 'expo-crypto';
 import { useTranslation } from 'react-i18next';
-import Svg, { Path, Circle } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -57,31 +57,6 @@ const GoogleGLogo = ({ size = 18 }: { size?: number }) => (
     />
   </Svg>
 );
-
-/**
- * Convergent Arch brand mark — inline for the welcome screen.
- * Single continuous line in Sacred Blue with gold leaf node at apex.
- */
-const ConvergentArchMark = ({ height = 48, color, nodeColor }: {
-  height?: number;
-  color: string;
-  nodeColor: string;
-}) => {
-  const aspectRatio = 100 / 140;
-  const width = height * aspectRatio;
-  return (
-    <Svg width={width} height={height} viewBox="0 0 100 140">
-      <Path
-        d="M 20 130 C 35 108, 28 48, 50 10 C 72 48, 65 108, 80 130"
-        stroke={color}
-        strokeWidth={2}
-        fill="none"
-        strokeLinecap="round"
-      />
-      <Circle cx={50} cy={10} r={3.5} fill={nodeColor} />
-    </Svg>
-  );
-};
 
 export default function WelcomeScreen() {
   const { effectiveScheme } = useTheme();
@@ -182,12 +157,6 @@ export default function WelcomeScreen() {
 
       {/* ─── Zone 2: Identity ───────────────────────────────── */}
       <View style={styles.identityZone}>
-        <ConvergentArchMark
-          height={40}
-          color={colors.tint}
-          nodeColor={colors.accent}
-        />
-
         <Image
           source={require('@/assets/images/Masjid_Logo.png')}
           style={styles.logo}
