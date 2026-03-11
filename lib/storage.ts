@@ -7,6 +7,7 @@ const KEYS = {
   JAMAAH_TIMES: 'cached_jamaah_times',
   SUBSCRIBED_MOSQUES: 'subscribed_mosque_ids',
   SELECTED_MOSQUE: 'selected_mosque_id',
+  DEFAULT_MOSQUE_BOOTSTRAPPED: 'default_mosque_bootstrapped',
   USER_LOCATION: 'user_location',
   CALCULATION_METHOD: 'calculation_method',
   CALCULATION_METHOD_NAME: 'calculation_method_name',
@@ -157,4 +158,51 @@ export async function getThemePreference(): Promise<'light' | 'dark' | 'system'>
 
 export async function setThemePreference(theme: 'light' | 'dark' | 'system'): Promise<void> {
   await AsyncStorage.setItem(KEYS.THEME, theme);
+}
+
+/** Default mosque — The Salafi Masjid (Wright Street) is the origin mosque. */
+export const DEFAULT_MOSQUE_SEARCH = 'Salafi Masjid';
+
+/**
+ * On first launch, auto-discover The Salafi Masjid from the API and set it as
+ * the selected mosque + first subscription. Runs once; subsequent launches
+ * use the stored ID. Users can switch to a different mosque in Settings.
+ */
+export async function ensureDefaultMosque(): Promise<void> {
+  const already = await AsyncStorage.getItem(KEYS.DEFAULT_MOSQUE_BOOTSTRAPPED);
+  if (already === 'true') return;
+
+  // Only bootstrap if nothing is selected yet
+  const existing = await getSelectedMosqueId();
+  if (existing) {
+    await AsyncStorage.setItem(KEYS.DEFAULT_MOSQUE_BOOTSTRAPPED, 'true');
+    return;
+  }
+
+  try {
+    // Lazy import to avoid circular dependency
+    const { mosques } = await import('@/lib/api');
+    const result = await mosques.list(DEFAULT_MOSQUE_SEARCH);
+    const salafi = result.items.find((m) => m.name.includes('Salafi'));
+
+    if (salafi) {
+      await setSelectedMosqueId(salafi.id);
+
+      // Also add to subscriptions so announcements/events flow through
+      const subs = await getSubscribedMosqueIds();
+      if (!subs.includes(salafi.id)) {
+        await setSubscribedMosqueIds([salafi.id, ...subs]);
+      }
+
+      // Store the mosque's location as user location default
+      if (salafi.latitude && salafi.longitude) {
+        await setUserLocation(salafi.latitude, salafi.longitude);
+      }
+    }
+  } catch {
+    // Network unavailable on first launch — will retry next time
+    return;
+  }
+
+  await AsyncStorage.setItem(KEYS.DEFAULT_MOSQUE_BOOTSTRAPPED, 'true');
 }

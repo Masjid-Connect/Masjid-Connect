@@ -29,6 +29,8 @@ import {
   setUse24h,
   getSubscribedMosqueIds,
   setSubscribedMosqueIds,
+  getSelectedMosqueId,
+  setSelectedMosqueId,
 } from '@/lib/storage';
 import type { ThemePreference } from '@/contexts/ThemeContext';
 import { reschedulePrayerRemindersForToday } from '@/lib/notifications';
@@ -170,6 +172,9 @@ export default function SettingsScreen() {
     if (ids.includes(mosqueId)) return;
     await setSubscribedMosqueIds([...ids, mosqueId]);
 
+    // Set as selected mosque for prayer times (first subscription or explicit add)
+    await setSelectedMosqueId(mosqueId);
+
     // Also subscribe on backend if authenticated
     if (isAuthenticated) {
       try {
@@ -185,7 +190,14 @@ export default function SettingsScreen() {
 
   const handleUnsubscribe = async (mosqueId: string) => {
     const ids = await getSubscribedMosqueIds();
-    await setSubscribedMosqueIds(ids.filter((id) => id !== mosqueId));
+    const remaining = ids.filter((id) => id !== mosqueId);
+    await setSubscribedMosqueIds(remaining);
+
+    // If this was the selected mosque, fall back to next subscribed or clear
+    const selected = await getSelectedMosqueId();
+    if (selected === mosqueId) {
+      await setSelectedMosqueId(remaining.length > 0 ? remaining[0] : null);
+    }
 
     // Also unsubscribe on backend if authenticated
     if (isAuthenticated) {
@@ -292,123 +304,139 @@ export default function SettingsScreen() {
         )}
       </View>
 
-      {/* My Mosques */}
-      <SectionHeader title={t('settings.myMosques')} />
-      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
-        {subscribedMosques.length === 0 ? (
-          <View style={styles.emptyMosque}>
-            <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center' }]}>
-              {t('settings.noMosques')}
-            </Text>
-          </View>
-        ) : (
-          subscribedMosques.map((m, i) => (
-            <View key={m.id} style={[styles.row, i < subscribedMosques.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}>
-              <Text style={[typography.body, { color: colors.text, flex: 1 }]} numberOfLines={1}>{m.name}</Text>
-              <TouchableOpacity onPress={() => handleUnsubscribe(m.id)}>
-                <Text style={[typography.subhead, { color: colors.urgent }]}>{t('settings.remove')}</Text>
-              </TouchableOpacity>
-            </View>
-          ))
-        )}
-
-        {/* Search section */}
-        <View style={[styles.searchSection, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.separator }]}>
-          <Text style={[typography.footnote, { color: colors.textSecondary, marginBottom: spacing.sm }]}>{t('settings.addMosque')}</Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.backgroundGrouped, borderColor: colors.separator, color: colors.text }]}
-            placeholder={t('settings.cityName')}
-            placeholderTextColor={colors.textSecondary}
-            value={searchCity}
-            onChangeText={setSearchCity}
-            returnKeyType="search"
-            onSubmitEditing={handleSearchByCity}
-          />
-          <View style={styles.searchButtons}>
-            <TouchableOpacity
-              onPress={handleSearchByCity}
-              disabled={searchLoading}
-              style={[styles.searchBtn, { backgroundColor: colors.tint }]}
-            >
-              {searchLoading ? <ActivityIndicator size="small" color={colors.onPrimary} /> : <Text style={[typography.subhead, { color: colors.onPrimary, fontWeight: '600' }]}>{t('settings.search')}</Text>}
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleNearby}
-              disabled={nearbyLoading}
-              style={[styles.searchBtn, { backgroundColor: colors.accent }]}
-            >
-              {nearbyLoading ? <ActivityIndicator size="small" color={colors.onPrimary} /> : <Text style={[typography.subhead, { color: colors.onPrimary, fontWeight: '600' }]}>{t('settings.nearby')}</Text>}
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {searchResults.length > 0 && (
-          <View style={[styles.searchSection, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.separator }]}>
-            <Text style={[typography.footnote, { color: colors.textSecondary, marginBottom: spacing.sm }]}>{t('settings.results')}</Text>
-            {searchResults.map((m, i) => {
-              const isSubscribed = subscribedIds.includes(m.id);
-              return (
-                <View key={m.id} style={[styles.row, i < searchResults.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}>
+      {/* My Mosques — authenticated users only */}
+      {isAuthenticated && (
+        <>
+          <SectionHeader title={t('settings.myMosques')} />
+          <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
+            {subscribedMosques.length === 0 ? (
+              <View style={styles.emptyMosque}>
+                <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center' }]}>
+                  {t('settings.noMosques')}
+                </Text>
+              </View>
+            ) : (
+              subscribedMosques.map((m, i) => (
+                <View key={m.id} style={[styles.row, i < subscribedMosques.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}>
                   <Text style={[typography.body, { color: colors.text, flex: 1 }]} numberOfLines={1}>{m.name}</Text>
-                  {isSubscribed ? (
-                    <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-                  ) : (
-                    <TouchableOpacity onPress={() => handleSubscribe(m.id)}>
-                      <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>{t('settings.add')}</Text>
-                    </TouchableOpacity>
-                  )}
+                  <TouchableOpacity onPress={() => handleUnsubscribe(m.id)}>
+                    <Text style={[typography.subhead, { color: colors.urgent }]}>{t('settings.remove')}</Text>
+                  </TouchableOpacity>
                 </View>
-              );
-            })}
-          </View>
-        )}
-      </View>
+              ))
+            )}
 
-      {/* Location */}
-      <SectionHeader title={t('settings.location')} />
-      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
-        {location ? (
-          <View style={styles.row}>
-            <View style={{ flex: 1 }}>
-              <Text style={[typography.body, { color: colors.text }]}>{t('settings.locationDetected')}</Text>
-              <Text style={[typography.caption1, { color: colors.textSecondary }]}>
-                {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
-              </Text>
+            {/* Search section */}
+            <View style={[styles.searchSection, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.separator }]}>
+              <Text style={[typography.footnote, { color: colors.textSecondary, marginBottom: spacing.sm }]}>{t('settings.addMosque')}</Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: colors.backgroundGrouped, borderColor: colors.separator, color: colors.text }]}
+                placeholder={t('settings.cityName')}
+                placeholderTextColor={colors.textSecondary}
+                value={searchCity}
+                onChangeText={setSearchCity}
+                returnKeyType="search"
+                onSubmitEditing={handleSearchByCity}
+              />
+              <View style={styles.searchButtons}>
+                <TouchableOpacity
+                  onPress={handleSearchByCity}
+                  disabled={searchLoading}
+                  style={[styles.searchBtn, { backgroundColor: colors.tint }]}
+                >
+                  {searchLoading ? <ActivityIndicator size="small" color={colors.onPrimary} /> : <Text style={[typography.subhead, { color: colors.onPrimary, fontWeight: '600' }]}>{t('settings.search')}</Text>}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleNearby}
+                  disabled={nearbyLoading}
+                  style={[styles.searchBtn, { backgroundColor: colors.accent }]}
+                >
+                  {nearbyLoading ? <ActivityIndicator size="small" color={colors.onPrimary} /> : <Text style={[typography.subhead, { color: colors.onPrimary, fontWeight: '600' }]}>{t('settings.nearby')}</Text>}
+                </TouchableOpacity>
+              </View>
             </View>
-            <TouchableOpacity onPress={handleDetectLocation}>
-              <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>{t('settings.update')}</Text>
-            </TouchableOpacity>
+
+            {searchResults.length > 0 && (
+              <View style={[styles.searchSection, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.separator }]}>
+                <Text style={[typography.footnote, { color: colors.textSecondary, marginBottom: spacing.sm }]}>{t('settings.results')}</Text>
+                {searchResults.map((m, i) => {
+                  const isSubscribed = subscribedIds.includes(m.id);
+                  return (
+                    <View key={m.id} style={[styles.row, i < searchResults.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}>
+                      <Text style={[typography.body, { color: colors.text, flex: 1 }]} numberOfLines={1}>{m.name}</Text>
+                      {isSubscribed ? (
+                        <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+                      ) : (
+                        <TouchableOpacity onPress={() => handleSubscribe(m.id)}>
+                          <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>{t('settings.add')}</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
+            )}
           </View>
-        ) : (
-          <TouchableOpacity onPress={handleDetectLocation} style={[styles.actionBtn, { backgroundColor: colors.tint }]}>
-            <Text style={[typography.subhead, { color: colors.onPrimary, fontWeight: '600' }]}>
-              {locationLoading ? t('settings.detecting') : t('settings.detectLocation')}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
+        </>
+      )}
 
-      {/* Calculation Method */}
-      <SectionHeader title={t('settings.calculationMethod')} />
-      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
-        <View style={styles.row}>
-          <Ionicons name="information-circle-outline" size={20} color={colors.tint} style={{ marginRight: spacing.sm }} />
-          <Text style={[typography.body, { color: colors.text, flex: 1 }]}>Umm Al-Qura (Makkah)</Text>
-        </View>
-      </View>
+      {/* Location — authenticated users only */}
+      {isAuthenticated && (
+        <>
+          <SectionHeader title={t('settings.location')} />
+          <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
+            {location ? (
+              <View style={styles.row}>
+                <View style={{ flex: 1 }}>
+                  <Text style={[typography.body, { color: colors.text }]}>{t('settings.locationDetected')}</Text>
+                  <Text style={[typography.caption1, { color: colors.textSecondary }]}>
+                    {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={handleDetectLocation}>
+                  <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>{t('settings.update')}</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity onPress={handleDetectLocation} style={[styles.actionBtn, { backgroundColor: colors.tint }]}>
+                <Text style={[typography.subhead, { color: colors.onPrimary, fontWeight: '600' }]}>
+                  {locationLoading ? t('settings.detecting') : t('settings.detectLocation')}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </>
+      )}
 
-      {/* Prayer Reminders */}
-      <SectionHeader title={t('settings.prayerReminder')} />
-      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
-        {REMINDER_OPTIONS.map((opt) => (
-          <CheckRow
-            key={opt.value}
-            label={opt.label}
-            selected={opt.value === reminderMin}
-            onPress={() => handleReminderChange(opt.value)}
-          />
-        ))}
-      </View>
+      {/* Calculation Method — authenticated users only */}
+      {isAuthenticated && (
+        <>
+          <SectionHeader title={t('settings.calculationMethod')} />
+          <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
+            <View style={styles.row}>
+              <Ionicons name="information-circle-outline" size={20} color={colors.tint} style={{ marginRight: spacing.sm }} />
+              <Text style={[typography.body, { color: colors.text, flex: 1 }]}>Umm Al-Qura (Makkah)</Text>
+            </View>
+          </View>
+        </>
+      )}
+
+      {/* Prayer Reminders — authenticated users only */}
+      {isAuthenticated && (
+        <>
+          <SectionHeader title={t('settings.prayerReminder')} />
+          <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
+            {REMINDER_OPTIONS.map((opt) => (
+              <CheckRow
+                key={opt.value}
+                label={opt.label}
+                selected={opt.value === reminderMin}
+                onPress={() => handleReminderChange(opt.value)}
+              />
+            ))}
+          </View>
+        </>
+      )}
 
       {/* Preferences */}
       <SectionHeader title={t('settings.appearance')} />
