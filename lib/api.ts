@@ -3,7 +3,7 @@
  * Wraps all REST endpoints with token auth.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { Mosque, Announcement, MosqueEvent, UserSubscription } from '@/types';
+import type { Mosque, Announcement, MosqueEvent, UserSubscription, MosquePrayerTimeResponse } from '@/types';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.salafimasjid.app/api/v1';
 
@@ -171,6 +171,18 @@ export const mosques = {
       `/mosques/nearby/?lat=${latitude}&lng=${longitude}&radius=${radiusKm}`
     );
     return data.map((m) => ({ ...mapMosque(m), distance: m.distance }));
+  },
+
+  /** Fetch scraped jama'ah times for a mosque on a given date */
+  async getPrayerTimes(mosqueId: string, date: string): Promise<MosquePrayerTimeResponse | null> {
+    try {
+      const data = await request<PaginatedResponse<MosquePrayerTimeResponse>>(
+        `/mosques/${mosqueId}/prayer-times/?date=${date}`
+      );
+      return data.results.length > 0 ? data.results[0] : null;
+    } catch {
+      return null;
+    }
   },
 };
 

@@ -2,7 +2,7 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import { format } from 'date-fns';
-import type { PrayerTimesData, PrayerName } from '@/types';
+import type { PrayerTimesData, PrayerName, JamaahTimesData } from '@/types';
 import { PRAYER_LABELS } from '@/types';
 import { getPrayerTimes } from '@/lib/prayer';
 import { getCachedPrayerTimes, getReminderMinutes, getUserLocation, getCalculationMethod } from '@/lib/storage';
@@ -60,10 +60,14 @@ export async function registerForPushNotifications(): Promise<string | null> {
   return tokenData.data;
 }
 
-/** Schedule prayer reminder notifications for today */
+/** Schedule prayer reminder notifications for today.
+ *  When jamaahTimes are provided, reminders are relative to jama'ah time
+ *  (more useful — "15 min before jama'ah" tells you when to leave home).
+ */
 export async function schedulePrayerReminders(
   times: PrayerTimesData,
-  reminderMinutes: number = 15
+  reminderMinutes: number = 15,
+  jamaahTimes?: JamaahTimesData | null
 ): Promise<void> {
   if (Platform.OS === 'web') return;
 
@@ -74,17 +78,26 @@ export async function schedulePrayerReminders(
   const prayers: PrayerName[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
   for (const prayer of prayers) {
-    const prayerTime = times[prayer];
-    const reminderTime = new Date(prayerTime.getTime() - reminderMinutes * 60 * 1000);
+    // Use jama'ah time as the target if available, otherwise start time
+    const targetTime = (jamaahTimes && prayer in jamaahTimes)
+      ? jamaahTimes[prayer as keyof JamaahTimesData]
+      : times[prayer];
+    const prayerStartTime = times[prayer];
+
+    const reminderTime = new Date(targetTime.getTime() - reminderMinutes * 60 * 1000);
 
     // Skip if reminder time has already passed
     if (reminderTime <= now) continue;
 
     // Schedule "X minutes before" reminder
+    const reminderBody = jamaahTimes
+      ? `${PRAYER_LABELS[prayer].ar} — Jama'ah starts soon`
+      : `${PRAYER_LABELS[prayer].ar} — Time to prepare for prayer`;
+
     await Notifications.scheduleNotificationAsync({
       content: {
         title: `${PRAYER_LABELS[prayer].en} in ${reminderMinutes} minutes`,
-        body: `${PRAYER_LABELS[prayer].ar} — Time to prepare for prayer`,
+        body: reminderBody,
         data: { type: 'prayer_reminder', prayer },
         ...(Platform.OS === 'android' && { channelId: 'prayer-reminders' }),
       },
@@ -95,8 +108,8 @@ export async function schedulePrayerReminders(
       identifier: `prayer-reminder-${prayer}`,
     });
 
-    // Schedule "at athan time" notification
-    if (prayerTime > now) {
+    // Schedule "at athan time" notification (based on start time, not jama'ah)
+    if (prayerStartTime > now) {
       await Notifications.scheduleNotificationAsync({
         content: {
           title: `${PRAYER_LABELS[prayer].en} — ${PRAYER_LABELS[prayer].ar}`,
@@ -106,7 +119,7 @@ export async function schedulePrayerReminders(
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DATE,
-          date: prayerTime,
+          date: prayerStartTime,
         },
         identifier: `prayer-athan-${prayer}`,
       });
@@ -118,8 +131,14 @@ export async function schedulePrayerReminders(
 export async function reschedulePrayerRemindersForToday(): Promise<void> {
   if (Platform.OS === 'web') return;
   const today = format(new Date(), 'yyyy-MM-dd');
-  let times: PrayerTimesData | null = await getCachedPrayerTimes(today);
-  if (!times) {
+  const cached = await getCachedPrayerTimes(today);
+  let times: PrayerTimesData;
+  let jamaahTimes: JamaahTimesData | null = null;
+
+  if (cached) {
+    times = cached.times;
+    jamaahTimes = cached.jamaahTimes;
+  } else {
     const location = await getUserLocation();
     const method = await getCalculationMethod();
     const lat = location?.latitude ?? 21.4225;
@@ -128,7 +147,7 @@ export async function reschedulePrayerRemindersForToday(): Promise<void> {
     times = result.times;
   }
   const reminderMinutes = await getReminderMinutes();
-  await schedulePrayerReminders(times, reminderMinutes);
+  await schedulePrayerReminders(times, reminderMinutes, jamaahTimes);
 }
 
 /** Cancel all prayer reminder notifications */

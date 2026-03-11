@@ -17,7 +17,9 @@
     "minutesRemaining": "{{minutes}} دقيقة متبقية",
     "cached": "أوقات مخزنة مؤقتاً",
     "offline": "حساب بدون اتصال",
-    "calculating": "جارٍ حساب أوقات الصلاة..."
+    "calculating": "جارٍ حساب أوقات الصلاة...",
+    "mosqueTimes": "أوقات جماعة المسجد",
+    "startTime": "البداية {{time}}"
   },
   "announcements": {
     "title": "الإعلانات",

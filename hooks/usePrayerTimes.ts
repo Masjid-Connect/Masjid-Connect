@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
-import { getPrayerTimes, buildPrayerEntries, getNextPrayer, getCountdown } from '@/lib/prayer';
-import { cachePrayerTimes, getCachedPrayerTimes, getUserLocation, getReminderMinutes, getUse24h } from '@/lib/storage';
+import { getPrayerTimes, fetchMosquePrayerTimes, buildPrayerEntries, getNextPrayer, getCountdown } from '@/lib/prayer';
+import { cachePrayerTimes, getCachedPrayerTimes, getUserLocation, getReminderMinutes, getUse24h, getSelectedMosqueId } from '@/lib/storage';
 import { reschedulePrayerRemindersForToday, schedulePrayerReminders } from '@/lib/notifications';
-import type { PrayerTimeEntry, PrayerName } from '@/types';
+import type { PrayerTimeEntry, PrayerName, JamaahTimesData } from '@/types';
 
 /** Umm Al-Qura is the only calculation method used */
 const CALCULATION_METHOD_CODE = 4;
@@ -15,7 +15,8 @@ interface UsePrayerTimesResult {
   countdown: string;
   hijriDate: string | null;
   isLoading: boolean;
-  source: 'api' | 'offline' | 'cache';
+  source: 'api' | 'offline' | 'cache' | 'mosque';
+  jamaahAvailable: boolean;
   use24h: boolean;
   refresh: () => Promise<void>;
 }
@@ -26,7 +27,8 @@ export function usePrayerTimes(): UsePrayerTimesResult {
   const [countdown, setCountdown] = useState('');
   const [hijriDate, setHijriDate] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [source, setSource] = useState<'api' | 'offline' | 'cache'>('cache');
+  const [source, setSource] = useState<'api' | 'offline' | 'cache' | 'mosque'>('cache');
+  const [jamaahAvailable, setJamaahAvailable] = useState(false);
   const [use24h, setUse24hState] = useState(false);
 
   const loadPrayerTimes = useCallback(async () => {
@@ -38,21 +40,60 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     setUse24hState(h24);
 
     try {
-      // Check cache first
+      // Check cache first — show stale data immediately while fetching
       const cached = await getCachedPrayerTimes(today);
       if (cached) {
-        const entries = buildPrayerEntries(cached);
+        const entries = buildPrayerEntries(cached.times, cached.jamaahTimes);
         setPrayers(entries);
-        setNextPrayer(getNextPrayer(cached));
+        setNextPrayer(getNextPrayer(cached.times));
+        setJamaahAvailable(cached.jamaahTimes !== null);
         setSource('cache');
         setIsLoading(false);
         reschedulePrayerRemindersForToday().catch(() => {});
       }
 
-      // Fetch fresh data
-      const location = await getUserLocation();
+      // Try mosque-specific scraped times first
+      const mosqueId = await getSelectedMosqueId();
+      let jamaahTimes: JamaahTimesData | null = null;
 
-      // Default to Mecca coordinates if no location set
+      if (mosqueId) {
+        const mosqueResult = await fetchMosquePrayerTimes(mosqueId);
+        if (mosqueResult) {
+          // Mosque has scraped data — use it as primary
+          jamaahTimes = mosqueResult.jamaahTimes;
+          const entries = buildPrayerEntries(mosqueResult.times, jamaahTimes);
+
+          setPrayers(entries);
+          setNextPrayer(getNextPrayer(mosqueResult.times));
+          setSource('mosque');
+          setJamaahAvailable(true);
+
+          // Cache for offline use
+          await cachePrayerTimes(mosqueResult.times, today, jamaahTimes);
+
+          // Schedule reminders based on jama'ah times
+          const reminderMinutes = await getReminderMinutes();
+          await schedulePrayerReminders(mosqueResult.times, reminderMinutes, jamaahTimes);
+
+          // Still fetch Aladhan for Hijri date (mosque API doesn't provide it)
+          try {
+            const location = await getUserLocation();
+            const lat = location?.latitude ?? 21.4225;
+            const lng = location?.longitude ?? 39.8262;
+            const aladhanResult = await getPrayerTimes(lat, lng, CALCULATION_METHOD_CODE, CALCULATION_METHOD_NAME);
+            if (aladhanResult.hijriDate && aladhanResult.hijriMonth && aladhanResult.hijriYear) {
+              setHijriDate(`${aladhanResult.hijriDate} ${aladhanResult.hijriMonth} ${aladhanResult.hijriYear}`);
+            }
+          } catch {
+            // Hijri date is nice-to-have, don't fail on it
+          }
+
+          return; // Done — mosque data is primary
+        }
+      }
+
+      // Fallback: Aladhan API (no mosque selected, or mosque has no scraped data)
+      const location = await getUserLocation();
       const lat = location?.latitude ?? 21.4225;
       const lng = location?.longitude ?? 39.8262;
 
@@ -62,13 +103,14 @@ export function usePrayerTimes(): UsePrayerTimesResult {
       setPrayers(entries);
       setNextPrayer(getNextPrayer(result.times));
       setSource(result.source);
+      setJamaahAvailable(false);
 
       if (result.hijriDate && result.hijriMonth && result.hijriYear) {
         setHijriDate(`${result.hijriDate} ${result.hijriMonth} ${result.hijriYear}`);
       }
 
       // Cache for offline use
-      await cachePrayerTimes(result.times, today);
+      await cachePrayerTimes(result.times, today, null);
 
       // Schedule prayer reminder notifications
       const reminderMinutes = await getReminderMinutes();
@@ -80,19 +122,21 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     }
   }, []);
 
-  // Update countdown every minute
+  // Update countdown every 30 seconds
   useEffect(() => {
     if (!nextPrayer || prayers.length === 0) return;
 
     const updateCountdown = () => {
       const prayer = prayers.find((p) => p.name === nextPrayer);
       if (prayer) {
-        setCountdown(getCountdown(prayer.time));
+        // Count down to jama'ah time if available, else start time
+        const target = prayer.jamaahTime || prayer.time;
+        setCountdown(getCountdown(target));
       }
     };
 
     updateCountdown();
-    const interval = setInterval(updateCountdown, 30_000); // every 30 seconds
+    const interval = setInterval(updateCountdown, 30_000);
     return () => clearInterval(interval);
   }, [nextPrayer, prayers]);
 
@@ -127,6 +171,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     hijriDate,
     isLoading,
     source,
+    jamaahAvailable,
     use24h,
     refresh: loadPrayerTimes,
   };

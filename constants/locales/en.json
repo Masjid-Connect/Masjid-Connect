@@ -17,7 +17,9 @@
     "minutesRemaining": "{{minutes}}m remaining",
     "cached": "Cached times",
     "offline": "Offline calculation",
-    "calculating": "Calculating prayer times..."
+    "calculating": "Calculating prayer times...",
+    "mosqueTimes": "Mosque jama'ah times",
+    "startTime": "Start {{time}}"
   },
   "announcements": {
     "title": "Announcements",
