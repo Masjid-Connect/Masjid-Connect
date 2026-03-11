@@ -1,36 +1,24 @@
 import React from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
-import { Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { getColors, palette } from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography } from '@/constants/Theme';
+import { typography } from '@/constants/Theme';
+import { AmbientTabBar } from '@/components/navigation/AmbientTabIndicator';
 
 export default function TabLayout() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
-  const isDark = effectiveScheme === 'dark';
   const { t } = useTranslation();
 
   return (
     <Tabs
+      tabBar={(props) => <AmbientTabBar {...props} />}
       screenOptions={{
         tabBarActiveTintColor: colors.tabIconSelected,
         tabBarInactiveTintColor: colors.tabIconDefault,
-        tabBarStyle: {
-          backgroundColor: isDark ? 'rgba(0,0,0,0.85)' : 'rgba(248,246,241,0.85)',
-          borderTopWidth: 0,
-          paddingTop: spacing.xs,
-          height: Platform.OS === 'ios' ? 83 : 64,
-          ...(Platform.OS === 'ios' ? {} : { paddingBottom: spacing.sm }),
-        },
-        tabBarLabelStyle: {
-          fontSize: typography.caption2.fontSize,
-          fontWeight: '500',
-          marginTop: spacing['2xs'],
-        },
         headerStyle: {
           backgroundColor: colors.background,
         },

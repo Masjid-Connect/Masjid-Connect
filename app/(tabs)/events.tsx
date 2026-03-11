@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import {
+  Dimensions,
   StyleSheet,
   View,
   Text,
@@ -18,13 +19,16 @@ import { Calendar, DateData } from 'react-native-calendars';
 
 import { useTranslation } from 'react-i18next';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, elevation, borderRadius, typography } from '@/constants/Theme';
 import { useEvents } from '@/hooks/useEvents';
 import { BottomSheet } from '@/components/ui/BottomSheet';
+import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import type { MosqueEvent, EventCategory } from '@/types';
 import { EVENT_CATEGORY_COLORS } from '@/types';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const CATEGORY_KEYS: (EventCategory | null)[] = [null, 'lesson', 'lecture', 'quran_circle', 'youth', 'sisters', 'community'];
 
@@ -216,6 +220,14 @@ export default function EventsScreen() {
         </View>
       ) : filteredByDate.length === 0 ? (
         <View style={[styles.centered, { padding: spacing['3xl'] }]}>
+          {/* Islamic pattern — brands the empty void */}
+          <IslamicPattern
+            width={SCREEN_WIDTH}
+            height={SCREEN_HEIGHT}
+            color={effectiveScheme === 'dark' ? palette.sacredBlueLight : palette.sacredBlue}
+            opacity={0.03}
+            tileSize={56}
+          />
           <Text style={[typography.headline, { color: colors.textSecondary, textAlign: 'center' }]}>
             {t('events.empty')}
           </Text>

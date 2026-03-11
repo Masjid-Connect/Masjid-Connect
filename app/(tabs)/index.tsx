@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
+  Dimensions,
   StyleSheet,
   View,
   Text,
@@ -9,14 +10,17 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useTranslation } from 'react-i18next';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography } from '@/constants/Theme';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { formatPrayerTime } from '@/lib/prayer';
+import { getAtmosphericGradient } from '@/lib/prayerGradients';
+import { SkiaAtmosphericGradient } from '@/components/brand/SkiaAtmosphericGradient';
+import { IslamicPattern } from '@/components/brand/IslamicPattern';
+import { GlowDot } from '@/components/brand/GlowDot';
 import type { PrayerName } from '@/types';
 
 // ─── Design Philosophy ──────────────────────────────────────────────
@@ -34,42 +38,8 @@ import type { PrayerName } from '@/types';
 // Strict 8pt vertical grid. Every measurement is a multiple of 8.
 // Three colours max per screen state: gradient + text + one accent.
 //
-// ─── Sky-calibrated gradients ───────────────────────────────────────
 
-/**
- * Gradients modelled on real sky colour at each prayer window.
- * Each pair goes top → bottom to mimic looking upward.
- *
- * Light mode: warm, perceptible atmospheric shifts.
- * Dark mode: barely-there tints on true OLED black — the screen
- * should feel like a window into the night sky.
- */
-function getAtmosphericGradient(
-  prayer: PrayerName | null,
-  isDark: boolean,
-): [string, string, string] {
-  if (isDark) {
-    switch (prayer) {
-      case 'fajr':     return ['#0D0E1A', '#080A12', '#000000']; // deep pre-dawn indigo
-      case 'sunrise':  return ['#1A120A', '#0F0A06', '#000000']; // first amber on black
-      case 'dhuhr':    return ['#0A0E12', '#060A0E', '#000000']; // high-noon steel
-      case 'asr':      return ['#12100A', '#0A0806', '#000000']; // warm afternoon
-      case 'maghrib':  return ['#14080E', '#0A0508', '#000000']; // dusky rose
-      case 'isha':     return ['#08080E', '#040408', '#000000']; // deep night
-      default:         return ['#08080E', '#040408', '#000000'];
-    }
-  }
-
-  switch (prayer) {
-    case 'fajr':     return ['#D8DDE8', '#E4E7EE', '#F8F6F1']; // steel-blue dawn
-    case 'sunrise':  return ['#F0E4D4', '#F2EBE0', '#F8F6F1']; // warm golden wash
-    case 'dhuhr':    return ['#EDF0ED', '#F0F2F0', '#F8F6F1']; // bright clear sky
-    case 'asr':      return ['#EDE6DA', '#F0EBE2', '#F8F6F1']; // amber afternoon
-    case 'maghrib':  return ['#E0D4DF', '#E8DEE6', '#F8F6F1']; // rose-violet dusk
-    case 'isha':     return ['#D4D8E4', '#DEE0E8', '#F8F6F1']; // deep blue evening
-    default:         return ['#E8E8E6', '#F0F0EE', '#F8F6F1'];
-  }
-}
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // ─── Grid constants ─────────────────────────────────────────────────
 // All vertical measurements are multiples of 8.
@@ -91,6 +61,8 @@ export default function PrayerTimesScreen() {
   } = usePrayerTimes();
 
   const [refreshing, setRefreshing] = React.useState(false);
+  const [heroLayout, setHeroLayout] = useState({ width: SCREEN_WIDTH, height: 300 });
+
   const handleRefresh = async () => {
     setRefreshing(true);
     await refresh();
@@ -119,11 +91,29 @@ export default function PrayerTimesScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* ── Hero: one dominant element ─────────────────────────── */}
-        <LinearGradient
-          colors={gradient}
-          locations={[0, 0.5, 1]}
+        <View
           style={[styles.hero, { paddingTop: insets.top + GRID * 4 }]}
+          onLayout={(e) => {
+            const { width, height } = e.nativeEvent.layout;
+            setHeroLayout({ width, height });
+          }}
         >
+          {/* Skia atmospheric gradient — GPU-rendered sky */}
+          <SkiaAtmosphericGradient
+            width={heroLayout.width}
+            height={heroLayout.height}
+            colors={gradient}
+          />
+
+          {/* Islamic pattern — ultra-subtle geometric identity */}
+          <IslamicPattern
+            width={heroLayout.width}
+            height={heroLayout.height}
+            color={isDark ? palette.sacredBlueLight : palette.sacredBlue}
+            opacity={0.02}
+            tileSize={48}
+          />
+
           <Animated.View entering={FadeIn.duration(600)}>
             {/* Hijri date — quiet context, not competing */}
             {hijriDate && (
@@ -157,7 +147,7 @@ export default function PrayerTimesScreen() {
               </>
             )}
           </Animated.View>
-        </LinearGradient>
+        </View>
 
         {/* ── Timetable ─────────────────────────────────────────── */}
         <View style={styles.timetable}>
@@ -189,10 +179,15 @@ export default function PrayerTimesScreen() {
                   },
                 ]}
               >
-                {/* Active dot */}
+                {/* Active dot — Skia glow or empty column */}
                 <View style={styles.dotCol}>
                   {isNext && (
-                    <View style={[styles.dot, { backgroundColor: colors.prayerActive }]} />
+                    <GlowDot
+                      color={colors.prayerActive}
+                      size={3}
+                      blurRadius={4}
+                      animated={true}
+                    />
                   )}
                 </View>
 
@@ -295,11 +290,6 @@ const styles = StyleSheet.create({
   dotCol: {
     width: GRID * 2.5, // 20
     alignItems: 'center',
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
   },
   timeCol: {
     alignItems: 'flex-end',

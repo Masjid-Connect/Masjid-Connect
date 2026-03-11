@@ -1,63 +1,109 @@
-# Plan: Design System Tightening & Logo Background Fix
+# Design System Enhancement Plan
 
-## Problem
-1. **Logo background mismatch**: `Masjid_Logo.png` has a baked-in gray background (~#E0E0E0) that clashes with the app's limestone (#F8F6F1) background on the welcome screen
-2. **29 hardcoded colors** across screens instead of using semantic tokens
-3. **7 hardcoded spacing values** in tab layout and MosqueCard
-4. **Missing `colors.inverseText`** semantic token — most hardcoded #FFFFFF instances are white text on colored buttons
+Build 5 elements: Breath Motion, Sacred Grid, Solar Light, Ambient Tab Indicator, plus codify the visual doctrine.
 
-## Scope — What We WILL Do
+---
 
-### Phase 1: Logo Background Fix (welcome screen)
-- The logo PNG has a gray background baked in. We cannot edit the PNG programmatically.
-- **Fix**: Set the welcome screen logo `Image` component to use a `tintColor` if the logo is single-color (it is — black text only). This makes the PNG render in `colors.text` on the transparent area, and the background becomes the limestone behind it.
-- **Alternative if tintColor doesn't work cleanly**: Wrap the logo in a View with `backgroundColor: '#E8E6E1'` (approximate match) — but this is a hack. Better: ask user for a transparent-background PNG.
+## Element 1 — Breath Animation System
+**File:** `lib/breathMotion.ts`
 
-### Phase 2: Add `inverseText` Semantic Token (Colors.ts)
-- Add `inverseText: '#FFFFFF'` to light scheme and `inverseText: '#000000'` to dark scheme
-- Add `onPrimary: '#FFFFFF'` for text on brand-colored buttons (same in both themes since Sacred Blue/Divine Gold always need white text)
-- Add `backdrop: 'rgba(0,0,0,0.4)'` for bottom sheet overlay
+Create a utility that exports breathing-rhythm timing configs for ambient animations. These complement (not replace) the existing spring configs in Theme.ts.
 
-### Phase 3: Replace Hardcoded Colors (13 files)
-Replace all 29 hardcoded hex colors with semantic tokens:
+**Exports:**
+- `breath.inhale` — 900ms ease-in curve (expansion, brightening)
+- `breath.hold` — 200ms plateau
+- `breath.exhale` — 1100ms ease-out curve (contraction, dimming)
+- `breath.full` — 2200ms full cycle duration
+- `withBreathing(sharedValue)` — Reanimated helper that runs a shared value through inhale→hold→exhale→hold cycle on repeat (0→1→1→0)
+- `breathEasing` — custom cubic bezier that follows inhale/exhale feel
 
-| File | Change |
-|------|--------|
-| `welcome.tsx` | `#FFFFFF` → `colors.inverseText` (5 places), `#000000` → `palette.black`, `#FFFFFF` bg → `colors.card` |
-| `settings.tsx` | `#FFFFFF` → `colors.inverseText` (6 places) |
-| `events.tsx` | `#FFFFFF` → `colors.inverseText` (2 places) |
-| `(tabs)/_layout.tsx` | `#F8F6F1` → `colors.background`, `#000000` → `colors.background`, rgba literals → palette references |
-| `MosqueCard.tsx` | `#FFFFFF` → `colors.inverseText` |
-| `BottomSheet.tsx` | `rgba(0,0,0,0.4)` → `palette.backdrop` |
-| `Button.tsx` | `#FFFFFF` → `colors.inverseText` |
-| `GoldBadge.tsx` | `#FFFFFF` → keep (always needs white on gold) |
-| `login.tsx` | `#FFF` → `colors.inverseText` |
-| `register.tsx` | `#FFF` → `colors.inverseText` |
+**Integration points (modify existing files):**
+- `GlowDot.tsx` — replace the 2400ms linear pulse with breathing rhythm (inhale brightens, exhale dims)
+- `AnimatedSplash.tsx` — use breath timing for the pattern fade-in phase
 
-### Phase 4: Replace Hardcoded Spacing (tab layout + MosqueCard)
-| File | Line | Current | Fix |
-|------|------|---------|-----|
-| `(tabs)/_layout.tsx` | 22 | `paddingTop: 4` | `spacing.xs` |
-| `(tabs)/_layout.tsx` | 26 | `paddingBottom: 8` | `spacing.sm` |
-| `(tabs)/_layout.tsx` | 31 | `marginTop: 2` | `spacing['2xs']` |
-| `(tabs)/_layout.tsx` | 29 | `fontSize: 10` | `typography.caption2.fontSize` |
-| `MosqueCard.tsx` | 45 | `marginTop: 2` | `spacing['2xs']` |
-| `MosqueCard.tsx` | 49,87 | `marginTop: 4` | `spacing.xs` |
+---
 
-### Phase 5: Fix settings.tsx key warning
-The console error in the screenshot: "Each child in a list should have a unique key prop" at `settings.tsx:306:13`. Fix the `.map()` call to use a stable key.
+## Element 2 — Sacred Grid System
+**File:** `lib/layoutGrid.ts`
 
-## Scope — What We Will NOT Do (Separate Work)
-- **Prayer gradient extraction** — those are atmospheric and intentionally inline
+Centralize all layout constants that are currently scattered or inline. Single source of truth.
 
-## Files Modified
-1. `constants/Colors.ts` — add inverseText, onPrimary, backdrop tokens
-2. `app/(auth)/welcome.tsx` — fix logo bg + replace hardcoded colors
-3. `app/(tabs)/_layout.tsx` — replace hardcoded spacing + colors
-4. `app/(tabs)/settings.tsx` — replace hardcoded colors + fix key warning
-5. `app/(tabs)/events.tsx` — replace hardcoded colors
-6. `components/ui/BottomSheet.tsx` — replace backdrop color
-7. `components/ui/Button.tsx` — replace hardcoded white
-8. `components/mosque/MosqueCard.tsx` — replace hardcoded spacing + color
-9. `app/(auth)/login.tsx` — replace hardcoded white
-10. `app/(auth)/register.tsx` — replace hardcoded white
+**Exports:**
+- `GRID = 8` — base unit
+- `layout` object with: screenInset (32), heroHeight (320), rowHeight (64), prayerRowHeight (52), cardRadius (14), sectionSpacing (32), tabBarHeight per platform
+- `VISUAL_DOCTRINE` — the rules that make the system self-designing (sky=time, paper=information, gold=divine signal, geometry=structure, motion=breathing)
+
+**Integration:** Update `app/(tabs)/_layout.tsx` to reference `layout.tabBarHeight` instead of inline magic numbers.
+
+---
+
+## Element 3 — Solar Light System
+**File:** `components/brand/SolarLight.tsx`
+
+A Skia radial gradient overlay that simulates directional sunlight based on the current prayer.
+
+**Behavior per prayer:**
+| Prayer   | Light position       | Opacity |
+|----------|---------------------|---------|
+| Fajr     | Bottom-left (horizon) | 0.03  |
+| Sunrise  | Bottom-center        | 0.04  |
+| Dhuhr    | Top-center           | 0.05  |
+| Asr      | Right-center         | 0.04  |
+| Maghrib  | Bottom-right         | 0.03  |
+| Isha     | None (no light)      | 0     |
+
+**Implementation:**
+- Skia Canvas with RadialGradient
+- Center point shifts based on prayer name
+- Color tint varies (cool white for fajr, warm amber for asr/maghrib)
+- Maximum 5% opacity — barely perceptible
+- In dark mode, opacity halved
+- Props: `prayer`, `width`, `height`, `isDark`
+
+---
+
+## Element 4 — Ambient Tab Indicator
+**File:** `components/navigation/AmbientTabIndicator.tsx`
+
+Custom tab bar replacing the default with a soft gradient undertone that glides between tabs.
+
+**Implementation:**
+- Custom `tabBar` prop on `<Tabs>` component
+- Render tabs manually with same Ionicons/labels
+- Animated gradient "pill" behind active tab using Skia RadialGradient
+- Sacred Blue (light) / Divine Gold Bright (dark) at ~8% opacity
+- Horizontal position animated with `springs.gentle`
+- Same dimensions/padding as current tab bar
+
+**Integration:** Modify `app/(tabs)/_layout.tsx` to use `tabBar={(props) => <AmbientTabBar {...props} />}`
+
+---
+
+## Element 5 — Barrel Export Updates
+- `components/brand/index.ts` — add SolarLight
+- `components/navigation/index.ts` (new) — export AmbientTabBar
+
+---
+
+## Implementation Order
+1. `lib/breathMotion.ts` — standalone utility
+2. `lib/layoutGrid.ts` — standalone constants
+3. Update `GlowDot.tsx` — integrate breath motion
+4. `components/brand/SolarLight.tsx` — Skia light system
+5. `components/navigation/AmbientTabIndicator.tsx` — custom tab bar
+6. Update `app/(tabs)/_layout.tsx` — layout grid + ambient tab bar
+7. Update barrel exports
+8. Update `AnimatedSplash.tsx` — breath timing for pattern phase
+
+## Files Modified (existing)
+- `components/brand/GlowDot.tsx`
+- `components/brand/AnimatedSplash.tsx`
+- `components/brand/index.ts`
+- `app/(tabs)/_layout.tsx`
+
+## Files Created (new)
+- `lib/breathMotion.ts`
+- `lib/layoutGrid.ts`
+- `components/brand/SolarLight.tsx`
+- `components/navigation/AmbientTabIndicator.tsx`
+- `components/navigation/index.ts`

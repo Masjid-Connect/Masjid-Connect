@@ -1,7 +1,9 @@
 /**
  * Animated Splash Screen — The Reveal
  *
- * The screen is pure, unadorned Kozo paper for a brief moment. Silence.
+ * The screen opens with a prayer-aware atmospheric gradient.
+ * During the silence phase, a whisper of Islamic geometric pattern
+ * fades in at 4% opacity.
  *
  * With a haptic impact(Medium), the mosque logo fades in and gently
  * scales up from 85% to 100% — a quiet, confident emergence, as if
@@ -10,7 +12,7 @@
  * The app content subtly fades in around it.
  */
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Dimensions, Image, Platform, StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
@@ -24,16 +26,20 @@ import * as Haptics from 'expo-haptics';
 
 import { palette } from '@/constants/Colors';
 import { springs } from '@/constants/Theme';
+import { breath, breathEasing } from '@/lib/breathMotion';
+import { getAtmosphericGradient } from '@/lib/prayerGradients';
+import { IslamicPattern } from './IslamicPattern';
+import { SkiaAtmosphericGradient } from './SkiaAtmosphericGradient';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 /** Logo sizing — generous, centered */
 const LOGO_WIDTH = Math.min(SCREEN_WIDTH * 0.75, 360);
 
 /** Timing constants (ms) */
-const PAUSE_BEFORE_REVEAL = 600;
+const PAUSE_BEFORE_REVEAL = 500;
 const LOGO_FADE_DURATION = 1200;
-const HOLD_DURATION = 800;
+const HOLD_DURATION = 700;
 const CONTENT_FADE_DURATION = 800;
 
 interface AnimatedSplashProps {
@@ -57,6 +63,16 @@ export const AnimatedSplash = ({
   const logoScale = useSharedValue(0.85);
   const splashOpacity = useSharedValue(1);
   const contentOpacity = useSharedValue(0);
+  const patternOpacity = useSharedValue(0);
+
+  // Layout dimensions (updated on mount for accuracy)
+  const [dimensions, setDimensions] = useState({
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
+  });
+
+  // Default gradient — uses null prayer (neutral sky)
+  const gradient = getAtmosphericGradient(null, false);
 
   const triggerHaptic = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -69,7 +85,12 @@ export const AnimatedSplash = ({
   useEffect(() => {
     if (!isVisible) return;
 
-    // Phase 1: Pure paper, silence
+    // Pattern fades in during silence phase — breath inhale rhythm
+    patternOpacity.value = withTiming(0.04, {
+      duration: breath.inhale,
+      easing: breathEasing.inhale,
+    });
+
     // Phase 2: Haptic + logo fades in with gentle scale
     logoOpacity.value = withDelay(
       PAUSE_BEFORE_REVEAL,
@@ -140,6 +161,11 @@ export const AnimatedSplash = ({
     opacity: contentOpacity.value,
   }));
 
+  // Pattern layer opacity
+  const patternAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: patternOpacity.value,
+  }));
+
   // On web, skip the splash animation — the Animated.View wrappers
   // break Expo Router's LinkingContext on web.
   if (isWeb) {
@@ -147,7 +173,13 @@ export const AnimatedSplash = ({
   }
 
   return (
-    <View style={styles.root}>
+    <View
+      style={styles.root}
+      onLayout={(e) => {
+        const { width, height } = e.nativeEvent.layout;
+        setDimensions({ width, height });
+      }}
+    >
       {/* App content (renders behind splash, fades in) */}
       <Animated.View style={[styles.contentContainer, contentAnimatedStyle]}>
         {children}
@@ -155,8 +187,23 @@ export const AnimatedSplash = ({
 
       {/* Splash overlay */}
       <Animated.View style={[styles.splashContainer, splashAnimatedStyle]}>
-        {/* Kozo paper background */}
-        <View style={styles.paperBackground} />
+        {/* Atmospheric gradient background */}
+        <SkiaAtmosphericGradient
+          width={dimensions.width}
+          height={dimensions.height}
+          colors={gradient}
+        />
+
+        {/* Islamic pattern — fades in during silence */}
+        <Animated.View style={[StyleSheet.absoluteFill, patternAnimatedStyle]}>
+          <IslamicPattern
+            width={dimensions.width}
+            height={dimensions.height}
+            color={palette.sacredBlue}
+            opacity={1} // Opacity controlled by Animated.View wrapper
+            tileSize={56}
+          />
+        </Animated.View>
 
         {/* The logo — centered, fades in with scale */}
         <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
@@ -183,10 +230,6 @@ const styles = StyleSheet.create({
     zIndex: 10,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  paperBackground: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: palette.limestone,
   },
   logoContainer: {
     alignItems: 'center',
