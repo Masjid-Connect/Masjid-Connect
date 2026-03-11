@@ -68,7 +68,7 @@
     "signOut": "تسجيل الخروج",
     "signOutConfirm": "هل أنت متأكد أنك تريد تسجيل الخروج؟",
     "appInfo": "معلومات التطبيق",
-    "version": "Masjid Connect v{{version}}",
+    "version": "المسجد السلفي v{{version}}",
     "prayerSource": "أوقات الصلاة من Aladhan API",
     "guestHint": "سجل الدخول للحصول على إشعارات المسجد السلفي."
   },

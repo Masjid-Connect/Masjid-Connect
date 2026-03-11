@@ -68,7 +68,7 @@
     "signOut": "Sign out",
     "signOutConfirm": "Are you sure you want to sign out?",
     "appInfo": "App Info",
-    "version": "Masjid Connect v{{version}}",
+    "version": "The Salafi Masjid v{{version}}",
     "prayerSource": "Prayer times via Aladhan API",
     "guestHint": "Sign in to get push notifications for The Salafi Masjid."
   },

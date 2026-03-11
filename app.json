@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Mosque Connect",
+    "name": "The Salafi Masjid",
     "slug": "mosque-connect",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -15,7 +15,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "app.salafimasjid",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Mosque Connect uses your location to calculate accurate prayer times and find nearby mosques."
+        "NSLocationWhenInUseUsageDescription": "The Salafi Masjid app uses your location to calculate accurate prayer times."
       }
     },
     "android": {
@@ -45,7 +45,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Mosque Connect uses your location to calculate prayer times and find nearby mosques."
+          "locationWhenInUsePermission": "The Salafi Masjid app uses your location to calculate prayer times."
         }
       ]
     ],
