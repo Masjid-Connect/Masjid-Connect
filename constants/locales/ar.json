@@ -84,7 +84,7 @@
     "signOut": "تسجيل الخروج",
     "signOutConfirm": "هل أنت متأكد أنك تريد تسجيل الخروج؟",
     "appInfo": "معلومات التطبيق",
-    "version": "Mosque Connect v{{version}}",
+    "version": "Masjid Connect v{{version}}",
     "prayerSource": "أوقات الصلاة من Aladhan API",
     "guestHint": "سجل الدخول للحصول على إشعارات ومزامنة مساجدك عبر الأجهزة."
   },
