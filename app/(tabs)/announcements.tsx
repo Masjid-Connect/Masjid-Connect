@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Dimensions,
   StyleSheet,
   View,
   Text,
@@ -13,12 +14,15 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { formatDistanceToNow } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography, borderRadius } from '@/constants/Theme';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { BottomSheet } from '@/components/ui/BottomSheet';
+import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import type { Announcement } from '@/types';
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function AnnouncementsScreen() {
   const { effectiveScheme } = useTheme();
@@ -124,6 +128,14 @@ export default function AnnouncementsScreen() {
   if (announcements.length === 0) {
     return (
       <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+        {/* Islamic pattern — brands the empty void */}
+        <IslamicPattern
+          width={SCREEN_WIDTH}
+          height={SCREEN_HEIGHT}
+          color={effectiveScheme === 'dark' ? palette.sacredBlueLight : palette.sacredBlue}
+          opacity={0.03}
+          tileSize={56}
+        />
         <Text style={[typography.largeTitle, { color: colors.accent, marginBottom: spacing.lg }]}>
           ﷽
         </Text>
