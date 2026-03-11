@@ -2,8 +2,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   cachePrayerTimes,
   getCachedPrayerTimes,
-  getSubscribedMosqueIds,
-  setSubscribedMosqueIds,
   getUserLocation,
   setUserLocation,
   getCalculationMethod,
@@ -48,19 +46,6 @@ describe('prayer times cache', () => {
     const cached = await getCachedPrayerTimes('2024-01-02');
 
     expect(cached).toBeNull();
-  });
-});
-
-describe('subscribed mosque IDs', () => {
-  it('defaults to empty array', async () => {
-    const ids = await getSubscribedMosqueIds();
-    expect(ids).toEqual([]);
-  });
-
-  it('stores and retrieves IDs', async () => {
-    await setSubscribedMosqueIds(['mosque-1', 'mosque-2']);
-    const ids = await getSubscribedMosqueIds();
-    expect(ids).toEqual(['mosque-1', 'mosque-2']);
   });
 });
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -8,10 +8,7 @@ import {
   Switch,
   Alert,
   Platform,
-  TextInput,
-  ActivityIndicator,
 } from 'react-native';
-import * as Location from 'expo-location';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
@@ -21,21 +18,13 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { spacing, elevation, borderRadius, typography } from '@/constants/Theme';
 import {
-  getUserLocation,
-  setUserLocation,
   getReminderMinutes,
   setReminderMinutes,
   getUse24h,
   setUse24h,
-  getSubscribedMosqueIds,
-  setSubscribedMosqueIds,
-  getSelectedMosqueId,
-  setSelectedMosqueId,
 } from '@/lib/storage';
 import type { ThemePreference } from '@/contexts/ThemeContext';
 import { reschedulePrayerRemindersForToday } from '@/lib/notifications';
-import { mosques as mosquesApi, subscriptions as subscriptionsApi } from '@/lib/api';
-import type { Mosque, UserSubscription } from '@/types';
 
 const REMINDER_VALUES = [0, 5, 10, 15, 30];
 const THEME_VALUES: ThemePreference[] = ['light', 'dark', 'system'];
@@ -57,82 +46,19 @@ export default function SettingsScreen() {
     label: t(`settings.theme${v.charAt(0).toUpperCase() + v.slice(1)}`),
   }));
 
-  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [reminderMin, setReminderMin] = useState(15);
   const [use24h, setUse24hState] = useState(false);
-  const [locationLoading, setLocationLoading] = useState(false);
-  const [subscribedMosques, setSubscribedMosques] = useState<Mosque[]>([]);
-  const [backendSubscriptions, setBackendSubscriptions] = useState<UserSubscription[]>([]);
-  const [searchCity, setSearchCity] = useState('');
-  const [searchResults, setSearchResults] = useState<Mosque[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [nearbyLoading, setNearbyLoading] = useState(false);
-
-  const loadSubscribedMosques = useCallback(async () => {
-    let ids: string[] = [];
-
-    // If authenticated, sync from backend subscriptions
-    if (isAuthenticated) {
-      try {
-        const subs = await subscriptionsApi.list();
-        setBackendSubscriptions(subs);
-        ids = subs.map((s) => s.mosque);
-        // Sync backend subscriptions to local storage
-        await setSubscribedMosqueIds(ids);
-      } catch {
-        // Fall back to local storage
-        ids = await getSubscribedMosqueIds();
-      }
-    } else {
-      ids = await getSubscribedMosqueIds();
-    }
-
-    const list: Mosque[] = [];
-    for (const id of ids) {
-      try {
-        const m = await mosquesApi.getById(id);
-        list.push(m);
-      } catch {
-        list.push({ id, name: id.slice(0, 8) + '…', address: '', city: '', state: '', country: '', latitude: 0, longitude: 0, calculation_method: '', jumua_time: null, contact_phone: '', contact_email: '', website: '', photo: '', created: '', updated: '' });
-      }
-    }
-    setSubscribedMosques(list);
-  }, [isAuthenticated]);
 
   useEffect(() => {
     loadSettings();
-    loadSubscribedMosques();
-  }, [loadSubscribedMosques]);
+  }, []);
 
   const loadSettings = async () => {
-    const loc = await getUserLocation();
-    if (loc) setLocation(loc);
-
     const mins = await getReminderMinutes();
     setReminderMin(mins);
 
     const h24 = await getUse24h();
     setUse24hState(h24);
-  };
-
-  const handleDetectLocation = async () => {
-    setLocationLoading(true);
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(t('common.permissionNeeded'), t('common.locationPermission'));
-        return;
-      }
-
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const { latitude, longitude } = loc.coords;
-      await setUserLocation(latitude, longitude);
-      setLocation({ latitude, longitude });
-    } catch {
-      Alert.alert(t('common.error'), t('common.locationError'));
-    } finally {
-      setLocationLoading(false);
-    }
   };
 
   const handleReminderChange = async (minutes: number) => {
@@ -148,7 +74,6 @@ export default function SettingsScreen() {
 
   const handleSignOut = async () => {
     if (Platform.OS === 'web') {
-      // Alert.alert is not supported on web — use window.confirm
       const confirmed = window.confirm(t('settings.signOutConfirm'));
       if (confirmed) {
         await logout();
@@ -166,87 +91,6 @@ export default function SettingsScreen() {
       ]);
     }
   };
-
-  const handleSubscribe = async (mosqueId: string) => {
-    const ids = await getSubscribedMosqueIds();
-    if (ids.includes(mosqueId)) return;
-    await setSubscribedMosqueIds([...ids, mosqueId]);
-
-    // Set as selected mosque for prayer times (first subscription or explicit add)
-    await setSelectedMosqueId(mosqueId);
-
-    // Also subscribe on backend if authenticated
-    if (isAuthenticated) {
-      try {
-        await subscriptionsApi.subscribe(mosqueId);
-      } catch {
-        // Local subscription saved; backend sync will retry on next load
-      }
-    }
-
-    await loadSubscribedMosques();
-    setSearchResults((prev) => prev.filter((m) => m.id !== mosqueId));
-  };
-
-  const handleUnsubscribe = async (mosqueId: string) => {
-    const ids = await getSubscribedMosqueIds();
-    const remaining = ids.filter((id) => id !== mosqueId);
-    await setSubscribedMosqueIds(remaining);
-
-    // If this was the selected mosque, fall back to next subscribed or clear
-    const selected = await getSelectedMosqueId();
-    if (selected === mosqueId) {
-      await setSelectedMosqueId(remaining.length > 0 ? remaining[0] : null);
-    }
-
-    // Also unsubscribe on backend if authenticated
-    if (isAuthenticated) {
-      const sub = backendSubscriptions.find((s) => s.mosque === mosqueId);
-      if (sub) {
-        try {
-          await subscriptionsApi.unsubscribe(sub.id);
-        } catch {
-          // Local unsubscription saved; backend sync will retry on next load
-        }
-      }
-    }
-
-    await loadSubscribedMosques();
-  };
-
-  const handleSearchByCity = async () => {
-    if (!searchCity.trim()) return;
-    setSearchLoading(true);
-    try {
-      const { items } = await mosquesApi.list(searchCity.trim());
-      setSearchResults(items);
-    } catch {
-      Alert.alert(t('common.error'), t('common.searchFailed'));
-    } finally {
-      setSearchLoading(false);
-    }
-  };
-
-  const handleNearby = async () => {
-    setNearbyLoading(true);
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(t('common.permissionNeeded'), t('common.locationPermission'));
-        setNearbyLoading(false);
-        return;
-      }
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const list = await mosquesApi.nearby(loc.coords.latitude, loc.coords.longitude);
-      setSearchResults(list);
-    } catch {
-      Alert.alert(t('common.error'), t('common.nearbyFailed'));
-    } finally {
-      setNearbyLoading(false);
-    }
-  };
-
-  const subscribedIds = subscribedMosques.map((m) => m.id);
 
   const SectionHeader = ({ title }: { title: string }) => (
     <Text style={[typography.sectionHeader, { color: colors.textSecondary, marginTop: spacing['2xl'], marginBottom: spacing.sm, paddingHorizontal: spacing['3xl'] }]}>
@@ -304,141 +148,20 @@ export default function SettingsScreen() {
         )}
       </View>
 
-      {/* My Mosques — authenticated users only */}
-      {isAuthenticated && (
-        <>
-          <SectionHeader title={t('settings.myMosques')} />
-          <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
-            {subscribedMosques.length === 0 ? (
-              <View style={styles.emptyMosque}>
-                <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center' }]}>
-                  {t('settings.noMosques')}
-                </Text>
-              </View>
-            ) : (
-              subscribedMosques.map((m, i) => (
-                <View key={m.id ?? `mosque-${i}`} style={[styles.row, i < subscribedMosques.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}>
-                  <Text style={[typography.body, { color: colors.text, flex: 1 }]} numberOfLines={1}>{m.name}</Text>
-                  <TouchableOpacity onPress={() => handleUnsubscribe(m.id)}>
-                    <Text style={[typography.subhead, { color: colors.urgent }]}>{t('settings.remove')}</Text>
-                  </TouchableOpacity>
-                </View>
-              ))
-            )}
+      {/* Prayer Reminders */}
+      <SectionHeader title={t('settings.prayerReminder')} />
+      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
+        {REMINDER_OPTIONS.map((opt) => (
+          <CheckRow
+            key={opt.value}
+            label={opt.label}
+            selected={opt.value === reminderMin}
+            onPress={() => handleReminderChange(opt.value)}
+          />
+        ))}
+      </View>
 
-            {/* Search section */}
-            <View style={[styles.searchSection, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.separator }]}>
-              <Text style={[typography.footnote, { color: colors.textSecondary, marginBottom: spacing.sm }]}>{t('settings.addMosque')}</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.backgroundGrouped, borderColor: colors.separator, color: colors.text }]}
-                placeholder={t('settings.cityName')}
-                placeholderTextColor={colors.textSecondary}
-                value={searchCity}
-                onChangeText={setSearchCity}
-                returnKeyType="search"
-                onSubmitEditing={handleSearchByCity}
-              />
-              <View style={styles.searchButtons}>
-                <TouchableOpacity
-                  onPress={handleSearchByCity}
-                  disabled={searchLoading}
-                  style={[styles.searchBtn, { backgroundColor: colors.tint }]}
-                >
-                  {searchLoading ? <ActivityIndicator size="small" color={colors.onPrimary} /> : <Text style={[typography.subhead, { color: colors.onPrimary, fontWeight: '600' }]}>{t('settings.search')}</Text>}
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleNearby}
-                  disabled={nearbyLoading}
-                  style={[styles.searchBtn, { backgroundColor: colors.accent }]}
-                >
-                  {nearbyLoading ? <ActivityIndicator size="small" color={colors.onPrimary} /> : <Text style={[typography.subhead, { color: colors.onPrimary, fontWeight: '600' }]}>{t('settings.nearby')}</Text>}
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {searchResults.length > 0 && (
-              <View style={[styles.searchSection, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.separator }]}>
-                <Text style={[typography.footnote, { color: colors.textSecondary, marginBottom: spacing.sm }]}>{t('settings.results')}</Text>
-                {searchResults.map((m, i) => {
-                  const isSubscribed = subscribedIds.includes(m.id);
-                  return (
-                    <View key={m.id ?? `result-${i}`} style={[styles.row, i < searchResults.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}>
-                      <Text style={[typography.body, { color: colors.text, flex: 1 }]} numberOfLines={1}>{m.name}</Text>
-                      {isSubscribed ? (
-                        <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-                      ) : (
-                        <TouchableOpacity onPress={() => handleSubscribe(m.id)}>
-                          <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>{t('settings.add')}</Text>
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  );
-                })}
-              </View>
-            )}
-          </View>
-        </>
-      )}
-
-      {/* Location — authenticated users only */}
-      {isAuthenticated && (
-        <>
-          <SectionHeader title={t('settings.location')} />
-          <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
-            {location ? (
-              <View style={styles.row}>
-                <View style={{ flex: 1 }}>
-                  <Text style={[typography.body, { color: colors.text }]}>{t('settings.locationDetected')}</Text>
-                  <Text style={[typography.caption1, { color: colors.textSecondary }]}>
-                    {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
-                  </Text>
-                </View>
-                <TouchableOpacity onPress={handleDetectLocation}>
-                  <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>{t('settings.update')}</Text>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <TouchableOpacity onPress={handleDetectLocation} style={[styles.actionBtn, { backgroundColor: colors.tint }]}>
-                <Text style={[typography.subhead, { color: colors.onPrimary, fontWeight: '600' }]}>
-                  {locationLoading ? t('settings.detecting') : t('settings.detectLocation')}
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        </>
-      )}
-
-      {/* Calculation Method — authenticated users only */}
-      {isAuthenticated && (
-        <>
-          <SectionHeader title={t('settings.calculationMethod')} />
-          <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
-            <View style={styles.row}>
-              <Ionicons name="information-circle-outline" size={20} color={colors.tint} style={{ marginRight: spacing.sm }} />
-              <Text style={[typography.body, { color: colors.text, flex: 1 }]}>Umm Al-Qura (Makkah)</Text>
-            </View>
-          </View>
-        </>
-      )}
-
-      {/* Prayer Reminders — authenticated users only */}
-      {isAuthenticated && (
-        <>
-          <SectionHeader title={t('settings.prayerReminder')} />
-          <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
-            {REMINDER_OPTIONS.map((opt) => (
-              <CheckRow
-                key={opt.value}
-                label={opt.label}
-                selected={opt.value === reminderMin}
-                onPress={() => handleReminderChange(opt.value)}
-              />
-            ))}
-          </View>
-        </>
-      )}
-
-      {/* Preferences */}
+      {/* Appearance */}
       <SectionHeader title={t('settings.appearance')} />
       <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
         {THEME_OPTIONS.map((opt) => (
@@ -490,30 +213,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
-  },
-  emptyMosque: {
-    padding: spacing.lg,
-  },
-  searchSection: {
-    padding: spacing.lg,
-  },
-  input: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: borderRadius.sm,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    fontSize: 17,
-  },
-  searchButtons: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  searchBtn: {
-    flex: 1,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.sm,
-    alignItems: 'center',
   },
   actionBtn: {
     margin: spacing.lg,

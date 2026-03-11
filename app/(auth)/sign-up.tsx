@@ -60,7 +60,7 @@ export default function SignUpScreen() {
     setLoading(true);
     try {
       await register(email.trim(), password, name.trim());
-      router.replace('/mosque-search');
+      router.replace('/(tabs)');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Registration failed';
       if (message.includes('400')) {

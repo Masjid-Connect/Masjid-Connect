@@ -1,54 +1,119 @@
-# Plan: Fix Native Splash + Redesign Welcome Screen
+# Plan: Salafi Masjid Only — Single Mosque Mode
 
-## 1. Remove Native Splash Screen Image
+## Philosophy
 
-**Problem**: `app.json` has `splash.image` set to `Masjid_Logo.png`, which shows a raw logo + app name on a plain background before JS loads. This competes with and cheapens the AnimatedSplash.
-
-**Fix**: Keep the splash config but remove the image — just show the warm background color while JS boots, then let AnimatedSplash handle the reveal.
-
-Remove `"image": "./assets/images/Masjid_Logo.png"` from the splash config. The user sees warm limestone (#F8F6F1) for the ~1s native splash, then AnimatedSplash takes over with the gradient + pattern + logo reveal. Clean handoff.
-
-**File**: `app.json`
+The app becomes a **single-mosque app** exclusively for The Salafi Masjid (Wright Street), Birmingham. The backend stays multi-mosque capable (for future expansion), but the **frontend hardcodes everything** to The Salafi Masjid. No mosque selection, no subscriptions UI, no search — just one mosque, always.
 
 ---
 
-## 2. Redesign Welcome Screen — God-Tier Aesthetic
+## Changes Overview
 
-**Problem**: The current welcome screen uses `expo-linear-gradient` for the background and has no Islamic pattern texture, no Skia atmosphere, no breath-paced animation. It's functional but generic — doesn't match the premium brand language.
+### 1. New: `constants/mosque.ts` — Single Source of Truth
 
-**Design**: Three-zone layout reimagined with the full design system:
+Create a central config with The Salafi Masjid's hardcoded details:
+- Name: `"The Salafi Masjid (Wright Street)"`
+- Coordinates: `{ latitude: 52.4694, longitude: -1.8712 }`
+- City: `"Birmingham"`
+- Calculation method: `4` (Umm Al-Qura)
+- A `getMosqueId()` function that fetches the mosque ID from the backend API on first launch, caches it in AsyncStorage, and returns it on subsequent calls. This avoids hardcoding a UUID that could differ between environments.
 
-### Full-Screen Background Layers (behind everything)
-- `SkiaAtmosphericGradient` using the default prayer gradient (neutral sky) — full screen
-- `IslamicPattern` at 3% opacity over the gradient (Sacred Blue, tileSize 56)
-- `SolarLight` for subtle directional warmth (default/dhuhr position)
+### 2. Simplify `lib/storage.ts`
 
-### Zone 1: Identity (upper portion — generous breathing room)
-- `Masjid_Logo.png` centered with generous top padding
-- Animate: fade in with gentle scale (0.95 → 1.0) on mount using `springs.gentle`
-- Tagline below logo in `subhead` style, secondary text color, also animated fade-in
+**Remove:**
+- `getSubscribedMosqueIds()` / `setSubscribedMosqueIds()`
+- `getSelectedMosqueId()` / `setSelectedMosqueId()`
+- `ensureDefaultMosque()` (replaced by `constants/mosque.ts` → `getMosqueId()`)
+- `DEFAULT_MOSQUE_SEARCH`
+- Related storage keys: `SUBSCRIBED_MOSQUES`, `SELECTED_MOSQUE`, `DEFAULT_MOSQUE_BOOTSTRAPPED`
 
-### Zone 2: Actions (bottom — clear, generous spacing)
-- Semi-transparent frosted card behind action buttons for legibility on atmospheric background
-- Keep all auth buttons (Google, Apple, Email, Sign In link, Guest)
-- Google: Keep official branding (white/dark card with stroke)
-- Apple: Keep system Apple style (black/white toggle)
-- Email: Sacred Blue outlined on semi-transparent background
-- Guest: Barely visible caption at bottom
-- Staggered fade-in from bottom (50ms delay between each button), spring animation
+**Keep:**
+- Prayer times cache, jamaah times cache
+- `DEFAULT_LOCATION` (stays as The Salafi Masjid coordinates)
+- `getUserLocation()` / `setUserLocation()` (still useful for Aladhan fallback)
+- Reminder minutes, 24h format, theme preference, calculation method
 
-### Animation Sequence (on mount)
-- Background layers: instant (no animation, already present)
-- Logo + tagline: fade in 0→1, scale 0.95→1.0, delay 200ms, springs.gentle
-- Each action button: fade in 0→1, translateY 20→0, staggered 60ms apart, starting at 500ms
-- All using Reanimated shared values
+### 3. Simplify `hooks/usePrayerTimes.ts`
 
-**File to modify**: `app/(auth)/welcome.tsx`
+**Before:** Checks selected mosque → subscribed mosques → falls back to Aladhan
+**After:** Calls `getMosqueId()` → fetches mosque prayer times → falls back to Aladhan using hardcoded Salafi Masjid coordinates
+
+Remove all multi-mosque selection logic. The flow becomes:
+1. Get The Salafi Masjid's ID (from `constants/mosque.ts`)
+2. Fetch mosque-specific scraped times (primary)
+3. Fall back to Aladhan with Salafi Masjid coordinates
+4. Fall back to adhan-js offline
+
+### 4. Simplify `hooks/useAnnouncements.ts`
+
+**Before:** Looks up subscribed mosque IDs → selected mosque ID → fetches
+**After:** Calls `getMosqueId()` → fetches announcements for that single ID
+
+### 5. Simplify `hooks/useEvents.ts`
+
+Same pattern as announcements — always use The Salafi Masjid's ID.
+
+### 6. Remove `hooks/useMosqueSearch.ts`
+
+No longer needed. Delete the file.
+
+### 7. Remove `app/mosque-search.tsx`
+
+Mosque search screen is no longer needed. Delete the file.
+
+### 8. Remove `components/mosque/MosqueCard.tsx`
+
+No mosque cards to display. Delete the file (and its directory if empty).
+
+### 9. Simplify `app/(tabs)/settings.tsx`
+
+**Remove:**
+- "My Mosques" section (subscribe/unsubscribe, city search, nearby search)
+- All mosque search state/handlers (`subscribedMosques`, `searchCity`, `searchResults`, `handleSubscribe`, `handleUnsubscribe`, `handleSearchByCity`, `handleNearby`, etc.)
+- Location detection section (coordinates are hardcoded)
+- Calculation method display section (fixed, no user action)
+
+**Keep:**
+- Account section (sign in/out, guest hint)
+- Prayer reminders (0, 5, 10, 15, 30 min)
+- Appearance (theme light/dark/system, 24h toggle)
+- App info footer
+
+### 10. Keep `lib/api.ts` intact
+
+The API client functions all still work. We just always call them with The Salafi Masjid's ID. The `mosques` namespace, `announcements`, `events` endpoints are all valid. The `subscriptions` namespace can stay for backend sync but won't be exposed in UI.
+
+### 11. Backend — No changes needed
+
+The Django backend already supports The Salafi Masjid. It stays multi-mosque capable for future expansion. No model or API changes required.
+
+### 12. Update i18n keys
+
+Remove translation keys related to mosque search/selection that are no longer used (`settings.myMosques`, `settings.noMosques`, `settings.addMosque`, `settings.cityName`, `settings.search`, `settings.nearby`, `settings.results`, `settings.remove`, `settings.add`).
 
 ---
 
-## 3. Implementation Order
+## Files Changed
 
-1. Fix `app.json` — remove splash image
-2. Redesign `welcome.tsx` — full aesthetic overhaul with Skia atmospheric layers + animated entrance
-3. Commit and push to `claude/review-design-system-rfZiv`
+| File | Action |
+|------|--------|
+| `constants/mosque.ts` | **Create** — hardcoded Salafi Masjid config + `getMosqueId()` |
+| `lib/storage.ts` | **Edit** — remove multi-mosque storage functions |
+| `hooks/usePrayerTimes.ts` | **Edit** — use `getMosqueId()` directly |
+| `hooks/useAnnouncements.ts` | **Edit** — use `getMosqueId()` directly |
+| `hooks/useEvents.ts` | **Edit** — use `getMosqueId()` directly |
+| `hooks/useMosqueSearch.ts` | **Delete** |
+| `app/mosque-search.tsx` | **Delete** |
+| `components/mosque/MosqueCard.tsx` | **Delete** |
+| `app/(tabs)/settings.tsx` | **Edit** — remove mosque management sections |
+| `constants/locales/en.json` | **Edit** — remove unused mosque keys |
+| `constants/locales/ar.json` | **Edit** — remove unused mosque keys |
+
+## What Stays the Same
+
+- **Backend** — all models, APIs, admin panel untouched
+- **Prayer times logic** (`lib/prayer.ts`) — same Aladhan + adhan-js + mosque scraper flow
+- **Notifications** (`lib/notifications.ts`) — same scheduling logic
+- **Auth flow** — login, register, guest mode all unchanged
+- **Tab navigation** — same 4 tabs (prayer times, announcements, events, settings)
+- **Design system** — colors, typography, animations all unchanged
+- **Brand identity** — same Salafi Masjid logo, same aesthetic
