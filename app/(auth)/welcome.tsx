@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   StyleSheet,
@@ -7,31 +7,31 @@ import {
   TouchableOpacity,
   Platform,
   ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as AuthSession from 'expo-auth-session';
 import * as Crypto from 'expo-crypto';
 import { useTranslation } from 'react-i18next';
 import Svg, { Path } from 'react-native-svg';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withDelay,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography } from '@/constants/Theme';
+import { spacing, borderRadius, typography, springs } from '@/constants/Theme';
 import { useAuth } from '@/contexts/AuthContext';
-
-/**
- * Atmosphere gradient — "Dawn in the Musalla"
- * Soft sky tones: a barely-there wash of warm blue fading into limestone.
- * Dark mode: deep indigo fading into true black.
- */
-const ATMOSPHERE = {
-  light: ['#E8EFF5', '#EDE9E3', palette.limestone] as const,
-  dark: ['#0A1628', '#0D0D12', palette.black] as const,
-};
+import { SkiaAtmosphericGradient, IslamicPattern, SolarLight } from '@/components/brand';
+import { getAtmosphericGradient } from '@/lib/prayerGradients';
 
 /**
  * Google "G" logo as SVG — per Google branding guidelines (Dec 2025).
@@ -58,6 +58,34 @@ const GoogleGLogo = ({ size = 18 }: { size?: number }) => (
   </Svg>
 );
 
+/**
+ * Animated action button wrapper — staggered fade-in from bottom.
+ */
+const AnimatedButton = ({
+  index,
+  children,
+}: {
+  index: number;
+  children: React.ReactNode;
+}) => {
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(20);
+
+  useEffect(() => {
+    const delay = 500 + index * 60;
+    opacity.value = withDelay(delay, withTiming(1, { duration: 400, easing: Easing.out(Easing.quad) }));
+    translateY.value = withDelay(delay, withSpring(0, springs.gentle));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return <Animated.View style={animatedStyle}>{children}</Animated.View>;
+};
+
 export default function WelcomeScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
@@ -66,10 +94,35 @@ export default function WelcomeScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { continueAsGuest, loginWithSocial } = useAuth();
+  const { width, height } = useWindowDimensions();
 
   const [appleLoading, setAppleLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // ─── Logo entrance animation ────────────────────────────
+  const logoOpacity = useSharedValue(0);
+  const logoScale = useSharedValue(0.95);
+  const taglineOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    logoOpacity.value = withDelay(200, withTiming(1, { duration: 600, easing: Easing.out(Easing.quad) }));
+    logoScale.value = withDelay(200, withSpring(1, springs.gentle));
+    taglineOpacity.value = withDelay(400, withTiming(1, { duration: 500, easing: Easing.out(Easing.quad) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const logoAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: logoOpacity.value,
+    transform: [{ scale: logoScale.value }],
+  }));
+
+  const taglineAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: taglineOpacity.value,
+  }));
+
+  // ─── Atmospheric gradient (default/neutral prayer sky) ──
+  const gradientColors = getAtmosphericGradient(null, isDark);
 
   const handleAppleSignIn = async () => {
     setError('');
@@ -147,30 +200,59 @@ export default function WelcomeScreen() {
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      {/* ─── Zone 1: Atmosphere ─────────────────────────────── */}
-      <LinearGradient
-        colors={isDark ? [...ATMOSPHERE.dark] : [...ATMOSPHERE.light]}
-        style={[styles.atmosphereZone, { paddingTop: insets.top }]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-      />
-
-      {/* ─── Zone 2: Identity ───────────────────────────────── */}
-      <View style={styles.identityZone}>
-        <Image
-          source={require('@/assets/images/Masjid_Logo.png')}
-          style={styles.logo}
-          resizeMode="contain"
+      {/* ─── Atmosphere: Skia GPU gradient + Islamic pattern + Solar light ─── */}
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <SkiaAtmosphericGradient
+          width={width}
+          height={height}
+          colors={gradientColors}
         />
-
-        <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.md }]}>
-          {t('welcome.tagline')}
-        </Text>
+        <IslamicPattern
+          width={width}
+          height={height}
+          opacity={0.03}
+          tileSize={56}
+        />
+        <SolarLight
+          prayer="dhuhr"
+          width={width}
+          height={height}
+          isDark={isDark}
+        />
       </View>
 
-      {/* ─── Zone 3: Actions ────────────────────────────────── */}
-      <View style={[styles.actionsZone, { paddingBottom: insets.bottom + spacing.lg }]}>
+      {/* ─── Zone 1: Identity (upper — brand presence with breathing room) ─── */}
+      <View style={[styles.identityZone, { paddingTop: insets.top + spacing['5xl'] }]}>
+        <Animated.View style={logoAnimatedStyle}>
+          <Image
+            source={require('@/assets/images/Masjid_Logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </Animated.View>
 
+        <Animated.View style={taglineAnimatedStyle}>
+          <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.lg }]}>
+            {t('welcome.tagline')}
+          </Text>
+        </Animated.View>
+      </View>
+
+      {/* ─── Zone 2: Actions (bottom — frosted card with auth buttons) ─── */}
+      <View
+        style={[
+          styles.actionsZone,
+          {
+            paddingBottom: insets.bottom + spacing.lg,
+            backgroundColor: isDark
+              ? 'rgba(28, 28, 30, 0.85)'
+              : 'rgba(248, 246, 241, 0.88)',
+            borderTopColor: isDark
+              ? 'rgba(255, 255, 255, 0.06)'
+              : 'rgba(0, 0, 0, 0.04)',
+          },
+        ]}
+      >
         {error ? (
           <Text style={[typography.callout, { color: colors.urgent, textAlign: 'center', marginBottom: spacing.md }]}>
             {error}
@@ -178,105 +260,115 @@ export default function WelcomeScreen() {
         ) : null}
 
         {/* Google Sign In — official branding: fill, 1px stroke, multicolor G */}
-        <TouchableOpacity
-          onPress={handleGoogleSignIn}
-          disabled={isLoading}
-          style={[
-            styles.authButton,
-            {
-              backgroundColor: googleBtnBg,
-              borderColor: googleBtnBorder,
-              borderWidth: 1,
-            },
-          ]}
-          activeOpacity={0.8}
-        >
-          {googleLoading ? (
-            <ActivityIndicator color={googleBtnText} size="small" />
-          ) : (
-            <>
-              <View style={styles.googleIconContainer}>
-                <GoogleGLogo size={20} />
-              </View>
-              <Text style={[styles.authButtonText, { color: googleBtnText }]}>
-                {t('welcome.continueWithGoogle')}
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
-
-        {/* Apple Sign In — iOS only */}
-        {Platform.OS === 'ios' && (
+        <AnimatedButton index={0}>
           <TouchableOpacity
-            onPress={handleAppleSignIn}
+            onPress={handleGoogleSignIn}
             disabled={isLoading}
             style={[
               styles.authButton,
-              { backgroundColor: isDark ? palette.white : palette.black },
+              {
+                backgroundColor: googleBtnBg,
+                borderColor: googleBtnBorder,
+                borderWidth: 1,
+              },
             ]}
             activeOpacity={0.8}
           >
-            {appleLoading ? (
-              <ActivityIndicator color={isDark ? palette.black : palette.white} size="small" />
+            {googleLoading ? (
+              <ActivityIndicator color={googleBtnText} size="small" />
             ) : (
               <>
-                <Ionicons
-                  name="logo-apple"
-                  size={20}
-                  color={isDark ? palette.black : palette.white}
-                  style={styles.appleIcon}
-                />
-                <Text
-                  style={[
-                    styles.authButtonText,
-                    { color: isDark ? palette.black : palette.white },
-                  ]}
-                >
-                  {t('welcome.continueWithApple')}
+                <View style={styles.googleIconContainer}>
+                  <GoogleGLogo size={20} />
+                </View>
+                <Text style={[styles.authButtonText, { color: googleBtnText }]}>
+                  {t('welcome.continueWithGoogle')}
                 </Text>
               </>
             )}
           </TouchableOpacity>
+        </AnimatedButton>
+
+        {/* Apple Sign In — iOS only */}
+        {Platform.OS === 'ios' && (
+          <AnimatedButton index={1}>
+            <TouchableOpacity
+              onPress={handleAppleSignIn}
+              disabled={isLoading}
+              style={[
+                styles.authButton,
+                { backgroundColor: isDark ? palette.white : palette.black },
+              ]}
+              activeOpacity={0.8}
+            >
+              {appleLoading ? (
+                <ActivityIndicator color={isDark ? palette.black : palette.white} size="small" />
+              ) : (
+                <>
+                  <Ionicons
+                    name="logo-apple"
+                    size={20}
+                    color={isDark ? palette.black : palette.white}
+                    style={styles.appleIcon}
+                  />
+                  <Text
+                    style={[
+                      styles.authButtonText,
+                      { color: isDark ? palette.black : palette.white },
+                    ]}
+                  >
+                    {t('welcome.continueWithApple')}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </AnimatedButton>
         )}
 
         {/* Email sign up — secondary, outlined in Sacred Blue */}
-        <TouchableOpacity
-          onPress={() => router.push('/(auth)/sign-up')}
-          disabled={isLoading}
-          style={[
-            styles.authButton,
-            styles.emailButton,
-            { borderColor: colors.tint },
-          ]}
-          activeOpacity={0.8}
-        >
-          <Text style={[styles.authButtonText, { color: colors.tint }]}>
-            {t('welcome.signUpWithEmail')}
-          </Text>
-        </TouchableOpacity>
-
-        {/* Sign in text link */}
-        <View style={styles.signInRow}>
-          <Text style={[typography.subhead, { color: colors.textSecondary }]}>
-            {t('welcome.haveAccount')}{' '}
-          </Text>
-          <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')}>
-            <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>
-              {t('welcome.signIn')}
+        <AnimatedButton index={Platform.OS === 'ios' ? 2 : 1}>
+          <TouchableOpacity
+            onPress={() => router.push('/(auth)/sign-up')}
+            disabled={isLoading}
+            style={[
+              styles.authButton,
+              styles.emailButton,
+              { borderColor: colors.tint },
+            ]}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.authButtonText, { color: colors.tint }]}>
+              {t('welcome.signUpWithEmail')}
             </Text>
           </TouchableOpacity>
-        </View>
+        </AnimatedButton>
+
+        {/* Sign in text link */}
+        <AnimatedButton index={Platform.OS === 'ios' ? 3 : 2}>
+          <View style={styles.signInRow}>
+            <Text style={[typography.subhead, { color: colors.textSecondary }]}>
+              {t('welcome.haveAccount')}{' '}
+            </Text>
+            <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')}>
+              <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>
+                {t('welcome.signIn')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </AnimatedButton>
 
         {/* Guest — barely visible at the very bottom */}
-        <TouchableOpacity
-          onPress={handleContinueAsGuest}
-          disabled={isLoading}
-          style={styles.guestLink}
-        >
-          <Text style={[typography.caption1, { color: colors.textTertiary, textAlign: 'center' }]}>
-            {t('welcome.continueAsGuest')}
-          </Text>
-        </TouchableOpacity>
+        <AnimatedButton index={Platform.OS === 'ios' ? 4 : 3}>
+          <TouchableOpacity
+            onPress={handleContinueAsGuest}
+            disabled={isLoading}
+            style={styles.guestLink}
+          >
+            <Text style={[typography.caption1, { color: colors.textTertiary, textAlign: 'center' }]}>
+              {t('welcome.continueAsGuest')}
+            </Text>
+          </TouchableOpacity>
+        </AnimatedButton>
       </View>
     </View>
   );
@@ -287,29 +379,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // ─── Zone 1: Atmosphere (top third — breathing room) ────
-  atmosphereZone: {
-    flex: 1,
-    minHeight: 100,
-  },
-
-  // ─── Zone 2: Identity (center — brand presence) ─────────
+  // ─── Zone 1: Identity (upper — generous breathing room) ────
   identityZone: {
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
     paddingHorizontal: spacing['3xl'],
-    paddingTop: spacing.xl,
-    paddingBottom: spacing['3xl'],
   },
   logo: {
     width: 280,
     height: 78,
-    marginTop: spacing.xl,
   },
 
-  // ─── Zone 3: Actions (bottom — clear, generous spacing) ─
+  // ─── Zone 2: Actions (bottom — semi-transparent card) ──────
   actionsZone: {
     paddingHorizontal: spacing['3xl'],
-    paddingTop: spacing.sm,
+    paddingTop: spacing['2xl'],
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
   },
   authButton: {
     flexDirection: 'row',
