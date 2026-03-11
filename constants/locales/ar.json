@@ -91,10 +91,14 @@
     "guestHint": "سجل الدخول للحصول على إشعارات ومزامنة مساجدك عبر الأجهزة."
   },
   "welcome": {
+    "arabicName": "مسجد كَنكت",
+    "englishName": "Masjid Connect",
+    "tagline": "مجتمعك، أمة واحدة",
     "title": "مجتمعك، متصل",
     "subtitle": "أوقات الصلاة والإعلانات والفعاليات من مسجدك المحلي",
     "continueWithApple": "المتابعة مع Apple",
     "continueWithGoogle": "المتابعة مع Google",
+    "signUpWithEmail": "التسجيل بالبريد الإلكتروني",
     "createWithEmail": "إنشاء حساب بالبريد الإلكتروني",
     "haveAccount": "لديك حساب بالفعل؟",
     "signIn": "تسجيل الدخول",

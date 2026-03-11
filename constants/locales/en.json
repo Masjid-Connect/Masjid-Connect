@@ -91,10 +91,14 @@
     "guestHint": "Sign in to get push notifications and sync your masajid across devices."
   },
   "welcome": {
+    "arabicName": "مسجد كَنكت",
+    "englishName": "Masjid Connect",
+    "tagline": "Your community, one ummah",
     "title": "Your community, connected",
     "subtitle": "Prayer times, announcements, and events from your local masjid",
     "continueWithApple": "Continue with Apple",
     "continueWithGoogle": "Continue with Google",
+    "signUpWithEmail": "Sign up with email",
     "createWithEmail": "Create account with email",
     "haveAccount": "Already have an account?",
     "signIn": "Sign in",
