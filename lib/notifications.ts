@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import type { PrayerTimesData, PrayerName, JamaahTimesData } from '@/types';
 import { PRAYER_LABELS } from '@/types';
 import { getPrayerTimes } from '@/lib/prayer';
-import { getCachedPrayerTimes, getReminderMinutes, getUserLocation, getCalculationMethod } from '@/lib/storage';
+import { getCachedPrayerTimes, getReminderMinutes, getUserLocation, getCalculationMethod, DEFAULT_LOCATION } from '@/lib/storage';
 
 /** Configure notification handler (native only) */
 if (Platform.OS !== 'web') {
@@ -141,8 +141,8 @@ export async function reschedulePrayerRemindersForToday(): Promise<void> {
   } else {
     const location = await getUserLocation();
     const method = await getCalculationMethod();
-    const lat = location?.latitude ?? 21.4225;
-    const lng = location?.longitude ?? 39.8262;
+    const lat = location?.latitude ?? DEFAULT_LOCATION.latitude;
+    const lng = location?.longitude ?? DEFAULT_LOCATION.longitude;
     const result = await getPrayerTimes(lat, lng, method.code, method.name);
     times = result.times;
   }
