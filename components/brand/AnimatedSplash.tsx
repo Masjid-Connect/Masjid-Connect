@@ -26,6 +26,7 @@ import * as Haptics from 'expo-haptics';
 
 import { palette } from '@/constants/Colors';
 import { springs } from '@/constants/Theme';
+import { breath, breathEasing } from '@/lib/breathMotion';
 import { getAtmosphericGradient } from '@/lib/prayerGradients';
 import { IslamicPattern } from './IslamicPattern';
 import { SkiaAtmosphericGradient } from './SkiaAtmosphericGradient';
@@ -84,10 +85,10 @@ export const AnimatedSplash = ({
   useEffect(() => {
     if (!isVisible) return;
 
-    // Pattern fades in during silence phase
+    // Pattern fades in during silence phase — breath inhale rhythm
     patternOpacity.value = withTiming(0.04, {
-      duration: PAUSE_BEFORE_REVEAL,
-      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+      duration: breath.inhale,
+      easing: breathEasing.inhale,
     });
 
     // Phase 2: Haptic + logo fades in with gentle scale

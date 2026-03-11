@@ -20,12 +20,10 @@ import {
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withRepeat,
-  withTiming,
-  Easing,
 } from 'react-native-reanimated';
 
 import { palette } from '@/constants/Colors';
+import { withBreathing } from '@/lib/breathMotion';
 
 interface GlowDotProps {
   /** Dot radius in points (default 3, giving 6pt diameter) */
@@ -50,19 +48,12 @@ export const GlowDot = ({
   const canvasSize = (size + blurRadius) * 2 + 2;
   const center = canvasSize / 2;
 
-  // Gentle pulse animation
+  // Breathing pulse — inhale brightens, exhale dims
   const pulseOpacity = useSharedValue(1);
 
   useEffect(() => {
     if (animated) {
-      pulseOpacity.value = withRepeat(
-        withTiming(0.6, {
-          duration: 2400,
-          easing: Easing.inOut(Easing.ease),
-        }),
-        -1,
-        true,
-      );
+      withBreathing(pulseOpacity, 0.6, 1);
     }
   }, [animated]);
 
