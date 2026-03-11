@@ -9,6 +9,7 @@ from .models import (
     Event,
     Mosque,
     MosqueAdmin,
+    MosquePrayerTime,
     PushToken,
     User,
     UserSubscription,
@@ -66,3 +67,19 @@ class MosqueAdminAdmin(ModelAdmin):
     list_display = ["user", "mosque", "role", "created"]
     list_filter = ["role"]
     raw_id_fields = ["user", "mosque"]
+
+
+@admin.register(MosquePrayerTime)
+class MosquePrayerTimeAdmin(ModelAdmin):
+    list_display = [
+        "date",
+        "mosque",
+        "fajr_jamat",
+        "dhuhr_jamat",
+        "asr_jamat",
+        "maghrib_jamat",
+        "isha_jamat",
+    ]
+    list_filter = ["mosque"]
+    date_hierarchy = "date"
+    ordering = ["-date"]

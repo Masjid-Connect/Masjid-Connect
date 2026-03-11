@@ -199,3 +199,34 @@ class MosqueAdmin(models.Model):
 
     def __str__(self):
         return f"{self.user} — {self.mosque} ({self.role})"
+
+
+class MosquePrayerTime(models.Model):
+    """Daily jama'ah (congregation) times for a mosque — scraped from timetable PDFs."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    mosque = models.ForeignKey(Mosque, on_delete=models.CASCADE, related_name="prayer_times")
+    date = models.DateField()
+
+    # Jama'ah (congregation) times — set by the mosque
+    fajr_jamat = models.TimeField()
+    dhuhr_jamat = models.TimeField()
+    asr_jamat = models.TimeField()
+    maghrib_jamat = models.TimeField()
+    isha_jamat = models.TimeField()
+
+    # Prayer start times (from PDF — may differ slightly from Aladhan calculations)
+    fajr_start = models.TimeField(null=True, blank=True)
+    sunrise = models.TimeField(null=True, blank=True)
+    dhuhr_start = models.TimeField(null=True, blank=True)
+    asr_start = models.TimeField(null=True, blank=True)
+    isha_start = models.TimeField(null=True, blank=True)
+
+    source_url = models.URLField(blank=True, help_text="URL of the PDF this was scraped from")
+
+    class Meta:
+        unique_together = ("mosque", "date")
+        ordering = ["date"]
+
+    def __str__(self):
+        return f"{self.mosque.name} — {self.date}"

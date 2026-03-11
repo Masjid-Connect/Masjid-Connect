@@ -76,6 +76,19 @@ class Command(BaseCommand):
                 "contact_phone": "+44 20 7724 3363",
                 "website": "https://www.iccuk.org",
             },
+            {
+                "name": "The Salafi Masjid (Wright Street)",
+                "address": "Wright Street, Small Heath",
+                "city": "Birmingham",
+                "state": "England",
+                "country": "United Kingdom",
+                "latitude": 52.4694,
+                "longitude": -1.8712,
+                "calculation_method": 4,
+                "jumua_time": time(12, 30),
+                "contact_phone": "",
+                "website": "https://www.wrightstreetmosque.com",
+            },
         ]
 
         created_mosques = []
