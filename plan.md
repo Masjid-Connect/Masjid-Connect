@@ -1,79 +1,66 @@
-# Plan: Scraped Prayer Times as Primary Source (Frontend Integration)
+# Plan: Design System Tightening & Logo Background Fix
 
-## Goal
-Make scraped jama'ah times from the backend the **primary** source for mosques that have them, with Aladhan API as fallback. The app should show both **start times** (when prayer begins) and **jama'ah times** (when congregation starts) when available.
+## Problem
+1. **Logo background mismatch**: `Masjid_Logo.png` has a baked-in gray background (~#E0E0E0) that clashes with the app's limestone (#F8F6F1) background on the welcome screen
+2. **29 hardcoded colors** across screens instead of using semantic tokens
+3. **7 hardcoded spacing values** in tab layout and MosqueCard
+4. **Missing `colors.inverseText`** semantic token — most hardcoded #FFFFFF instances are white text on colored buttons
 
-## Architecture
+## Scope — What We WILL Do
 
-```
-User opens app
-    ↓
-usePrayerTimes() hook
-    ↓
-1. Check cache (existing behavior)
-2. If user is subscribed to a mosque (or guest-selected mosque):
-   → Try backend API: GET /api/v1/mosques/{id}/prayer-times/?date=YYYY-MM-DD
-   → If data exists → use scraped times (start + jama'ah)
-   → If no data → fall back to Aladhan API (start times only, no jama'ah)
-3. If no mosque selected:
-   → Use Aladhan API as before (coordinate-based calculation)
-```
+### Phase 1: Logo Background Fix (welcome screen)
+- The logo PNG has a gray background baked in. We cannot edit the PNG programmatically.
+- **Fix**: Set the welcome screen logo `Image` component to use a `tintColor` if the logo is single-color (it is — black text only). This makes the PNG render in `colors.text` on the transparent area, and the background becomes the limestone behind it.
+- **Alternative if tintColor doesn't work cleanly**: Wrap the logo in a View with `backgroundColor: '#E8E6E1'` (approximate match) — but this is a hack. Better: ask user for a transparent-background PNG.
 
-## Changes Required
+### Phase 2: Add `inverseText` Semantic Token (Colors.ts)
+- Add `inverseText: '#FFFFFF'` to light scheme and `inverseText: '#000000'` to dark scheme
+- Add `onPrimary: '#FFFFFF'` for text on brand-colored buttons (same in both themes since Sacred Blue/Divine Gold always need white text)
+- Add `backdrop: 'rgba(0,0,0,0.4)'` for bottom sheet overlay
 
-### 1. Types (`types/index.ts`)
-- Add `JamaahTimes` interface: `{ fajr, dhuhr, asr, maghrib, isha }` (all `Date | null`)
-- Extend `PrayerTimeEntry` with optional `jamaahTime: Date | null` field
-- Add `MosquePrayerTimeResponse` interface matching the API response
+### Phase 3: Replace Hardcoded Colors (13 files)
+Replace all 29 hardcoded hex colors with semantic tokens:
 
-### 2. API Client (`lib/api.ts`)
-- Add `mosques.getPrayerTimes(mosqueId, date)` method
-- Returns `MosquePrayerTimeResponse | null`
+| File | Change |
+|------|--------|
+| `welcome.tsx` | `#FFFFFF` → `colors.inverseText` (5 places), `#000000` → `palette.black`, `#FFFFFF` bg → `colors.card` |
+| `settings.tsx` | `#FFFFFF` → `colors.inverseText` (6 places) |
+| `events.tsx` | `#FFFFFF` → `colors.inverseText` (2 places) |
+| `(tabs)/_layout.tsx` | `#F8F6F1` → `colors.background`, `#000000` → `colors.background`, rgba literals → palette references |
+| `MosqueCard.tsx` | `#FFFFFF` → `colors.inverseText` |
+| `BottomSheet.tsx` | `rgba(0,0,0,0.4)` → `palette.backdrop` |
+| `Button.tsx` | `#FFFFFF` → `colors.inverseText` |
+| `GoldBadge.tsx` | `#FFFFFF` → keep (always needs white on gold) |
+| `login.tsx` | `#FFF` → `colors.inverseText` |
+| `register.tsx` | `#FFF` → `colors.inverseText` |
 
-### 3. Prayer Service (`lib/prayer.ts`)
-- Add `fetchMosquePrayerTimes(mosqueId, date)` — calls backend API
-- Add `parseMosquePrayerTimesResponse()` — converts API response to `PrayerTimesData` + `JamaahTimes`
-- Modify `buildPrayerEntries()` to accept optional jama'ah times
-- When jama'ah times present, each `PrayerTimeEntry` gets both `time` (start) and `jamaahTime`
+### Phase 4: Replace Hardcoded Spacing (tab layout + MosqueCard)
+| File | Line | Current | Fix |
+|------|------|---------|-----|
+| `(tabs)/_layout.tsx` | 22 | `paddingTop: 4` | `spacing.xs` |
+| `(tabs)/_layout.tsx` | 26 | `paddingBottom: 8` | `spacing.sm` |
+| `(tabs)/_layout.tsx` | 31 | `marginTop: 2` | `spacing['2xs']` |
+| `(tabs)/_layout.tsx` | 29 | `fontSize: 10` | `typography.caption2.fontSize` |
+| `MosqueCard.tsx` | 45 | `marginTop: 2` | `spacing['2xs']` |
+| `MosqueCard.tsx` | 49,87 | `marginTop: 4` | `spacing.xs` |
 
-### 4. Hook (`hooks/usePrayerTimes.ts`)
-- Add `jamaahAvailable` state boolean
-- In `loadPrayerTimes()`:
-  1. Get selected mosque ID from storage
-  2. If mosque ID exists → try `fetchMosquePrayerTimes()` first
-  3. If backend returns data → use scraped start times + jama'ah times, set `source: 'mosque'`
-  4. If backend returns nothing → fall back to existing Aladhan flow
-  5. If no mosque → existing Aladhan flow unchanged
-- Pass jama'ah times to `buildPrayerEntries()`
-- Expose `jamaahAvailable` to the screen
+### Phase 5: Fix settings.tsx key warning
+The console error in the screenshot: "Each child in a list should have a unique key prop" at `settings.tsx:306:13`. Fix the `.map()` call to use a stable key.
 
-### 5. Storage (`lib/storage.ts`)
-- Extend prayer time cache to include optional jama'ah times
-- Same daily invalidation logic
+## Scope — What We Will NOT Do (Separate Work)
+- **ConvergentArch.tsx SVG component** — requires design decisions (line weight, animation), separate PR
+- **KozoPaperBackground texture** — was intentionally removed for performance
+- **Brand tokens** (`brand.splash.*`, `brand.stroke.*`) — only useful once ConvergentArch exists
+- **Prayer gradient extraction** — those are atmospheric and intentionally inline
 
-### 6. Home Screen (`app/(tabs)/index.tsx`)
-- When `jamaahAvailable` is true:
-  - Show jama'ah time as the **primary displayed time** (this is what people need — when to show up)
-  - Show start time as a secondary label (smaller, muted text below)
-  - Source badge shows mosque name instead of "api"/"cached"
-- When jama'ah not available:
-  - Existing display unchanged (start times only from Aladhan)
-
-### 7. Notifications (`lib/notifications.ts`)
-- When jama'ah times available, schedule reminders relative to **jama'ah time** (not start time)
-- "15 minutes before jama'ah" is more useful than "15 minutes before athan"
-
-## Files to Modify
-1. `types/index.ts` — new interfaces
-2. `lib/api.ts` — new endpoint method
-3. `lib/prayer.ts` — fetchMosquePrayerTimes + buildPrayerEntries update
-4. `hooks/usePrayerTimes.ts` — mosque-first fetch logic
-5. `lib/storage.ts` — cache jama'ah times
-6. `app/(tabs)/index.tsx` — dual-time display
-7. `lib/notifications.ts` — jama'ah-based reminders
-
-## What We're NOT Changing
-- Aladhan API integration (stays as-is, just becomes fallback)
-- Offline adhan-js calculation (stays as tertiary fallback)
-- Settings screen (no new settings needed)
-- Countdown logic (counts down to next jama'ah when available, else next start time)
+## Files Modified
+1. `constants/Colors.ts` — add inverseText, onPrimary, backdrop tokens
+2. `app/(auth)/welcome.tsx` — fix logo bg + replace hardcoded colors
+3. `app/(tabs)/_layout.tsx` — replace hardcoded spacing + colors
+4. `app/(tabs)/settings.tsx` — replace hardcoded colors + fix key warning
+5. `app/(tabs)/events.tsx` — replace hardcoded colors
+6. `components/ui/BottomSheet.tsx` — replace backdrop color
+7. `components/ui/Button.tsx` — replace hardcoded white
+8. `components/mosque/MosqueCard.tsx` — replace hardcoded spacing + color
+9. `app/(auth)/login.tsx` — replace hardcoded white
+10. `app/(auth)/register.tsx` — replace hardcoded white
