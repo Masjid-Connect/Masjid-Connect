@@ -21,6 +21,7 @@ import { getAtmosphericGradient } from '@/lib/prayerGradients';
 import { SkiaAtmosphericGradient } from '@/components/brand/SkiaAtmosphericGradient';
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { GlowDot } from '@/components/brand/GlowDot';
+import { SolarLight } from '@/components/brand/SolarLight';
 import type { PrayerName } from '@/types';
 
 // ─── Design Philosophy ──────────────────────────────────────────────
@@ -103,6 +104,14 @@ export default function PrayerTimesScreen() {
             width={heroLayout.width}
             height={heroLayout.height}
             colors={gradient}
+          />
+
+          {/* Solar light — directional sunlight per prayer time */}
+          <SolarLight
+            prayer={nextPrayer}
+            width={heroLayout.width}
+            height={heroLayout.height}
+            isDark={isDark}
           />
 
           {/* Islamic pattern — ultra-subtle geometric identity */}
