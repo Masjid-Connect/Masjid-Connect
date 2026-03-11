@@ -16,13 +16,7 @@
  */
 
 import React from 'react';
-import { StyleSheet } from 'react-native';
-import {
-  Canvas,
-  Circle,
-  RadialGradient,
-  vec,
-} from '@shopify/react-native-skia';
+import { Platform, StyleSheet } from 'react-native';
 
 import type { PrayerName } from '@/types';
 
@@ -107,10 +101,12 @@ export const SolarLight = ({
 }: SolarLightProps) => {
   const config = prayer ? LIGHT_CONFIGS[prayer] : null;
 
-  // No light for isha or unknown prayer
-  if (!config || config.opacity === 0 || width === 0 || height === 0) {
+  // No light for isha, unknown prayer, or web
+  if (Platform.OS === 'web' || !config || config.opacity === 0 || width === 0 || height === 0) {
     return null;
   }
+
+  const { Canvas, Circle, RadialGradient, vec } = require('@shopify/react-native-skia');
 
   const centerX = width * config.x;
   const centerY = height * config.y;

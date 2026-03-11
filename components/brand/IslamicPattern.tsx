@@ -6,11 +6,12 @@
  *
  * This is the app's geometric identity — a whisper of pattern at 2–4% opacity,
  * never loud enough to compete with content.
+ *
+ * Returns null on web (Skia not available).
  */
 
 import React from 'react';
-import { StyleSheet } from 'react-native';
-import { Canvas, Path, Group, Skia } from '@shopify/react-native-skia';
+import { Platform, StyleSheet } from 'react-native';
 
 import { palette } from '@/constants/Colors';
 
@@ -43,9 +44,7 @@ function buildStarPath(cx: number, cy: number, size: number): string {
   // 8 outer points alternating between axis-aligned and 45° rotated squares
   const points: [number, number][] = [];
   for (let i = 0; i < 8; i++) {
-    const angle = (i * Math.PI) / 4 - Math.PI / 8;
     const outerAngle = (i * Math.PI) / 4;
-    const midAngle = angle;
 
     // Outer point
     points.push([
@@ -114,6 +113,10 @@ export const IslamicPattern = ({
   tileSize = 48,
   strokeWidth = 0.8,
 }: IslamicPatternProps) => {
+  if (Platform.OS === 'web') return null;
+
+  const { Canvas, Path, Group, Skia } = require('@shopify/react-native-skia');
+
   // Calculate grid
   const cols = Math.ceil(width / tileSize) + 1;
   const rows = Math.ceil(height / tileSize) + 1;

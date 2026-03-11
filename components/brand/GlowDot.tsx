@@ -6,17 +6,12 @@
  *
  * The glow draws the eye naturally to the active prayer row —
  * a radiance, not just a dot.
+ *
+ * Returns a simple View dot on web (Skia not available).
  */
 
 import React, { useEffect } from 'react';
-import { StyleSheet } from 'react-native';
-import {
-  Canvas,
-  Circle,
-  Group,
-  Blur,
-  Paint,
-} from '@shopify/react-native-skia';
+import { Platform, StyleSheet, View } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -36,18 +31,12 @@ interface GlowDotProps {
   animated?: boolean;
 }
 
-const AnimatedCanvas = Animated.createAnimatedComponent(Canvas);
-
 export const GlowDot = ({
   size = 3,
   color = palette.divineGold,
   blurRadius = 4,
   animated = true,
 }: GlowDotProps) => {
-  // Canvas needs to be large enough for the glow
-  const canvasSize = (size + blurRadius) * 2 + 2;
-  const center = canvasSize / 2;
-
   // Breathing pulse — inhale brightens, exhale dims
   const pulseOpacity = useSharedValue(1);
 
@@ -60,6 +49,29 @@ export const GlowDot = ({
   const animatedContainerStyle = useAnimatedStyle(() => ({
     opacity: pulseOpacity.value,
   }));
+
+  // Web fallback — simple colored circle, no Skia
+  if (Platform.OS === 'web') {
+    return (
+      <Animated.View
+        style={[
+          {
+            width: size * 2,
+            height: size * 2,
+            borderRadius: size,
+            backgroundColor: color,
+          },
+          animated && animatedContainerStyle,
+        ]}
+      />
+    );
+  }
+
+  const { Canvas, Circle, Group, Blur } = require('@shopify/react-native-skia');
+
+  // Canvas needs to be large enough for the glow
+  const canvasSize = (size + blurRadius) * 2 + 2;
+  const center = canvasSize / 2;
 
   return (
     <Animated.View

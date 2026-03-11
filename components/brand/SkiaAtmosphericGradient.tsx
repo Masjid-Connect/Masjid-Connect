@@ -4,16 +4,12 @@
  * Replaces expo-linear-gradient with a Skia LinearGradient shader.
  * When the active prayer changes, colors can be interpolated smoothly
  * via reanimated shared values — the sky *shifts* instead of snapping.
+ *
+ * Returns null on web (Skia not available).
  */
 
 import React from 'react';
-import { StyleSheet } from 'react-native';
-import {
-  Canvas,
-  Rect,
-  LinearGradient,
-  vec,
-} from '@shopify/react-native-skia';
+import { Platform, StyleSheet } from 'react-native';
 
 interface SkiaAtmosphericGradientProps {
   /** Canvas width */
@@ -29,6 +25,10 @@ export const SkiaAtmosphericGradient = ({
   height,
   colors,
 }: SkiaAtmosphericGradientProps) => {
+  if (Platform.OS === 'web') return null;
+
+  const { Canvas, Rect, LinearGradient, vec } = require('@shopify/react-native-skia');
+
   return (
     <Canvas style={[StyleSheet.absoluteFill, { width, height }]} pointerEvents="none">
       <Rect x={0} y={0} width={width} height={height}>
