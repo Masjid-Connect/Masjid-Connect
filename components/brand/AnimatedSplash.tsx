@@ -161,7 +161,7 @@ export const AnimatedSplash = ({
         {/* The logo — centered, fades in with scale */}
         <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
           <Image
-            source={require('@/assets/images/splash-logo.png')}
+            source={require('@/assets/images/Masjid_Logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />

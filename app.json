@@ -8,7 +8,7 @@
     "scheme": "salafimasjid",
     "userInterfaceStyle": "automatic",
     "splash": {
-      "image": "./assets/images/splash-logo.png",
+      "image": "./assets/images/Masjid_Logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#FAF7F2"
     },
