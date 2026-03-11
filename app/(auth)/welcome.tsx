@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Image,
   StyleSheet,
   View,
   Text,
@@ -182,20 +183,18 @@ export default function WelcomeScreen() {
       {/* ─── Zone 2: Identity ───────────────────────────────── */}
       <View style={styles.identityZone}>
         <ConvergentArchMark
-          height={52}
+          height={40}
           color={colors.tint}
           nodeColor={colors.accent}
         />
 
-        <Text style={[styles.arabicName, { color: colors.text }]}>
-          {t('welcome.arabicName')}
-        </Text>
+        <Image
+          source={require('@/assets/images/Masjid_Logo.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
 
-        <Text style={[styles.englishName, { color: colors.text }]}>
-          {t('welcome.englishName')}
-        </Text>
-
-        <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm }]}>
+        <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.md }]}>
           {t('welcome.tagline')}
         </Text>
       </View>
@@ -332,21 +331,10 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xl,
     paddingBottom: spacing['3xl'],
   },
-  arabicName: {
-    fontSize: 32,
-    fontWeight: '300',
-    letterSpacing: 1.5,
-    lineHeight: 44,
+  logo: {
+    width: 280,
+    height: 78,
     marginTop: spacing.xl,
-    textAlign: 'center',
-  },
-  englishName: {
-    fontSize: 15,
-    fontWeight: '600',
-    letterSpacing: 2.5,
-    textTransform: 'uppercase',
-    marginTop: spacing.xs,
-    textAlign: 'center',
   },
 
   // ─── Zone 3: Actions (bottom — clear, generous spacing) ─
