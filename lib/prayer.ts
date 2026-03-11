@@ -197,7 +197,6 @@ export function buildPrayerEntries(
   return names.map((name) => ({
     name,
     label: PRAYER_LABELS[name].en,
-    arabicLabel: PRAYER_LABELS[name].ar,
     time: times[name],
     jamaahTime: (jamaahTimes && name !== 'sunrise' && name in jamaahTimes)
       ? jamaahTimes[name as keyof JamaahTimesData]

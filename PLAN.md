@@ -425,7 +425,7 @@ Settings: Ionicons "person-outline" / "person"
 
 ```
 Empty states:
-- Convergent Arch at 80px, muted
+- Masjid logo at 80px, muted
 - Warm copy: "Your mosque community awaits"
 - Prominent CTA: "Find Your Mosque"
 - No technical language
@@ -469,11 +469,11 @@ Loading states:
 
 ## What Makes This Better Than Apple
 
-1. **Cultural specificity**: Apple is beautifully generic. We are beautifully *specific*. Gold diamond dividers, the arch icon, Arabic alongside English — these create belonging.
+1. **Cultural specificity**: Apple is beautifully generic. We are beautifully *specific*. Gold accents, Arabic alongside English — these create belonging.
 
 2. **Spiritual rhythm**: The prayer countdown isn't a timer — it's the heartbeat. Apple would never make one feature this dominant. We make it a meditation.
 
-3. **Material honesty**: Apple uses blur and translucency. We use Kozo paper and gold leaf. Both honest — ours has a longer history.
+3. **Material honesty**: Apple uses blur and translucency. We use warm limestone tones and gold accents. Both honest — ours has a longer history.
 
 4. **Typographic confidence**: System fonts with the *same* confidence as SF Pro, but our display moments (giant thin countdown numerals) are bolder than Apple would ship in a utility app.
 

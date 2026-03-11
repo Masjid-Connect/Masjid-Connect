@@ -71,8 +71,7 @@ No Flutter, no Next.js, no Firebase, no Redis, no Celery, no microservices.
 - Apple HIG influence: system fonts, grouped lists, checkmarks over radio buttons.
 - Notification badges are Divine Gold, never red.
 - Bottom sheets replace centered modals.
-- Kozo paper texture on light-mode backgrounds.
-- Brand mark (Convergent Arch) in prayer header and home tab icon.
+- Masjid logo (PNG with transparent background) on welcome and auth screens.
 
 ## 9. Infrastructure Rules
 

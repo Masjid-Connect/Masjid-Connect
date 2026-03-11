@@ -20,8 +20,8 @@ Build a premium mobile app called **Mosque Connect** using React Native with Exp
 | Push notifications | Expo Notifications + Expo Push Service | Free, abstracts FCM/APNs |
 | Local storage | AsyncStorage | Offline-first caching layer |
 | Animations | react-native-reanimated | 60fps spring-based animations |
-| SVG / Brand | react-native-svg | Convergent Arch mark, Kozo paper textures |
-| Haptics | expo-haptics | Splash reveal, meaningful interactions |
+| SVG | react-native-svg | SVG graphics and icons |
+| Haptics | expo-haptics | Meaningful interactions |
 | Date handling | date-fns | Lightweight date formatting |
 | Language | TypeScript (strict) | Type safety across frontend and backend |
 
@@ -33,9 +33,9 @@ Build a premium mobile app called **Mosque Connect** using React Native with Exp
 
 | Name | Hex | Inspiration | Usage |
 |------|-----|-------------|-------|
-| Warm Ivory | `#FAF7F2` | Kozo paper, limestone | Substrate background |
-| Sacred Blue | `#1B4965` | Iznik tilework, lapis lazuli | Brand mark line, primary text |
-| Divine Gold | `#C8A951` | Gilded Quranic manuscripts | Gold node, accents, notification badges |
+| Warm Ivory | `#FAF7F2` | Limestone, natural warmth | Substrate background |
+| Sacred Blue | `#1B4965` | Iznik tilework, lapis lazuli | Primary tint, text |
+| Divine Gold | `#C8A951` | Gilded Quranic manuscripts | Accents, notification badges |
 | Paradise Green | `#2D6A4F` | Garden of paradise imagery | Success, prayer indicators |
 | Moorish Terracotta | `#C44536` | Alhambra clay, zellige | Urgent/alert states |
 | Deep Charcoal | `#2B2D42` | Calligraphic ink | Secondary text |
@@ -108,32 +108,21 @@ Build a premium mobile app called **Mosque Connect** using React Native with Exp
 ### Animation Principles
 - **Spring physics** — never linear easing. Damping 15-20, stiffness 150-180
 - **Meaningful motion** — prayer card lifts and glows as time approaches
-- **Haptic vocabulary** — light tap for navigation, medium for prayer alert / splash reveal, heavy for urgent
+- **Haptic vocabulary** — light tap for navigation, medium for prayer alert, heavy for urgent
 - **Acoustic design** — oud string pluck for prayer, ney breath for transitions (optional, not synthetic)
-- **Splash reveal** — Kozo paper silence → haptic trigger → vector-draw arch in Sacred Blue → gold node spring fade-in → content crossfade
 
-### Brand Identity — The Convergent Arch
-The mark is a single, unbroken cubic Bézier line suggesting both the mihrab niche (inward base curve) and the dome (outward apex arc). The two curves meet at a single gold leaf node — a structural point of convergence.
+### Brand Identity
+The app uses The Salafi Masjid logo (PNG with transparent background) as the primary brand mark. It appears on the welcome screen, auth screens, and splash screen.
 
 **Components:**
-- `ConvergentArch.tsx` — static SVG mark with configurable stroke / gold node
-- `AnimatedSplash.tsx` — full reveal sequence with haptic feedback and spring animations
-- `BrandTabIcon.tsx` — tab bar icon with gold node illumination on focus
+- `AnimatedSplash.tsx` — splash screen animation
 - `GoldBadge.tsx` — Divine Gold notification badge (not red)
-- `KozoPaperBackground.tsx` — Kozo paper fiber texture overlay for backgrounds
-
-**The SVG path:**
-```
-M 20 130 C 35 108, 28 48, 50 10 C 72 48, 65 108, 80 130
-```
-viewBox: `0 0 100 140`, apex at `(50, 10)`, path length ~280 units.
 
 ### Layout Principles
 - 30-50% more whitespace than typical apps
 - Full-bleed cards with generous internal padding (20-24px)
 - RTL-native from day one — use `I18nManager`, `flexDirection: 'row'` flips automatically
 - Content-first — no chrome-heavy headers, let the content breathe
-- Kozo paper texture on light-mode backgrounds via `KozoPaperBackground`
 - Notification badges are Divine Gold, never red — a glint of light, not an error
 
 ---
@@ -147,8 +136,7 @@ viewBox: `0 0 100 140`, apex at `(50, 10)`, path length ~280 units.
 - Aladhan API as primary source; adhan-js offline-only fallback
 - Cache locally in AsyncStorage
 - Pull-to-refresh fetches fresh from API
-- Brand mark (Convergent Arch) in header alongside title
-- Kozo paper texture background
+- Sky-calibrated atmospheric gradients per prayer window
 
 ### Tab 2: Announcements
 - Feed from Django REST API with pull-to-refresh

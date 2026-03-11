@@ -48,9 +48,6 @@ Replace all 29 hardcoded hex colors with semantic tokens:
 The console error in the screenshot: "Each child in a list should have a unique key prop" at `settings.tsx:306:13`. Fix the `.map()` call to use a stable key.
 
 ## Scope — What We Will NOT Do (Separate Work)
-- **ConvergentArch.tsx SVG component** — requires design decisions (line weight, animation), separate PR
-- **KozoPaperBackground texture** — was intentionally removed for performance
-- **Brand tokens** (`brand.splash.*`, `brand.stroke.*`) — only useful once ConvergentArch exists
 - **Prayer gradient extraction** — those are atmospheric and intentionally inline
 
 ## Files Modified

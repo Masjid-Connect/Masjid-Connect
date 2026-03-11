@@ -21,7 +21,6 @@ describe('buildPrayerEntries', () => {
     expect(entries).toHaveLength(6);
     expect(entries[0].name).toBe('fajr');
     expect(entries[0].label).toBe('Fajr');
-    expect(entries[0].arabicLabel).toBe('الفجر');
     expect(entries[5].name).toBe('isha');
   });
 });
