@@ -38,8 +38,9 @@ describe('prayer times cache', () => {
     const cached = await getCachedPrayerTimes('2024-01-01');
 
     expect(cached).not.toBeNull();
-    expect(cached!.fajr.toISOString()).toBe(times.fajr.toISOString());
-    expect(cached!.isha.toISOString()).toBe(times.isha.toISOString());
+    expect(cached!.times.fajr.toISOString()).toBe(times.fajr.toISOString());
+    expect(cached!.times.isha.toISOString()).toBe(times.isha.toISOString());
+    expect(cached!.jamaahTimes).toBeNull();
   });
 
   it('returns null for a different date', async () => {

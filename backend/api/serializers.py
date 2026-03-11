@@ -8,6 +8,7 @@ from core.models import (
     Event,
     Mosque,
     MosqueAdmin,
+    MosquePrayerTime,
     PushToken,
     UserSubscription,
 )
@@ -172,3 +173,26 @@ class MosqueAdminSerializer(serializers.ModelSerializer):
         model = MosqueAdmin
         fields = ["id", "mosque", "user", "user_detail", "role", "created"]
         read_only_fields = ["id", "created"]
+
+
+# ── Prayer Times ─────────────────────────────────────────────────────
+
+
+class MosquePrayerTimeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MosquePrayerTime
+        fields = [
+            "id",
+            "mosque",
+            "date",
+            "fajr_jamat",
+            "dhuhr_jamat",
+            "asr_jamat",
+            "maghrib_jamat",
+            "isha_jamat",
+            "fajr_start",
+            "sunrise",
+            "dhuhr_start",
+            "asr_start",
+            "isha_start",
+        ]

@@ -21,6 +21,7 @@ from core.models import (
     Event,
     Mosque,
     MosqueAdmin,
+    MosquePrayerTime,
     PushToken,
     UserSubscription,
 )
@@ -29,6 +30,7 @@ from .serializers import (
     AnnouncementSerializer,
     EventSerializer,
     MosqueListSerializer,
+    MosquePrayerTimeSerializer,
     MosqueSerializer,
     PushTokenSerializer,
     RegisterSerializer,
@@ -402,6 +404,52 @@ def register_push_token(request):
         PushTokenSerializer(push_token).data,
         status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
     )
+
+
+# ── Helpers ──────────────────────────────────────────────────────────
+
+
+# ── Prayer Times ─────────────────────────────────────────────────────
+
+
+class MosquePrayerTimeViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    Jama'ah times for a mosque, scraped from their published timetables.
+    Nested under /mosques/{mosque_pk}/prayer-times/
+
+    GET params:
+      ?date=YYYY-MM-DD          — single day
+      ?from_date=YYYY-MM-DD     — range start (inclusive)
+      ?to_date=YYYY-MM-DD       — range end (inclusive)
+    """
+
+    serializer_class = MosquePrayerTimeSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        mosque_pk = self.kwargs.get("mosque_pk")
+        qs = MosquePrayerTime.objects.filter(mosque_id=mosque_pk)
+
+        # Single date filter
+        single_date = self.request.query_params.get("date")
+        if single_date:
+            parsed = parse_date(single_date)
+            if parsed:
+                return qs.filter(date=parsed)
+
+        # Date range filter
+        from_date = self.request.query_params.get("from_date")
+        to_date = self.request.query_params.get("to_date")
+        if from_date:
+            parsed = parse_date(from_date)
+            if parsed:
+                qs = qs.filter(date__gte=parsed)
+        if to_date:
+            parsed = parse_date(to_date)
+            if parsed:
+                qs = qs.filter(date__lte=parsed)
+
+        return qs.order_by("date")
 
 
 # ── Helpers ──────────────────────────────────────────────────────────

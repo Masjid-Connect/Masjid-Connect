@@ -17,7 +17,9 @@
     "minutesRemaining": "{{minutes}} دقيقة متبقية",
     "cached": "أوقات مخزنة مؤقتاً",
     "offline": "حساب بدون اتصال",
-    "calculating": "جارٍ حساب أوقات الصلاة..."
+    "calculating": "جارٍ حساب أوقات الصلاة...",
+    "mosqueTimes": "أوقات جماعة المسجد",
+    "startTime": "البداية {{time}}"
   },
   "announcements": {
     "title": "الإعلانات",
@@ -82,7 +84,7 @@
     "signOut": "تسجيل الخروج",
     "signOutConfirm": "هل أنت متأكد أنك تريد تسجيل الخروج؟",
     "appInfo": "معلومات التطبيق",
-    "version": "Mosque Connect v{{version}}",
+    "version": "Masjid Connect v{{version}}",
     "prayerSource": "أوقات الصلاة من Aladhan API",
     "guestHint": "سجل الدخول للحصول على إشعارات ومزامنة مساجدك عبر الأجهزة."
   },

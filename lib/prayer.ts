@@ -11,8 +11,9 @@ import {
   SunnahTimes,
 } from 'adhan';
 import { format } from 'date-fns';
-import type { PrayerTimesData, PrayerTimeEntry, PrayerName } from '@/types';
+import type { PrayerTimesData, PrayerTimeEntry, PrayerName, JamaahTimesData, MosquePrayerTimeResponse } from '@/types';
 import { PRAYER_LABELS } from '@/types';
+import { mosques } from '@/lib/api';
 
 const ALADHAN_BASE = 'https://api.aladhan.com/v1';
 
@@ -144,14 +145,63 @@ export async function getPrayerTimes(
   };
 }
 
+/** Fetch scraped prayer times from our backend for a specific mosque + date */
+export async function fetchMosquePrayerTimes(
+  mosqueId: string,
+  date?: Date
+): Promise<{ times: PrayerTimesData; jamaahTimes: JamaahTimesData } | null> {
+  try {
+    const d = date || new Date();
+    const dateStr = format(d, 'yyyy-MM-dd');
+    const response = await mosques.getPrayerTimes(mosqueId, dateStr);
+    if (!response) return null;
+    return parseMosquePrayerTimesResponse(response, dateStr);
+  } catch {
+    return null;
+  }
+}
+
+/** Convert API response to typed prayer + jama'ah data */
+function parseMosquePrayerTimesResponse(
+  response: MosquePrayerTimeResponse,
+  dateStr: string
+): { times: PrayerTimesData; jamaahTimes: JamaahTimesData } {
+  // Jama'ah times (always present)
+  const jamaahTimes: JamaahTimesData = {
+    fajr: parseTimeString(response.fajr_jamat, dateStr),
+    dhuhr: parseTimeString(response.dhuhr_jamat, dateStr),
+    asr: parseTimeString(response.asr_jamat, dateStr),
+    maghrib: parseTimeString(response.maghrib_jamat, dateStr),
+    isha: parseTimeString(response.isha_jamat, dateStr),
+  };
+
+  // Start times — use scraped values if available, otherwise use jama'ah times as approximation
+  const times: PrayerTimesData = {
+    fajr: response.fajr_start ? parseTimeString(response.fajr_start, dateStr) : jamaahTimes.fajr,
+    sunrise: response.sunrise ? parseTimeString(response.sunrise, dateStr) : parseTimeString('07:00', dateStr),
+    dhuhr: response.dhuhr_start ? parseTimeString(response.dhuhr_start, dateStr) : jamaahTimes.dhuhr,
+    asr: response.asr_start ? parseTimeString(response.asr_start, dateStr) : jamaahTimes.asr,
+    maghrib: jamaahTimes.maghrib, // Maghrib start = jama'ah (prayed immediately at sunset)
+    isha: response.isha_start ? parseTimeString(response.isha_start, dateStr) : jamaahTimes.isha,
+  };
+
+  return { times, jamaahTimes };
+}
+
 /** Build prayer time entries list for display */
-export function buildPrayerEntries(times: PrayerTimesData): PrayerTimeEntry[] {
+export function buildPrayerEntries(
+  times: PrayerTimesData,
+  jamaahTimes?: JamaahTimesData | null
+): PrayerTimeEntry[] {
   const names: PrayerName[] = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
   return names.map((name) => ({
     name,
     label: PRAYER_LABELS[name].en,
     arabicLabel: PRAYER_LABELS[name].ar,
     time: times[name],
+    jamaahTime: (jamaahTimes && name !== 'sunrise' && name in jamaahTimes)
+      ? jamaahTimes[name as keyof JamaahTimesData]
+      : null,
   }));
 }
 

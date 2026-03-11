@@ -37,7 +37,7 @@ export default function PrayerTimesScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
-  const { prayers, nextPrayer, countdown, hijriDate, isLoading, source, use24h, refresh } = usePrayerTimes();
+  const { prayers, nextPrayer, countdown, hijriDate, isLoading, source, jamaahAvailable, use24h, refresh } = usePrayerTimes();
 
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -63,6 +63,11 @@ export default function PrayerTimesScreen() {
             {hijriDate && (
               <Text style={[typography.footnote, { color: colors.textSecondary, marginTop: spacing.xs }]}>
                 {hijriDate}
+              </Text>
+            )}
+            {source === 'mosque' && (
+              <Text style={[typography.caption1, { color: colors.accent, marginTop: spacing['2xs'] }]}>
+                {t('prayer.mosqueTimes')}
               </Text>
             )}
             {source === 'cache' && (
@@ -107,8 +112,13 @@ export default function PrayerTimesScreen() {
                 {nextPrayerData.label}
               </Text>
               <Text style={[typography.prayerCountdown, { color: colors.text, textAlign: 'center', marginTop: spacing.xs }]}>
-                {formatPrayerTime(nextPrayerData.time, use24h)}
+                {formatPrayerTime(nextPrayerData.jamaahTime || nextPrayerData.time, use24h)}
               </Text>
+              {nextPrayerData.jamaahTime && (
+                <Text style={[typography.caption1, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing['2xs'] }]}>
+                  {t('prayer.startTime', { time: formatPrayerTime(nextPrayerData.time, use24h) })}
+                </Text>
+              )}
               <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xs }]}>
                 {t('prayer.timeRemaining', { countdown })}
               </Text>
@@ -167,17 +177,35 @@ export default function PrayerTimesScreen() {
                     {prayer.arabicLabel}
                   </Text>
 
-                  <Text
-                    style={[
-                      typography.prayerTime,
-                      {
-                        color: isNext ? colors.prayerActive : isPassed ? colors.textSecondary : colors.text,
-                        fontVariant: ['tabular-nums'],
-                        opacity: isPassed ? 0.7 : 1,
-                      },
-                    ]}>
-                    {formatPrayerTime(prayer.time, use24h)}
-                  </Text>
+                  <View style={styles.timeColumn}>
+                    <Text
+                      style={[
+                        typography.prayerTime,
+                        {
+                          color: isNext ? colors.prayerActive : isPassed ? colors.textSecondary : colors.text,
+                          fontVariant: ['tabular-nums'],
+                          opacity: isPassed ? 0.7 : 1,
+                          textAlign: 'right',
+                        },
+                      ]}>
+                      {formatPrayerTime(prayer.jamaahTime || prayer.time, use24h)}
+                    </Text>
+                    {prayer.jamaahTime && (
+                      <Text
+                        style={[
+                          typography.caption2,
+                          {
+                            color: colors.textSecondary,
+                            fontVariant: ['tabular-nums'],
+                            opacity: isPassed ? 0.5 : 0.6,
+                            textAlign: 'right',
+                            marginTop: 1,
+                          },
+                        ]}>
+                        {formatPrayerTime(prayer.time, use24h)}
+                      </Text>
+                    )}
+                  </View>
                 </Animated.View>
               );
             })}
@@ -237,5 +265,8 @@ const styles = StyleSheet.create({
     width: 7,
     height: 7,
     borderRadius: 3.5,
+  },
+  timeColumn: {
+    alignItems: 'flex-end' as const,
   },
 });

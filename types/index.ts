@@ -78,6 +78,32 @@ export interface PrayerTimesData {
   isha: Date;
 }
 
+/** Jama'ah (congregation) times from mosque timetable — sunrise excluded */
+export interface JamaahTimesData {
+  fajr: Date;
+  dhuhr: Date;
+  asr: Date;
+  maghrib: Date;
+  isha: Date;
+}
+
+/** Raw API response from GET /api/v1/mosques/{id}/prayer-times/ */
+export interface MosquePrayerTimeResponse {
+  id: string;
+  mosque: string;
+  date: string;
+  fajr_jamat: string;
+  dhuhr_jamat: string;
+  asr_jamat: string;
+  maghrib_jamat: string;
+  isha_jamat: string;
+  fajr_start: string | null;
+  sunrise: string | null;
+  dhuhr_start: string | null;
+  asr_start: string | null;
+  isha_start: string | null;
+}
+
 export type PrayerName = 'fajr' | 'sunrise' | 'dhuhr' | 'asr' | 'maghrib' | 'isha';
 
 export interface PrayerTimeEntry {
@@ -85,6 +111,7 @@ export interface PrayerTimeEntry {
   label: string;
   arabicLabel: string;
   time: Date;
+  jamaahTime: Date | null;
 }
 
 export const PRAYER_LABELS: Record<PrayerName, { en: string; ar: string }> = {

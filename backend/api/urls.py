@@ -9,6 +9,9 @@ router.register("announcements", views.AnnouncementViewSet, basename="announceme
 router.register("events", views.EventViewSet, basename="event")
 router.register("subscriptions", views.UserSubscriptionViewSet, basename="subscription")
 
+prayer_time_router = DefaultRouter()
+prayer_time_router.register("prayer-times", views.MosquePrayerTimeViewSet, basename="mosque-prayer-time")
+
 urlpatterns = [
     # Auth
     path("auth/register/", views.register, name="register"),
@@ -18,6 +21,8 @@ urlpatterns = [
     path("auth/me/", views.me, name="me"),
     # Push tokens
     path("push-tokens/", views.register_push_token, name="push-token"),
+    # Nested: /mosques/{mosque_pk}/prayer-times/
+    path("mosques/<uuid:mosque_pk>/", include(prayer_time_router.urls)),
     # Router-generated CRUD
     path("", include(router.urls)),
 ]

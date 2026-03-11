@@ -1,9 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { PrayerTimesData } from '@/types';
+import type { PrayerTimesData, JamaahTimesData } from '@/types';
 
 const KEYS = {
   PRAYER_TIMES: 'cached_prayer_times',
   PRAYER_DATE: 'cached_prayer_date',
+  JAMAAH_TIMES: 'cached_jamaah_times',
   SUBSCRIBED_MOSQUES: 'subscribed_mosque_ids',
   SELECTED_MOSQUE: 'selected_mosque_id',
   USER_LOCATION: 'user_location',
@@ -15,7 +16,11 @@ const KEYS = {
 };
 
 /** Prayer times cache */
-export async function cachePrayerTimes(times: PrayerTimesData, date: string): Promise<void> {
+export async function cachePrayerTimes(
+  times: PrayerTimesData,
+  date: string,
+  jamaahTimes?: JamaahTimesData | null
+): Promise<void> {
   const serialized = {
     fajr: times.fajr.toISOString(),
     sunrise: times.sunrise.toISOString(),
@@ -26,9 +31,24 @@ export async function cachePrayerTimes(times: PrayerTimesData, date: string): Pr
   };
   await AsyncStorage.setItem(KEYS.PRAYER_TIMES, JSON.stringify(serialized));
   await AsyncStorage.setItem(KEYS.PRAYER_DATE, date);
+
+  if (jamaahTimes) {
+    const serializedJamaah = {
+      fajr: jamaahTimes.fajr.toISOString(),
+      dhuhr: jamaahTimes.dhuhr.toISOString(),
+      asr: jamaahTimes.asr.toISOString(),
+      maghrib: jamaahTimes.maghrib.toISOString(),
+      isha: jamaahTimes.isha.toISOString(),
+    };
+    await AsyncStorage.setItem(KEYS.JAMAAH_TIMES, JSON.stringify(serializedJamaah));
+  } else {
+    await AsyncStorage.removeItem(KEYS.JAMAAH_TIMES);
+  }
 }
 
-export async function getCachedPrayerTimes(date: string): Promise<PrayerTimesData | null> {
+export async function getCachedPrayerTimes(
+  date: string
+): Promise<{ times: PrayerTimesData; jamaahTimes: JamaahTimesData | null } | null> {
   const cachedDate = await AsyncStorage.getItem(KEYS.PRAYER_DATE);
   if (cachedDate !== date) return null;
 
@@ -36,7 +56,7 @@ export async function getCachedPrayerTimes(date: string): Promise<PrayerTimesDat
   if (!raw) return null;
 
   const parsed = JSON.parse(raw);
-  return {
+  const times: PrayerTimesData = {
     fajr: new Date(parsed.fajr),
     sunrise: new Date(parsed.sunrise),
     dhuhr: new Date(parsed.dhuhr),
@@ -44,6 +64,21 @@ export async function getCachedPrayerTimes(date: string): Promise<PrayerTimesDat
     maghrib: new Date(parsed.maghrib),
     isha: new Date(parsed.isha),
   };
+
+  let jamaahTimes: JamaahTimesData | null = null;
+  const rawJamaah = await AsyncStorage.getItem(KEYS.JAMAAH_TIMES);
+  if (rawJamaah) {
+    const parsedJamaah = JSON.parse(rawJamaah);
+    jamaahTimes = {
+      fajr: new Date(parsedJamaah.fajr),
+      dhuhr: new Date(parsedJamaah.dhuhr),
+      asr: new Date(parsedJamaah.asr),
+      maghrib: new Date(parsedJamaah.maghrib),
+      isha: new Date(parsedJamaah.isha),
+    };
+  }
+
+  return { times, jamaahTimes };
 }
 
 /** Subscribed mosque IDs */
