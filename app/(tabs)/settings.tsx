@@ -87,8 +87,9 @@ export default function SettingsScreen() {
       ids = await getSubscribedMosqueIds();
     }
 
+    const uniqueIds = [...new Set(ids)];
     const list: Mosque[] = [];
-    for (const id of ids) {
+    for (const id of uniqueIds) {
       try {
         const m = await mosquesApi.getById(id);
         list.push(m);
@@ -317,7 +318,7 @@ export default function SettingsScreen() {
               </View>
             ) : (
               subscribedMosques.map((m, i) => (
-                <View key={m.id ?? `mosque-${i}`} style={[styles.row, i < subscribedMosques.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}>
+                <View key={`mosque-${m.id}-${i}`} style={[styles.row, i < subscribedMosques.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}>
                   <Text style={[typography.body, { color: colors.text, flex: 1 }]} numberOfLines={1}>{m.name}</Text>
                   <TouchableOpacity onPress={() => handleUnsubscribe(m.id)}>
                     <Text style={[typography.subhead, { color: colors.urgent }]}>{t('settings.remove')}</Text>
@@ -362,7 +363,7 @@ export default function SettingsScreen() {
                 {searchResults.map((m, i) => {
                   const isSubscribed = subscribedIds.includes(m.id);
                   return (
-                    <View key={m.id ?? `result-${i}`} style={[styles.row, i < searchResults.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}>
+                    <View key={`result-${m.id}-${i}`} style={[styles.row, i < searchResults.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}>
                       <Text style={[typography.body, { color: colors.text, flex: 1 }]} numberOfLines={1}>{m.name}</Text>
                       {isSubscribed ? (
                         <Ionicons name="checkmark-circle" size={20} color={colors.success} />
