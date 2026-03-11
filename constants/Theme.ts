@@ -33,37 +33,10 @@ export const spacing = {
   '5xl': 64,
 } as const;
 
-/**
- * Brand Identity — The Convergent Arch
- */
-export const brand = {
-  splash: {
-    pauseBeforeDraw: 1000,
-    drawDuration: 1500,
-    pauseAfterDraw: 200,
-    goldFadeDuration: 600,
-    contentFadeDelay: 400,
-    contentFadeDuration: 800,
-  },
-  stroke: {
-    splash: 1.5,
-    tabBar: 1.2,
-    tabBarActive: 1.5,
-    header: 1.0,
-  },
-  node: {
-    splash: 4,
-    tabBar: 2.5,
-    tabBarActive: 3.5,
-    header: 3,
-  },
-  tabIcon: {
-    size: 26,
-  },
-  badge: {
-    dotSize: 8,
-    countSize: 18,
-  },
+/** Badge sizing tokens */
+export const badge = {
+  dotSize: 8,
+  countSize: 18,
 } as const;
 
 /**

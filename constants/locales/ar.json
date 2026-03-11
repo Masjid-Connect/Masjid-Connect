@@ -19,7 +19,9 @@
     "offline": "حساب بدون اتصال",
     "calculating": "جارٍ حساب أوقات الصلاة...",
     "mosqueTimes": "أوقات جماعة المسجد",
-    "startTime": "البداية {{time}}"
+    "startTime": "البداية {{time}}",
+    "upcoming": "التالية",
+    "todaySchedule": "اليوم"
   },
   "announcements": {
     "title": "الإعلانات",

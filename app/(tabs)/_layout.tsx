@@ -5,7 +5,6 @@ import { Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { getColors } from '@/constants/Colors';
-import { BrandTabIcon } from '@/components/brand/BrandTabIcon';
 import { useTheme } from '@/contexts/ThemeContext';
 
 export default function TabLayout() {
@@ -46,7 +45,11 @@ export default function TabLayout() {
         options={{
           title: t('tabs.prayerTimes'),
           tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
-            <BrandTabIcon focused={focused} color={color} />
+            <Ionicons
+              name={focused ? 'time' : 'time-outline'}
+              size={24}
+              color={color}
+            />
           ),
           headerShown: false,
         }}
