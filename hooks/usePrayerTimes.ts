@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { getPrayerTimes, fetchMosquePrayerTimes, buildPrayerEntries, getNextPrayer, getCountdown } from '@/lib/prayer';
-import { cachePrayerTimes, getCachedPrayerTimes, getUserLocation, getReminderMinutes, getUse24h, getSelectedMosqueId, getSubscribedMosqueIds, ensureDefaultMosque, DEFAULT_LOCATION } from '@/lib/storage';
+import { cachePrayerTimes, getCachedPrayerTimes, getReminderMinutes, getUse24h } from '@/lib/storage';
+import { getMosqueId, SALAFI_MASJID } from '@/constants/mosque';
 import { reschedulePrayerRemindersForToday, schedulePrayerReminders } from '@/lib/notifications';
 import type { PrayerTimeEntry, PrayerName, JamaahTimesData } from '@/types';
 
@@ -40,9 +41,6 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     setUse24hState(h24);
 
     try {
-      // Ensure The Salafi Masjid is set as default on first launch
-      await ensureDefaultMosque();
-
       // Check cache first — show stale data immediately while fetching
       const cached = await getCachedPrayerTimes(today);
       if (cached) {
@@ -55,21 +53,13 @@ export function usePrayerTimes(): UsePrayerTimesResult {
         reschedulePrayerRemindersForToday().catch(() => {});
       }
 
-      // Try mosque-specific scraped times first
-      // Use explicitly selected mosque, or fall back to first subscribed mosque
-      let mosqueId = await getSelectedMosqueId();
-      if (!mosqueId) {
-        const subscribedIds = await getSubscribedMosqueIds();
-        if (subscribedIds.length > 0) {
-          mosqueId = subscribedIds[0];
-        }
-      }
+      // Try The Salafi Masjid's scraped jama'ah times first
+      const mosqueId = await getMosqueId();
       let jamaahTimes: JamaahTimesData | null = null;
 
       if (mosqueId) {
         const mosqueResult = await fetchMosquePrayerTimes(mosqueId);
         if (mosqueResult) {
-          // Mosque has scraped data — use it as primary
           jamaahTimes = mosqueResult.jamaahTimes;
           const entries = buildPrayerEntries(mosqueResult.times, jamaahTimes);
 
@@ -78,18 +68,14 @@ export function usePrayerTimes(): UsePrayerTimesResult {
           setSource('mosque');
           setJamaahAvailable(true);
 
-          // Cache for offline use
           await cachePrayerTimes(mosqueResult.times, today, jamaahTimes);
 
-          // Schedule reminders based on jama'ah times
           const reminderMinutes = await getReminderMinutes();
           await schedulePrayerReminders(mosqueResult.times, reminderMinutes, jamaahTimes);
 
           // Still fetch Aladhan for Hijri date (mosque API doesn't provide it)
           try {
-            const location = await getUserLocation();
-            const lat = location?.latitude ?? DEFAULT_LOCATION.latitude;
-            const lng = location?.longitude ?? DEFAULT_LOCATION.longitude;
+            const { latitude: lat, longitude: lng } = SALAFI_MASJID;
             const aladhanResult = await getPrayerTimes(lat, lng, CALCULATION_METHOD_CODE, CALCULATION_METHOD_NAME);
             if (aladhanResult.hijriDate && aladhanResult.hijriMonth && aladhanResult.hijriYear) {
               setHijriDate(`${aladhanResult.hijriDate} ${aladhanResult.hijriMonth} ${aladhanResult.hijriYear}`);
@@ -98,14 +84,13 @@ export function usePrayerTimes(): UsePrayerTimesResult {
             // Hijri date is nice-to-have, don't fail on it
           }
 
-          return; // Done — mosque data is primary
+          return;
         }
       }
 
-      // Fallback: Aladhan API (no mosque selected, or mosque has no scraped data)
-      const location = await getUserLocation();
-      const lat = location?.latitude ?? DEFAULT_LOCATION.latitude;
-      const lng = location?.longitude ?? DEFAULT_LOCATION.longitude;
+      // Fallback: Aladhan API (mosque has no scraped data or backend unreachable)
+      const lat = SALAFI_MASJID.latitude;
+      const lng = SALAFI_MASJID.longitude;
 
       const result = await getPrayerTimes(lat, lng, CALCULATION_METHOD_CODE, CALCULATION_METHOD_NAME);
       const entries = buildPrayerEntries(result.times);

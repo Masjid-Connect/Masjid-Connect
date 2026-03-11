@@ -26,14 +26,14 @@
   "announcements": {
     "title": "Announcements",
     "urgent": "URGENT",
-    "empty": "Your masjid community awaits",
-    "emptyHint": "Find your masjid in Settings\nto see community announcements",
+    "empty": "No announcements yet",
+    "emptyHint": "Announcements from The Salafi Masjid\nwill appear here",
     "readMore": "Read more"
   },
   "events": {
     "title": "Events",
     "empty": "No upcoming events",
-    "emptyHint": "Find your masjid to see events",
+    "emptyHint": "Events from The Salafi Masjid will appear here",
     "addToCalendar": "Add to Calendar",
     "repeats": "Repeats {{frequency}}",
     "calendar": "Calendar",
@@ -52,24 +52,6 @@
   },
   "settings": {
     "title": "Settings",
-    "myMosques": "My masajid",
-    "noMosques": "No masajid yet. Add one below to see announcements and events.",
-    "addMosque": "Add masjid",
-    "cityName": "City name",
-    "search": "Search",
-    "searchMosques": "Search by city...",
-    "nearby": "Nearby",
-    "results": "Results",
-    "add": "Add",
-    "remove": "Remove",
-    "subscribe": "Subscribe",
-    "unsubscribe": "Unsubscribe",
-    "location": "Location",
-    "locationDetected": "Location detected",
-    "detectLocation": "Detect My Location",
-    "detecting": "Detecting...",
-    "update": "Update",
-    "calculationMethod": "Calculation Method",
     "prayerReminder": "Prayer Reminder",
     "atAthanTime": "At athan time",
     "minutesBefore": "{{minutes}} min before",
@@ -88,7 +70,7 @@
     "appInfo": "App Info",
     "version": "Masjid Connect v{{version}}",
     "prayerSource": "Prayer times via Aladhan API",
-    "guestHint": "Sign in to get push notifications and sync your masajid across devices."
+    "guestHint": "Sign in to get push notifications for The Salafi Masjid."
   },
   "welcome": {
     "tagline": "Your community, one ummah",
@@ -157,10 +139,8 @@
     "save": "Save",
     "done": "Done",
     "permissionNeeded": "Permission needed",
-    "locationPermission": "Location permission is required to detect nearby masajid and calculate prayer times.",
+    "locationPermission": "Location permission is required to calculate prayer times.",
     "locationError": "Could not detect your location. Please try again.",
-    "searchFailed": "Could not search masajid. Check your connection.",
-    "nearbyFailed": "Could not find nearby masajid. Check your connection.",
     "calendarError": "Could not open calendar.",
     "networkError": "Unable to connect. Please check your internet and try again."
   }

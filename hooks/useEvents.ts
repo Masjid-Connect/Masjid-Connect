@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { events as eventsApi } from '@/lib/api';
-import { getSubscribedMosqueIds, getSelectedMosqueId } from '@/lib/storage';
+import { getMosqueId } from '@/constants/mosque';
 import type { MosqueEvent, EventCategory } from '@/types';
 
 interface UseEventsResult {
@@ -23,12 +23,8 @@ export function useEvents(): UseEventsResult {
     setIsLoading(true);
     setError(null);
     try {
-      // Use subscribed mosques if available, otherwise fall back to selected mosque (guest mode)
-      let mosqueIds = await getSubscribedMosqueIds();
-      if (mosqueIds.length === 0) {
-        const selectedId = await getSelectedMosqueId();
-        if (selectedId) mosqueIds = [selectedId];
-      }
+      const mosqueId = await getMosqueId();
+      const mosqueIds = mosqueId ? [mosqueId] : [];
       const today = format(new Date(), 'yyyy-MM-dd');
       const result = await eventsApi.list(mosqueIds, today);
       setItems(result.items);
