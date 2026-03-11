@@ -29,6 +29,8 @@ import {
   setUse24h,
   getSubscribedMosqueIds,
   setSubscribedMosqueIds,
+  getSelectedMosqueId,
+  setSelectedMosqueId,
 } from '@/lib/storage';
 import type { ThemePreference } from '@/contexts/ThemeContext';
 import { reschedulePrayerRemindersForToday } from '@/lib/notifications';
@@ -170,6 +172,9 @@ export default function SettingsScreen() {
     if (ids.includes(mosqueId)) return;
     await setSubscribedMosqueIds([...ids, mosqueId]);
 
+    // Set as selected mosque for prayer times (first subscription or explicit add)
+    await setSelectedMosqueId(mosqueId);
+
     // Also subscribe on backend if authenticated
     if (isAuthenticated) {
       try {
@@ -185,7 +190,14 @@ export default function SettingsScreen() {
 
   const handleUnsubscribe = async (mosqueId: string) => {
     const ids = await getSubscribedMosqueIds();
-    await setSubscribedMosqueIds(ids.filter((id) => id !== mosqueId));
+    const remaining = ids.filter((id) => id !== mosqueId);
+    await setSubscribedMosqueIds(remaining);
+
+    // If this was the selected mosque, fall back to next subscribed or clear
+    const selected = await getSelectedMosqueId();
+    if (selected === mosqueId) {
+      await setSelectedMosqueId(remaining.length > 0 ? remaining[0] : null);
+    }
 
     // Also unsubscribe on backend if authenticated
     if (isAuthenticated) {

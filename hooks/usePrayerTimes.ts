@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { getPrayerTimes, fetchMosquePrayerTimes, buildPrayerEntries, getNextPrayer, getCountdown } from '@/lib/prayer';
-import { cachePrayerTimes, getCachedPrayerTimes, getUserLocation, getReminderMinutes, getUse24h, getSelectedMosqueId, getSubscribedMosqueIds } from '@/lib/storage';
+import { cachePrayerTimes, getCachedPrayerTimes, getUserLocation, getReminderMinutes, getUse24h, getSelectedMosqueId, getSubscribedMosqueIds, ensureDefaultMosque } from '@/lib/storage';
 import { reschedulePrayerRemindersForToday, schedulePrayerReminders } from '@/lib/notifications';
 import type { PrayerTimeEntry, PrayerName, JamaahTimesData } from '@/types';
 
@@ -40,6 +40,9 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     setUse24hState(h24);
 
     try {
+      // Ensure The Salafi Masjid is set as default on first launch
+      await ensureDefaultMosque();
+
       // Check cache first — show stale data immediately while fetching
       const cached = await getCachedPrayerTimes(today);
       if (cached) {
