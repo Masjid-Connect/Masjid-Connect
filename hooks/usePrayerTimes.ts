@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { getPrayerTimes, fetchMosquePrayerTimes, buildPrayerEntries, getNextPrayer, getCountdown } from '@/lib/prayer';
-import { cachePrayerTimes, getCachedPrayerTimes, getUserLocation, getReminderMinutes, getUse24h, getSelectedMosqueId, getSubscribedMosqueIds, ensureDefaultMosque } from '@/lib/storage';
+import { cachePrayerTimes, getCachedPrayerTimes, getUserLocation, getReminderMinutes, getUse24h, getSelectedMosqueId, getSubscribedMosqueIds, ensureDefaultMosque, DEFAULT_LOCATION } from '@/lib/storage';
 import { reschedulePrayerRemindersForToday, schedulePrayerReminders } from '@/lib/notifications';
 import type { PrayerTimeEntry, PrayerName, JamaahTimesData } from '@/types';
 
@@ -88,8 +88,8 @@ export function usePrayerTimes(): UsePrayerTimesResult {
           // Still fetch Aladhan for Hijri date (mosque API doesn't provide it)
           try {
             const location = await getUserLocation();
-            const lat = location?.latitude ?? 21.4225;
-            const lng = location?.longitude ?? 39.8262;
+            const lat = location?.latitude ?? DEFAULT_LOCATION.latitude;
+            const lng = location?.longitude ?? DEFAULT_LOCATION.longitude;
             const aladhanResult = await getPrayerTimes(lat, lng, CALCULATION_METHOD_CODE, CALCULATION_METHOD_NAME);
             if (aladhanResult.hijriDate && aladhanResult.hijriMonth && aladhanResult.hijriYear) {
               setHijriDate(`${aladhanResult.hijriDate} ${aladhanResult.hijriMonth} ${aladhanResult.hijriYear}`);
@@ -104,8 +104,8 @@ export function usePrayerTimes(): UsePrayerTimesResult {
 
       // Fallback: Aladhan API (no mosque selected, or mosque has no scraped data)
       const location = await getUserLocation();
-      const lat = location?.latitude ?? 21.4225;
-      const lng = location?.longitude ?? 39.8262;
+      const lat = location?.latitude ?? DEFAULT_LOCATION.latitude;
+      const lng = location?.longitude ?? DEFAULT_LOCATION.longitude;
 
       const result = await getPrayerTimes(lat, lng, CALCULATION_METHOD_CODE, CALCULATION_METHOD_NAME);
       const entries = buildPrayerEntries(result.times);

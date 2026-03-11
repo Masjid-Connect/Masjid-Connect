@@ -160,13 +160,16 @@ export async function setThemePreference(theme: 'light' | 'dark' | 'system'): Pr
   await AsyncStorage.setItem(KEYS.THEME, theme);
 }
 
-/** Default mosque — The Salafi Masjid (Wright Street) is the origin mosque. */
+/** Default mosque — The Salafi Masjid (Wright Street), Birmingham is the origin mosque. */
 export const DEFAULT_MOSQUE_SEARCH = 'Salafi Masjid';
+
+/** Hardcoded fallback coordinates — The Salafi Masjid, Birmingham, UK */
+export const DEFAULT_LOCATION = { latitude: 52.4694, longitude: -1.8712 };
 
 /**
  * On first launch, auto-discover The Salafi Masjid from the API and set it as
- * the selected mosque + first subscription. Runs once; subsequent launches
- * use the stored ID. Users can switch to a different mosque in Settings.
+ * the selected mosque + first subscription. Retries on every launch until it
+ * succeeds. Users can switch to a different mosque in Settings.
  */
 export async function ensureDefaultMosque(): Promise<void> {
   const already = await AsyncStorage.getItem(KEYS.DEFAULT_MOSQUE_BOOTSTRAPPED);
@@ -198,11 +201,18 @@ export async function ensureDefaultMosque(): Promise<void> {
       if (salafi.latitude && salafi.longitude) {
         await setUserLocation(salafi.latitude, salafi.longitude);
       }
+
+      // Only mark bootstrapped when mosque was actually found and set
+      await AsyncStorage.setItem(KEYS.DEFAULT_MOSQUE_BOOTSTRAPPED, 'true');
     }
+    // If not found, don't set flag — will retry next launch
   } catch {
     // Network unavailable on first launch — will retry next time
-    return;
   }
 
-  await AsyncStorage.setItem(KEYS.DEFAULT_MOSQUE_BOOTSTRAPPED, 'true');
+  // Always ensure Birmingham coordinates are set as default location
+  const loc = await getUserLocation();
+  if (!loc) {
+    await setUserLocation(DEFAULT_LOCATION.latitude, DEFAULT_LOCATION.longitude);
+  }
 }
