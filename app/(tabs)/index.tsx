@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Line, Circle } from 'react-native-svg';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { useTranslation } from 'react-i18next';
 
@@ -18,24 +18,60 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography } from '@/constants/Theme';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { formatPrayerTime } from '@/lib/prayer';
-import { ConvergentArch } from '@/components/brand/ConvergentArch';
-import { KozoPaperBackground } from '@/components/ui/KozoPaperBackground';
+import type { PrayerName } from '@/types';
 
-/** Gold diamond divider — a thin line with a diamond at center */
-const GoldDivider = ({ color }: { color: string }) => (
-  <View style={styles.dividerContainer}>
-    <Svg height={12} width="100%" style={styles.dividerSvg}>
-      <Line x1="20%" y1="6" x2="45%" y2="6" stroke={color} strokeWidth={0.5} strokeOpacity={0.4} />
-      <Circle cx="50%" cy="6" r="2.5" fill={color} fillOpacity={0.6} />
-      <Line x1="55%" y1="6" x2="80%" y2="6" stroke={color} strokeWidth={0.5} strokeOpacity={0.4} />
-    </Svg>
-  </View>
-);
+/**
+ * Returns a subtle gradient pair based on the current/next prayer,
+ * giving the screen an atmospheric quality tied to the time of day.
+ */
+function getPrayerGradient(
+  prayer: PrayerName | null,
+  isDark: boolean,
+): [string, string] {
+  if (isDark) {
+    // Dark mode: very subtle shifts on true black
+    switch (prayer) {
+      case 'fajr':
+        return ['#0A0A14', '#000000'];
+      case 'sunrise':
+        return ['#0F0A05', '#000000'];
+      case 'dhuhr':
+        return ['#05080A', '#000000'];
+      case 'asr':
+        return ['#0A0805', '#000000'];
+      case 'maghrib':
+        return ['#0A050A', '#000000'];
+      case 'isha':
+        return ['#050508', '#000000'];
+      default:
+        return ['#050508', '#000000'];
+    }
+  }
+
+  // Light mode: atmospheric, calm tints
+  switch (prayer) {
+    case 'fajr':
+      return ['#E8EAF0', '#F8F6F1']; // pre-dawn cool blue-grey
+    case 'sunrise':
+      return ['#F5EDE4', '#F8F6F1']; // warm amber wash
+    case 'dhuhr':
+      return ['#F0F2F0', '#F8F6F1']; // bright, neutral midday
+    case 'asr':
+      return ['#F2EDE6', '#F8F6F1']; // warm afternoon
+    case 'maghrib':
+      return ['#EDE6EC', '#F8F6F1']; // dusky lavender
+    case 'isha':
+      return ['#E4E6ED', '#F8F6F1']; // deep evening blue
+    default:
+      return ['#F0F0ED', '#F8F6F1'];
+  }
+}
 
 export default function PrayerTimesScreen() {
   const insets = useSafeAreaInsets();
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
+  const isDark = effectiveScheme === 'dark';
   const { t } = useTranslation();
   const { prayers, nextPrayer, countdown, hijriDate, isLoading, source, jamaahAvailable, use24h, refresh } = usePrayerTimes();
 
@@ -48,45 +84,12 @@ export default function PrayerTimesScreen() {
   };
 
   const nextPrayerData = prayers.find((p) => p.name === nextPrayer);
+  const gradientColors = getPrayerGradient(nextPrayer, isDark);
 
   return (
-    <KozoPaperBackground
-      color={colors.background}
-      showTexture={effectiveScheme !== 'dark'}
-      style={{ paddingTop: insets.top }}
-    >
-      {/* Header */}
-      <Animated.View entering={FadeIn.duration(600)} style={styles.header}>
-        <View style={styles.headerRow}>
-          <View style={styles.headerText}>
-            <Text style={[typography.title1, { color: colors.text }]}>{t('tabs.prayerTimes')}</Text>
-            {hijriDate && (
-              <Text style={[typography.footnote, { color: colors.textSecondary, marginTop: spacing.xs }]}>
-                {hijriDate}
-              </Text>
-            )}
-            {source === 'mosque' && (
-              <Text style={[typography.caption1, { color: colors.accent, marginTop: spacing['2xs'] }]}>
-                {t('prayer.mosqueTimes')}
-              </Text>
-            )}
-            {source === 'cache' && (
-              <Text style={[typography.caption1, { color: colors.textSecondary, marginTop: spacing['2xs'] }]}>
-                {t('prayer.cached')}
-              </Text>
-            )}
-          </View>
-          <ConvergentArch
-            size={44}
-            strokeColor={colors.tint}
-            lineWidth={1.0}
-            nodeRadius={2.5}
-          />
-        </View>
-      </Animated.View>
-
+    <View style={[styles.root, { backgroundColor: colors.background }]}>
       {isLoading && prayers.length === 0 ? (
-        <View style={styles.loading}>
+        <View style={[styles.loading, { paddingTop: insets.top }]}>
           <ActivityIndicator size="large" color={colors.accent} />
           <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.lg }]}>
             {t('prayer.calculating')}
@@ -94,46 +97,74 @@ export default function PrayerTimesScreen() {
         </View>
       ) : (
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={{ paddingBottom: spacing['4xl'] }}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
           }
           showsVerticalScrollIndicator={false}>
 
-          {/* Hero countdown section */}
-          {nextPrayerData && (
-            <Animated.View
-              entering={FadeInDown.duration(500).springify()}
-              style={styles.countdownSection}
-            >
-              <GoldDivider color={colors.accent} />
-
-              <Text style={[typography.sectionHeader, { color: colors.textSecondary, marginTop: spacing['2xl'], textAlign: 'center' }]}>
-                {nextPrayerData.label}
-              </Text>
-              <Text style={[typography.prayerCountdown, { color: colors.text, textAlign: 'center', marginTop: spacing.xs }]}>
-                {formatPrayerTime(nextPrayerData.jamaahTime || nextPrayerData.time, use24h)}
-              </Text>
-              {nextPrayerData.jamaahTime && (
-                <Text style={[typography.caption1, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing['2xs'] }]}>
-                  {t('prayer.startTime', { time: formatPrayerTime(nextPrayerData.time, use24h) })}
-                </Text>
-              )}
-              <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xs }]}>
-                {t('prayer.timeRemaining', { countdown })}
-              </Text>
-              {nextPrayerData.arabicLabel && (
-                <Text style={[typography.footnote, { color: colors.textTertiary, textAlign: 'center', marginTop: spacing.xs, opacity: 0.7 }]}>
-                  {nextPrayerData.arabicLabel}
+          {/* Hero section — atmospheric gradient with large typography */}
+          <LinearGradient
+            colors={gradientColors}
+            style={[styles.hero, { paddingTop: insets.top + spacing['2xl'] }]}
+          >
+            <Animated.View entering={FadeIn.duration(800)} style={styles.heroContent}>
+              {/* Hijri date — quiet, contextual */}
+              {hijriDate && (
+                <Text style={[typography.footnote, { color: colors.textSecondary, marginBottom: spacing.sm }]}>
+                  {hijriDate}
                 </Text>
               )}
 
-              <GoldDivider color={colors.accent} />
+              {/* Current prayer — the dominant element */}
+              {nextPrayerData && (
+                <>
+                  <Text style={[styles.heroLabel, { color: colors.textSecondary }]}>
+                    {t('prayer.upcoming')}
+                  </Text>
+                  <Text style={[styles.heroPrayerName, { color: colors.text }]}>
+                    {nextPrayerData.label}
+                  </Text>
+
+                  {/* Prayer time — large, confident, ultralight */}
+                  <Text style={[typography.prayerCountdown, { color: colors.text, marginTop: spacing.xs }]}>
+                    {formatPrayerTime(nextPrayerData.jamaahTime || nextPrayerData.time, use24h)}
+                  </Text>
+
+                  {/* Jama'ah start time if different */}
+                  {nextPrayerData.jamaahTime && (
+                    <Text style={[typography.caption1, { color: colors.textSecondary, marginTop: spacing['2xs'] }]}>
+                      {t('prayer.startTime', { time: formatPrayerTime(nextPrayerData.time, use24h) })}
+                    </Text>
+                  )}
+
+                  {/* Countdown — secondary, calm */}
+                  <Text style={[typography.subhead, { color: colors.textSecondary, marginTop: spacing.md }]}>
+                    {t('prayer.timeRemaining', { countdown })}
+                  </Text>
+                </>
+              )}
+
+              {/* Source indicator */}
+              {source === 'mosque' && (
+                <Text style={[typography.caption1, { color: colors.accent, marginTop: spacing.sm }]}>
+                  {t('prayer.mosqueTimes')}
+                </Text>
+              )}
+              {source === 'cache' && (
+                <Text style={[typography.caption1, { color: colors.textTertiary, marginTop: spacing.sm }]}>
+                  {t('prayer.cached')}
+                </Text>
+              )}
             </Animated.View>
-          )}
+          </LinearGradient>
 
-          {/* Prayer list — bare rows, no cards */}
-          <View style={styles.prayerList}>
+          {/* Timetable section */}
+          <View style={styles.timetable}>
+            <Text style={[typography.sectionHeader, { color: colors.textSecondary, marginBottom: spacing.lg, paddingHorizontal: spacing['3xl'] }]}>
+              {t('prayer.todaySchedule')}
+            </Text>
+
             {prayers.map((prayer, index) => {
               const isNext = prayer.name === nextPrayer;
               const isPassed = !isNext && prayer.time < new Date() && prayer.name !== 'sunrise';
@@ -141,50 +172,53 @@ export default function PrayerTimesScreen() {
               return (
                 <Animated.View
                   key={prayer.name}
-                  entering={FadeInDown.delay(index * 50).duration(350).springify()}
+                  entering={FadeInDown.delay(index * 40).duration(300).springify()}
                   style={[
                     styles.prayerRow,
+                    { paddingHorizontal: spacing['3xl'] },
                     index < prayers.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator },
+                    isNext && { backgroundColor: isDark ? 'rgba(212, 184, 92, 0.06)' : 'rgba(191, 161, 78, 0.04)' },
                   ]}>
-                  {/* Gold dot for active prayer */}
+                  {/* Active indicator — subtle left accent */}
                   <View style={styles.dotContainer}>
                     {isNext && (
                       <View style={[styles.activeDot, { backgroundColor: colors.prayerActive }]} />
                     )}
                   </View>
 
+                  {/* Prayer name */}
                   <Text
                     style={[
-                      typography.body,
+                      isNext ? typography.headline : typography.body,
                       {
-                        color: isPassed ? colors.textSecondary : colors.text,
+                        color: isPassed ? colors.textTertiary : colors.text,
                         flex: 1,
-                        opacity: isPassed ? 0.7 : 1,
                       },
                     ]}>
                     {prayer.label}
                   </Text>
 
+                  {/* Arabic label */}
                   <Text
                     style={[
                       typography.footnote,
                       {
-                        color: isPassed ? colors.textSecondary : colors.textSecondary,
+                        color: isPassed ? colors.textTertiary : colors.textSecondary,
                         marginRight: spacing.lg,
-                        opacity: isPassed ? 0.5 : 0.8,
+                        opacity: isPassed ? 0.6 : 0.8,
                       },
                     ]}>
                     {prayer.arabicLabel}
                   </Text>
 
+                  {/* Time */}
                   <View style={styles.timeColumn}>
                     <Text
                       style={[
                         typography.prayerTime,
                         {
-                          color: isNext ? colors.prayerActive : isPassed ? colors.textSecondary : colors.text,
+                          color: isNext ? colors.prayerActive : isPassed ? colors.textTertiary : colors.text,
                           fontVariant: ['tabular-nums'],
-                          opacity: isPassed ? 0.7 : 1,
                           textAlign: 'right',
                         },
                       ]}>
@@ -210,26 +244,14 @@ export default function PrayerTimesScreen() {
               );
             })}
           </View>
-
-          <View style={{ height: spacing['4xl'] }} />
         </ScrollView>
       )}
-    </KozoPaperBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    paddingHorizontal: spacing['3xl'],
-    paddingTop: spacing['2xl'],
-    paddingBottom: spacing.lg,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerText: {
+  root: {
     flex: 1,
   },
   loading: {
@@ -237,20 +259,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  scrollContent: {
+  hero: {
     paddingHorizontal: spacing['3xl'],
+    paddingBottom: spacing['4xl'],
   },
-  countdownSection: {
-    paddingVertical: spacing.lg,
+  heroContent: {
+    // Typography carries the layout — no decorative elements
   },
-  dividerContainer: {
-    paddingVertical: spacing.xl,
+  heroLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: spacing.xs,
   },
-  dividerSvg: {
-    // SVG fills container
+  heroPrayerName: {
+    fontSize: 36,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+    lineHeight: 42,
   },
-  prayerList: {
-    marginTop: spacing.sm,
+  timetable: {
+    paddingTop: spacing['2xl'],
   },
   prayerRow: {
     flexDirection: 'row',
@@ -262,9 +292,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   timeColumn: {
     alignItems: 'flex-end' as const,

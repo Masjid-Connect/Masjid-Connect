@@ -19,7 +19,9 @@
     "offline": "Offline calculation",
     "calculating": "Calculating prayer times...",
     "mosqueTimes": "Masjid jama'ah times",
-    "startTime": "Start {{time}}"
+    "startTime": "Start {{time}}",
+    "upcoming": "Next",
+    "todaySchedule": "Today"
   },
   "announcements": {
     "title": "Announcements",
