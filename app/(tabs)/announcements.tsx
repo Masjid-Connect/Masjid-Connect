@@ -21,6 +21,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { spacing, typography, borderRadius } from '@/constants/Theme';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { BottomSheet } from '@/components/ui/BottomSheet';
+import { AuthGate } from '@/components/ui/AuthGate';
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import type { Announcement } from '@/types';
 
@@ -43,37 +44,7 @@ export default function AnnouncementsScreen() {
   };
 
   if (isGuest) {
-    return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
-        <IslamicPattern
-          width={SCREEN_WIDTH}
-          height={SCREEN_HEIGHT}
-          color={effectiveScheme === 'dark' ? palette.sacredBlueLight : palette.sacredBlue}
-          opacity={0.03}
-          tileSize={56}
-        />
-        <View style={[styles.signInIcon, { backgroundColor: colors.backgroundSecondary }]}>
-          <Ionicons name="megaphone-outline" size={32} color={colors.accent} />
-        </View>
-        <Text style={[typography.title3, { color: colors.text, textAlign: 'center', marginTop: spacing.xl }]}>
-          {t('announcements.signInPrompt')}
-        </Text>
-        <Text
-          style={[
-            typography.subhead,
-            { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm, paddingHorizontal: spacing['3xl'] },
-          ]}>
-          {t('announcements.signInHint')}
-        </Text>
-        <Pressable
-          onPress={() => router.push('/(auth)/welcome')}
-          style={[styles.signInBtn, { backgroundColor: colors.tint }]}>
-          <Text style={[typography.headline, { color: colors.onPrimary }]}>
-            {t('settings.signIn')}
-          </Text>
-        </Pressable>
-      </View>
-    );
+    return <AuthGate variant="announcements" />;
   }
 
   const urgentAnnouncements = announcements.filter((a) => a.priority === 'urgent');
@@ -271,18 +242,5 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
-  },
-  signInIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  signInBtn: {
-    marginTop: spacing['2xl'],
-    paddingHorizontal: spacing['3xl'],
-    paddingVertical: spacing.lg,
-    borderRadius: borderRadius.sm,
   },
 });

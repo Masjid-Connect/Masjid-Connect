@@ -189,22 +189,23 @@ function parseMosquePrayerTimesResponse(
   return { times, jamaahTimes };
 }
 
-/** Prayers that are always after noon */
-const PM_PRAYERS: Set<PrayerName> = new Set(['dhuhr', 'asr', 'maghrib', 'isha']);
+/** Prayers that are always in the PM (after noon) */
+const PM_PRAYERS = new Set<PrayerName>(['dhuhr', 'asr', 'maghrib', 'isha']);
 
 /** Build prayer time entries list for display.
- *  This is the single choke point for ALL display paths (cache, mosque API,
- *  Aladhan, offline). PM prayers are enforced here as a final safety net. */
+ *  This is the single enforcement point: all display paths flow through here,
+ *  so ensurePM is applied regardless of data source (cache, mosque API, Aladhan, offline).
+ */
 export function buildPrayerEntries(
   times: PrayerTimesData,
   jamaahTimes?: JamaahTimesData | null
 ): PrayerTimeEntry[] {
   const names: PrayerName[] = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
   return names.map((name) => {
-    const isPM = PM_PRAYERS.has(name);
-    const time = isPM ? ensurePM(times[name]) : times[name];
+    const shouldEnsurePM = PM_PRAYERS.has(name);
+    const time = shouldEnsurePM ? ensurePM(times[name]) : times[name];
     const jamaahTime = (jamaahTimes && name !== 'sunrise' && name in jamaahTimes)
-      ? (isPM ? ensurePM(jamaahTimes[name as keyof JamaahTimesData]) : jamaahTimes[name as keyof JamaahTimesData])
+      ? (shouldEnsurePM ? ensurePM(jamaahTimes[name as keyof JamaahTimesData]) : jamaahTimes[name as keyof JamaahTimesData])
       : null;
     return { name, label: PRAYER_LABELS[name].en, time, jamaahTime };
   });
