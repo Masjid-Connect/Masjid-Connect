@@ -16,7 +16,7 @@ import { useRouter } from 'expo-router';
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { spacing, elevation, borderRadius, typography } from '@/constants/Theme';
+import { spacing, getElevation, borderRadius, typography } from '@/constants/Theme';
 import {
   getReminderMinutes,
   setReminderMinutes,
@@ -33,6 +33,7 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { effectiveScheme, themePreference, setThemePreference } = useTheme();
   const colors = getColors(effectiveScheme);
+  const isDark = effectiveScheme === 'dark';
   const { t } = useTranslation();
   const { user, isAuthenticated, isGuest, logout } = useAuth();
 
@@ -115,7 +116,7 @@ export default function SettingsScreen() {
     >
       {/* Account */}
       <SectionHeader title={t('settings.account')} />
-      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
+      <View style={[styles.card, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
         {isAuthenticated && user ? (
           <View style={styles.row}>
             <View style={[styles.avatar, { backgroundColor: colors.accent }]}>
@@ -150,7 +151,7 @@ export default function SettingsScreen() {
 
       {/* Prayer Reminders */}
       <SectionHeader title={t('settings.prayerReminder')} />
-      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
+      <View style={[styles.card, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
         {REMINDER_OPTIONS.map((opt) => (
           <CheckRow
             key={opt.value}
@@ -163,7 +164,7 @@ export default function SettingsScreen() {
 
       {/* Appearance */}
       <SectionHeader title={t('settings.appearance')} />
-      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
+      <View style={[styles.card, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
         {THEME_OPTIONS.map((opt) => (
           <CheckRow
             key={opt.value}

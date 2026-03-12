@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, springs } from '@/constants/Theme';
+import { spacing, borderRadius, springs, getElevation } from '@/constants/Theme';
 
 interface BottomSheetProps {
   visible: boolean;
@@ -33,6 +33,7 @@ export const BottomSheet = ({ visible, onDismiss, children, maxHeight }: BottomS
   const insets = useSafeAreaInsets();
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
+  const isDark = effectiveScheme === 'dark';
 
   const translateY = useSharedValue(SCREEN_HEIGHT);
   const backdropOpacity = useSharedValue(0);
@@ -81,6 +82,7 @@ export const BottomSheet = ({ visible, onDismiss, children, maxHeight }: BottomS
             backgroundColor: colors.card,
             paddingBottom: insets.bottom + spacing.lg,
             maxHeight: maxHeight || '85%',
+            ...getElevation('lg', isDark),
           },
           sheetStyle,
         ]}

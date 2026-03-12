@@ -1,4 +1,4 @@
-import { TextStyle } from 'react-native';
+import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
 
 /**
  * Font families — system-first strategy.
@@ -95,6 +95,23 @@ export const elevation = {
     elevation: 8,
   },
 } as const;
+
+/**
+ * Theme-aware elevation — Apple HIG dark mode convention.
+ * Light mode: black shadows create depth.
+ * Dark mode: subtle hairline borders define card edges (shadows invisible on black).
+ */
+type ElevationLevel = 'sm' | 'md' | 'lg';
+
+const darkBorder: ViewStyle = {
+  borderWidth: StyleSheet.hairlineWidth,
+  borderColor: '#38383A',
+};
+
+export function getElevation(level: ElevationLevel, isDark: boolean): ViewStyle {
+  if (isDark) return darkBorder;
+  return elevation[level];
+}
 
 export const borderRadius = {
   xs: 6,
