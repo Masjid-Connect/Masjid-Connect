@@ -5,7 +5,7 @@ from datetime import date, time, timedelta
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from core.models import Announcement, Event, Mosque
+from core.models import Announcement, Event, Mosque, MosquePrayerTime
 
 
 # The Salafi Masjid is always ensured to exist (idempotent).
@@ -230,8 +230,37 @@ class Command(BaseCommand):
             e = Event.objects.create(**data)
             self.stdout.write(f"  Created event: {e.title}")
 
+        # Prayer times for The Salafi Masjid (realistic March 2026 times)
+        prayer_times_saved = 0
+        for day_offset in range(30):
+            prayer_date = today + timedelta(days=day_offset)
+            _, created = MosquePrayerTime.objects.update_or_create(
+                mosque=salafi,
+                date=prayer_date,
+                defaults={
+                    "fajr_start": time(5, 15),
+                    "fajr_jamat": time(5, 45),
+                    "sunrise": time(6, 45),
+                    "dhuhr_start": time(12, 15),
+                    "dhuhr_jamat": time(12, 30),
+                    "asr_start": time(15, 30),
+                    "asr_jamat": time(16, 0),
+                    "maghrib_jamat": time(18, 5),
+                    "isha_start": time(19, 30),
+                    "isha_jamat": time(20, 0),
+                },
+            )
+            if created:
+                prayer_times_saved += 1
+
+        if prayer_times_saved:
+            self.stdout.write(
+                f"  Created {prayer_times_saved} prayer time records for {salafi.name}"
+            )
+
         self.stdout.write(self.style.SUCCESS(
             f"\nSeeded {len(created_mosques)} mosques, "
             f"{len(announcements_data)} announcements, "
-            f"{len(events_data)} events."
+            f"{len(events_data)} events, "
+            f"{prayer_times_saved} prayer time records."
         ))
