@@ -32,7 +32,7 @@ export default function AnnouncementsScreen() {
   const { t } = useTranslation();
   const { isGuest } = useAuth();
   const router = useRouter();
-  const { announcements, isLoading, error, refresh } = useAnnouncements();
+  const { announcements, isLoading, error, refresh } = useAnnouncements(!isGuest);
   const [refreshing, setRefreshing] = useState(false);
   const [expandedItem, setExpandedItem] = useState<Announcement | null>(null);
 

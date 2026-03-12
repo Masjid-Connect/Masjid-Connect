@@ -45,7 +45,7 @@ export default function EventsScreen() {
     key,
     label: t(`events.categories.${key || 'all'}`),
   }));
-  const { events, isLoading, error, selectedCategory, setSelectedCategory, refresh } = useEvents();
+  const { events, isLoading, error, selectedCategory, setSelectedCategory, refresh } = useEvents(!isGuest);
   const [refreshing, setRefreshing] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);

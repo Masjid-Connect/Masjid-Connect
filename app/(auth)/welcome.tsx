@@ -16,7 +16,6 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import * as AuthSession from 'expo-auth-session';
 import * as Crypto from 'expo-crypto';
 import { useTranslation } from 'react-i18next';
-import Svg, { Path } from 'react-native-svg';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -34,29 +33,33 @@ import { SkiaAtmosphericGradient, IslamicPattern, SolarLight } from '@/component
 import { getAtmosphericGradient } from '@/lib/prayerGradients';
 
 /**
- * Google "G" logo as SVG — per Google branding guidelines (Dec 2025).
- * Standard multicolor "G" at the given size.
+ * Google "G" logo via Skia — per Google branding guidelines (Dec 2025).
+ * Standard multicolor "G" at the given size. Returns null on web.
  */
-const GoogleGLogo = ({ size = 18 }: { size?: number }) => (
-  <Svg width={size} height={size} viewBox="0 0 48 48">
-    <Path
-      d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"
-      fill="#FFC107"
-    />
-    <Path
-      d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z"
-      fill="#FF3D00"
-    />
-    <Path
-      d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0124 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"
-      fill="#4CAF50"
-    />
-    <Path
-      d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z"
-      fill="#1976D2"
-    />
-  </Svg>
-);
+const GOOGLE_G_PATHS = [
+  { d: 'M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z', color: '#FFC107' },
+  { d: 'M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z', color: '#FF3D00' },
+  { d: 'M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0124 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z', color: '#4CAF50' },
+  { d: 'M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z', color: '#1976D2' },
+];
+
+const GoogleGLogo = ({ size = 18 }: { size?: number }) => {
+  if (Platform.OS === 'web') return null;
+
+  const { Canvas, Path: SkiaPath, Group, Skia } = require('@shopify/react-native-skia');
+  const scale = size / 48;
+
+  return (
+    <Canvas style={{ width: size, height: size }}>
+      <Group transform={[{ scale }]}>
+        {GOOGLE_G_PATHS.map((p, i) => {
+          const path = Skia.Path.MakeFromSVGString(p.d);
+          return path ? <SkiaPath key={i} path={path} color={p.color} /> : null;
+        })}
+      </Group>
+    </Canvas>
+  );
+};
 
 /**
  * Animated action button wrapper — staggered fade-in from bottom.
