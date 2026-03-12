@@ -16,11 +16,13 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { format } from 'date-fns';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Calendar, DateData } from 'react-native-calendars';
+import { useRouter } from 'expo-router';
 
 import { useTranslation } from 'react-i18next';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { spacing, elevation, borderRadius, typography } from '@/constants/Theme';
 import { useEvents } from '@/hooks/useEvents';
 import { BottomSheet } from '@/components/ui/BottomSheet';
@@ -36,6 +38,8 @@ export default function EventsScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
+  const { isGuest } = useAuth();
+  const router = useRouter();
 
   const CATEGORIES = CATEGORY_KEYS.map((key) => ({
     key,
@@ -144,6 +148,40 @@ export default function EventsScreen() {
       </Pressable>
     );
   };
+
+  if (isGuest) {
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+        <IslamicPattern
+          width={SCREEN_WIDTH}
+          height={SCREEN_HEIGHT}
+          color={effectiveScheme === 'dark' ? palette.sacredBlueLight : palette.sacredBlue}
+          opacity={0.03}
+          tileSize={56}
+        />
+        <View style={[styles.signInIcon, { backgroundColor: colors.backgroundSecondary }]}>
+          <Ionicons name="calendar-outline" size={32} color={colors.accent} />
+        </View>
+        <Text style={[typography.title3, { color: colors.text, textAlign: 'center', marginTop: spacing.xl }]}>
+          {t('events.signInPrompt')}
+        </Text>
+        <Text
+          style={[
+            typography.subhead,
+            { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm, paddingHorizontal: spacing['3xl'] },
+          ]}>
+          {t('events.signInHint')}
+        </Text>
+        <Pressable
+          onPress={() => router.push('/(auth)/welcome')}
+          style={[styles.signInBtn, { backgroundColor: colors.tint }]}>
+          <Text style={[typography.headline, { color: colors.onPrimary }]}>
+            {t('settings.signIn')}
+          </Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -387,5 +425,18 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
+  },
+  signInIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  signInBtn: {
+    marginTop: spacing['2xl'],
+    paddingHorizontal: spacing['3xl'],
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.sm,
   },
 });
