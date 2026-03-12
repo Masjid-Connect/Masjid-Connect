@@ -23,7 +23,7 @@ import { useTranslation } from 'react-i18next';
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { spacing, elevation, borderRadius, typography } from '@/constants/Theme';
+import { spacing, getElevation, borderRadius, typography } from '@/constants/Theme';
 import { useEvents } from '@/hooks/useEvents';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { AuthGate } from '@/components/ui/AuthGate';
@@ -38,6 +38,7 @@ const CATEGORY_KEYS: (EventCategory | null)[] = [null, 'lesson', 'lecture', 'qur
 export default function EventsScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
+  const isDark = effectiveScheme === 'dark';
   const { t } = useTranslation();
   const { isGuest } = useAuth();
   const router = useRouter();
@@ -118,7 +119,7 @@ export default function EventsScreen() {
           entering={FadeInDown.delay(index * 50).duration(350).springify()}
           style={[
             styles.eventCard,
-            { backgroundColor: colors.card, ...elevation.sm },
+            { backgroundColor: colors.card, ...getElevation('sm', isDark) },
           ]}>
           {/* Left color accent */}
           <View style={[styles.categoryAccent, { backgroundColor: categoryColor }]} />
