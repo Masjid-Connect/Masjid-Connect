@@ -18,7 +18,9 @@
     "cached": "Cached times",
     "offline": "Offline calculation",
     "calculating": "Calculating prayer times...",
-    "mosqueTimes": "Masjid jama'ah times",
+    "mosqueName": "The Salafi Masjid",
+    "mosqueTimes": "Jama'ah times",
+    "calculatedTimes": "Calculated times",
     "startTime": "Start {{time}}",
     "upcoming": "Next",
     "todaySchedule": "Today"

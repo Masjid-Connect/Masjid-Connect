@@ -58,7 +58,7 @@ export default function PrayerTimesScreen() {
   const { t } = useTranslation();
   const {
     prayers, nextPrayer, countdown, hijriDate,
-    isLoading, use24h, refresh,
+    isLoading, source, jamaahAvailable, use24h, refresh,
   } = usePrayerTimes();
 
   const [refreshing, setRefreshing] = React.useState(false);
@@ -124,6 +124,11 @@ export default function PrayerTimesScreen() {
           />
 
           <Animated.View entering={FadeIn.duration(600)}>
+            {/* Mosque name — always visible, quiet identity */}
+            <Text style={[styles.mosqueName, { color: colors.textSecondary }]}>
+              {t('prayer.mosqueName')}
+            </Text>
+
             {/* Hijri date — quiet context, not competing */}
             {hijriDate && (
               <Text style={[styles.hijriDate, { color: colors.textSecondary }]}>
@@ -160,12 +165,20 @@ export default function PrayerTimesScreen() {
 
         {/* ── Timetable ─────────────────────────────────────────── */}
         <View style={styles.timetable}>
-          <Text style={[
-            typography.sectionHeader,
-            { color: colors.textSecondary, marginBottom: SECTION_HEADER_MB, paddingHorizontal: spacing['3xl'] },
-          ]}>
-            {t('prayer.todaySchedule')}
-          </Text>
+          <View style={styles.timetableHeader}>
+            <Text style={[
+              typography.sectionHeader,
+              { color: colors.textSecondary },
+            ]}>
+              {t('prayer.todaySchedule')}
+            </Text>
+            <Text style={[
+              typography.caption2,
+              { color: jamaahAvailable ? colors.success : colors.textTertiary },
+            ]}>
+              {jamaahAvailable ? t('prayer.mosqueTimes') : t('prayer.calculatedTimes')}
+            </Text>
+          </View>
 
           {prayers.map((prayer, index) => {
             const isNext = prayer.name === nextPrayer;
@@ -259,6 +272,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing['3xl'],
     paddingBottom: HERO_PADDING_BOTTOM,
   },
+  mosqueName: {
+    ...typography.caption1,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginBottom: GRID / 2, // 4
+  },
   hijriDate: {
     ...typography.footnote,
     marginBottom: GRID, // 8
@@ -289,6 +309,13 @@ const styles = StyleSheet.create({
   // Timetable — clean rows, hairline separators
   timetable: {
     paddingTop: TIMETABLE_PADDING_TOP,
+  },
+  timetableHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: spacing['3xl'],
+    marginBottom: SECTION_HEADER_MB,
   },
   row: {
     flexDirection: 'row',
