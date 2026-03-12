@@ -42,7 +42,7 @@ jobs:
           ALLOWED_HOSTS: "*"
 
       - name: Seed mosque data (idempotent)
-        run: python manage.py seed_data
+        run: python manage.py seed_data --production
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
