@@ -7,17 +7,20 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const MOSQUE_ID_KEY = 'salafi_mosque_id';
+// Bumped to v2: invalidates stale cache that pointed at wrong mosque UUID
+const MOSQUE_ID_KEY = 'salafi_mosque_id_v2';
+
+/** Canonical name — must match the backend exactly */
+const CANONICAL_NAME = 'The Salafi Masjid (Wright Street)';
 
 /** Hardcoded details for The Salafi Masjid (Wright Street), Birmingham, UK */
 export const SALAFI_MASJID = {
-  name: 'The Salafi Masjid (Wright Street)',
+  name: CANONICAL_NAME,
   city: 'Birmingham',
   country: 'United Kingdom',
   latitude: 52.4694,
   longitude: -1.8712,
   calculationMethod: 4, // Umm Al-Qura
-  searchTerm: 'Salafi Masjid',
 } as const;
 
 /** In-memory cache to avoid repeated AsyncStorage reads */
@@ -44,8 +47,19 @@ export async function getMosqueId(): Promise<string | null> {
   // 3. Fetch from API (first launch)
   try {
     const { mosques } = await import('@/lib/api');
-    const result = await mosques.list(SALAFI_MASJID.searchTerm);
-    const match = result.items.find((m) => m.name.includes('Salafi'));
+
+    // Primary: exact name match (handles multi-mosque DBs safely)
+    const result = await mosques.list('Wright Street');
+    let match = result.items.find((m) => m.name === CANONICAL_NAME);
+
+    // Fallback: if only one mosque exists in the DB, just use it.
+    // This is the robust production pattern — avoids name mismatches entirely.
+    if (!match && result.items.length === 0) {
+      const all = await mosques.list();
+      if (all.totalItems === 1) {
+        match = all.items[0];
+      }
+    }
 
     if (match) {
       _cachedId = match.id;
@@ -57,4 +71,13 @@ export async function getMosqueId(): Promise<string | null> {
   }
 
   return null;
+}
+
+/**
+ * Clear the cached mosque ID. Call this when the user clears app data
+ * or if the stored ID needs to be refreshed (e.g. after a data migration).
+ */
+export async function clearMosqueIdCache(): Promise<void> {
+  _cachedId = null;
+  await AsyncStorage.removeItem(MOSQUE_ID_KEY);
 }
