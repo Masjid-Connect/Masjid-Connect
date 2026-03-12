@@ -189,20 +189,26 @@ function parseMosquePrayerTimesResponse(
   return { times, jamaahTimes };
 }
 
-/** Build prayer time entries list for display */
+/** Prayers that are always in the PM (after noon) */
+const PM_PRAYERS = new Set<PrayerName>(['dhuhr', 'asr', 'maghrib', 'isha']);
+
+/** Build prayer time entries list for display.
+ *  This is the single enforcement point: all display paths flow through here,
+ *  so ensurePM is applied regardless of data source (cache, mosque API, Aladhan, offline).
+ */
 export function buildPrayerEntries(
   times: PrayerTimesData,
   jamaahTimes?: JamaahTimesData | null
 ): PrayerTimeEntry[] {
   const names: PrayerName[] = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
-  return names.map((name) => ({
-    name,
-    label: PRAYER_LABELS[name].en,
-    time: times[name],
-    jamaahTime: (jamaahTimes && name !== 'sunrise' && name in jamaahTimes)
-      ? jamaahTimes[name as keyof JamaahTimesData]
-      : null,
-  }));
+  return names.map((name) => {
+    const shouldEnsurePM = PM_PRAYERS.has(name);
+    const time = shouldEnsurePM ? ensurePM(times[name]) : times[name];
+    const jamaahTime = (jamaahTimes && name !== 'sunrise' && name in jamaahTimes)
+      ? (shouldEnsurePM ? ensurePM(jamaahTimes[name as keyof JamaahTimesData]) : jamaahTimes[name as keyof JamaahTimesData])
+      : null;
+    return { name, label: PRAYER_LABELS[name].en, time, jamaahTime };
+  });
 }
 
 /** Determine the next upcoming prayer */
