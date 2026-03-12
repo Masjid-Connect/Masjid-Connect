@@ -3,7 +3,10 @@ name: Scrape Prayer Timetables
 on:
   # Run every Sunday at 2am UTC — refreshes monthly timetable data
   schedule:
-    - cron: "0 2 * * 0"
+    - cron: "0 2 * * 0"      # Every Sunday at 2am UTC
+    - cron: "0 2 30 * *"     # 30th of each month
+    - cron: "0 2 31 * *"     # 31st of each month (skipped for short months)
+    - cron: "0 2 1 * *"      # 1st of each month
   # Allow manual trigger from GitHub Actions UI
   workflow_dispatch:
     inputs:
