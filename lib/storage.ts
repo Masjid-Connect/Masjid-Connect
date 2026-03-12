@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { PrayerTimesData, JamaahTimesData } from '@/types';
+import { ensurePM } from '@/lib/prayer';
 
 const KEYS = {
   PRAYER_TIMES: 'cached_prayer_times',
@@ -57,10 +58,10 @@ export async function getCachedPrayerTimes(
   const times: PrayerTimesData = {
     fajr: new Date(parsed.fajr),
     sunrise: new Date(parsed.sunrise),
-    dhuhr: new Date(parsed.dhuhr),
-    asr: new Date(parsed.asr),
-    maghrib: new Date(parsed.maghrib),
-    isha: new Date(parsed.isha),
+    dhuhr: ensurePM(new Date(parsed.dhuhr)),
+    asr: ensurePM(new Date(parsed.asr)),
+    maghrib: ensurePM(new Date(parsed.maghrib)),
+    isha: ensurePM(new Date(parsed.isha)),
   };
 
   let jamaahTimes: JamaahTimesData | null = null;
@@ -69,10 +70,10 @@ export async function getCachedPrayerTimes(
     const parsedJamaah = JSON.parse(rawJamaah);
     jamaahTimes = {
       fajr: new Date(parsedJamaah.fajr),
-      dhuhr: new Date(parsedJamaah.dhuhr),
-      asr: new Date(parsedJamaah.asr),
-      maghrib: new Date(parsedJamaah.maghrib),
-      isha: new Date(parsedJamaah.isha),
+      dhuhr: ensurePM(new Date(parsedJamaah.dhuhr)),
+      asr: ensurePM(new Date(parsedJamaah.asr)),
+      maghrib: ensurePM(new Date(parsedJamaah.maghrib)),
+      isha: ensurePM(new Date(parsedJamaah.isha)),
     };
   }
 
