@@ -47,6 +47,16 @@ class Command(BaseCommand):
         else:
             self.stdout.write(f"  Mosque already exists: {salafi.name}")
 
+        # Clean up any stale duplicate mosques (e.g. "Salafi Masjid" without
+        # the full canonical name). Only the canonical record should exist.
+        stale = Mosque.objects.filter(name__icontains="salafi").exclude(pk=salafi.pk)
+        if stale.exists():
+            names = list(stale.values_list("name", flat=True))
+            stale.delete()
+            self.stdout.write(self.style.WARNING(
+                f"  Deleted stale duplicate(s): {', '.join(names)}"
+            ))
+
         if options["production"]:
             self.stdout.write(self.style.SUCCESS(
                 "\nProduction seed complete — The Salafi Masjid ensured."
