@@ -30,6 +30,9 @@
     "urgent": "URGENT",
     "empty": "No announcements yet",
     "emptyHint": "Announcements from The Salafi Masjid\nwill appear here",
+    "today": "Today",
+    "thisWeek": "This Week",
+    "earlier": "Earlier",
     "readMore": "Read more",
     "signInPrompt": "Sign in to see announcements",
     "signInHint": "Create an account or sign in to view announcements from your masjid."
