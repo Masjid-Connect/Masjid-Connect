@@ -30,12 +30,16 @@
     "urgent": "URGENT",
     "empty": "No announcements yet",
     "emptyHint": "Announcements from The Salafi Masjid\nwill appear here",
-    "readMore": "Read more"
+    "readMore": "Read more",
+    "signInPrompt": "Sign in to see announcements",
+    "signInHint": "Create an account or sign in to view announcements from your masjid."
   },
   "events": {
     "title": "Events",
     "empty": "No upcoming events",
     "emptyHint": "Events from The Salafi Masjid will appear here",
+    "signInPrompt": "Sign in to see upcoming events",
+    "signInHint": "Create an account or sign in to view events from your masjid.",
     "addToCalendar": "Add to Calendar",
     "repeats": "Repeats {{frequency}}",
     "calendar": "Calendar",
