@@ -189,20 +189,25 @@ function parseMosquePrayerTimesResponse(
   return { times, jamaahTimes };
 }
 
-/** Build prayer time entries list for display */
+/** Prayers that are always after noon */
+const PM_PRAYERS: Set<PrayerName> = new Set(['dhuhr', 'asr', 'maghrib', 'isha']);
+
+/** Build prayer time entries list for display.
+ *  This is the single choke point for ALL display paths (cache, mosque API,
+ *  Aladhan, offline). PM prayers are enforced here as a final safety net. */
 export function buildPrayerEntries(
   times: PrayerTimesData,
   jamaahTimes?: JamaahTimesData | null
 ): PrayerTimeEntry[] {
   const names: PrayerName[] = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
-  return names.map((name) => ({
-    name,
-    label: PRAYER_LABELS[name].en,
-    time: times[name],
-    jamaahTime: (jamaahTimes && name !== 'sunrise' && name in jamaahTimes)
-      ? jamaahTimes[name as keyof JamaahTimesData]
-      : null,
-  }));
+  return names.map((name) => {
+    const isPM = PM_PRAYERS.has(name);
+    const time = isPM ? ensurePM(times[name]) : times[name];
+    const jamaahTime = (jamaahTimes && name !== 'sunrise' && name in jamaahTimes)
+      ? (isPM ? ensurePM(jamaahTimes[name as keyof JamaahTimesData]) : jamaahTimes[name as keyof JamaahTimesData])
+      : null;
+    return { name, label: PRAYER_LABELS[name].en, time, jamaahTime };
+  });
 }
 
 /** Determine the next upcoming prayer */
@@ -211,7 +216,8 @@ export function getNextPrayer(times: PrayerTimesData): PrayerName | null {
   const order: PrayerName[] = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
   for (const name of order) {
-    if (times[name] > now) {
+    const t = PM_PRAYERS.has(name) ? ensurePM(times[name]) : times[name];
+    if (t > now) {
       return name;
     }
   }
