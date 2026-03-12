@@ -13,13 +13,14 @@ interface UseEventsResult {
   refresh: () => Promise<void>;
 }
 
-export function useEvents(): UseEventsResult {
+export function useEvents(enabled = true): UseEventsResult {
   const [items, setItems] = useState<MosqueEvent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(enabled);
   const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | null>(null);
 
   const loadEvents = useCallback(async () => {
+    if (!enabled) return;
     setIsLoading(true);
     setError(null);
     try {
@@ -34,7 +35,7 @@ export function useEvents(): UseEventsResult {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [enabled]);
 
   useEffect(() => {
     loadEvents();
