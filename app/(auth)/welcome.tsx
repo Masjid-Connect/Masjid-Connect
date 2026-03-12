@@ -226,7 +226,7 @@ export default function WelcomeScreen() {
         <Animated.View style={logoAnimatedStyle}>
           <Image
             source={require('@/assets/images/Masjid_Logo.png')}
-            style={styles.logo}
+            style={[styles.logo, isDark && { tintColor: colors.text }]}
             resizeMode="contain"
           />
         </Animated.View>

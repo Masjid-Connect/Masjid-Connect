@@ -16,13 +16,13 @@ export default function AboutModal() {
         <View style={styles.logoContainer}>
           <Image
             source={require('@/assets/images/Masjid_Logo.png')}
-            style={styles.logo}
+            style={[styles.logo, effectiveScheme === 'dark' && { tintColor: colors.text }]}
             resizeMode="contain"
           />
         </View>
 
         <Text style={[typography.title1, styles.title, { color: colors.text }]}>
-          Mosque Connect
+          The Salafi Masjid
         </Text>
 
         <Text style={[typography.body, styles.tagline, { color: colors.textSecondary }]}>
