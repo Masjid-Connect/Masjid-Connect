@@ -73,10 +73,10 @@ export async function fetchPrayerTimesFromAPI(
       timings: {
         fajr: parseTimeString(timings.Fajr, today),
         sunrise: parseTimeString(timings.Sunrise, today),
-        dhuhr: parseTimeString(timings.Dhuhr, today),
-        asr: parseTimeString(timings.Asr, today),
-        maghrib: parseTimeString(timings.Maghrib, today),
-        isha: parseTimeString(timings.Isha, today),
+        dhuhr: ensurePM(parseTimeString(timings.Dhuhr, today)),
+        asr: ensurePM(parseTimeString(timings.Asr, today)),
+        maghrib: ensurePM(parseTimeString(timings.Maghrib, today)),
+        isha: ensurePM(parseTimeString(timings.Isha, today)),
       },
       hijriDate: json.data.date.hijri.day,
       hijriMonth: json.data.date.hijri.month.en,
@@ -271,7 +271,7 @@ function parseTimeString(timeStr: string, dateStr: string): Date {
  * If the backend returns an AM value (e.g. "04:00" instead of "16:00"),
  * this corrects it by adding 12 hours.
  */
-function ensurePM(date: Date): Date {
+export function ensurePM(date: Date): Date {
   if (date.getHours() < 12) {
     const corrected = new Date(date);
     corrected.setHours(corrected.getHours() + 12);
