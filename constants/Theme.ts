@@ -106,7 +106,7 @@ type ElevationLevel = 'sm' | 'md' | 'lg';
 
 const darkBorder: ViewStyle = {
   borderWidth: StyleSheet.hairlineWidth,
-  borderColor: '#333336',
+  borderColor: '#32343A', // sapphire-tinted to match obsidian surfaces
 };
 
 export function getElevation(level: ElevationLevel, isDark: boolean): ViewStyle {
