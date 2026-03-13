@@ -10,13 +10,12 @@ interface UseAnnouncementsResult {
   refresh: () => Promise<void>;
 }
 
-export function useAnnouncements(enabled = true): UseAnnouncementsResult {
+export function useAnnouncements(): UseAnnouncementsResult {
   const [items, setItems] = useState<Announcement[]>([]);
-  const [isLoading, setIsLoading] = useState(enabled);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadAnnouncements = useCallback(async () => {
-    if (!enabled) return;
     setIsLoading(true);
     setError(null);
     try {
@@ -30,7 +29,7 @@ export function useAnnouncements(enabled = true): UseAnnouncementsResult {
     } finally {
       setIsLoading(false);
     }
-  }, [enabled]);
+  }, []);
 
   useEffect(() => {
     loadAnnouncements();

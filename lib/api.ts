@@ -44,22 +44,29 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers: { ...headers(), ...(options.headers as Record<string, string>) },
   });
 
-  // If we get 401 with a stale token, clear it and retry without auth.
-  // DRF rejects invalid tokens even on IsAuthenticatedOrReadOnly endpoints.
-  if (response.status === 401 && _token) {
+  // If we get 401, clear any stored token and retry without auth.
+  // DRF rejects invalid tokens even on IsAuthenticatedOrReadOnly endpoints,
+  // so retrying without the header allows read-only access to succeed.
+  if (response.status === 401) {
+    const hadToken = !!_token;
     _token = null;
     _user = null;
     await AsyncStorage.multiRemove([KEYS.AUTH_TOKEN, KEYS.AUTH_USER]);
-    const retry = await fetch(url, {
-      ...options,
-      headers: { 'Content-Type': 'application/json', ...(options.headers as Record<string, string>) },
-    });
-    if (!retry.ok) {
-      const body = await retry.text();
-      throw new Error(`API ${retry.status}: ${body}`);
+
+    // Only retry read requests — write requests genuinely need auth
+    const method = (options.method || 'GET').toUpperCase();
+    if (hadToken && (method === 'GET' || method === 'HEAD')) {
+      const retry = await fetch(url, {
+        ...options,
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!retry.ok) {
+        const body = await retry.text();
+        throw new Error(`API ${retry.status}: ${body}`);
+      }
+      if (retry.status === 204) return undefined as T;
+      return retry.json();
     }
-    if (retry.status === 204) return undefined as T;
-    return retry.json();
   }
 
   if (!response.ok) {
