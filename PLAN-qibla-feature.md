@@ -6,6 +6,114 @@ A Qibla compass is a natural, high-value addition to Mosque Connect. It fits per
 
 ---
 
+## 0. Technology Evaluation — Is adhan-js the Best Option?
+
+### What adhan-js `Qibla()` Actually Does
+
+The `Qibla(coordinates)` function is a **single-purpose great-circle bearing calculator**. It takes a `Coordinates(lat, lng)` object and returns degrees from **True North** to the Kaaba (21.4225°N, 39.8262°E). The math is derived from "Astronomical Algorithms" by Jean Meeus, the same reference used by the U.S. Naval Observatory.
+
+**What it gives you:**
+- A single number: bearing in degrees from True North (e.g., `119.2`)
+
+**What it does NOT give you:**
+- No compass/magnetometer integration
+- No magnetic declination correction (True North ≠ Magnetic North)
+- No device heading
+- No UI components
+- No distance to Kaaba
+- No cardinal direction label (you calculate "SE" yourself)
+- No smoothing, filtering, or animation
+
+It is a **math utility**, not a compass solution.
+
+### Alternatives Evaluated
+
+| Library | What It Does | Pros | Cons | Verdict |
+|---|---|---|---|---|
+| **adhan-js `Qibla()`** | Pure bearing calculation (True North) | Already installed; zero new deps; high-precision astronomy math; battle-tested across Swift/Kotlin/Dart/JS; offline | Bearing only — no compass, no sensors, no UI | **Use for bearing calculation** |
+| **react-native-qibla-compass** | Full hook: compass heading + Qibla rotation + location + loading/error states | Turnkey `useQiblaCompass` hook returns `compassRotate`, `kabaRotate`, `compassDirection`, `error`, `isLoading`; 100K+ npm downloads | Only 18 commits, 18 stars; low maintenance (no releases in 12+ months); 100% JS (no native optimizations); peer deps on expo-location + expo-sensors anyway; black-box Qibla math we can't verify | **Do not use** — we'd still need expo-sensors, and we lose control over smoothing, animation, and the calculation itself |
+| **expo-sensor-fusion** | Kalman-filtered sensor fusion (accel + gyro + magnetometer) | Most accurate heading via sensor fusion; `useCompass` hook | Extra dependency (kalmanjs + ahrs); heavier than needed; overkill for a flat-phone compass | **Not needed for MVP** — consider for v2 if accuracy complaints arise |
+| **@russellio/react-native-compass** | Reanimated-based compass with smooth 60fps animation | Spring physics, 0°/360° wrap handling, TypeScript | Another dependency to maintain; doesn't include Qibla logic | **Not needed** — we already have Reanimated and can handle wrap ourselves |
+| **Manual haversine/bearing calc** | Write our own `calculateQiblaBearing()` | Zero dependencies; full control | Reinventing what adhan-js already does perfectly; risk of precision bugs | **No reason** — adhan-js is already installed and correct |
+
+### The Google Qibla Finder — What It Does and What We Can Learn
+
+Google's Qibla Finder (qiblafinder.withgoogle.com) is a **web-based AR experience** launched during Ramadan 2017 by Google Brand Studio + Phantom Studios. It was a deliberate departure from traditional compass UIs.
+
+**How Google's version works:**
+1. Gets user location via browser GPS
+2. Calculates great-circle bearing to Kaaba (21.4224779, 39.8251832) using the haversine formula
+3. On Android: activates camera + device orientation → draws a **bright blue line** through the camera feed pointing toward Mecca, with a Kaaba emoji that enlarges as you align + distance to Kaaba displayed
+4. On iOS: falls back to a **2D compass view** with the blue directional line (no camera/AR — Safari didn't support WebXR at launch)
+5. When aligned: the line brightens, the Kaaba icon enlarges — clear "you found it" moment
+
+**Google's key UX insight:** "Many existing tools still look like a compass and don't utilize the many advancements smartphones have made. It would be a lot easier to simply hold up your phone and have it tell you the right direction."
+
+### Can We Do Google-Style AR?
+
+**Honest assessment: Not for MVP, and here's why.**
+
+| Requirement | Google Qibla Finder | Mosque Connect Feasibility |
+|---|---|---|
+| Camera access | Browser WebRTC | Requires `expo-camera` — new dependency, new permission |
+| AR rendering | WebGL overlay on camera feed | Requires ViroReact or expo-three — **breaks Expo managed workflow** or needs dev builds |
+| Device orientation | Browser DeviceOrientation API | `expo-sensors` Magnetometer — we have this |
+| Platform parity | Android AR, iOS compass fallback | We'd need both paths anyway |
+| Complexity | Built by Google's engineering team | Significant scope for a community mosque app |
+| Doctrine compliance | N/A | "No new dependencies without written justification" — AR adds 2-3 heavy deps |
+
+**The AR camera overlay is not practical for our MVP** because:
+1. ViroReact requires ejecting from Expo managed workflow (or complex dev builds)
+2. It adds significant bundle size (3D rendering engine)
+3. The iOS fallback would be a compass anyway — so we'd build two UIs
+4. Camera permission is a friction point for a mosque app (users may be uncomfortable)
+5. The Doctrine says to avoid unnecessary dependencies
+
+### What We CAN Take From Google's Approach
+
+Even without AR, Google's design philosophy has elements we should adopt:
+
+1. **The "blue line" directional indicator** — Instead of a traditional compass rose, consider a cleaner design with a single prominent directional line/arrow pointing to Qibla. Less clutter, more clarity.
+
+2. **Distance to Kaaba** — Google shows "X,XXX km to Kaaba." This is a one-line addition using the haversine formula and adds emotional resonance. adhan-js doesn't provide this, but it's ~10 lines of math.
+
+3. **The "found it" moment** — Google enlarges the Kaaba icon and brightens the line when aligned. We can do this with our Divine Gold glow + haptic feedback + a satisfying animation.
+
+4. **Minimal chrome** — Google's UI is almost empty: just the line, the distance, and the Kaaba icon. No compass rose, no degree numbers cluttering the view. We should lean toward simplicity over traditional compass aesthetics.
+
+5. **No calibration anxiety** — Google doesn't front-load a scary "calibrate your compass" screen. It just works, and suggests calibration only if accuracy is low. We should do the same.
+
+### Recommended Approach: adhan-js + expo-sensors (Build Our Own)
+
+**Use adhan-js for the bearing math. Build our own compass UI with expo-sensors + Reanimated.**
+
+This is the right call because:
+- adhan-js `Qibla()` is already installed, proven, and uses the same haversine/great-circle math as Google
+- `expo-sensors` Magnetometer gives us the raw heading — we need this regardless of which library we use
+- `react-native-reanimated` (already installed) gives us 60fps spring animations for the compass
+- `react-native-svg` (already installed) gives us the visual compass
+- We control the smoothing algorithm (low-pass filter), the animation feel (spring constants), and the "aligned" detection threshold
+- Zero risk of abandoned third-party compass libraries
+- Only 1 new dependency: `expo-sensors` (official Expo SDK)
+
+**What we build ourselves (and why):**
+- **Heading smoothing** — Low-pass filter on magnetometer data (prevents jitter). ~15 lines of code.
+- **Magnetic declination** — adhan-js returns True North bearing, but the magnetometer reads Magnetic North. The difference varies by location (e.g., ~1° in Birmingham, up to 20° in Alaska). We can either: (a) ignore it for UK-based users (negligible), or (b) use the World Magnetic Model (WMM) lookup from NOAA — but this adds complexity. **Recommendation: ignore for v1** since the Salafi Masjid users are in Birmingham where declination is ~1°, well within the ±3° alignment threshold.
+- **0°/360° wrap handling** — When heading crosses 359° → 1°, naive interpolation spins 358° the wrong way. We handle this with shortest-path angle interpolation. ~10 lines.
+- **Distance to Kaaba** — Haversine distance formula. ~10 lines. Adds the Google-style "8,200 km to Kaaba" emotional element.
+
+### Future Enhancement: AR Mode (v2+)
+
+If user demand warrants it, a future version could add an AR camera mode using:
+- `expo-camera` for the camera feed
+- A simple overlay (not full 3D AR) — just the directional line rendered on top of the camera preview
+- This would be the "Google-style" experience without needing ViroReact
+- Toggle between compass mode (default) and AR mode (opt-in)
+
+This is explicitly out of scope for v1 but architecturally possible without rewriting the compass logic.
+
+---
+
 ## 1. How It Fits Into the App
 
 ### Option A: Dedicated Tab (Recommended Against)
@@ -297,12 +405,19 @@ Per Doctrine:
 | **Where it lives** | Sub-screen from Prayer Times tab, route: `/qibla` |
 | **Entry point** | QiblaCard on home screen showing bearing |
 | **New dependencies** | Only `expo-sensors` (official Expo package) |
-| **Qibla calculation** | `adhan-js` `Qibla()` — already installed |
-| **Compass** | `expo-sensors` Magnetometer + Reanimated spring animation |
-| **Compass visual** | Custom SVG compass rose with Divine Gold Qibla needle |
-| **Offline** | Fully offline — pure math + device sensors |
+| **Qibla calculation** | `adhan-js` `Qibla()` — already installed, same haversine math as Google |
+| **Why not react-native-qibla-compass** | Low maintenance (18 commits, no releases in 12mo), black-box math, still needs expo-sensors anyway |
+| **Why not AR (Google-style camera)** | Requires ejecting Expo managed workflow or heavy deps (ViroReact); camera permission friction; builds two UIs. Deferred to v2+ |
+| **What we take from Google** | Clean single-line indicator (not busy compass rose), distance to Kaaba, strong "found it" moment, minimal chrome |
+| **Compass heading** | `expo-sensors` Magnetometer + low-pass filter smoothing |
+| **Compass visual** | Custom SVG — prominent Qibla arrow (Divine Gold) + minimal compass ring (Sapphire) |
+| **Compass animation** | `react-native-reanimated` spring physics with 0°/360° wrap handling |
+| **Distance to Kaaba** | Haversine formula (~10 lines) — e.g., "8,200 km to the Kaaba" |
+| **Magnetic declination** | Ignored for v1 (~1° in Birmingham, within ±3° threshold). WMM lookup possible in v2 |
+| **Offline** | Fully offline — pure math + device sensors, zero network |
 | **Location** | Mosque coordinates default, device GPS enhancement |
-| **Alignment feedback** | Haptic + gold glow when pointing at Qibla (±3°) |
-| **Fallback** | Static bearing text when no magnetometer available |
+| **Alignment feedback** | Haptic + Divine Gold glow + enlarging Kaaba icon when within ±3° |
+| **Fallback (no sensor)** | Static bearing text + arrow illustration + distance |
 | **i18n** | Full English + Arabic translations |
 | **Backend changes** | None |
+| **Future (v2)** | AR camera overlay (expo-camera + simple line overlay, not full 3D), sensor fusion (expo-sensor-fusion), magnetic declination correction |
