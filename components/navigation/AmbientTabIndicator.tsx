@@ -101,12 +101,19 @@ export const AmbientTabBar = ({ state, descriptors, navigation }: BottomTabBarPr
         </Animated.View>
       )}
 
-      {/* Tab buttons — filter out hidden tabs (href: null) */}
+      {/* Tab buttons — filter out hidden tabs */}
       {state.routes
         .filter((route) => {
           const { options } = descriptors[route.key];
+          const href = (options as Record<string, unknown>).href;
           // Expo Router sets href to null for hidden tabs
-          return (options as Record<string, unknown>).href !== null;
+          if (href === null) return false;
+          // Fallback: hide tabs with tabBarButton set to return null
+          if (options.tabBarButton === null) return false;
+          // Fallback: check tabBarStyle display none
+          const style = options.tabBarItemStyle as Record<string, unknown> | undefined;
+          if (style?.display === 'none') return false;
+          return true;
         })
         .map((route) => {
         const { options } = descriptors[route.key];
