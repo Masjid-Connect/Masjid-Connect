@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { getColors } from '@/constants/Colors';
-import { spacing, borderRadius, typography, fonts } from '@/constants/Theme';
+import { spacing, borderRadius, typography, fonts, components } from '@/constants/Theme';
 
 interface ButtonProps {
   title: string;
@@ -76,13 +76,13 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.sm,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 50,
+    minHeight: components.button.height,
   },
   outlined: {
     borderWidth: 1.5,
   },
   label: {
-    fontSize: 16,
+    fontSize: typography.callout.fontSize,
     fontWeight: '600',
   },
 });

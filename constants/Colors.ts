@@ -113,11 +113,62 @@ const Colors = {
   },
 };
 
+/**
+ * Semantic alpha backgrounds — RGBA tokens for translucent surfaces.
+ * Single source of truth for every `rgba()` value used across the app.
+ * Keyed by semantic purpose, valued per color scheme.
+ */
+export const alpha = {
+  /** Urgent/alert tinted backgrounds (announcement rows, badges) */
+  urgentBg: {
+    light: 'rgba(196, 69, 54, 0.05)',
+    dark: 'rgba(224, 90, 74, 0.12)',
+  },
+  /** Stronger urgent emphasis (badge fills) */
+  urgentBgEmphasis: {
+    light: 'rgba(196, 69, 54, 0.08)',
+    dark: 'rgba(224, 90, 74, 0.15)',
+  },
+  /** Prayer active row highlight */
+  prayerActiveBg: {
+    light: 'rgba(191, 161, 78, 0.04)',
+    dark: 'rgba(212, 184, 92, 0.06)',
+  },
+  /** Frosted navigation / sheet backgrounds (tab bar, bottom zones) */
+  frostedBg: {
+    light: 'rgba(248, 246, 241, 0.85)',
+    dark: 'rgba(28, 28, 30, 0.85)',
+  },
+  /** Subtle frosted border on translucent surfaces */
+  frostedBorder: {
+    light: 'rgba(0, 0, 0, 0.04)',
+    dark: 'rgba(255, 255, 255, 0.06)',
+  },
+  /** Action button / interactive surface tint (sheets, options) */
+  actionBg: {
+    light: 'rgba(0, 0, 0, 0.03)',
+    dark: 'rgba(255, 255, 255, 0.06)',
+  },
+} as const;
+
 export type ColorScheme = 'light' | 'dark';
 
 /** Safe accessor — maps any useColorScheme() result to 'light' | 'dark' */
 export function getColors(scheme: string | null | undefined) {
   return Colors[scheme === 'dark' ? 'dark' : 'light'];
+}
+
+/** Safe accessor for alpha tokens */
+export function getAlpha(scheme: string | null | undefined) {
+  const key = scheme === 'dark' ? 'dark' : 'light';
+  return {
+    urgentBg: alpha.urgentBg[key],
+    urgentBgEmphasis: alpha.urgentBgEmphasis[key],
+    prayerActiveBg: alpha.prayerActiveBg[key],
+    frostedBg: alpha.frostedBg[key],
+    frostedBorder: alpha.frostedBorder[key],
+    actionBg: alpha.actionBg[key],
+  };
 }
 
 export default Colors;

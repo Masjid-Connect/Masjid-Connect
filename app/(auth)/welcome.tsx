@@ -25,9 +25,10 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 
-import { getColors, palette } from '@/constants/Colors';
+import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography, springs } from '@/constants/Theme';
+import { spacing, borderRadius, typography, springs, components, timing } from '@/constants/Theme';
+import { patterns } from '@/lib/layoutGrid';
 import { useAuth } from '@/contexts/AuthContext';
 import { SkiaAtmosphericGradient, IslamicPattern, SolarLight } from '@/components/brand';
 import { getAtmosphericGradient } from '@/lib/prayerGradients';
@@ -75,7 +76,7 @@ const AnimatedButton = ({
   const translateY = useSharedValue(20);
 
   useEffect(() => {
-    const delay = 500 + index * 60;
+    const delay = timing.slow + index * (timing.staggerOffset + 20);
     opacity.value = withDelay(delay, withTiming(1, { duration: 400, easing: Easing.out(Easing.quad) }));
     translateY.value = withDelay(delay, withSpring(0, springs.gentle));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -194,6 +195,7 @@ export default function WelcomeScreen() {
     router.replace('/(tabs)');
   };
 
+  const alphaColors = getAlpha(effectiveScheme);
   const isLoading = appleLoading || googleLoading;
 
   // Google button colors per official branding guidelines (Dec 2025)
@@ -213,8 +215,8 @@ export default function WelcomeScreen() {
         <IslamicPattern
           width={width}
           height={height}
-          opacity={0.03}
-          tileSize={56}
+          opacity={patterns.opacity}
+          tileSize={patterns.tileSize}
         />
         <SolarLight
           prayer="dhuhr"
@@ -247,12 +249,8 @@ export default function WelcomeScreen() {
           styles.actionsZone,
           {
             paddingBottom: insets.bottom + spacing.lg,
-            backgroundColor: isDark
-              ? 'rgba(28, 28, 30, 0.85)'
-              : 'rgba(248, 246, 241, 0.88)',
-            borderTopColor: isDark
-              ? 'rgba(255, 255, 255, 0.06)'
-              : 'rgba(0, 0, 0, 0.04)',
+            backgroundColor: alphaColors.frostedBg,
+            borderTopColor: alphaColors.frostedBorder,
           },
         ]}
       >
@@ -391,7 +389,7 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: 280,
-    height: 78,
+    height: 280 * 0.28, // fixed aspect ratio
   },
 
   // ─── Zone 2: Actions (bottom — semi-transparent card) ──────
@@ -406,7 +404,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 52,
+    height: components.button.height,
     borderRadius: borderRadius.xl,
     marginBottom: spacing.md,
   },

@@ -18,7 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, springs, getElevation } from '@/constants/Theme';
+import { spacing, borderRadius, springs, getElevation, components } from '@/constants/Theme';
 
 interface BottomSheetProps {
   visible: boolean;
@@ -122,9 +122,9 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xs,
   },
   grabber: {
-    width: 36,
-    height: 5,
-    borderRadius: 2.5,
+    width: components.grabber.width,
+    height: components.grabber.height,
+    borderRadius: components.grabber.height / 2,
     opacity: 0.3,
   },
   content: {

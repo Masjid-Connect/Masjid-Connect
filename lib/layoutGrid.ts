@@ -45,6 +45,20 @@ export const layout = {
 
   /** Maximum logo width */
   logoMaxWidth: 360,
+
+  /** Standard button height */
+  buttonHeight: 52,
+
+  /** Compact button / picker option height */
+  compactRowHeight: 44,
+} as const;
+
+/** Islamic geometric pattern defaults */
+export const patterns = {
+  /** SVG tile size for background patterns */
+  tileSize: 56,
+  /** Pattern overlay opacity — subtle enough to feel, not to read */
+  opacity: 0.03,
 } as const;
 
 /**

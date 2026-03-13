@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   },
   logo: {
     width: 220,
-    height: 61,
+    height: 220 * 0.28, // consistent aspect ratio
   },
   form: {
     marginBottom: spacing.lg,

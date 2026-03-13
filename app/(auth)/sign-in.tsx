@@ -163,8 +163,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing['2xl'],
   },
   logo: {
-    width: 240,
-    height: 67,
+    width: 220,
+    height: 220 * 0.28, // consistent aspect ratio
   },
   form: {
     marginBottom: spacing.lg,

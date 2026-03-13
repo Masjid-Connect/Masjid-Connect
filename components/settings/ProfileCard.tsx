@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, getElevation, typography, springs } from '@/constants/Theme';
+import { spacing, borderRadius, getElevation, typography, springs, components } from '@/constants/Theme';
 
 interface ProfileCardAuthProps {
   variant: 'authenticated';
@@ -128,9 +128,9 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: components.avatar.sm,
+    height: components.avatar.sm,
+    borderRadius: components.avatar.sm / 2,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -146,9 +146,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing['2xl'],
   },
   guestIconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: components.avatar.md,
+    height: components.avatar.md,
+    borderRadius: components.avatar.md / 2,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.md,

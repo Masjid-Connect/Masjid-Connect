@@ -109,15 +109,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   logo: {
-    width: 260,
-    height: 72,
+    width: 220,
+    height: 220 * 0.28, // consistent aspect ratio
   },
   input: {
     borderWidth: 1,
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    fontSize: 16,
+    fontSize: typography.callout.fontSize,
     marginBottom: spacing.md,
   },
   button: {

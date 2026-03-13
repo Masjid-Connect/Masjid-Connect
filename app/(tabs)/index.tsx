@@ -12,9 +12,10 @@ import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
-import { getColors, palette } from '@/constants/Colors';
+import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography } from '@/constants/Theme';
+import { layout, patterns } from '@/lib/layoutGrid';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { formatPrayerTime } from '@/lib/prayer';
 import { getAtmosphericGradient } from '@/lib/prayerGradients';
@@ -43,12 +44,11 @@ import type { PrayerName } from '@/types';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // ─── Grid constants ─────────────────────────────────────────────────
-// All vertical measurements are multiples of 8.
-const GRID = 8;
-const HERO_PADDING_BOTTOM = GRID * 6;  // 48
-const TIMETABLE_PADDING_TOP = GRID * 4; // 32
-const ROW_PADDING_V = GRID * 2;         // 16 (= spacing.lg, ~52px row height)
-const SECTION_HEADER_MB = GRID * 2;     // 16
+// All vertical measurements derive from the spacing scale (8pt grid).
+const HERO_PADDING_BOTTOM = spacing['4xl'];   // 48
+const TIMETABLE_PADDING_TOP = spacing['3xl']; // 32
+const ROW_PADDING_V = spacing.lg;             // 16 (~52px row height)
+const SECTION_HEADER_MB = spacing.lg;         // 16
 
 export default function PrayerTimesScreen() {
   const insets = useSafeAreaInsets();
@@ -56,13 +56,14 @@ export default function PrayerTimesScreen() {
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
   const { t } = useTranslation();
+  const alphaColors = getAlpha(effectiveScheme);
   const {
     prayers, nextPrayer, countdown, hijriDate,
     isLoading, source, jamaahAvailable, use24h, refresh,
   } = usePrayerTimes();
 
   const [refreshing, setRefreshing] = React.useState(false);
-  const [heroLayout, setHeroLayout] = useState({ width: SCREEN_WIDTH, height: 300 });
+  const [heroLayout, setHeroLayout] = useState({ width: SCREEN_WIDTH, height: layout.heroHeight });
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -85,7 +86,7 @@ export default function PrayerTimesScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <ScrollView
-        contentContainerStyle={{ paddingBottom: GRID * 8 }}
+        contentContainerStyle={{ paddingBottom: spacing['5xl'] }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
         }
@@ -93,7 +94,7 @@ export default function PrayerTimesScreen() {
       >
         {/* ── Hero: one dominant element ─────────────────────────── */}
         <View
-          style={[styles.hero, { paddingTop: insets.top + GRID * 4 }]}
+          style={[styles.hero, { paddingTop: insets.top + spacing['3xl'] }]}
           onLayout={(e) => {
             const { width, height } = e.nativeEvent.layout;
             setHeroLayout({ width, height });
@@ -119,8 +120,8 @@ export default function PrayerTimesScreen() {
             width={heroLayout.width}
             height={heroLayout.height}
             color={isDark ? palette.sacredBlueLight : palette.sacredBlue}
-            opacity={0.02}
-            tileSize={48}
+            opacity={patterns.opacity}
+            tileSize={patterns.tileSize}
           />
 
           <Animated.View entering={FadeIn.duration(600)}>
@@ -195,9 +196,7 @@ export default function PrayerTimesScreen() {
                     borderBottomColor: colors.separator,
                   },
                   isNext && {
-                    backgroundColor: isDark
-                      ? 'rgba(212, 184, 92, 0.06)'
-                      : 'rgba(191, 161, 78, 0.04)',
+                    backgroundColor: alphaColors.prayerActiveBg,
                   },
                 ]}
               >
@@ -277,33 +276,27 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.8,
     textTransform: 'uppercase',
-    marginBottom: GRID / 2, // 4
+    marginBottom: spacing.xs, // 4
   },
   hijriDate: {
     ...typography.footnote,
-    marginBottom: GRID, // 8
+    marginBottom: spacing.sm, // 8
   },
   prayerLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    marginBottom: GRID / 2, // 4
+    ...typography.sectionHeader,
+    marginBottom: spacing.xs, // 4
   },
   prayerName: {
-    fontSize: 40,
-    fontWeight: '300', // light, not bold — reverent, not shouting
-    letterSpacing: 0.4,
-    lineHeight: 48,    // 6 × 8
+    ...typography.prayerName,
   },
   prayerTime: {
     ...typography.prayerCountdown,
     fontVariant: ['tabular-nums'],
-    marginTop: GRID / 2, // 4
+    marginTop: spacing.xs, // 4
   },
   countdown: {
     ...typography.subhead,
-    marginTop: GRID * 2, // 16
+    marginTop: spacing.lg, // 16
   },
 
   // Timetable — clean rows, hairline separators
@@ -324,7 +317,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing['3xl'],
   },
   dotCol: {
-    width: GRID * 2.5, // 20
+    width: spacing.xl, // 20
     alignItems: 'center',
   },
   timeCol: {

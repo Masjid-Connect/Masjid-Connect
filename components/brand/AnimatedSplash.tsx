@@ -26,6 +26,7 @@ import * as Haptics from 'expo-haptics';
 
 import { palette } from '@/constants/Colors';
 import { springs } from '@/constants/Theme';
+import { patterns } from '@/lib/layoutGrid';
 import { breath, breathEasing } from '@/lib/breathMotion';
 import { getAtmosphericGradient } from '@/lib/prayerGradients';
 import { IslamicPattern } from './IslamicPattern';
@@ -86,7 +87,7 @@ export const AnimatedSplash = ({
     if (!isVisible) return;
 
     // Pattern fades in during silence phase — breath inhale rhythm
-    patternOpacity.value = withTiming(0.04, {
+    patternOpacity.value = withTiming(patterns.opacity, {
       duration: breath.inhale,
       easing: breathEasing.inhale,
     });
@@ -201,7 +202,7 @@ export const AnimatedSplash = ({
             height={dimensions.height}
             color={palette.sacredBlue}
             opacity={1} // Opacity controlled by Animated.View wrapper
-            tileSize={56}
+            tileSize={patterns.tileSize}
           />
         </Animated.View>
 
