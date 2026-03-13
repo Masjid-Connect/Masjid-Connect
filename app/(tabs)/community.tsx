@@ -4,7 +4,10 @@ import {
   View,
   Text,
   Pressable,
+  Share,
+  Platform,
 } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
@@ -16,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography, borderRadius } from '@/constants/Theme';
 import { AnnouncementsContent } from '@/components/community/AnnouncementsContent';
@@ -61,10 +64,23 @@ export default function CommunityScreen() {
     opacity: interpolate(scrollY.value, [LARGE_TITLE_HEIGHT - 10, LARGE_TITLE_HEIGHT], [0, 1], Extrapolation.CLAMP),
   }));
 
+  const isDark = effectiveScheme === 'dark';
+
   const handleSegmentChange = useCallback((segment: CommunitySegment) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setActiveSegment(segment);
   }, []);
+
+  const handleShareReward = useCallback(async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    try {
+      await Share.share({
+        message: t('community.shareMessage'),
+      });
+    } catch {
+      // Share cancelled or failed — no action needed
+    }
+  }, [t]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -148,6 +164,36 @@ export default function CommunityScreen() {
         ) : (
           <EventsContent onScroll={onScroll} />
         )}
+
+        {/* Share the Reward — prominent CTA */}
+        <Pressable
+          onPress={handleShareReward}
+          style={[styles.shareCard, {
+            backgroundColor: isDark ? 'rgba(229,193,75,0.08)' : 'rgba(212,175,55,0.06)',
+            borderColor: isDark ? 'rgba(229,193,75,0.2)' : 'rgba(212,175,55,0.15)',
+          }]}
+        >
+          <Ionicons
+            name="gift-outline"
+            size={24}
+            color={isDark ? palette.divineGoldBright : palette.divineGold}
+          />
+          <View style={styles.shareTextCol}>
+            <Text style={[typography.headline, {
+              color: isDark ? palette.divineGoldBright : palette.divineGold,
+            }]}>
+              {t('community.shareReward')}
+            </Text>
+            <Text style={[typography.footnote, { color: colors.textSecondary, marginTop: 2 }]}>
+              {t('community.shareMessage')}
+            </Text>
+          </View>
+          <Ionicons
+            name="share-outline"
+            size={20}
+            color={colors.textSecondary}
+          />
+        </Pressable>
       </View>
     </View>
   );
@@ -201,5 +247,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+  },
+  shareCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginHorizontal: spacing['3xl'],
+    marginTop: spacing.xl,
+    marginBottom: spacing['3xl'],
+    padding: spacing.lg,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: spacing.md,
+  },
+  shareTextCol: {
+    flex: 1,
   },
 });
