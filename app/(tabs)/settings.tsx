@@ -264,24 +264,28 @@ export default function SettingsScreen() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             setShowReminderPicker(true);
           }}
-          position="first"
+          position={isAuthenticated ? 'first' : 'only'}
         />
-        <SettingsRow
-          icon={{ name: 'megaphone', backgroundColor: palette.sapphire700 }}
-          label={t('settings.announcementAlerts')}
-          accessory="toggle"
-          toggleValue={notifyAnnouncements}
-          onToggleChange={handleNotifyAnnouncementsChange}
-          position="middle"
-        />
-        <SettingsRow
-          icon={{ name: 'calendar', backgroundColor: palette.divineGold }}
-          label={t('settings.eventReminders')}
-          accessory="toggle"
-          toggleValue={notifyEvents}
-          onToggleChange={handleNotifyEventsChange}
-          position="last"
-        />
+        {isAuthenticated && (
+          <SettingsRow
+            icon={{ name: 'megaphone', backgroundColor: palette.sapphire700 }}
+            label={t('settings.announcementAlerts')}
+            accessory="toggle"
+            toggleValue={notifyAnnouncements}
+            onToggleChange={handleNotifyAnnouncementsChange}
+            position="middle"
+          />
+        )}
+        {isAuthenticated && (
+          <SettingsRow
+            icon={{ name: 'calendar', backgroundColor: palette.divineGold }}
+            label={t('settings.eventReminders')}
+            accessory="toggle"
+            toggleValue={notifyEvents}
+            onToggleChange={handleNotifyEventsChange}
+            position="last"
+          />
+        )}
       </SettingsSection>
 
       {/* ── Appearance ── */}
