@@ -2,10 +2,23 @@ import React from 'react';
 import { StyleSheet, ScrollView, Text, View, Image } from 'react-native';
 import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography, borderRadius, getElevation } from '@/constants/Theme';
+
+const GoldRule = ({ color }: { color: string }) => (
+  <View style={styles.ruleContainer}>
+    <View style={[styles.ruleLine, { backgroundColor: color }]} />
+    <View style={[styles.ruleDiamond, { backgroundColor: color }]} />
+    <View style={[styles.ruleLine, { backgroundColor: color }]} />
+  </View>
+);
+
+const SectionNumber = ({ n, color }: { n: string; color: string }) => (
+  <Text style={[styles.sectionNumber, { color }]}>{n}</Text>
+);
 
 export default function AboutScreen() {
   const { effectiveScheme } = useTheme();
@@ -17,9 +30,10 @@ export default function AboutScreen() {
     <>
       <Stack.Screen
         options={{
-          headerTitle: t('about.title'),
+          headerTitle: '',
           headerTintColor: colors.tint,
           headerStyle: { backgroundColor: colors.backgroundSecondary },
+          headerShadowVisible: false,
         }}
       />
       <ScrollView
@@ -27,60 +41,85 @@ export default function AboutScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Logo + Name */}
-        <View style={styles.header}>
+        {/* Hero */}
+        <View style={styles.hero}>
           <Image
             source={require('@/assets/images/Masjid_Logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={[typography.title2, { color: colors.text, marginTop: spacing.lg }]}>
+          <Text style={[typography.largeTitle, styles.appName, { color: colors.text }]}>
             {t('about.appName')}
           </Text>
-          <Text style={[typography.footnote, { color: colors.textSecondary, marginTop: spacing.xs }]}>
-            {t('about.version')} 1.0.0
-          </Text>
+          <View style={[styles.versionPill, { backgroundColor: isDark ? colors.backgroundGrouped : colors.background }]}>
+            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: '500' }]}>
+              {t('about.version')} 1.0.0
+            </Text>
+          </View>
         </View>
 
-        {/* Tagline */}
-        <Text style={[typography.body, styles.tagline, { color: colors.textSecondary }]}>
-          {t('about.tagline')}
-        </Text>
-
-        {/* About the Masjid */}
-        <View style={[styles.card, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
-          <Text style={[typography.headline, { color: colors.text, marginBottom: spacing.sm }]}>
-            {t('about.aboutMasjidTitle')}
+        {/* Tagline — pull-quote style */}
+        <View style={styles.taglineSection}>
+          <GoldRule color={colors.accent} />
+          <Text style={[styles.tagline, { color: colors.text }]}>
+            {t('about.tagline')}
           </Text>
-          <Text style={[typography.body, { color: colors.textSecondary, lineHeight: 24 }]}>
-            {t('about.aboutMasjid')}
-          </Text>
+          <GoldRule color={colors.accent} />
         </View>
 
-        {/* About the App */}
-        <View style={[styles.card, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
-          <Text style={[typography.headline, { color: colors.text, marginBottom: spacing.sm }]}>
-            {t('about.aboutAppTitle')}
-          </Text>
-          <Text style={[typography.body, { color: colors.textSecondary, lineHeight: 24 }]}>
-            {t('about.aboutApp')}
-          </Text>
+        {/* Sections */}
+        <View style={styles.sections}>
+
+          {/* 01 — About the Masjid */}
+          <View style={[styles.section, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
+            <View style={styles.sectionHeader}>
+              <SectionNumber n="01" color={colors.accent} />
+              <Text style={[typography.title3, { color: colors.text, flex: 1 }]}>
+                {t('about.aboutMasjidTitle')}
+              </Text>
+            </View>
+            <View style={[styles.sectionDivider, { backgroundColor: colors.separator }]} />
+            <Text style={[typography.callout, styles.sectionBody, { color: colors.textSecondary }]}>
+              {t('about.aboutMasjid')}
+            </Text>
+          </View>
+
+          {/* 02 — About the App */}
+          <View style={[styles.section, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
+            <View style={styles.sectionHeader}>
+              <SectionNumber n="02" color={colors.accent} />
+              <Text style={[typography.title3, { color: colors.text, flex: 1 }]}>
+                {t('about.aboutAppTitle')}
+              </Text>
+            </View>
+            <View style={[styles.sectionDivider, { backgroundColor: colors.separator }]} />
+            <Text style={[typography.callout, styles.sectionBody, { color: colors.textSecondary }]}>
+              {t('about.aboutApp')}
+            </Text>
+          </View>
+
+          {/* 03 — Acknowledgements */}
+          <View style={[styles.section, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
+            <View style={styles.sectionHeader}>
+              <SectionNumber n="03" color={colors.accent} />
+              <Text style={[typography.title3, { color: colors.text, flex: 1 }]}>
+                {t('about.creditsTitle')}
+              </Text>
+            </View>
+            <View style={[styles.sectionDivider, { backgroundColor: colors.separator }]} />
+            <Text style={[typography.callout, styles.sectionBody, { color: colors.textSecondary }]}>
+              {t('about.credits')}
+            </Text>
+          </View>
         </View>
 
-        {/* Credits */}
-        <View style={[styles.card, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
-          <Text style={[typography.headline, { color: colors.text, marginBottom: spacing.sm }]}>
-            {t('about.creditsTitle')}
-          </Text>
-          <Text style={[typography.body, { color: colors.textSecondary, lineHeight: 24 }]}>
-            {t('about.credits')}
+        {/* Footer dua */}
+        <View style={styles.footerSection}>
+          <Ionicons name="heart" size={14} color={colors.accent} style={{ marginBottom: spacing.sm }} />
+          <Text style={[styles.footer, { color: colors.textTertiary }]}>
+            {t('about.footer')}
           </Text>
         </View>
-
-        {/* Footer */}
-        <Text style={[typography.footnote, styles.footer, { color: colors.textTertiary }]}>
-          {t('about.footer')}
-        </Text>
       </ScrollView>
     </>
   );
@@ -93,30 +132,96 @@ const styles = StyleSheet.create({
   content: {
     paddingBottom: spacing['5xl'],
   },
-  header: {
+  // Hero
+  hero: {
     alignItems: 'center',
-    paddingTop: spacing['3xl'],
-    paddingBottom: spacing.lg,
+    paddingTop: spacing['2xl'],
+    paddingBottom: spacing.xl,
   },
   logo: {
-    width: 80,
-    height: 80,
-    borderRadius: borderRadius.lg,
+    width: 96,
+    height: 96,
+    borderRadius: borderRadius.xl,
+  },
+  appName: {
+    marginTop: spacing.xl,
+    textAlign: 'center',
+  },
+  versionPill: {
+    marginTop: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+  },
+  // Tagline
+  taglineSection: {
+    paddingHorizontal: spacing['3xl'],
+    paddingVertical: spacing['2xl'],
+    alignItems: 'center',
   },
   tagline: {
+    fontSize: 19,
+    fontWeight: '300',
+    fontStyle: 'italic',
+    lineHeight: 28,
     textAlign: 'center',
-    paddingHorizontal: spacing['4xl'],
-    marginBottom: spacing['2xl'],
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.sm,
   },
-  card: {
-    marginHorizontal: spacing.xl,
-    borderRadius: borderRadius.sm,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
+  // Gold rule
+  ruleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '60%',
+  },
+  ruleLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+  },
+  ruleDiamond: {
+    width: 5,
+    height: 5,
+    transform: [{ rotate: '45deg' }],
+    marginHorizontal: spacing.sm,
+  },
+  // Sections
+  sections: {
+    paddingHorizontal: spacing.xl,
+    gap: spacing.lg,
+  },
+  section: {
+    borderRadius: borderRadius.md,
+    padding: spacing.xl,
+    overflow: 'hidden',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  sectionNumber: {
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    fontFamily: 'SpaceMono',
+  },
+  sectionDivider: {
+    height: StyleSheet.hairlineWidth,
+    marginVertical: spacing.lg,
+  },
+  sectionBody: {
+    lineHeight: 24,
+  },
+  // Footer
+  footerSection: {
+    alignItems: 'center',
+    paddingTop: spacing['3xl'],
+    paddingHorizontal: spacing['4xl'],
   },
   footer: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    lineHeight: 20,
     textAlign: 'center',
-    paddingHorizontal: spacing['3xl'],
-    marginTop: spacing.lg,
   },
 });
