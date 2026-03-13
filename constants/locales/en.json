@@ -241,8 +241,9 @@
     "title": "Community",
     "announcements": "Announcements",
     "events": "Events",
-    "shareReward": "Share the Reward",
-    "shareMessage": "Join The Salafi Masjid on Mosque Connect — prayer times, announcements, and events for our community."
+    "shareApp": "Share the App",
+    "shareHint": "Help your community stay connected",
+    "shareMessage": "Download The Salafi Masjid app for prayer times, announcements, and community events."
   },
   "qibla": {
     "title": "Qibla Direction",

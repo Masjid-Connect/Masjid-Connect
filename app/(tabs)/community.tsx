@@ -165,7 +165,7 @@ export default function CommunityScreen() {
           <EventsContent onScroll={onScroll} />
         )}
 
-        {/* Share the Reward — prominent CTA */}
+        {/* Share the App — prominent CTA */}
         <Pressable
           onPress={handleShareReward}
           style={[styles.shareCard, {
@@ -182,10 +182,10 @@ export default function CommunityScreen() {
             <Text style={[typography.headline, {
               color: isDark ? palette.divineGoldBright : palette.divineGold,
             }]}>
-              {t('community.shareReward')}
+              {t('community.shareApp')}
             </Text>
             <Text style={[typography.footnote, { color: colors.textSecondary, marginTop: 2 }]}>
-              {t('community.shareMessage')}
+              {t('community.shareHint')}
             </Text>
           </View>
           <Ionicons
