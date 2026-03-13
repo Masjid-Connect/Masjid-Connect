@@ -33,7 +33,7 @@ import { getUse24h } from '@/lib/storage';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-const CATEGORY_KEYS: (EventCategory | null)[] = [null, 'lesson', 'lecture', 'quran_circle', 'youth', 'sisters', 'community'];
+const CATEGORY_KEYS: (EventCategory | null)[] = [null, 'lesson', 'lecture', 'quran_school', 'youth', 'sisters', 'community'];
 
 export default function EventsScreen() {
   const { effectiveScheme } = useTheme();

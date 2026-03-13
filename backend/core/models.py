@@ -85,12 +85,12 @@ class Announcement(models.Model):
 
 
 class Event(models.Model):
-    """Mosque event — lesson, lecture, Quran circle, etc."""
+    """Mosque event — lesson, lecture, Quran school, etc."""
 
     class Category(models.TextChoices):
         LESSON = "lesson", "Lesson"
         LECTURE = "lecture", "Lecture"
-        QURAN_CIRCLE = "quran_circle", "Quran Circle"
+        QURAN_SCHOOL = "quran_school", "Quran School"
         YOUTH = "youth", "Youth"
         SISTERS = "sisters", "Sisters"
         COMMUNITY = "community", "Community"
