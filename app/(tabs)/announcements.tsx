@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -7,10 +7,12 @@ import {
   RefreshControl,
   ActivityIndicator,
   Pressable,
+  Share,
+  Platform,
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { formatDistanceToNow, isToday, isThisWeek } from 'date-fns';
+import { formatDistanceToNow, isToday, isThisWeek, format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 
@@ -18,6 +20,7 @@ import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography, borderRadius } from '@/constants/Theme';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
+import { useReadAnnouncements } from '@/hooks/useReadAnnouncements';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import type { Announcement } from '@/types';
 
@@ -63,8 +66,10 @@ function groupByTime(
 export default function AnnouncementsScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
+  const isDark = effectiveScheme === 'dark';
   const { t } = useTranslation();
   const { announcements, isLoading, error, refresh } = useAnnouncements();
+  const { isUnread, markRead } = useReadAnnouncements();
   const [refreshing, setRefreshing] = useState(false);
   const [expandedItem, setExpandedItem] = useState<Announcement | null>(null);
 
@@ -88,10 +93,32 @@ export default function AnnouncementsScreen() {
     setRefreshing(false);
   };
 
-  const handlePress = (item: Announcement) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setExpandedItem(item);
-  };
+  const handlePress = useCallback(
+    (item: Announcement) => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      markRead(item.id);
+      setExpandedItem(item);
+    },
+    [markRead],
+  );
+
+  const handleShare = useCallback(
+    async (item: Announcement) => {
+      const mosqueName = item.expand?.mosque?.name || '';
+      const content = mosqueName
+        ? `${item.title}\n\n${item.body}\n\n— ${mosqueName}`
+        : `${item.title}\n\n${item.body}`;
+      await Share.share({
+        message: content,
+        ...(Platform.OS === 'ios' ? { title: item.title } : {}),
+      });
+    },
+    [],
+  );
+
+  const handleDismissSheet = useCallback(() => {
+    setExpandedItem(null);
+  }, []);
 
   // ─── Loading ────────────────────────────────────────────────────
   if (isLoading && announcements.length === 0) {
@@ -147,6 +174,7 @@ export default function AnnouncementsScreen() {
   // ─── List ───────────────────────────────────────────────────────
   const renderItem = ({ item, index }: { item: Announcement; index: number }) => {
     const isUrgent = item.priority === 'urgent';
+    const unread = isUnread(item.id);
     const mosqueName = item.expand?.mosque?.name || '';
     const timeAgo = item.published_at
       ? formatDistanceToNow(new Date(item.published_at), { addSuffix: true })
@@ -159,65 +187,91 @@ export default function AnnouncementsScreen() {
           style={[
             styles.row,
             isUrgent && {
-              backgroundColor:
-                effectiveScheme === 'dark'
-                  ? 'rgba(196, 69, 54, 0.08)'
-                  : 'rgba(196, 69, 54, 0.05)',
+              backgroundColor: isDark
+                ? 'rgba(196, 69, 54, 0.08)'
+                : 'rgba(196, 69, 54, 0.05)',
               marginHorizontal: -spacing.lg,
               paddingHorizontal: spacing.lg,
               borderRadius: borderRadius.sm,
             },
           ]}>
-          {/* Meta: category + urgent badge */}
-          <View style={styles.metaRow}>
-            {isUrgent && (
-              <>
-                <View style={[styles.urgentDot, { backgroundColor: colors.urgent }]} />
-                <Text
+          <View style={styles.rowInner}>
+            {/* Unread indicator — leading-edge accent dot */}
+            <View style={styles.unreadColumn}>
+              {unread && (
+                <View
                   style={[
-                    typography.caption2,
-                    { color: colors.urgent, fontWeight: '600', marginRight: spacing.xs },
-                  ]}>
-                  {t('announcements.urgent')}
-                </Text>
-                {mosqueName ? (
-                  <Text style={[typography.caption2, { color: colors.urgent, fontWeight: '600' }]}>
-                    · {mosqueName.toUpperCase()}
+                    styles.unreadDot,
+                    {
+                      backgroundColor: isUrgent ? colors.urgent : colors.accent,
+                    },
+                  ]}
+                />
+              )}
+            </View>
+
+            {/* Content */}
+            <View style={styles.contentColumn}>
+              {/* Meta: category + urgent badge */}
+              <View style={styles.metaRow}>
+                {isUrgent && (
+                  <>
+                    <View style={[styles.urgentDot, { backgroundColor: colors.urgent }]} />
+                    <Text
+                      style={[
+                        typography.caption2,
+                        { color: colors.urgent, fontWeight: '600', marginRight: spacing.xs },
+                      ]}>
+                      {t('announcements.urgent')}
+                    </Text>
+                    {mosqueName ? (
+                      <Text style={[typography.caption2, { color: colors.urgent, fontWeight: '600' }]}>
+                        · {mosqueName.toUpperCase()}
+                      </Text>
+                    ) : null}
+                  </>
+                )}
+                {!isUrgent && mosqueName ? (
+                  <Text
+                    style={[
+                      typography.caption2,
+                      { color: colors.textSecondary, fontWeight: '600', letterSpacing: 0.5 },
+                    ]}>
+                    {mosqueName.toUpperCase()}
                   </Text>
                 ) : null}
-              </>
-            )}
-            {!isUrgent && mosqueName ? (
+              </View>
+
+              {/* Title — bold when unread, regular weight when read */}
               <Text
                 style={[
-                  typography.caption2,
-                  { color: colors.textSecondary, fontWeight: '600', letterSpacing: 0.5 },
+                  typography.headline,
+                  {
+                    color: colors.text,
+                    marginTop: spacing.xs,
+                    fontWeight: unread ? '600' : '400',
+                  },
                 ]}>
-                {mosqueName.toUpperCase()}
+                {item.title}
               </Text>
-            ) : null}
+
+              {/* Body preview */}
+              <Text
+                style={[typography.subhead, { color: colors.textSecondary, marginTop: spacing.xs }]}
+                numberOfLines={2}>
+                {item.body}
+              </Text>
+
+              {/* Time */}
+              <Text
+                style={[
+                  typography.caption1,
+                  { color: colors.textTertiary, marginTop: spacing.sm, opacity: 0.7 },
+                ]}>
+                {timeAgo}
+              </Text>
+            </View>
           </View>
-
-          {/* Title */}
-          <Text style={[typography.headline, { color: colors.text, marginTop: spacing.xs }]}>
-            {item.title}
-          </Text>
-
-          {/* Body preview */}
-          <Text
-            style={[typography.subhead, { color: colors.textSecondary, marginTop: spacing.xs }]}
-            numberOfLines={2}>
-            {item.body}
-          </Text>
-
-          {/* Time */}
-          <Text
-            style={[
-              typography.caption1,
-              { color: colors.textTertiary, marginTop: spacing.sm, opacity: 0.7 },
-            ]}>
-            {timeAgo}
-          </Text>
         </Animated.View>
       </Pressable>
     );
@@ -256,48 +310,86 @@ export default function AnnouncementsScreen() {
       />
 
       {/* Detail bottom sheet */}
-      <BottomSheet visible={!!expandedItem} onDismiss={() => setExpandedItem(null)}>
+      <BottomSheet visible={!!expandedItem} onDismiss={handleDismissSheet}>
         {expandedItem && (
           <View>
+            {/* Urgent badge */}
             {expandedItem.priority === 'urgent' && (
-              <View style={styles.metaRow}>
-                <View style={[styles.urgentDot, { backgroundColor: colors.urgent }]} />
+              <View style={[styles.urgentBadge, { backgroundColor: isDark ? 'rgba(224, 90, 74, 0.12)' : 'rgba(196, 69, 54, 0.08)' }]}>
+                <Ionicons name="alert-circle" size={14} color={colors.urgent} />
                 <Text
-                  style={[typography.caption2, { color: colors.urgent, fontWeight: '600' }]}>
+                  style={[
+                    typography.caption2,
+                    { color: colors.urgent, fontWeight: '700', marginLeft: spacing.xs },
+                  ]}>
                   {t('announcements.urgent')}
                 </Text>
               </View>
             )}
+
+            {/* Mosque name */}
             {expandedItem.expand?.mosque?.name ? (
-              <Text
-                style={[
-                  typography.caption2,
-                  {
-                    color: colors.textSecondary,
-                    fontWeight: '600',
-                    letterSpacing: 0.5,
-                    marginTop: spacing.xs,
-                  },
-                ]}>
-                {expandedItem.expand.mosque.name.toUpperCase()}
-              </Text>
+              <View style={[styles.mosqueRow, { marginTop: expandedItem.priority === 'urgent' ? spacing.md : 0 }]}>
+                <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
+                <Text
+                  style={[
+                    typography.footnote,
+                    {
+                      color: colors.textSecondary,
+                      fontWeight: '500',
+                      marginLeft: spacing.xs,
+                    },
+                  ]}>
+                  {expandedItem.expand.mosque.name}
+                </Text>
+              </View>
             ) : null}
-            <Text style={[typography.title2, { color: colors.text, marginTop: spacing.sm }]}>
+
+            {/* Title */}
+            <Text style={[typography.title2, { color: colors.text, marginTop: spacing.md }]}>
               {expandedItem.title}
             </Text>
-            <Text
-              style={[typography.body, { color: colors.textSecondary, marginTop: spacing.md }]}>
-              {expandedItem.body}
-            </Text>
+
+            {/* Published date — full format */}
+            {expandedItem.published_at && (
+              <Text
+                style={[
+                  typography.footnote,
+                  { color: colors.textTertiary, marginTop: spacing.sm },
+                ]}>
+                {t('announcements.publishedOn', {
+                  date: format(new Date(expandedItem.published_at), 'EEEE, d MMMM yyyy'),
+                })}
+              </Text>
+            )}
+
+            {/* Body */}
             <Text
               style={[
-                typography.footnote,
-                { color: colors.textTertiary, marginTop: spacing.lg, opacity: 0.7 },
+                typography.body,
+                {
+                  color: colors.textSecondary,
+                  marginTop: spacing.lg,
+                  lineHeight: 26,
+                },
               ]}>
-              {expandedItem.published_at
-                ? formatDistanceToNow(new Date(expandedItem.published_at), { addSuffix: true })
-                : ''}
+              {expandedItem.body}
             </Text>
+
+            {/* Actions */}
+            <View style={[styles.sheetActions, { borderTopColor: colors.separator }]}>
+              <Pressable
+                style={[styles.sheetAction, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)' }]}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  handleShare(expandedItem);
+                }}>
+                <Ionicons name="share-outline" size={18} color={colors.tint} />
+                <Text style={[typography.subhead, { color: colors.tint, marginLeft: spacing.sm }]}>
+                  {t('announcements.share')}
+                </Text>
+              </Pressable>
+            </View>
           </View>
         )}
       </BottomSheet>
@@ -325,8 +417,26 @@ const styles = StyleSheet.create({
   row: {
     paddingVertical: spacing.xl,
   },
+  rowInner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  unreadColumn: {
+    width: 20,
+    paddingTop: 6,
+    alignItems: 'center',
+  },
+  unreadDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  contentColumn: {
+    flex: 1,
+  },
   separator: {
     height: StyleSheet.hairlineWidth,
+    marginLeft: 20, // Align with content column
   },
   metaRow: {
     flexDirection: 'row',
@@ -344,5 +454,32 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
+  },
+  // Bottom sheet detail styles
+  urgentBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.xs,
+  },
+  mosqueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sheetActions: {
+    flexDirection: 'row',
+    marginTop: spacing['2xl'],
+    paddingTop: spacing.lg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: spacing.md,
+  },
+  sheetAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.sm,
   },
 });

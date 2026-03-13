@@ -34,6 +34,9 @@
     "thisWeek": "This Week",
     "earlier": "Earlier",
     "readMore": "Read more",
+    "publishedOn": "Published {{date}}",
+    "share": "Share",
+    "markRead": "Mark as read",
     "signInPrompt": "Sign in to see announcements",
     "signInHint": "Create an account or sign in to view announcements from your masjid."
   },
