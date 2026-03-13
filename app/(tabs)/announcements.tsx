@@ -4,6 +4,7 @@ import {
   View,
   Text,
   SectionList,
+  ScrollView,
   RefreshControl,
   ActivityIndicator,
   Pressable,
@@ -151,7 +152,12 @@ export default function AnnouncementsScreen() {
   // ─── Empty ──────────────────────────────────────────────────────
   if (announcements.length === 0) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+      <ScrollView
+        style={[styles.container, { backgroundColor: colors.background }]}
+        contentContainerStyle={styles.centeredScroll}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
+        }>
         <Ionicons name="megaphone-outline" size={48} color={colors.textSecondary} style={{ opacity: 0.5 }} />
         <Text
           style={[
@@ -167,7 +173,7 @@ export default function AnnouncementsScreen() {
           ]}>
           {t('announcements.emptyHint')}
         </Text>
-      </View>
+      </ScrollView>
     );
   }
 
@@ -270,6 +276,11 @@ export default function AnnouncementsScreen() {
                 ]}>
                 {timeAgo}
               </Text>
+            </View>
+
+            {/* Disclosure chevron */}
+            <View style={styles.chevronColumn}>
+              <Ionicons name="chevron-forward" size={14} color={colors.textTertiary} />
             </View>
           </View>
         </Animated.View>
@@ -389,6 +400,21 @@ export default function AnnouncementsScreen() {
                   {t('announcements.share')}
                 </Text>
               </Pressable>
+
+              {isUnread(expandedItem.id) && (
+                <Pressable
+                  style={[styles.sheetAction, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)' }]}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    markRead(expandedItem.id);
+                    setExpandedItem(null);
+                  }}>
+                  <Ionicons name="checkmark-circle-outline" size={18} color={colors.success} />
+                  <Text style={[typography.subhead, { color: colors.success, marginLeft: spacing.sm }]}>
+                    {t('announcements.markRead')}
+                  </Text>
+                </Pressable>
+              )}
             </View>
           </View>
         )}
@@ -402,6 +428,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing['3xl'],
+  },
+  centeredScroll: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing['3xl'],
@@ -433,6 +465,11 @@ const styles = StyleSheet.create({
   },
   contentColumn: {
     flex: 1,
+  },
+  chevronColumn: {
+    justifyContent: 'center',
+    paddingLeft: spacing.sm,
+    opacity: 0.4,
   },
   separator: {
     height: StyleSheet.hairlineWidth,
