@@ -61,6 +61,7 @@ export default function TabLayout() {
         name="events"
         options={{
           title: t('tabs.events'),
+          headerShown: false,
           tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
             <Ionicons
               name={focused ? 'calendar' : 'calendar-outline'}

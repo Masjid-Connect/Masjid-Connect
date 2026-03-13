@@ -12,7 +12,15 @@ import {
   Linking,
   Alert,
 } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, {
+  FadeInDown,
+  useSharedValue,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  interpolate,
+  Extrapolation,
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Calendar, DateData } from 'react-native-calendars';
@@ -36,12 +44,45 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 const CATEGORY_KEYS: (EventCategory | null)[] = [null, 'lesson', 'lecture', 'quran_school', 'youth', 'sisters', 'community'];
 
+const HEADER_HEIGHT = 44;
+const LARGE_TITLE_HEIGHT = 52;
+
+const AnimatedFlatList = Animated.createAnimatedComponent(FlatList<MosqueEvent>);
+
 export default function EventsScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
   const { t } = useTranslation();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+
+  // ─── Large title collapse animation ────────────────────────────
+  const scrollY = useSharedValue(0);
+
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  const largeTitleStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollY.value, [0, LARGE_TITLE_HEIGHT], [1, 0], Extrapolation.CLAMP),
+    transform: [
+      {
+        translateY: interpolate(
+          scrollY.value,
+          [0, LARGE_TITLE_HEIGHT],
+          [0, -LARGE_TITLE_HEIGHT / 2],
+          Extrapolation.CLAMP,
+        ),
+      },
+    ],
+  }));
+
+  const inlineHeaderOpacity = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollY.value, [LARGE_TITLE_HEIGHT - 10, LARGE_TITLE_HEIGHT], [0, 1], Extrapolation.CLAMP),
+  }));
 
   const CATEGORIES = CATEGORY_KEYS.map((key) => ({
     key,
@@ -156,27 +197,154 @@ export default function EventsScreen() {
     );
   };
 
-  return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+  // ─── Loading ────────────────────────────────────────────────────
+  if (isLoading && events.length === 0) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.staticHeader, { paddingTop: insets.top }]}>
+          <Text style={[typography.largeTitle, { color: colors.text }]}>
+            {t('events.title')}
+          </Text>
+        </View>
+        <View style={[styles.centered, { flex: 1 }]}>
+          <ActivityIndicator size="large" color={colors.accent} />
+        </View>
+      </View>
+    );
+  }
+
+  // ─── Error ──────────────────────────────────────────────────────
+  if (error && events.length === 0) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.staticHeader, { paddingTop: insets.top }]}>
+          <Text style={[typography.largeTitle, { color: colors.text }]}>
+            {t('events.title')}
+          </Text>
+        </View>
+        <View style={[styles.centered, { flex: 1 }]}>
+          <Ionicons name="cloud-offline-outline" size={48} color={colors.textSecondary} />
+          <Text style={[typography.headline, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.lg }]}>
+            {t('common.networkError')}
+          </Text>
+          <Pressable onPress={handleRefresh} style={[styles.retryBtn, { borderColor: colors.tint }]}>
+            <Text style={[typography.subhead, { color: colors.tint }]}>{t('common.retry')}</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
+  // ─── Empty ──────────────────────────────────────────────────────
+  if (filteredByDate.length === 0 && !isLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.staticHeader, { paddingTop: insets.top }]}>
+          <Text style={[typography.largeTitle, { color: colors.text }]}>
+            {t('events.title')}
+          </Text>
+        </View>
+        {/* Toolbar */}
+        <View style={[styles.toolbar, { borderBottomColor: colors.separator }]}>
+          <TouchableOpacity onPress={() => setShowCalendar(!showCalendar)} style={styles.toolbarButton}>
+            <Ionicons name={showCalendar ? 'calendar' : 'calendar-outline'} size={20} color={showCalendar ? colors.accent : colors.textSecondary} />
+            <Text style={[typography.subhead, { color: showCalendar ? colors.accent : colors.textSecondary, marginLeft: spacing.xs }]}>
+              {t('events.calendar')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowFilters(true)} style={styles.toolbarButton}>
+            <Ionicons name="funnel-outline" size={18} color={selectedCategory ? colors.accent : colors.textSecondary} />
+            <Text style={[typography.subhead, { color: selectedCategory ? colors.accent : colors.textSecondary, marginLeft: spacing.xs }]}>
+              {selectedCategory ? CATEGORIES.find((c) => c.key === selectedCategory)?.label : t('events.filter')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        {showCalendar && (
+          <Calendar
+            markedDates={markedDates}
+            onDayPress={(day: DateData) => setSelectedDate(day.dateString === selectedDate ? null : day.dateString)}
+            theme={{
+              backgroundColor: colors.background,
+              calendarBackground: colors.background,
+              textSectionTitleColor: colors.textSecondary,
+              todayTextColor: colors.accent,
+              dayTextColor: colors.text,
+              monthTextColor: colors.text,
+              arrowColor: colors.accent,
+              textDisabledColor: colors.textTertiary,
+            }}
+          />
+        )}
+        {selectedDate && (
+          <Pressable onPress={() => setSelectedDate(null)}>
+            <View style={[styles.dateChip, { backgroundColor: colors.tintLight }]}>
+              <Text style={[typography.footnote, { color: colors.tint }]}>
+                {format(new Date(selectedDate), 'EEE, MMM d')}
+              </Text>
+              <Ionicons name="close-circle" size={16} color={colors.tint} style={{ marginLeft: spacing.xs }} />
+            </View>
+          </Pressable>
+        )}
+        <View style={[styles.centered, { flex: 1 }]}>
+          <IslamicPattern
+            width={SCREEN_WIDTH}
+            height={SCREEN_HEIGHT}
+            color={effectiveScheme === 'dark' ? palette.emerald400 : palette.emerald700}
+            opacity={patterns.opacity}
+            tileSize={patterns.tileSize}
+          />
+          <Text style={[typography.headline, { color: colors.textSecondary, textAlign: 'center' }]}>
+            {t('events.empty')}
+          </Text>
+          <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm }]}>
+            {t('events.emptyHint')}
+          </Text>
+        </View>
+
+        {/* Filter bottom sheet */}
+        <BottomSheet visible={showFilters} onDismiss={() => setShowFilters(false)}>
+          <Text style={[typography.title3, { color: colors.text, marginBottom: spacing.lg }]}>{t('events.filterEvents')}</Text>
+          {CATEGORIES.map((cat) => {
+            const isActive = selectedCategory === cat.key;
+            return (
+              <TouchableOpacity
+                key={cat.label}
+                onPress={() => {
+                  setSelectedCategory(cat.key);
+                  setShowFilters(false);
+                }}
+                style={[
+                  styles.filterRow,
+                  { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator },
+                ]}>
+                <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{cat.label}</Text>
+                {isActive && <Ionicons name="checkmark" size={20} color={colors.tint} />}
+              </TouchableOpacity>
+            );
+          })}
+        </BottomSheet>
+      </View>
+    );
+  }
+
+  // ─── List header component (large title + toolbar) ─────────────
+  const listHeader = (
+    <>
+      <Animated.View style={[styles.largeTitleContainer, largeTitleStyle]}>
+        <Text style={[typography.largeTitle, { color: colors.text }]}>
+          {t('events.title')}
+        </Text>
+      </Animated.View>
+
       {/* Toolbar: calendar toggle + filter */}
       <View style={[styles.toolbar, { borderBottomColor: colors.separator }]}>
-        <TouchableOpacity
-          onPress={() => setShowCalendar(!showCalendar)}
-          style={styles.toolbarButton}
-        >
-          <Ionicons
-            name={showCalendar ? 'calendar' : 'calendar-outline'}
-            size={20}
-            color={showCalendar ? colors.accent : colors.textSecondary}
-          />
+        <TouchableOpacity onPress={() => setShowCalendar(!showCalendar)} style={styles.toolbarButton}>
+          <Ionicons name={showCalendar ? 'calendar' : 'calendar-outline'} size={20} color={showCalendar ? colors.accent : colors.textSecondary} />
           <Text style={[typography.subhead, { color: showCalendar ? colors.accent : colors.textSecondary, marginLeft: spacing.xs }]}>
             {t('events.calendar')}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => setShowFilters(true)}
-          style={styles.toolbarButton}
-        >
+        <TouchableOpacity onPress={() => setShowFilters(true)} style={styles.toolbarButton}>
           <Ionicons name="funnel-outline" size={18} color={selectedCategory ? colors.accent : colors.textSecondary} />
           <Text style={[typography.subhead, { color: selectedCategory ? colors.accent : colors.textSecondary, marginLeft: spacing.xs }]}>
             {selectedCategory ? CATEGORIES.find((c) => c.key === selectedCategory)?.label : t('events.filter')}
@@ -213,52 +381,43 @@ export default function EventsScreen() {
           </View>
         </Pressable>
       )}
+    </>
+  );
 
-      {/* Event list */}
-      {isLoading && events.length === 0 ? (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={colors.accent} />
-        </View>
-      ) : error && events.length === 0 ? (
-        <View style={[styles.centered, { padding: spacing['3xl'] }]}>
-          <Ionicons name="cloud-offline-outline" size={48} color={colors.textSecondary} />
-          <Text style={[typography.headline, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.lg }]}>
-            {t('common.networkError')}
-          </Text>
-          <Pressable onPress={handleRefresh} style={[styles.retryBtn, { borderColor: colors.tint }]}>
-            <Text style={[typography.subhead, { color: colors.tint }]}>{t('common.retry')}</Text>
-          </Pressable>
-        </View>
-      ) : filteredByDate.length === 0 ? (
-        <View style={[styles.centered, { padding: spacing['3xl'] }]}>
-          {/* Islamic pattern — brands the empty void */}
-          <IslamicPattern
-            width={SCREEN_WIDTH}
-            height={SCREEN_HEIGHT}
-            color={effectiveScheme === 'dark' ? palette.emerald400 : palette.emerald700}
-            opacity={patterns.opacity}
-            tileSize={patterns.tileSize}
-          />
-          <Text style={[typography.headline, { color: colors.textSecondary, textAlign: 'center' }]}>
-            {t('events.empty')}
-          </Text>
-          <Text
-            style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm }]}>
-            {t('events.emptyHint')}
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={filteredByDate}
-          keyExtractor={(item) => item.id}
-          renderItem={renderEvent}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
-          }
-          showsVerticalScrollIndicator={false}
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Inline header — appears when large title scrolls away */}
+      <View style={[styles.inlineHeader, { paddingTop: insets.top, height: insets.top + HEADER_HEIGHT, backgroundColor: colors.background }]}>
+        <Animated.Text
+          style={[
+            typography.headline,
+            { color: colors.text, textAlign: 'center' },
+            inlineHeaderOpacity,
+          ]}>
+          {t('events.title')}
+        </Animated.Text>
+        <Animated.View
+          style={[
+            styles.headerSeparator,
+            { backgroundColor: colors.separator },
+            inlineHeaderOpacity,
+          ]}
         />
-      )}
+      </View>
+
+      <AnimatedFlatList
+        data={filteredByDate}
+        keyExtractor={(item) => item.id}
+        renderItem={renderEvent}
+        ListHeaderComponent={listHeader}
+        contentContainerStyle={[styles.listContent, { paddingTop: insets.top + HEADER_HEIGHT }]}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
+        }
+        showsVerticalScrollIndicator={false}
+      />
 
       {/* Filter bottom sheet */}
       <BottomSheet visible={showFilters} onDismiss={() => setShowFilters(false)}>
@@ -335,10 +494,37 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  centered: {
-    flex: 1,
+  // ─── Large title header ────────────────────────────────────────
+  inlineHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  headerSeparator: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: StyleSheet.hairlineWidth,
+  },
+  staticHeader: {
+    paddingHorizontal: spacing['3xl'],
+    paddingBottom: spacing.md,
+  },
+  largeTitleContainer: {
+    paddingHorizontal: spacing['3xl'],
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing['3xl'],
   },
   toolbar: {
     flexDirection: 'row',
@@ -363,8 +549,8 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
   },
   listContent: {
-    padding: spacing['3xl'],
-    paddingTop: spacing.md,
+    paddingHorizontal: spacing['3xl'],
+    paddingBottom: spacing['3xl'],
   },
   eventCard: {
     flexDirection: 'row',
