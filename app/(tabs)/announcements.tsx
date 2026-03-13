@@ -26,9 +26,9 @@ import { formatDistanceToNow, isToday, isThisWeek, format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, getAlpha } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius } from '@/constants/Theme';
+import { spacing, typography, borderRadius, badge } from '@/constants/Theme';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { useReadAnnouncements } from '@/hooks/useReadAnnouncements';
 import { BottomSheet } from '@/components/ui/BottomSheet';
@@ -79,6 +79,7 @@ export default function AnnouncementsScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
+  const alphaColors = getAlpha(effectiveScheme);
   const { t } = useTranslation();
   const { announcements, isLoading, error, refresh } = useAnnouncements();
   const { isUnread, markRead } = useReadAnnouncements();
@@ -254,9 +255,7 @@ export default function AnnouncementsScreen() {
           style={[
             styles.row,
             isUrgent && {
-              backgroundColor: isDark
-                ? 'rgba(196, 69, 54, 0.08)'
-                : 'rgba(196, 69, 54, 0.05)',
+              backgroundColor: alphaColors.urgentBg,
               marginHorizontal: -spacing.lg,
               paddingHorizontal: spacing.lg,
               borderRadius: borderRadius.sm,
@@ -301,8 +300,8 @@ export default function AnnouncementsScreen() {
                 {!isUrgent && mosqueName ? (
                   <Text
                     style={[
-                      typography.caption2,
-                      { color: colors.textSecondary, fontWeight: '600', letterSpacing: 0.5 },
+                      typography.categoryLabel,
+                      { color: colors.textSecondary },
                     ]}>
                     {mosqueName.toUpperCase()}
                   </Text>
@@ -416,7 +415,7 @@ export default function AnnouncementsScreen() {
           <View>
             {/* Urgent badge */}
             {expandedItem.priority === 'urgent' && (
-              <View style={[styles.urgentBadge, { backgroundColor: isDark ? 'rgba(224, 90, 74, 0.12)' : 'rgba(196, 69, 54, 0.08)' }]}>
+              <View style={[styles.urgentBadge, { backgroundColor: alphaColors.urgentBgEmphasis }]}>
                 <Ionicons name="alert-circle" size={14} color={colors.urgent} />
                 <Text
                   style={[
@@ -480,7 +479,7 @@ export default function AnnouncementsScreen() {
             {/* Actions */}
             <View style={[styles.sheetActions, { borderTopColor: colors.separator }]}>
               <Pressable
-                style={[styles.sheetAction, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)' }]}
+                style={[styles.sheetAction, { backgroundColor: alphaColors.actionBg }]}
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   handleShare(expandedItem);
@@ -493,7 +492,7 @@ export default function AnnouncementsScreen() {
 
               {isUnread(expandedItem.id) && (
                 <Pressable
-                  style={[styles.sheetAction, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)' }]}
+                  style={[styles.sheetAction, { backgroundColor: alphaColors.actionBg }]}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     markRead(expandedItem.id);
@@ -571,14 +570,14 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   unreadColumn: {
-    width: 20,
-    paddingTop: 6,
+    width: spacing.xl,
+    paddingTop: badge.smallDotSize,
     alignItems: 'center',
   },
   unreadDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: badge.dotSize,
+    height: badge.dotSize,
+    borderRadius: badge.dotSize / 2,
   },
   contentColumn: {
     flex: 1,
@@ -590,16 +589,16 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: StyleSheet.hairlineWidth,
-    marginLeft: 20, // Align with content column
+    marginLeft: spacing.xl, // Align with content column
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   urgentDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+    width: badge.smallDotSize,
+    height: badge.smallDotSize,
+    borderRadius: badge.smallDotSize / 2,
     marginRight: spacing.xs,
   },
   retryBtn: {

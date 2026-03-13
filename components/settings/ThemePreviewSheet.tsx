@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme, ThemePreference } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, springs } from '@/constants/Theme';
+import { spacing, typography, borderRadius, springs, badge } from '@/constants/Theme';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 
 interface ThemePreviewSheetProps {
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   previewCard: {
-    borderRadius: 4,
+    borderRadius: spacing.xs,
     padding: spacing.sm,
     marginTop: spacing.sm,
     marginBottom: spacing.sm,
@@ -238,18 +238,18 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   previewDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 6,
+    width: badge.smallDotSize,
+    height: badge.smallDotSize,
+    borderRadius: badge.smallDotSize / 2,
+    marginRight: badge.smallDotSize,
   },
   checkBadge: {
     position: 'absolute',
     bottom: spacing.sm,
     right: spacing.sm,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: spacing['2xl'],
+    height: spacing['2xl'],
+    borderRadius: spacing.md,
     justifyContent: 'center',
     alignItems: 'center',
   },

@@ -16,7 +16,7 @@ import * as Haptics from 'expo-haptics';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, springs } from '@/constants/Theme';
+import { spacing, typography, borderRadius, springs, components } from '@/constants/Theme';
 import { layout } from '@/lib/layoutGrid';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
@@ -38,7 +38,7 @@ interface SettingsRowProps {
   position?: RowPosition;
 }
 
-const ICON_BOX_SIZE = 29;
+const ICON_BOX_SIZE = components.iconBox.size;
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 

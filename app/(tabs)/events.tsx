@@ -22,7 +22,8 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, getElevation, borderRadius, typography } from '@/constants/Theme';
+import { spacing, getElevation, borderRadius, typography, components } from '@/constants/Theme';
+import { patterns } from '@/lib/layoutGrid';
 import { useEvents } from '@/hooks/useEvents';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
@@ -128,7 +129,7 @@ export default function EventsScreen() {
           {/* Left color accent */}
           <View style={[styles.categoryAccent, { backgroundColor: categoryColor }]} />
           <View style={styles.eventContent}>
-            <Text style={[typography.caption2, { color: categoryColor, fontWeight: '600', letterSpacing: 0.5 }]}>
+            <Text style={[typography.categoryLabel, { color: categoryColor }]}>
               {item.category.replace('_', ' ').toUpperCase()}
             </Text>
             <Text style={[typography.headline, { color: colors.text, marginTop: spacing.xs }]}>
@@ -235,8 +236,8 @@ export default function EventsScreen() {
             width={SCREEN_WIDTH}
             height={SCREEN_HEIGHT}
             color={effectiveScheme === 'dark' ? palette.sacredBlueLight : palette.sacredBlue}
-            opacity={0.03}
-            tileSize={56}
+            opacity={patterns.opacity}
+            tileSize={patterns.tileSize}
           />
           <Text style={[typography.headline, { color: colors.textSecondary, textAlign: 'center' }]}>
             {t('events.empty')}
@@ -286,7 +287,7 @@ export default function EventsScreen() {
       <BottomSheet visible={!!detailEvent} onDismiss={() => setDetailEvent(null)}>
         {detailEvent && (
           <View>
-            <Text style={[typography.caption2, { color: EVENT_CATEGORY_COLORS[detailEvent.category] || colors.accent, fontWeight: '600', letterSpacing: 0.5 }]}>
+            <Text style={[typography.categoryLabel, { color: EVENT_CATEGORY_COLORS[detailEvent.category] || colors.accent }]}>
               {detailEvent.category.replace('_', ' ').toUpperCase()}
             </Text>
             <Text style={[typography.title2, { color: colors.text, marginTop: spacing.sm }]}>
@@ -372,7 +373,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   categoryAccent: {
-    width: 4,
+    width: components.categoryAccent.width,
   },
   eventContent: {
     flex: 1,

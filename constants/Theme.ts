@@ -36,6 +36,7 @@ export const spacing = {
 /** Badge sizing tokens */
 export const badge = {
   dotSize: 8,
+  smallDotSize: 6,
   countSize: 18,
 } as const;
 
@@ -213,6 +214,18 @@ export const typography: Record<string, TextStyle> = {
     lineHeight: 18,
     textTransform: 'uppercase',
   },
+  categoryLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    lineHeight: 13,
+  },
+  prayerName: {
+    fontSize: 40,
+    fontWeight: '300',
+    letterSpacing: 0.4,
+    lineHeight: 48,
+  },
   // Legacy aliases for compatibility
   display: {
     fontSize: 34,
@@ -247,6 +260,48 @@ export const arabicTypography: Record<string, TextStyle> = {
     lineHeight: 20,
   },
 };
+
+/**
+ * Component-specific dimension tokens.
+ * For values that don't fit the spacing/borderRadius scales
+ * but are reused across components.
+ */
+export const components = {
+  avatar: {
+    sm: 56,
+    md: 64,
+  },
+  button: {
+    height: 52,
+    compactHeight: 44,
+  },
+  grabber: {
+    width: 36,
+    height: 5,
+  },
+  iconBox: {
+    size: 32,
+  },
+  categoryAccent: {
+    width: 4,
+  },
+  tabGlow: {
+    size: 64,
+    opacity: 0.08,
+  },
+} as const;
+
+/**
+ * Animation timing tokens (milliseconds).
+ * Spring configs are preferred for interactive motion.
+ * Use timing for backdrop fades and simple opacity transitions.
+ */
+export const timing = {
+  fast: 150,
+  normal: 300,
+  slow: 500,
+  staggerOffset: 40,
+} as const;
 
 /** Reanimated spring configs */
 export const springs = {

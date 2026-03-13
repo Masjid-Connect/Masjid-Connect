@@ -25,15 +25,15 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { getColors } from '@/constants/Colors';
-import { springs, spacing, typography } from '@/constants/Theme';
+import { getColors, getAlpha } from '@/constants/Colors';
+import { springs, spacing, typography, components } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { layout } from '@/lib/layoutGrid';
 
 /** Glow indicator dimensions */
-const GLOW_SIZE = 64;
+const GLOW_SIZE = components.tabGlow.size;
 const GLOW_RADIUS = GLOW_SIZE / 2;
-const GLOW_OPACITY = 0.08;
+const GLOW_OPACITY = components.tabGlow.opacity;
 
 export const AmbientTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
   const { effectiveScheme } = useTheme();
@@ -77,6 +77,7 @@ export const AmbientTabBar = ({ state, descriptors, navigation }: BottomTabBarPr
     ],
   }));
 
+  const alphaColors = getAlpha(effectiveScheme);
   const glowColor = isDark ? colors.accent : colors.tint;
 
   const barHeight = layout.tabBarHeight;
@@ -87,7 +88,7 @@ export const AmbientTabBar = ({ state, descriptors, navigation }: BottomTabBarPr
       style={[
         styles.container,
         {
-          backgroundColor: isDark ? 'rgba(0,0,0,0.85)' : 'rgba(248,246,241,0.85)',
+          backgroundColor: alphaColors.frostedBg,
           height: barHeight,
           paddingBottom: bottomPadding,
         },
