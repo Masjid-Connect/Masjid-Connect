@@ -23,6 +23,7 @@ import { SkiaAtmosphericGradient } from '@/components/brand/SkiaAtmosphericGradi
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { GlowDot } from '@/components/brand/GlowDot';
 import { SolarLight } from '@/components/brand/SolarLight';
+import { SkyArc } from '@/components/brand/SkyArc';
 import type { PrayerName } from '@/types';
 
 // ─── Design Philosophy ──────────────────────────────────────────────
@@ -164,6 +165,17 @@ export default function PrayerTimesScreen() {
           </Animated.View>
         </View>
 
+        {/* ── Sky Arc: sun path visualization ───────────────────── */}
+        {prayers.length > 0 && (
+          <View style={styles.skyArcContainer}>
+            <SkyArc
+              width={SCREEN_WIDTH}
+              prayers={prayers}
+              nextPrayer={nextPrayer}
+            />
+          </View>
+        )}
+
         {/* ── Timetable ─────────────────────────────────────────── */}
         <View style={styles.timetable}>
           <View style={styles.timetableHeader}>
@@ -297,6 +309,11 @@ const styles = StyleSheet.create({
   countdown: {
     ...typography.subhead,
     marginTop: spacing.lg, // 16
+  },
+
+  // Sky Arc — sun path visualization between hero and timetable
+  skyArcContainer: {
+    paddingHorizontal: spacing['3xl'],
   },
 
   // Timetable — clean rows, hairline separators
