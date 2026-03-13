@@ -54,7 +54,7 @@ export interface MosqueEvent {
 export type EventCategory =
   | 'lesson'
   | 'lecture'
-  | 'quran_circle'
+  | 'quran_school'
   | 'youth'
   | 'sisters'
   | 'community';
@@ -133,7 +133,7 @@ export const CALCULATION_METHODS: Record<string, { label: string; code: number }
 export const EVENT_CATEGORY_COLORS: Record<EventCategory, string> = {
   lesson: '#1B4965',
   lecture: '#2D6A4F',
-  quran_circle: '#C8A951',
+  quran_school: '#C8A951',
   youth: '#6A5ACD',
   sisters: '#C44536',
   community: '#2A6A8F',

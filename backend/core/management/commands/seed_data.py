@@ -221,7 +221,7 @@ class Command(BaseCommand):
                 "event_date": today + timedelta(days=1),
                 "start_time": time(19, 0),
                 "end_time": time(20, 30),
-                "category": "quran_circle",
+                "category": "quran_school",
                 "recurring": "weekly",
             },
         ]

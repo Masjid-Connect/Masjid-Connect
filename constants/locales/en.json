@@ -56,7 +56,7 @@
       "all": "All",
       "lesson": "Lessons",
       "lecture": "Lectures",
-      "quran_circle": "Quran",
+      "quran_school": "Quran School",
       "youth": "Youth",
       "sisters": "Sisters",
       "community": "Community"
@@ -179,7 +179,7 @@
     "tagline": "Serving the Muslim community upon the Quran and Sunnah, with the understanding of the pious predecessors.",
     "version": "Version",
     "aboutMasjidTitle": "About The Salafi Masjid",
-    "aboutMasjid": "The Salafi Masjid is a place of worship and learning dedicated to teaching authentic Islam based upon the Quran and the Sunnah, with the understanding of the Salaf us-Saalih (the pious predecessors). We strive to provide a welcoming environment for all Muslims seeking knowledge and community.\n\nOur masjid hosts regular prayers, weekly lessons, lectures from visiting scholars, Quran circles, and community events for men, women, and youth.",
+    "aboutMasjid": "The Salafi Masjid is a place of worship and learning dedicated to teaching authentic Islam based upon the Quran and the Sunnah, with the understanding of the Salaf us-Saalih (the pious predecessors). We strive to provide a welcoming environment for all Muslims seeking knowledge and community.\n\nOur masjid hosts regular prayers, weekly lessons, lectures from visiting scholars, Quran school, and community events for men, women, and youth.",
     "aboutAppTitle": "About This App",
     "aboutApp": "The Salafi Masjid App keeps you connected with your community. View daily prayer and jama'ah times, receive announcements directly from the masjid, and stay up to date with upcoming lessons, lectures, and events.\n\nPrayer times are based on the masjid's published timetable with Aladhan API as a fallback for calculated times.",
     "creditsTitle": "Acknowledgements",
