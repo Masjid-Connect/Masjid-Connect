@@ -11,7 +11,15 @@ import {
   Share,
   Platform,
 } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, {
+  FadeInDown,
+  useSharedValue,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  interpolate,
+  Extrapolation,
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { formatDistanceToNow, isToday, isThisWeek, format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
@@ -62,6 +70,8 @@ function groupByTime(
     .map((key) => ({ title: sectionLabels[key], key, data: groups[key] }));
 }
 
+const AnimatedSectionList = Animated.createAnimatedComponent(SectionList<Announcement>);
+
 // ─── Screen ─────────────────────────────────────────────────────────
 
 export default function AnnouncementsScreen() {
@@ -73,6 +83,36 @@ export default function AnnouncementsScreen() {
   const { isUnread, markRead } = useReadAnnouncements();
   const [refreshing, setRefreshing] = useState(false);
   const [expandedItem, setExpandedItem] = useState<Announcement | null>(null);
+  const insets = useSafeAreaInsets();
+
+  // ─── Large title collapse animation ────────────────────────────
+  const HEADER_HEIGHT = 44;
+  const LARGE_TITLE_HEIGHT = 52;
+  const scrollY = useSharedValue(0);
+
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  const largeTitleStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollY.value, [0, LARGE_TITLE_HEIGHT], [1, 0], Extrapolation.CLAMP),
+    transform: [
+      {
+        translateY: interpolate(
+          scrollY.value,
+          [0, LARGE_TITLE_HEIGHT],
+          [0, -LARGE_TITLE_HEIGHT / 2],
+          Extrapolation.CLAMP,
+        ),
+      },
+    ],
+  }));
+
+  const inlineHeaderOpacity = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollY.value, [LARGE_TITLE_HEIGHT - 10, LARGE_TITLE_HEIGHT], [0, 1], Extrapolation.CLAMP),
+  }));
 
   const sectionLabels: Record<SectionKey, string> = useMemo(
     () => ({
@@ -124,8 +164,15 @@ export default function AnnouncementsScreen() {
   // ─── Loading ────────────────────────────────────────────────────
   if (isLoading && announcements.length === 0) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.accent} />
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.staticHeader, { paddingTop: insets.top }]}>
+          <Text style={[typography.largeTitle, { color: colors.text }]}>
+            {t('announcements.title')}
+          </Text>
+        </View>
+        <View style={[styles.centered, { flex: 1 }]}>
+          <ActivityIndicator size="large" color={colors.accent} />
+        </View>
       </View>
     );
   }
@@ -133,18 +180,25 @@ export default function AnnouncementsScreen() {
   // ─── Error ──────────────────────────────────────────────────────
   if (error && announcements.length === 0) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
-        <Ionicons name="cloud-offline-outline" size={48} color={colors.textSecondary} />
-        <Text
-          style={[
-            typography.headline,
-            { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.lg },
-          ]}>
-          {t('common.networkError')}
-        </Text>
-        <Pressable onPress={handleRefresh} style={[styles.retryBtn, { borderColor: colors.tint }]}>
-          <Text style={[typography.subhead, { color: colors.tint }]}>{t('common.retry')}</Text>
-        </Pressable>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.staticHeader, { paddingTop: insets.top }]}>
+          <Text style={[typography.largeTitle, { color: colors.text }]}>
+            {t('announcements.title')}
+          </Text>
+        </View>
+        <View style={[styles.centered, { flex: 1 }]}>
+          <Ionicons name="cloud-offline-outline" size={48} color={colors.textSecondary} />
+          <Text
+            style={[
+              typography.headline,
+              { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.lg },
+            ]}>
+            {t('common.networkError')}
+          </Text>
+          <Pressable onPress={handleRefresh} style={[styles.retryBtn, { borderColor: colors.tint }]}>
+            <Text style={[typography.subhead, { color: colors.tint }]}>{t('common.retry')}</Text>
+          </Pressable>
+        </View>
       </View>
     );
   }
@@ -152,28 +206,34 @@ export default function AnnouncementsScreen() {
   // ─── Empty ──────────────────────────────────────────────────────
   if (announcements.length === 0) {
     return (
-      <ScrollView
-        style={[styles.container, { backgroundColor: colors.background }]}
-        contentContainerStyle={styles.centeredScroll}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
-        }>
-        <Ionicons name="megaphone-outline" size={48} color={colors.textSecondary} style={{ opacity: 0.5 }} />
-        <Text
-          style={[
-            typography.headline,
-            { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.lg },
-          ]}>
-          {t('announcements.empty')}
-        </Text>
-        <Text
-          style={[
-            typography.subhead,
-            { color: colors.textTertiary, textAlign: 'center', marginTop: spacing.sm },
-          ]}>
-          {t('announcements.emptyHint')}
-        </Text>
-      </ScrollView>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.staticHeader, { paddingTop: insets.top }]}>
+          <Text style={[typography.largeTitle, { color: colors.text }]}>
+            {t('announcements.title')}
+          </Text>
+        </View>
+        <ScrollView
+          contentContainerStyle={styles.centeredScroll}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
+          }>
+          <Ionicons name="megaphone-outline" size={48} color={colors.textSecondary} style={{ opacity: 0.5 }} />
+          <Text
+            style={[
+              typography.headline,
+              { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.lg },
+            ]}>
+            {t('announcements.empty')}
+          </Text>
+          <Text
+            style={[
+              typography.subhead,
+              { color: colors.textTertiary, textAlign: 'center', marginTop: spacing.sm },
+            ]}>
+            {t('announcements.emptyHint')}
+          </Text>
+        </ScrollView>
+      </View>
     );
   }
 
@@ -306,14 +366,43 @@ export default function AnnouncementsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <SectionList
+      {/* Inline header — appears when large title scrolls away */}
+      <View style={[styles.inlineHeader, { paddingTop: insets.top, height: insets.top + HEADER_HEIGHT, backgroundColor: colors.background }]}>
+        <Animated.Text
+          style={[
+            typography.headline,
+            { color: colors.text, textAlign: 'center' },
+            inlineHeaderOpacity,
+          ]}>
+          {t('announcements.title')}
+        </Animated.Text>
+        {/* Separator appears with inline title */}
+        <Animated.View
+          style={[
+            styles.headerSeparator,
+            { backgroundColor: colors.separator },
+            inlineHeaderOpacity,
+          ]}
+        />
+      </View>
+
+      <AnimatedSectionList
         sections={sections}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
         ItemSeparatorComponent={renderSeparator}
-        contentContainerStyle={styles.listContent}
+        ListHeaderComponent={
+          <Animated.View style={[styles.largeTitleContainer, largeTitleStyle]}>
+            <Text style={[typography.largeTitle, { color: colors.text }]}>
+              {t('announcements.title')}
+            </Text>
+          </Animated.View>
+        }
+        contentContainerStyle={[styles.listContent, { paddingTop: insets.top + HEADER_HEIGHT }]}
         stickySectionHeadersEnabled
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
         }
@@ -426,6 +515,33 @@ export default function AnnouncementsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  // ─── Large title header ────────────────────────────────────────
+  inlineHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerSeparator: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: StyleSheet.hairlineWidth,
+  },
+  staticHeader: {
+    paddingHorizontal: spacing['3xl'],
+    paddingBottom: spacing.md,
+  },
+  largeTitleContainer: {
+    paddingHorizontal: spacing['3xl'],
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
   },
   centered: {
     justifyContent: 'center',
