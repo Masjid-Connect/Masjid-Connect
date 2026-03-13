@@ -23,7 +23,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: t('tabs.prayerTimes'),
+          title: t('tabs.prayer'),
           tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
             <Ionicons
               name={focused ? 'time' : 'time-outline'}
@@ -34,12 +34,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="announcements"
+        name="qibla"
         options={{
-          title: t('tabs.announcements'),
+          title: t('tabs.qibla'),
           tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
             <Ionicons
-              name={focused ? 'megaphone' : 'megaphone-outline'}
+              name={focused ? 'compass' : 'compass-outline'}
               size={24}
               color={color}
             />
@@ -47,12 +47,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="events"
+        name="community"
         options={{
-          title: t('tabs.events'),
+          title: t('tabs.community'),
           tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
             <Ionicons
-              name={focused ? 'calendar' : 'calendar-outline'}
+              name={focused ? 'people' : 'people-outline'}
               size={24}
               color={color}
             />
@@ -65,13 +65,16 @@ export default function TabLayout() {
           title: t('tabs.settings'),
           tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
             <Ionicons
-              name={focused ? 'person' : 'person-outline'}
+              name={focused ? 'settings' : 'settings-outline'}
               size={24}
               color={color}
             />
           ),
         }}
       />
+      {/* Hide old standalone tabs — kept as files for now but not in tab bar */}
+      <Tabs.Screen name="announcements" options={{ href: null }} />
+      <Tabs.Screen name="events" options={{ href: null }} />
     </Tabs>
   );
 }

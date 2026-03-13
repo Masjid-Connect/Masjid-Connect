@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Dimensions,
   StyleSheet,
@@ -7,11 +7,14 @@ import {
   ScrollView,
   RefreshControl,
   ActivityIndicator,
+  PanResponder,
 } from 'react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { LinearGradient } from 'expo-linear-gradient';
 
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography } from '@/constants/Theme';
@@ -23,6 +26,8 @@ import { SkiaAtmosphericGradient } from '@/components/brand/SkiaAtmosphericGradi
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { GlowDot } from '@/components/brand/GlowDot';
 import { SolarLight } from '@/components/brand/SolarLight';
+import { SkyArc } from '@/components/brand/SkyArc';
+import { DateNavigator } from '@/components/prayer/DateNavigator';
 import type { PrayerName } from '@/types';
 
 // ─── Design Philosophy ──────────────────────────────────────────────
@@ -60,10 +65,37 @@ export default function PrayerTimesScreen() {
   const {
     prayers, nextPrayer, countdown, hijriDate,
     isLoading, source, jamaahAvailable, use24h, refresh,
+    selectedDate, isToday, goToNextDay, goToPrevDay, goToToday,
   } = usePrayerTimes();
 
   const [refreshing, setRefreshing] = React.useState(false);
   const [heroLayout, setHeroLayout] = useState({ width: SCREEN_WIDTH, height: layout.heroHeight });
+
+  // Horizontal swipe to change date
+  const swipeHandled = useRef(false);
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) =>
+        Math.abs(gestureState.dx) > 30 && Math.abs(gestureState.dy) < 40,
+      onPanResponderGrant: () => {
+        swipeHandled.current = false;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (swipeHandled.current) return;
+        if (Math.abs(gestureState.dx) > 60) {
+          swipeHandled.current = true;
+          if (gestureState.dx > 0) {
+            goToPrevDay();
+          } else {
+            goToNextDay();
+          }
+        }
+      },
+      onPanResponderRelease: () => {
+        swipeHandled.current = false;
+      },
+    })
+  ).current;
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -120,7 +152,7 @@ export default function PrayerTimesScreen() {
             width={heroLayout.width}
             height={heroLayout.height}
             color={isDark ? palette.sapphire400 : palette.sapphire700}
-            opacity={patterns.opacity}
+            opacity={isDark ? patterns.opacityDark : patterns.opacity}
             tileSize={patterns.tileSize}
           />
 
@@ -130,11 +162,17 @@ export default function PrayerTimesScreen() {
               {t('prayer.mosqueName')}
             </Text>
 
-            {/* Hijri date — quiet context, not competing */}
+            {/* Hijri date — prominent, decorative border */}
             {hijriDate && (
-              <Text style={[styles.hijriDate, { color: colors.textSecondary }]}>
-                {hijriDate}
-              </Text>
+              <View style={[styles.hijriContainer, {
+                borderColor: isDark ? 'rgba(229,193,75,0.2)' : 'rgba(212,175,55,0.15)',
+              }]}>
+                <Text style={[styles.hijriDate, {
+                  color: isDark ? palette.divineGoldBright : colors.text,
+                }]}>
+                  {hijriDate}
+                </Text>
+              </View>
             )}
 
             {/* THE dominant element: next prayer name */}
@@ -164,8 +202,37 @@ export default function PrayerTimesScreen() {
           </Animated.View>
         </View>
 
+        {/* ── Gradient fade: hero → content ──────────────────────── */}
+        <LinearGradient
+          colors={[
+            gradient[gradient.length - 1] || colors.background,
+            colors.background,
+          ]}
+          style={styles.heroFade}
+        />
+
+        {/* ── Sky Arc: sun path visualization ───────────────────── */}
+        {prayers.length > 0 && (
+          <View style={styles.skyArcContainer}>
+            <SkyArc
+              width={SCREEN_WIDTH}
+              prayers={prayers}
+              nextPrayer={nextPrayer}
+            />
+          </View>
+        )}
+
+        {/* ── Date Navigator ─────────────────────────────────────── */}
+        <DateNavigator
+          selectedDate={selectedDate}
+          isTodayDate={isToday}
+          onPrev={goToPrevDay}
+          onNext={goToNextDay}
+          onToday={goToToday}
+        />
+
         {/* ── Timetable ─────────────────────────────────────────── */}
-        <View style={styles.timetable}>
+        <View style={styles.timetable} {...panResponder.panHandlers}>
           <View style={styles.timetableHeader}>
             <Text style={[
               typography.sectionHeader,
@@ -191,13 +258,19 @@ export default function PrayerTimesScreen() {
                 entering={FadeInDown.delay(index * 40).duration(300).springify()}
                 style={[
                   styles.row,
-                  index < prayers.length - 1 && {
+                  index < prayers.length - 1 && !isNext && {
                     borderBottomWidth: StyleSheet.hairlineWidth,
                     borderBottomColor: colors.separator,
                   },
-                  isNext && {
-                    backgroundColor: alphaColors.prayerActiveBg,
-                  },
+                  isNext && [
+                    styles.activeRow,
+                    {
+                      backgroundColor: alphaColors.prayerActiveBg,
+                      borderColor: isDark
+                        ? 'rgba(229,193,75,0.25)'
+                        : 'rgba(212,175,55,0.2)',
+                    },
+                  ],
                 ]}
               >
                 {/* Active dot — Skia glow or empty column */}
@@ -219,6 +292,16 @@ export default function PrayerTimesScreen() {
                 ]}>
                   {t(`prayer.${prayer.name}`)}
                 </Text>
+
+                {/* Bell icon — notification indicator */}
+                {prayer.name !== 'sunrise' && (
+                  <Ionicons
+                    name="notifications-outline"
+                    size={16}
+                    color={isPassed ? colors.textTertiary : colors.textSecondary}
+                    style={styles.bellIcon}
+                  />
+                )}
 
                 {/* Time — right-aligned, tabular */}
                 <View style={styles.timeCol}>
@@ -278,9 +361,16 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: spacing.xs, // 4
   },
+  hijriContainer: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    alignSelf: 'flex-start',
+    marginBottom: spacing.md,
+  },
   hijriDate: {
-    ...typography.footnote,
-    marginBottom: spacing.sm, // 8
+    ...typography.title3,
   },
   prayerLabel: {
     ...typography.sectionHeader,
@@ -297,6 +387,16 @@ const styles = StyleSheet.create({
   countdown: {
     ...typography.subhead,
     marginTop: spacing.lg, // 16
+  },
+
+  // Gradient fade from hero to content
+  heroFade: {
+    height: HERO_PADDING_BOTTOM, // 48
+  },
+
+  // Sky Arc — sun path visualization between hero and timetable
+  skyArcContainer: {
+    paddingHorizontal: spacing['3xl'],
   },
 
   // Timetable — clean rows, hairline separators
@@ -316,9 +416,19 @@ const styles = StyleSheet.create({
     paddingVertical: ROW_PADDING_V,
     paddingHorizontal: spacing['3xl'],
   },
+  activeRow: {
+    borderRadius: 12,
+    borderWidth: 1,
+    marginHorizontal: spacing.lg,
+    paddingHorizontal: spacing.xl,
+  },
   dotCol: {
     width: spacing.xl, // 20
     alignItems: 'center',
+  },
+  bellIcon: {
+    marginRight: spacing.md,
+    opacity: 0.6,
   },
   timeCol: {
     alignItems: 'flex-end',

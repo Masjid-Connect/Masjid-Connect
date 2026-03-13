@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { format } from 'date-fns';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { format, addDays, isSameDay, isToday as isTodayFn } from 'date-fns';
 import { getPrayerTimes, fetchMosquePrayerTimes, buildPrayerEntries, getNextPrayer, getCountdown } from '@/lib/prayer';
 import { cachePrayerTimes, getCachedPrayerTimes, getReminderMinutes, getUse24h } from '@/lib/storage';
 import { getMosqueId, SALAFI_MASJID } from '@/constants/mosque';
@@ -9,6 +9,26 @@ import type { PrayerTimeEntry, PrayerName, JamaahTimesData } from '@/types';
 /** Umm Al-Qura is the only calculation method used */
 const CALCULATION_METHOD_CODE = 4;
 const CALCULATION_METHOD_NAME = 'UmmAlQura';
+
+/**
+ * Get the correct Hijri date, accounting for the Islamic day starting at Maghrib.
+ * If current time is after Maghrib, the Hijri date should be for the *next* Gregorian day.
+ */
+async function getCorrectHijriDate(
+  targetDate: Date,
+  maghribTime: Date | undefined,
+): Promise<string | null> {
+  const { latitude: lat, longitude: lng } = SALAFI_MASJID;
+  const now = new Date();
+  const isAfterMaghrib = maghribTime && isTodayFn(targetDate) && now >= maghribTime;
+  const hijriQueryDate = isAfterMaghrib ? addDays(targetDate, 1) : targetDate;
+
+  const result = await getPrayerTimes(lat, lng, CALCULATION_METHOD_CODE, CALCULATION_METHOD_NAME, hijriQueryDate);
+  if (result.hijriDate && result.hijriMonth && result.hijriYear) {
+    return `${result.hijriDate} ${result.hijriMonth} ${result.hijriYear}`;
+  }
+  return null;
+}
 
 interface UsePrayerTimesResult {
   prayers: PrayerTimeEntry[];
@@ -20,6 +40,16 @@ interface UsePrayerTimesResult {
   jamaahAvailable: boolean;
   use24h: boolean;
   refresh: () => Promise<void>;
+  /** Currently selected date */
+  selectedDate: Date;
+  /** Whether the selected date is today */
+  isToday: boolean;
+  /** Navigate to the next day */
+  goToNextDay: () => void;
+  /** Navigate to the previous day */
+  goToPrevDay: () => void;
+  /** Jump back to today */
+  goToToday: () => void;
 }
 
 export function usePrayerTimes(): UsePrayerTimesResult {
@@ -31,10 +61,28 @@ export function usePrayerTimes(): UsePrayerTimesResult {
   const [source, setSource] = useState<'api' | 'offline' | 'cache' | 'mosque'>('cache');
   const [jamaahAvailable, setJamaahAvailable] = useState(false);
   const [use24h, setUse24hState] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const selectedDateRef = useRef(selectedDate);
+  selectedDateRef.current = selectedDate;
 
-  const loadPrayerTimes = useCallback(async () => {
+  const isToday = isTodayFn(selectedDate);
+
+  const goToNextDay = useCallback(() => {
+    setSelectedDate(prev => addDays(prev, 1));
+  }, []);
+
+  const goToPrevDay = useCallback(() => {
+    setSelectedDate(prev => addDays(prev, -1));
+  }, []);
+
+  const goToToday = useCallback(() => {
+    setSelectedDate(new Date());
+  }, []);
+
+  const loadPrayerTimes = useCallback(async (dateOverride?: Date) => {
+    const targetDate = dateOverride ?? selectedDateRef.current;
     setIsLoading(true);
-    const today = format(new Date(), 'yyyy-MM-dd');
+    const today = format(targetDate, 'yyyy-MM-dd');
 
     // Load 24h preference
     const h24 = await getUse24h();
@@ -58,28 +106,27 @@ export function usePrayerTimes(): UsePrayerTimesResult {
       let jamaahTimes: JamaahTimesData | null = null;
 
       if (mosqueId) {
-        const mosqueResult = await fetchMosquePrayerTimes(mosqueId);
+        const mosqueResult = await fetchMosquePrayerTimes(mosqueId, targetDate);
         if (mosqueResult) {
           jamaahTimes = mosqueResult.jamaahTimes;
           const entries = buildPrayerEntries(mosqueResult.times, jamaahTimes);
 
           setPrayers(entries);
-          setNextPrayer(getNextPrayer(mosqueResult.times));
+          setNextPrayer(isTodayFn(targetDate) ? getNextPrayer(mosqueResult.times) : null);
           setSource('mosque');
           setJamaahAvailable(true);
 
-          await cachePrayerTimes(mosqueResult.times, today, jamaahTimes);
-
-          const reminderMinutes = await getReminderMinutes();
-          await schedulePrayerReminders(mosqueResult.times, reminderMinutes, jamaahTimes);
+          if (isTodayFn(targetDate)) {
+            await cachePrayerTimes(mosqueResult.times, today, jamaahTimes);
+            const reminderMinutes = await getReminderMinutes();
+            await schedulePrayerReminders(mosqueResult.times, reminderMinutes, jamaahTimes);
+          }
 
           // Still fetch Aladhan for Hijri date (mosque API doesn't provide it)
+          // Islamic day starts at Maghrib, so after Maghrib we show next day's Hijri date
           try {
-            const { latitude: lat, longitude: lng } = SALAFI_MASJID;
-            const aladhanResult = await getPrayerTimes(lat, lng, CALCULATION_METHOD_CODE, CALCULATION_METHOD_NAME);
-            if (aladhanResult.hijriDate && aladhanResult.hijriMonth && aladhanResult.hijriYear) {
-              setHijriDate(`${aladhanResult.hijriDate} ${aladhanResult.hijriMonth} ${aladhanResult.hijriYear}`);
-            }
+            const hijri = await getCorrectHijriDate(targetDate, mosqueResult.times.maghrib);
+            if (hijri) setHijriDate(hijri);
           } catch {
             // Hijri date is nice-to-have, don't fail on it
           }
@@ -92,24 +139,32 @@ export function usePrayerTimes(): UsePrayerTimesResult {
       const lat = SALAFI_MASJID.latitude;
       const lng = SALAFI_MASJID.longitude;
 
-      const result = await getPrayerTimes(lat, lng, CALCULATION_METHOD_CODE, CALCULATION_METHOD_NAME);
+      const result = await getPrayerTimes(lat, lng, CALCULATION_METHOD_CODE, CALCULATION_METHOD_NAME, targetDate);
       const entries = buildPrayerEntries(result.times);
 
       setPrayers(entries);
-      setNextPrayer(getNextPrayer(result.times));
+      setNextPrayer(isTodayFn(targetDate) ? getNextPrayer(result.times) : null);
       setSource(result.source);
       setJamaahAvailable(false);
 
-      if (result.hijriDate && result.hijriMonth && result.hijriYear) {
-        setHijriDate(`${result.hijriDate} ${result.hijriMonth} ${result.hijriYear}`);
+      // Islamic day starts at Maghrib — correct the Hijri date accordingly
+      try {
+        const hijri = await getCorrectHijriDate(targetDate, result.times.maghrib);
+        if (hijri) setHijriDate(hijri);
+      } catch {
+        // Fall back to the date from the initial result
+        if (result.hijriDate && result.hijriMonth && result.hijriYear) {
+          setHijriDate(`${result.hijriDate} ${result.hijriMonth} ${result.hijriYear}`);
+        }
       }
 
-      // Cache for offline use
-      await cachePrayerTimes(result.times, today, null);
-
-      // Schedule prayer reminder notifications
-      const reminderMinutes = await getReminderMinutes();
-      await schedulePrayerReminders(result.times, reminderMinutes);
+      if (isTodayFn(targetDate)) {
+        // Cache for offline use
+        await cachePrayerTimes(result.times, today, null);
+        // Schedule prayer reminder notifications
+        const reminderMinutes = await getReminderMinutes();
+        await schedulePrayerReminders(result.times, reminderMinutes);
+      }
     } catch (error) {
       console.error('Failed to load prayer times:', error);
     } finally {
@@ -155,9 +210,15 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     return () => clearInterval(interval);
   }, [prayers]);
 
+  // Initial load
   useEffect(() => {
     loadPrayerTimes();
   }, [loadPrayerTimes]);
+
+  // Reload when selected date changes
+  useEffect(() => {
+    loadPrayerTimes(selectedDate);
+  }, [selectedDate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
     prayers,
@@ -169,5 +230,10 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     jamaahAvailable,
     use24h,
     refresh: loadPrayerTimes,
+    selectedDate,
+    isToday,
+    goToNextDay,
+    goToPrevDay,
+    goToToday,
   };
 }

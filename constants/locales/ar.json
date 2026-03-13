@@ -1,6 +1,9 @@
 {
   "tabs": {
     "prayerTimes": "أوقات الصلاة",
+    "prayer": "الصلاة",
+    "qibla": "القبلة",
+    "community": "المجتمع",
     "announcements": "الإعلانات",
     "events": "الفعاليات",
     "settings": "الإعدادات"
@@ -23,7 +26,8 @@
     "calculatedTimes": "أوقات محسوبة",
     "startTime": "البداية {{time}}",
     "upcoming": "التالية",
-    "todaySchedule": "اليوم"
+    "todaySchedule": "اليوم",
+    "today": "اليوم"
   },
   "announcements": {
     "title": "الإعلانات",
@@ -232,6 +236,29 @@
       "prop3Title": "حفظ في التقويم",
       "prop3Subtitle": "أضف الفعاليات مباشرة إلى تقويم هاتفك"
     }
+  },
+  "community": {
+    "title": "المجتمع",
+    "announcements": "الإعلانات",
+    "events": "الفعاليات",
+    "shareApp": "مشاركة التطبيق",
+    "shareHint": "ساعد مجتمعك على البقاء متصلاً",
+    "shareMessage": "حمّل تطبيق المسجد السلفي لأوقات الصلاة والإعلانات وفعاليات المجتمع."
+  },
+  "qibla": {
+    "title": "اتجاه القبلة",
+    "comingSoon": "بوصلة القبلة قريباً",
+    "location": "الموقع",
+    "turnLeft": "استدر إلى يسارك",
+    "turnRight": "استدر إلى يمينك",
+    "turnSlightLeft": "استدر قليلاً إلى اليسار",
+    "turnSlightRight": "استدر قليلاً إلى اليمين",
+    "qiblaFound": "تم العثور على القبلة",
+    "calibrationNeeded": "حرّك جهازك بشكل رقم ٨ للمعايرة",
+    "noSensor": "البوصلة غير متوفرة على هذا الجهاز",
+    "bearing": "{{degrees}}° {{cardinal}}",
+    "N": "ش", "NE": "ش.ش", "E": "شر", "SE": "ج.شر",
+    "S": "ج", "SW": "ج.غ", "W": "غ", "NW": "ش.غ"
   },
   "common": {
     "loading": "جارٍ التحميل...",
