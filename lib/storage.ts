@@ -12,6 +12,8 @@ const KEYS = {
   REMINDER_MINUTES: 'reminder_minutes',
   USE_24H: 'use_24h_format',
   THEME: 'theme_preference',
+  NOTIFY_ANNOUNCEMENTS: 'notify_announcements',
+  NOTIFY_EVENTS: 'notify_events',
 };
 
 /** Prayer times cache */
@@ -133,6 +135,25 @@ export async function getThemePreference(): Promise<'light' | 'dark' | 'system'>
 
 export async function setThemePreference(theme: 'light' | 'dark' | 'system'): Promise<void> {
   await AsyncStorage.setItem(KEYS.THEME, theme);
+}
+
+/** Notification preferences */
+export async function getNotifyAnnouncements(): Promise<boolean> {
+  const raw = await AsyncStorage.getItem(KEYS.NOTIFY_ANNOUNCEMENTS);
+  return raw !== 'false'; // default true
+}
+
+export async function setNotifyAnnouncements(enabled: boolean): Promise<void> {
+  await AsyncStorage.setItem(KEYS.NOTIFY_ANNOUNCEMENTS, enabled.toString());
+}
+
+export async function getNotifyEvents(): Promise<boolean> {
+  const raw = await AsyncStorage.getItem(KEYS.NOTIFY_EVENTS);
+  return raw !== 'false'; // default true
+}
+
+export async function setNotifyEvents(enabled: boolean): Promise<void> {
+  await AsyncStorage.setItem(KEYS.NOTIFY_EVENTS, enabled.toString());
 }
 
 /** Read announcements tracking */
