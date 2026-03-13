@@ -1,15 +1,18 @@
 /**
- * Sky Arc — Refined Sun Path Visualization
+ * Sky Arc — The Celestial Path
  *
- * A minimal, elegant parabolic arc showing the sun's journey with
- * prayer time markers as small dots. Inspired by premium prayer apps
- * with a clean, thin gradient line and subtle positioning.
+ * A refined, elegant arc showing the sun's journey from Fajr to Isha.
+ * Prayer dots sit at time-proportional positions along a gentle parabola.
+ * The sun indicator tracks real position. Tiny prayer initials label each dot.
+ *
+ * Design: flat horizon-like arc (not bulgy), thin strokes, small dots,
+ * properly integrated with the home screen's visual hierarchy.
  *
  * Returns null on web (Skia not available).
  */
 
 import React, { useMemo } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View, Text } from 'react-native';
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing } from '@/constants/Theme';
@@ -25,14 +28,28 @@ interface SkyArcProps {
 }
 
 // ─── Arc geometry ─────────────────────────────────────────────────
-const ARC_HEIGHT = 120;
-const ARC_PADDING_H = 32;
-const DOT_RADIUS = 4;
-const SUN_RADIUS = 6;
-const PEAK_Y = 20;        // top of the arc (closer to top = taller arc)
-const BASELINE_Y = 100;   // baseline where arc ends
+// Flatter, wider arc — a gentle horizon, not a speed bump.
+const ARC_HEIGHT = 56;
+const ARC_PADDING_H = 28;
+const DOT_RADIUS = 2.5;
+const ACTIVE_DOT_RADIUS = 3.5;
+const SUN_RADIUS = 4;
+const SUN_GLOW_RADIUS = 10;
+const PEAK_Y = 10;       // gentle peak — subtle curvature
+const BASELINE_Y = 44;   // baseline where arc rests
+const LABEL_OFFSET_Y = 8; // space between dot and label
 
-/** Get the sun's progress through the day (0 = fajr time, 1 = isha time) */
+/** Prayer initials for labels */
+const PRAYER_INITIALS: Record<PrayerName, string> = {
+  fajr: 'F',
+  sunrise: 'S',
+  dhuhr: 'D',
+  asr: 'A',
+  maghrib: 'M',
+  isha: 'I',
+};
+
+/** Get the sun's progress through the day (0 = fajr, 1 = isha) */
 function getSunProgress(prayers: PrayerTimeEntry[]): number {
   const now = new Date();
   const fajr = prayers.find(p => p.name === 'fajr');
@@ -63,7 +80,6 @@ function getPrayerProgress(prayer: PrayerTimeEntry, prayers: PrayerTimeEntry[]):
 
 /** Smooth parabolic Y — peaks at t=0.5, baseline at t=0 and t=1 */
 function arcY(t: number): number {
-  // Inverted parabola: highest at center
   const height = BASELINE_Y - PEAK_Y;
   return BASELINE_Y - 4 * height * t * (1 - t);
 }
@@ -73,6 +89,10 @@ function arcX(t: number, width: number): number {
   return ARC_PADDING_H + t * (width - 2 * ARC_PADDING_H);
 }
 
+// Skia imports — only available on native
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const Skia = Platform.OS !== 'web' ? require('@shopify/react-native-skia') : null;
+
 export const SkyArc = ({ width, prayers, nextPrayer }: SkyArcProps) => {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
@@ -80,35 +100,24 @@ export const SkyArc = ({ width, prayers, nextPrayer }: SkyArcProps) => {
 
   const sunProgress = useMemo(() => getSunProgress(prayers), [prayers]);
 
-  if (Platform.OS === 'web' || prayers.length === 0) return null;
-
-  const {
-    Canvas, Path, Circle, Group,
-    LinearGradient, RadialGradient,
-    vec, Skia,
-  } = require('@shopify/react-native-skia');
-
-  // Build the smooth arc path
-  const arcPath = useMemo(() => {
-    const path = Skia.Path.Make();
-    const steps = 80;
-
-    for (let i = 0; i <= steps; i++) {
-      const t = i / steps;
-      const x = arcX(t, width);
-      const y = arcY(t);
-      if (i === 0) {
-        path.moveTo(x, y);
-      } else {
-        path.lineTo(x, y);
-      }
-    }
-    return path;
-  }, [width, Skia]);
+  // Prayer dot positions (shared between Skia canvas and RN label overlay)
+  const prayerDots = useMemo(() => {
+    return prayers.map(prayer => {
+      const t = getPrayerProgress(prayer, prayers);
+      return {
+        name: prayer.name,
+        x: arcX(t, width),
+        y: arcY(t),
+        isNext: prayer.name === nextPrayer,
+        isPassed: prayer.time < new Date() && prayer.name !== nextPrayer,
+      };
+    });
+  }, [prayers, nextPrayer, width]);
 
   // Faded tail path (after current sun position — future portion)
   const fadedPath = useMemo(() => {
-    const path = Skia.Path.Make();
+    if (!Skia) return null;
+    const path = Skia.Skia.Path.Make();
     const steps = 80;
     const startStep = Math.max(0, Math.floor(sunProgress * steps));
 
@@ -123,11 +132,12 @@ export const SkyArc = ({ width, prayers, nextPrayer }: SkyArcProps) => {
       }
     }
     return path;
-  }, [width, sunProgress, Skia]);
+  }, [width, sunProgress]);
 
   // Active path (from start to sun position)
   const activePath = useMemo(() => {
-    const path = Skia.Path.Make();
+    if (!Skia) return null;
+    const path = Skia.Skia.Path.Make();
     const steps = 80;
     const endStep = Math.min(steps, Math.ceil(sunProgress * steps));
 
@@ -142,74 +152,74 @@ export const SkyArc = ({ width, prayers, nextPrayer }: SkyArcProps) => {
       }
     }
     return path;
-  }, [width, sunProgress, Skia]);
+  }, [width, sunProgress]);
 
-  // Prayer dot positions
-  const prayerDots = useMemo(() => {
-    return prayers.map(prayer => {
-      const t = getPrayerProgress(prayer, prayers);
-      return {
-        name: prayer.name,
-        x: arcX(t, width),
-        y: arcY(t),
-        isNext: prayer.name === nextPrayer,
-        isPassed: prayer.time < new Date() && prayer.name !== nextPrayer,
-      };
-    });
-  }, [prayers, nextPrayer, width]);
+  // Early return after all hooks
+  if (Platform.OS === 'web' || prayers.length === 0 || width === 0 || !Skia) return null;
+
+  const { Canvas, Path, Circle, Group, LinearGradient, RadialGradient, vec } = Skia;
 
   // Sun position
   const sunX = arcX(sunProgress, width);
   const sunY = arcY(sunProgress);
 
-  // Arc colors — warm gradient for active portion, muted for future
+  // Arc colors
   const activeArcColors = isDark
     ? [palette.divineGoldBright, '#C8956A']
     : [palette.divineGold, '#C8956A'];
 
   const fadedArcColor = isDark
-    ? 'rgba(255,255,255,0.12)'
-    : 'rgba(0,0,0,0.08)';
+    ? 'rgba(255,255,255,0.08)'
+    : 'rgba(0,0,0,0.06)';
+
+  // Label colors
+  const labelColorActive = isDark ? palette.divineGoldBright : palette.divineGold;
+  const labelColorPassed = colors.textTertiary;
+  const labelColorFuture = isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)';
 
   return (
     <View style={styles.container}>
       <Canvas style={{ width, height: ARC_HEIGHT }} pointerEvents="none">
-        {/* Faded future arc — subtle hint of remaining path */}
-        <Path
-          path={fadedPath}
-          style="stroke"
-          strokeWidth={2}
-          strokeCap="round"
-          color={fadedArcColor}
-        />
+        {/* Faded future arc */}
+        {fadedPath && (
+          <Path
+            path={fadedPath}
+            style="stroke"
+            strokeWidth={1.5}
+            strokeCap="round"
+            color={fadedArcColor}
+          />
+        )}
 
         {/* Active arc — warm gradient from start to sun */}
-        <Path
-          path={activePath}
-          style="stroke"
-          strokeWidth={2.5}
-          strokeCap="round"
-        >
-          <LinearGradient
-            start={vec(ARC_PADDING_H, 0)}
-            end={vec(sunX, 0)}
-            colors={activeArcColors}
-          />
-        </Path>
+        {activePath && (
+          <Path
+            path={activePath}
+            style="stroke"
+            strokeWidth={1.5}
+            strokeCap="round"
+          >
+            <LinearGradient
+              start={vec(ARC_PADDING_H, 0)}
+              end={vec(sunX, 0)}
+              colors={activeArcColors}
+            />
+          </Path>
+        )}
 
-        {/* Prayer dots — small, clean markers */}
+        {/* Prayer dots */}
         {prayerDots.map((dot) => (
           <Circle
             key={dot.name}
             cx={dot.x}
             cy={dot.y}
-            r={dot.isNext ? DOT_RADIUS + 1.5 : DOT_RADIUS}
+            r={dot.isNext ? ACTIVE_DOT_RADIUS : DOT_RADIUS}
             color={
               dot.isNext
                 ? (isDark ? palette.divineGoldBright : palette.divineGold)
                 : dot.isPassed
-                  ? (isDark ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.95)')
-                  : (isDark ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.12)')
+                  ? (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.15)')
+                  : (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.08)')
             }
           />
         ))}
@@ -217,17 +227,17 @@ export const SkyArc = ({ width, prayers, nextPrayer }: SkyArcProps) => {
         {/* Sun indicator — refined glowing orb */}
         <Group>
           {/* Soft outer glow */}
-          <Circle cx={sunX} cy={sunY} r={SUN_RADIUS + 10}>
+          <Circle cx={sunX} cy={sunY} r={SUN_GLOW_RADIUS}>
             <RadialGradient
               c={vec(sunX, sunY)}
-              r={SUN_RADIUS + 10}
+              r={SUN_GLOW_RADIUS}
               colors={[
-                isDark ? 'rgba(229, 193, 75, 0.2)' : 'rgba(212, 175, 55, 0.18)',
+                isDark ? 'rgba(229, 193, 75, 0.15)' : 'rgba(212, 175, 55, 0.12)',
                 'transparent',
               ]}
             />
           </Circle>
-          {/* Inner sun — clean circle */}
+          {/* Inner sun */}
           <Circle
             cx={sunX}
             cy={sunY}
@@ -236,20 +246,54 @@ export const SkyArc = ({ width, prayers, nextPrayer }: SkyArcProps) => {
           />
           {/* Specular highlight */}
           <Circle
-            cx={sunX - 1.5}
-            cy={sunY - 1.5}
-            r={SUN_RADIUS * 0.35}
-            color="rgba(255,255,255,0.45)"
+            cx={sunX - 1}
+            cy={sunY - 1}
+            r={SUN_RADIUS * 0.3}
+            color="rgba(255,255,255,0.4)"
           />
         </Group>
       </Canvas>
+
+      {/* Prayer initial labels — positioned below each dot */}
+      <View style={styles.labelsContainer} pointerEvents="none">
+        {prayerDots.map((dot) => (
+          <Text
+            key={`label-${dot.name}`}
+            style={[
+              styles.label,
+              {
+                left: dot.x,
+                top: dot.y + LABEL_OFFSET_Y,
+                color: dot.isNext
+                  ? labelColorActive
+                  : dot.isPassed
+                    ? labelColorPassed
+                    : labelColorFuture,
+                fontWeight: dot.isNext ? '600' : '400',
+              },
+            ]}
+          >
+            {PRAYER_INITIALS[dot.name]}
+          </Text>
+        ))}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: spacing.sm,
-    marginBottom: spacing.xs,
+    marginHorizontal: spacing.lg, // 16px
+  },
+  labelsContainer: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  label: {
+    position: 'absolute',
+    fontSize: 9,
+    letterSpacing: 0.3,
+    textAlign: 'center',
+    // Center the label on the dot's X position
+    marginLeft: -3,
   },
 });

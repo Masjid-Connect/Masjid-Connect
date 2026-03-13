@@ -8,6 +8,7 @@ import {
   RefreshControl,
   ActivityIndicator,
   PanResponder,
+  type ViewStyle,
 } from 'react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,7 +26,9 @@ import { SkiaAtmosphericGradient } from '@/components/brand/SkiaAtmosphericGradi
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { GlowDot } from '@/components/brand/GlowDot';
 import { SolarLight } from '@/components/brand/SolarLight';
+import { SkyArc } from '@/components/brand/SkyArc';
 import { DateNavigator } from '@/components/prayer/DateNavigator';
+import { Ionicons } from '@expo/vector-icons';
 import type { PrayerName } from '@/types';
 
 // ─── Design Philosophy ──────────────────────────────────────────────
@@ -61,7 +64,7 @@ export default function PrayerTimesScreen() {
   const { t } = useTranslation();
   const alphaColors = getAlpha(effectiveScheme);
   const {
-    prayers, nextPrayer, countdown, hijriDate,
+    prayers, nextPrayer, countdown, windowProgress, hijriDate,
     isLoading, source, jamaahAvailable, use24h, refresh,
     selectedDate, isToday, goToNextDay, goToPrevDay, goToToday,
   } = usePrayerTimes();
@@ -189,6 +192,17 @@ export default function PrayerTimesScreen() {
           style={styles.heroFade}
         />
 
+        {/* ── Sky Arc: sun path visualization ─────────────────────── */}
+        {prayers.length > 0 && isToday && (
+          <View style={styles.skyArcWrapper}>
+            <SkyArc
+              width={SCREEN_WIDTH}
+              prayers={prayers}
+              nextPrayer={nextPrayer}
+            />
+          </View>
+        )}
+
         {/* ── Date Navigator ─────────────────────────────────────── */}
         <DateNavigator
           selectedDate={selectedDate}
@@ -241,16 +255,22 @@ export default function PrayerTimesScreen() {
                   ],
                 ]}
               >
-                {/* Active dot — Skia glow or empty column */}
+                {/* Status indicator: glow dot (active), checkmark (passed), or empty */}
                 <View style={styles.dotCol}>
-                  {isNext && (
+                  {isNext ? (
                     <GlowDot
                       color={colors.prayerActive}
                       size={3}
                       blurRadius={4}
                       animated={true}
                     />
-                  )}
+                  ) : isPassed ? (
+                    <Ionicons
+                      name="checkmark"
+                      size={14}
+                      color={colors.textTertiary}
+                    />
+                  ) : null}
                 </View>
 
                 {/* Name — i18n-aware */}
@@ -288,6 +308,23 @@ export default function PrayerTimesScreen() {
                     </Text>
                   )}
                 </View>
+
+                {/* Active row progress bar — thin gold line at bottom */}
+                {isNext && isToday && (
+                  <View style={styles.progressBarContainer}>
+                    <View
+                      style={[
+                        styles.progressBarFill,
+                        {
+                          width: `${Math.round(windowProgress * 100)}%`,
+                          backgroundColor: isDark
+                            ? 'rgba(229,193,75,0.3)'
+                            : 'rgba(212,175,55,0.25)',
+                        } as ViewStyle,
+                      ]}
+                    />
+                  </View>
+                )}
               </Animated.View>
             );
           })}
@@ -372,5 +409,27 @@ const styles = StyleSheet.create({
   },
   timeCol: {
     alignItems: 'flex-end',
+  },
+
+  // Sky Arc wrapper — proper vertical spacing
+  skyArcWrapper: {
+    marginTop: spacing.sm,   // 8
+    marginBottom: spacing.xs, // 4
+  },
+
+  // Active row progress bar
+  progressBarContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: 2,
+    borderRadius: 1,
   },
 });
