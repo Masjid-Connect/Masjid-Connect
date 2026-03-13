@@ -101,11 +101,18 @@ export const AmbientTabBar = ({ state, descriptors, navigation }: BottomTabBarPr
         </Animated.View>
       )}
 
-      {/* Tab buttons */}
-      {state.routes.map((route, index) => {
+      {/* Tab buttons — filter out hidden tabs (href: null) */}
+      {state.routes
+        .filter((route) => {
+          const { options } = descriptors[route.key];
+          // Expo Router sets href to null for hidden tabs
+          return (options as Record<string, unknown>).href !== null;
+        })
+        .map((route) => {
         const { options } = descriptors[route.key];
         const label = options.title ?? route.name;
-        const isFocused = state.index === index;
+        const realIndex = state.routes.indexOf(route);
+        const isFocused = state.index === realIndex;
 
         const onPress = () => {
           const event = navigation.emit({
@@ -138,7 +145,7 @@ export const AmbientTabBar = ({ state, descriptors, navigation }: BottomTabBarPr
             onLongPress={onLongPress}
             onLayout={(e) => {
               const { x, width } = e.nativeEvent.layout;
-              handleTabLayout(index, x, width);
+              handleTabLayout(realIndex, x, width);
             }}
             style={styles.tab}
           >
