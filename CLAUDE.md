@@ -70,7 +70,7 @@ The app uses the **Masjid_Logo.png** (The Salafi Masjid logo with transparent ba
 
 ### Color Palette — "Timeless Sanctuary" (Jewel & Stone philosophy)
 
-**Palette taxonomy:** Stone (backgrounds), Onyx (dark tones), Emerald (brand primary), Gold (divine accent), Crimson (urgent), Slate (info). High-contrast for older congregants, calm for daily use.
+**Palette taxonomy:** Stone (backgrounds), Onyx (dark tones), Sapphire (brand primary), Gold (divine accent), Sage (success), Crimson (urgent), Slate (info). High-contrast for older congregants, calm for daily use.
 
 **Light mode — "Morning Light in the Musalla":**
 - **Stone-100** `#F9F7F2` — main background, clean masjid marble
@@ -78,9 +78,9 @@ The app uses the **Masjid_Logo.png** (The Salafi Masjid logo with transparent ba
 - **Stone-300** `#E5E0D3` — grouped backgrounds, sand-toned
 - **Onyx-900** `#121216` — primary text (organic near-black, not harsh)
 - **Onyx-600** `#6B6B70` — secondary text
-- **Emerald-700** `#064E3B` — brand primary tint, tab selection, links
+- **Sapphire-700** `#0F2D52` — brand primary tint, tab selection, links (deep blue)
 - **Divine Gold** `#D4AF37` — accent, prayer active indicator, notification badges
-- **Emerald-600** `#047857` — success states
+- **Sage-600** `#2D6A4F` — success states
 - **Crimson-600** `#B91C1C` — urgent/alert states (Janazah, immediate announcements)
 - **Separator** `#E2DFD8` — warm hairline dividers
 
@@ -89,7 +89,7 @@ The app uses the **Masjid_Logo.png** (The Salafi Masjid logo with transparent ba
 - **Onyx-850** `#1A1A1E` — elevated card surfaces
 - **Onyx-800** `#262628` — grouped list backgrounds
 - **Snow** `#F5F5F7` — primary text
-- **Emerald-400** `#34D399` — lighter emerald tint for dark backgrounds
+- **Sapphire-400** `#5B9BD5` — lighter sapphire tint for dark backgrounds
 - **Gold Bright** `#E5C14B` — brighter Divine Gold for dark contrast
 
 **Semantic layer:** Colors are mapped through `semantic.*` tokens in Colors.ts (surface, text, status, brand) for future theme variants (e.g., Ramadan Mode).

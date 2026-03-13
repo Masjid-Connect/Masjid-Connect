@@ -152,7 +152,7 @@ export const ThemePreviewSheet = ({
   const lightPreview = {
     previewBg: '#F9F7F2',
     previewText: '#121216',
-    previewAccent: '#064E3B',
+    previewAccent: '#0F2D52',
     previewCard: '#FFFFFF',
   };
 
@@ -160,7 +160,7 @@ export const ThemePreviewSheet = ({
   const darkPreview = {
     previewBg: '#0A0A0C',
     previewText: '#F5F5F7',
-    previewAccent: '#34D399',
+    previewAccent: '#5B9BD5',
     previewCard: '#1A1A1E',
   };
 

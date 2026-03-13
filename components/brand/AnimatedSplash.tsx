@@ -200,7 +200,7 @@ export const AnimatedSplash = ({
           <IslamicPattern
             width={dimensions.width}
             height={dimensions.height}
-            color={palette.emerald700}
+            color={palette.sapphire700}
             opacity={1} // Opacity controlled by Animated.View wrapper
             tileSize={patterns.tileSize}
           />

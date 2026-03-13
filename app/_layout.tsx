@@ -26,7 +26,7 @@ const MosqueLight = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: palette.emerald700,
+    primary: palette.sapphire700,
     background: palette.stone100,
     card: '#FFFFFF',
     text: palette.onyx900,
@@ -123,7 +123,7 @@ function RootLayoutNav() {
           options={{
             presentation: 'modal',
             headerTitle: 'About',
-            headerTintColor: effectiveScheme === 'dark' ? palette.divineGoldBright : palette.emerald700,
+            headerTintColor: effectiveScheme === 'dark' ? palette.divineGoldBright : palette.sapphire700,
           }}
         />
       </Stack>

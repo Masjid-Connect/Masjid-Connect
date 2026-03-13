@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { typography } from '@/constants/Theme';
 import { AmbientTabBar } from '@/components/navigation/AmbientTabIndicator';
 
 export default function TabLayout() {
@@ -19,15 +18,7 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: colors.tabIconSelected,
         tabBarInactiveTintColor: colors.tabIconDefault,
-        headerStyle: {
-          backgroundColor: colors.background,
-        },
-        headerTintColor: colors.text,
-        headerShadowVisible: false,
-        headerTitleStyle: {
-          fontSize: typography.headline.fontSize,
-          fontWeight: '600' as const,
-        },
+        headerShown: false,
       }}>
       <Tabs.Screen
         name="index"
@@ -40,14 +31,12 @@ export default function TabLayout() {
               color={color}
             />
           ),
-          headerShown: false,
         }}
       />
       <Tabs.Screen
         name="announcements"
         options={{
           title: t('tabs.announcements'),
-          headerShown: false,
           tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
             <Ionicons
               name={focused ? 'megaphone' : 'megaphone-outline'}

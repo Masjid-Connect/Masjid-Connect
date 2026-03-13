@@ -9,6 +9,14 @@ import {
   Share,
   Linking,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  interpolate,
+  Extrapolation,
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -38,12 +46,45 @@ import {
 
 const REMINDER_VALUES = [0, 5, 10, 15, 30];
 
+const HEADER_HEIGHT = 44;
+const LARGE_TITLE_HEIGHT = 52;
+
+const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
+
 export default function SettingsScreen() {
   const router = useRouter();
   const { effectiveScheme, themePreference, setThemePreference } = useTheme();
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
   const { user, isAuthenticated, logout } = useAuth();
+  const insets = useSafeAreaInsets();
+
+  // ─── Large title collapse animation ────────────────────────────
+  const scrollY = useSharedValue(0);
+
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  const largeTitleStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollY.value, [0, LARGE_TITLE_HEIGHT], [1, 0], Extrapolation.CLAMP),
+    transform: [
+      {
+        translateY: interpolate(
+          scrollY.value,
+          [0, LARGE_TITLE_HEIGHT],
+          [0, -LARGE_TITLE_HEIGHT / 2],
+          Extrapolation.CLAMP,
+        ),
+      },
+    ],
+  }));
+
+  const inlineHeaderOpacity = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollY.value, [LARGE_TITLE_HEIGHT - 10, LARGE_TITLE_HEIGHT], [0, 1], Extrapolation.CLAMP),
+  }));
 
   // State
   const [reminderMin, setReminderMin] = useState(15);
@@ -160,12 +201,41 @@ export default function SettingsScreen() {
   }));
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.backgroundSecondary }]}
-      contentContainerStyle={styles.content}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* ── Profile Card (Hero) ── */}
+    <View style={[styles.root, { backgroundColor: colors.backgroundSecondary }]}>
+      {/* Inline header — appears when large title scrolls away */}
+      <View style={[styles.inlineHeader, { paddingTop: insets.top, height: insets.top + HEADER_HEIGHT, backgroundColor: colors.backgroundSecondary }]}>
+        <Animated.Text
+          style={[
+            typography.headline,
+            { color: colors.text, textAlign: 'center' },
+            inlineHeaderOpacity,
+          ]}>
+          {t('settings.title')}
+        </Animated.Text>
+        <Animated.View
+          style={[
+            styles.headerSeparator,
+            { backgroundColor: colors.separator },
+            inlineHeaderOpacity,
+          ]}
+        />
+      </View>
+
+      <AnimatedScrollView
+        style={styles.container}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + HEADER_HEIGHT }]}
+        showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+      >
+        {/* Large title */}
+        <Animated.View style={[styles.largeTitleContainer, largeTitleStyle]}>
+          <Text style={[typography.largeTitle, { color: colors.text }]}>
+            {t('settings.title')}
+          </Text>
+        </Animated.View>
+
+        {/* ── Profile Card (Hero) ── */}
       {isAuthenticated && user ? (
         <ProfileCard
           variant="authenticated"
@@ -186,7 +256,7 @@ export default function SettingsScreen() {
         footer={t('settings.notificationsFooter')}
       >
         <SettingsRow
-          icon={{ name: 'notifications', backgroundColor: palette.emerald600 }}
+          icon={{ name: 'notifications', backgroundColor: palette.sapphire600 }}
           label={t('settings.prayerReminder')}
           value={reminderLabel}
           accessory="disclosure"
@@ -197,7 +267,7 @@ export default function SettingsScreen() {
           position="first"
         />
         <SettingsRow
-          icon={{ name: 'megaphone', backgroundColor: palette.emerald700 }}
+          icon={{ name: 'megaphone', backgroundColor: palette.sapphire700 }}
           label={t('settings.announcementAlerts')}
           accessory="toggle"
           toggleValue={notifyAnnouncements}
@@ -231,7 +301,7 @@ export default function SettingsScreen() {
           position="first"
         />
         <SettingsRow
-          icon={{ name: 'time', backgroundColor: palette.emerald600 }}
+          icon={{ name: 'time', backgroundColor: palette.sapphire600 }}
           label={t('settings.use24h')}
           accessory="toggle"
           toggleValue={use24h}
@@ -250,7 +320,7 @@ export default function SettingsScreen() {
           position="first"
         />
         <SettingsRow
-          icon={{ name: 'share-social', backgroundColor: palette.emerald700 }}
+          icon={{ name: 'share-social', backgroundColor: palette.sapphire700 }}
           label={t('settings.shareApp')}
           onPress={handleShareApp}
           position="middle"
@@ -265,7 +335,7 @@ export default function SettingsScreen() {
           position="middle"
         />
         <SettingsRow
-          icon={{ name: 'mail', backgroundColor: palette.emerald600 }}
+          icon={{ name: 'mail', backgroundColor: palette.sapphire600 }}
           label={t('settings.contactSupport')}
           onPress={handleContactSupport}
           position="middle"
@@ -326,13 +396,40 @@ export default function SettingsScreen() {
         onSelect={handleThemeChange}
       />
 
-    </ScrollView>
+    </AnimatedScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   container: {
     flex: 1,
+  },
+  // ─── Large title header ────────────────────────────────────────
+  inlineHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerSeparator: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: StyleSheet.hairlineWidth,
+  },
+  largeTitleContainer: {
+    paddingHorizontal: spacing['3xl'],
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
   },
   content: {
     paddingBottom: spacing['5xl'],

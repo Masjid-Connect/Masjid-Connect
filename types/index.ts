@@ -131,8 +131,8 @@ export const CALCULATION_METHODS: Record<string, { label: string; code: number }
 };
 
 export const EVENT_CATEGORY_COLORS: Record<EventCategory, string> = {
-  lesson: '#064E3B',     // emerald — primary brand
-  lecture: '#047857',    // emerald-600 — success family
+  lesson: '#0F2D52',     // sapphire — primary brand
+  lecture: '#1A3F6B',    // sapphire-600 — interactive
   quran_school: '#D4AF37', // divine gold
   youth: '#6A5ACD',     // violet — youthful energy
   sisters: '#B91C1C',   // crimson

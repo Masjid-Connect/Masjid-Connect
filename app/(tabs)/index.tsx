@@ -119,7 +119,7 @@ export default function PrayerTimesScreen() {
           <IslamicPattern
             width={heroLayout.width}
             height={heroLayout.height}
-            color={isDark ? palette.emerald400 : palette.emerald700}
+            color={isDark ? palette.sapphire400 : palette.sapphire700}
             opacity={patterns.opacity}
             tileSize={patterns.tileSize}
           />

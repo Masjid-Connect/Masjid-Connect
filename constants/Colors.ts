@@ -9,12 +9,13 @@
  * Dark mode: "Midnight in the Masjid"
  *
  * Palette taxonomy:
- *   Stone  — warm marble backgrounds
- *   Onyx   — organic dark tones (never pure black)
- *   Emerald — sacred green, brand primary
- *   Gold   — divine accent, prayer signal
- *   Crimson — urgent/alert states
- *   Slate  — neutral info
+ *   Stone    — warm marble backgrounds
+ *   Onyx     — organic dark tones (never pure black)
+ *   Sapphire — deep blue, brand primary
+ *   Gold     — divine accent, prayer signal
+ *   Crimson  — urgent/alert states
+ *   Sage     — success states (muted green)
+ *   Slate    — neutral info
  */
 
 export const palette = {
@@ -31,11 +32,15 @@ export const palette = {
   onyx600: '#6B6B70',       // Secondary text
   onyx400: '#A8A8AD',       // Tertiary text / disabled
 
-  // ─── Emerald: sacred green, brand primary ───────────────────────
-  emerald700: '#064E3B',    // Brand primary (light mode tint, tab selection)
-  emerald600: '#047857',    // Success states
-  emerald400: '#34D399',    // Dark mode tint (lighter for dark backgrounds)
-  emeraldLight: '#ECFDF5',  // Tint background (light mode)
+  // ─── Sapphire: deep blue, brand primary ─────────────────────────
+  sapphire700: '#0F2D52',   // Brand primary (light mode tint, tab selection)
+  sapphire600: '#1A3F6B',   // Slightly lighter for interactive states
+  sapphire400: '#5B9BD5',   // Dark mode tint (lighter for dark backgrounds)
+  sapphireLight: '#EBF2FA', // Tint background (light mode)
+
+  // ─── Sage: success states (muted green) ───────────────────────
+  sage600: '#2D6A4F',       // Success states (light mode)
+  sage400: '#6BCB9B',       // Success states (dark mode)
 
   // ─── Gold: divine accent, prayer signal ─────────────────────────
   divineGold: '#D4AF37',    // Rich matte leaf gold — accent, prayer active
@@ -76,18 +81,22 @@ export const palette = {
   ink: '#121216',
   inkSecondary: '#6B6B70',
   inkTertiary: '#A8A8AD',
-  sacredBlue: '#064E3B',
-  sacredBlueLight: '#34D399',
-  paradiseGreen: '#047857',
-  paradiseGreenLight: '#34D399',
+  sacredBlue: '#0F2D52',
+  sacredBlueLight: '#5B9BD5',
+  paradiseGreen: '#2D6A4F',
+  paradiseGreenLight: '#6BCB9B',
   moorishTerracotta: '#B91C1C',
   moorishTerracottaLight: '#F87171',
   steelBlue: '#64748B',
   steelBlueLight: '#94A3B8',
-  tintLight: '#ECFDF5',
+  tintLight: '#EBF2FA',
   black: '#0A0A0C',
   darkElevated: '#1A1A1E',
   darkGrouped: '#262628',
+  // Legacy emerald aliases → sapphire
+  emerald700: '#0F2D52',
+  emerald600: '#2D6A4F',
+  emerald400: '#5B9BD5',
 } as const;
 
 /**
@@ -113,11 +122,11 @@ export const semantic = {
   status: {
     activePrayer: { light: palette.divineGold, dark: palette.divineGoldBright },
     urgent: { light: palette.crimson600, dark: palette.crimson400 },
-    success: { light: palette.emerald600, dark: palette.emerald400 },
+    success: { light: palette.sage600, dark: palette.sage400 },
     info: { light: palette.slate500, dark: palette.slate400 },
   },
   brand: {
-    primary: { light: palette.emerald700, dark: palette.emerald400 },
+    primary: { light: palette.sapphire700, dark: palette.sapphire400 },
     accent: { light: palette.divineGold, dark: palette.divineGoldBright },
   },
 } as const;
@@ -134,14 +143,14 @@ const Colors = {
     backgroundGrouped: palette.stone300,
     card: palette.white,
     cardBorder: palette.separatorLight,
-    tint: palette.emerald700,
-    tintLight: palette.emeraldLight,
+    tint: palette.sapphire700,
+    tintLight: palette.sapphireLight,
     accent: palette.divineGold,
-    success: palette.emerald600,
+    success: palette.sage600,
     urgent: palette.crimson600,
     info: palette.slate500,
     tabIconDefault: palette.tabInactive,
-    tabIconSelected: palette.emerald700,
+    tabIconSelected: palette.sapphire700,
     divider: palette.separatorLight,
     prayerActive: palette.divineGold,
     prayerActiveGlow: palette.divineGoldGlow,
@@ -158,10 +167,10 @@ const Colors = {
     backgroundGrouped: palette.onyx800,
     card: palette.onyx850,
     cardBorder: palette.darkCardBorder,
-    tint: palette.emerald400,
-    tintLight: 'rgba(6, 78, 59, 0.12)',
+    tint: palette.sapphire400,
+    tintLight: 'rgba(15, 45, 82, 0.12)',
     accent: palette.divineGoldBright,
-    success: palette.emerald400,
+    success: palette.sage400,
     urgent: palette.crimson400,
     info: palette.slate400,
     tabIconDefault: palette.snowSecondary,
