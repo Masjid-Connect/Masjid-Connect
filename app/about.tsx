@@ -41,16 +41,13 @@ export default function AboutScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero */}
+        {/* Hero — logo IS the identity, no redundant text */}
         <View style={styles.hero}>
           <Image
             source={require('@/assets/images/Masjid_Logo.png')}
-            style={styles.logo}
+            style={[styles.logo, isDark && { tintColor: colors.text }]}
             resizeMode="contain"
           />
-          <Text style={[typography.largeTitle, styles.appName, { color: colors.text }]}>
-            {t('about.appName')}
-          </Text>
           <View style={[styles.versionPill, { backgroundColor: isDark ? colors.backgroundGrouped : colors.background }]}>
             <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: '500' }]}>
               {t('about.version')} 1.0.0
@@ -135,17 +132,12 @@ const styles = StyleSheet.create({
   // Hero
   hero: {
     alignItems: 'center',
-    paddingTop: spacing['2xl'],
+    paddingTop: spacing['4xl'],
     paddingBottom: spacing.xl,
   },
   logo: {
-    width: 96,
-    height: 96,
-    borderRadius: borderRadius.xl,
-  },
-  appName: {
-    marginTop: spacing.xl,
-    textAlign: 'center',
+    width: 220,
+    height: 220 * 0.28,
   },
   versionPill: {
     marginTop: spacing.md,
