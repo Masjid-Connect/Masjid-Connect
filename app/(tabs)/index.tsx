@@ -14,7 +14,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography } from '@/constants/Theme';
@@ -26,7 +25,6 @@ import { SkiaAtmosphericGradient } from '@/components/brand/SkiaAtmosphericGradi
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { GlowDot } from '@/components/brand/GlowDot';
 import { SolarLight } from '@/components/brand/SolarLight';
-import { SkyArc } from '@/components/brand/SkyArc';
 import { DateNavigator } from '@/components/prayer/DateNavigator';
 import type { PrayerName } from '@/types';
 
@@ -69,7 +67,7 @@ export default function PrayerTimesScreen() {
   } = usePrayerTimes();
 
   const [refreshing, setRefreshing] = React.useState(false);
-  const [heroLayout, setHeroLayout] = useState({ width: SCREEN_WIDTH, height: layout.heroHeight });
+  const [heroLayout, setHeroLayout] = useState<{ width: number; height: number }>({ width: SCREEN_WIDTH, height: layout.heroHeight });
 
   // Horizontal swipe to change date
   const swipeHandled = useRef(false);
@@ -156,47 +154,27 @@ export default function PrayerTimesScreen() {
             tileSize={patterns.tileSize}
           />
 
-          <Animated.View entering={FadeIn.duration(600)}>
-            {/* Mosque name — always visible, quiet identity */}
-            <Text style={[styles.mosqueName, { color: colors.textSecondary }]}>
-              {t('prayer.mosqueName')}
-            </Text>
-
-            {/* Hijri date — prominent, decorative border */}
-            {hijriDate && (
-              <View style={[styles.hijriContainer, {
-                borderColor: isDark ? 'rgba(229,193,75,0.2)' : 'rgba(212,175,55,0.15)',
-              }]}>
-                <Text style={[styles.hijriDate, {
-                  color: isDark ? palette.divineGoldBright : colors.text,
-                }]}>
-                  {hijriDate}
-                </Text>
-              </View>
-            )}
-
+          <Animated.View entering={FadeIn.duration(600)} style={styles.heroContent}>
             {/* THE dominant element: next prayer name */}
             {nextPrayerData && (
               <>
-                <Text style={[styles.prayerLabel, { color: colors.textSecondary }]}>
-                  {t('prayer.upcoming')}
-                </Text>
-
                 <Text style={[styles.prayerName, { color: colors.text }]}>
                   {t(`prayer.${nextPrayerData.name}`)}
                 </Text>
 
-                {/* Large time — extension of the prayer name, not separate */}
-                <Text style={[styles.prayerTime, { color: colors.text }]}>
-                  {formatPrayerTime(nextPrayerData.jamaahTime || nextPrayerData.time, use24h)}
-                </Text>
-
-                {/* Countdown — the only secondary element */}
+                {/* Countdown — large, the secondary hero element */}
                 {countdown ? (
                   <Text style={[styles.countdown, { color: colors.textSecondary }]}>
                     {countdown}
                   </Text>
                 ) : null}
+
+                {/* Prayer time — tertiary */}
+                <Text style={[styles.prayerTime, {
+                  color: isDark ? palette.divineGoldBright : colors.accent,
+                }]}>
+                  {formatPrayerTime(nextPrayerData.jamaahTime || nextPrayerData.time, use24h)}
+                </Text>
               </>
             )}
           </Animated.View>
@@ -211,19 +189,11 @@ export default function PrayerTimesScreen() {
           style={styles.heroFade}
         />
 
-        {/* ── Sky Arc: sun path visualization ───────────────────── */}
-        {prayers.length > 0 && (
-          <SkyArc
-            width={SCREEN_WIDTH}
-            prayers={prayers}
-            nextPrayer={nextPrayer}
-          />
-        )}
-
         {/* ── Date Navigator ─────────────────────────────────────── */}
         <DateNavigator
           selectedDate={selectedDate}
           isTodayDate={isToday}
+          hijriDate={hijriDate}
           onPrev={goToPrevDay}
           onNext={goToNextDay}
           onToday={goToToday}
@@ -291,16 +261,6 @@ export default function PrayerTimesScreen() {
                   {t(`prayer.${prayer.name}`)}
                 </Text>
 
-                {/* Bell icon — notification indicator */}
-                {prayer.name !== 'sunrise' && (
-                  <Ionicons
-                    name="notifications-outline"
-                    size={16}
-                    color={isPassed ? colors.textTertiary : colors.textSecondary}
-                    style={styles.bellIcon}
-                  />
-                )}
-
                 {/* Time — right-aligned, tabular */}
                 <View style={styles.timeCol}>
                   <Text style={[
@@ -347,44 +307,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  // Hero — generous breathing space, typography-only
+  // Hero — centered, bold, minimal
   hero: {
     paddingHorizontal: spacing['3xl'],
     paddingBottom: HERO_PADDING_BOTTOM,
+    justifyContent: 'flex-end',
+    minHeight: 280,
   },
-  mosqueName: {
-    ...typography.caption1,
-    fontWeight: '600',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
-    marginBottom: spacing.xs, // 4
-  },
-  hijriContainer: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    alignSelf: 'flex-start',
-    marginBottom: spacing.md,
-  },
-  hijriDate: {
-    ...typography.title3,
-  },
-  prayerLabel: {
-    ...typography.sectionHeader,
-    marginBottom: spacing.xs, // 4
+  heroContent: {
+    alignItems: 'center',
   },
   prayerName: {
-    ...typography.prayerName,
-  },
-  prayerTime: {
-    ...typography.prayerCountdown,
-    fontVariant: ['tabular-nums'],
-    marginTop: spacing.xs, // 4
+    ...typography.largeTitle,
+    fontSize: 42,
+    fontWeight: '700',
+    textAlign: 'center',
+    letterSpacing: -0.5,
   },
   countdown: {
-    ...typography.subhead,
-    marginTop: spacing.lg, // 16
+    ...typography.title1,
+    fontVariant: ['tabular-nums'],
+    marginTop: spacing.sm, // 8
+    textAlign: 'center',
+  },
+  prayerTime: {
+    ...typography.headline,
+    fontVariant: ['tabular-nums'],
+    marginTop: spacing.md, // 12
+    textAlign: 'center',
+    fontWeight: '600',
   },
 
   // Gradient fade from hero to content
@@ -418,10 +369,6 @@ const styles = StyleSheet.create({
   dotCol: {
     width: spacing.xl, // 20
     alignItems: 'center',
-  },
-  bellIcon: {
-    marginRight: spacing.md,
-    opacity: 0.6,
   },
   timeCol: {
     alignItems: 'flex-end',

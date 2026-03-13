@@ -11,8 +11,8 @@
  * Maghrib: low orange light from the side (bottom-right)
  * Isha:    no light — deeper shadow
  *
- * The effect is barely perceptible (3–5% opacity).
- * If anyone can point to it, it's too much.
+ * The effect is visible and atmospheric (12–18% opacity).
+ * The light should be noticeable — it makes each prayer feel distinct.
  */
 
 import React from 'react';
@@ -53,36 +53,36 @@ const LIGHT_CONFIGS: Record<string, LightConfig> = {
     x: 0.2,
     y: 0.85,
     color: '#C8D8E4',   // cool steel dawn light
-    opacity: 0.03,
-    radiusScale: 0.6,
+    opacity: 0.12,
+    radiusScale: 0.7,
   },
   sunrise: {
     x: 0.5,
     y: 0.8,
     color: '#F0DCBE',   // warm golden
-    opacity: 0.04,
-    radiusScale: 0.65,
+    opacity: 0.15,
+    radiusScale: 0.75,
   },
   dhuhr: {
     x: 0.5,
     y: 0.15,
     color: '#F0EDE6',   // warm stone white
-    opacity: 0.05,
-    radiusScale: 0.7,
+    opacity: 0.18,
+    radiusScale: 0.8,
   },
   asr: {
     x: 0.8,
     y: 0.4,
     color: '#F0D8B0',   // amber afternoon
-    opacity: 0.04,
-    radiusScale: 0.6,
+    opacity: 0.15,
+    radiusScale: 0.7,
   },
   maghrib: {
     x: 0.85,
     y: 0.75,
     color: '#E8C0A0',   // low orange
-    opacity: 0.03,
-    radiusScale: 0.55,
+    opacity: 0.12,
+    radiusScale: 0.65,
   },
   isha: {
     x: 0.5,
