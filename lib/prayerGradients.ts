@@ -4,8 +4,8 @@
  * Sky-calibrated gradients modelled on real sky colour at each prayer window.
  * Each triple goes top → bottom to mimic looking upward.
  *
- * Light mode: warm, perceptible atmospheric shifts ending in limestone.
- * Dark mode: barely-there tints on true OLED black.
+ * Light mode: warm, perceptible atmospheric shifts ending in stone.
+ * Dark mode: barely-there tints on near-OLED black (onyx950).
  */
 
 import type { PrayerName } from '@/types';
@@ -22,24 +22,24 @@ export function getAtmosphericGradient(
 ): GradientTriple {
   if (isDark) {
     switch (prayer) {
-      case 'fajr':     return ['#0D0E1A', '#080A12', '#000000']; // deep pre-dawn indigo
-      case 'sunrise':  return ['#1A120A', '#0F0A06', '#000000']; // first amber on black
-      case 'dhuhr':    return ['#0A0E12', '#060A0E', '#000000']; // high-noon steel
-      case 'asr':      return ['#12100A', '#0A0806', '#000000']; // warm afternoon
-      case 'maghrib':  return ['#14080E', '#0A0508', '#000000']; // dusky rose
-      case 'isha':     return ['#08080E', '#040408', '#000000']; // deep night
-      default:         return ['#08080E', '#040408', '#000000'];
+      case 'fajr':     return ['#0D0E1A', '#080A10', '#0A0A0C']; // deep pre-dawn indigo
+      case 'sunrise':  return ['#1A120A', '#0F0A06', '#0A0A0C']; // first amber on dark
+      case 'dhuhr':    return ['#0A100E', '#060A08', '#0A0A0C']; // high-noon with emerald whisper
+      case 'asr':      return ['#12100A', '#0A0806', '#0A0A0C']; // warm afternoon
+      case 'maghrib':  return ['#14080E', '#0A0508', '#0A0A0C']; // dusky rose
+      case 'isha':     return ['#08080E', '#060608', '#0A0A0C']; // deep night
+      default:         return ['#08080E', '#060608', '#0A0A0C'];
     }
   }
 
   switch (prayer) {
-    case 'fajr':     return ['#D8DDE8', '#E4E7EE', '#F8F6F1']; // steel-blue dawn
-    case 'sunrise':  return ['#F0E4D4', '#F2EBE0', '#F8F6F1']; // warm golden wash
-    case 'dhuhr':    return ['#EDF0ED', '#F0F2F0', '#F8F6F1']; // bright clear sky
-    case 'asr':      return ['#EDE6DA', '#F0EBE2', '#F8F6F1']; // amber afternoon
-    case 'maghrib':  return ['#E0D4DF', '#E8DEE6', '#F8F6F1']; // rose-violet dusk
-    case 'isha':     return ['#D4D8E4', '#DEE0E8', '#F8F6F1']; // deep blue evening
-    default:         return ['#E8E8E6', '#F0F0EE', '#F8F6F1'];
+    case 'fajr':     return ['#D8DDE6', '#E4E7EC', '#F9F7F2']; // steel-blue dawn
+    case 'sunrise':  return ['#F0E4D2', '#F2EBE0', '#F9F7F2']; // warm golden wash
+    case 'dhuhr':    return ['#E8EDE8', '#EFF2EE', '#F9F7F2']; // bright clear sky, emerald whisper
+    case 'asr':      return ['#EDE6DA', '#F0EBE2', '#F9F7F2']; // amber afternoon
+    case 'maghrib':  return ['#E0D4DE', '#E8DEE4', '#F9F7F2']; // rose-violet dusk
+    case 'isha':     return ['#D4D8E2', '#DEE0E6', '#F9F7F2']; // deep blue evening
+    default:         return ['#E8E8E4', '#F0F0EC', '#F9F7F2'];
   }
 }
 

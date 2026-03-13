@@ -68,26 +68,31 @@ The app uses the **Masjid_Logo.png** (The Salafi Masjid logo with transparent ba
 
 ## Design System
 
-### Color Palette (Apple-inspired with Islamic soul)
+### Color Palette — "Timeless Sanctuary" (Jewel & Stone philosophy)
+
+**Palette taxonomy:** Stone (backgrounds), Onyx (dark tones), Emerald (brand primary), Gold (divine accent), Crimson (urgent), Slate (info). High-contrast for older congregants, calm for daily use.
 
 **Light mode — "Morning Light in the Musalla":**
-- **Limestone** `#F8F6F1` — warm ivory substrate
-- **Limestone Secondary** `#F2EFEA` — grouped backgrounds
-- **Ink** `#1C1C1E` — primary text (true near-black)
-- **Ink Secondary** `#636366` — secondary text
-- **Sacred Blue** `#1A5276` — primary tint, tab selection
-- **Divine Gold** `#BFA14E` — accent, prayer active indicator, notification badges
-- **Paradise Green** `#2D6A4F` — success states
-- **Moorish Terracotta** `#C44536` — urgent/alert states
-- **Separator** `#E5E5EA` — hairline dividers
+- **Stone-100** `#F9F7F2` — main background, clean masjid marble
+- **Stone-200** `#F0EDE6` — secondary surfaces
+- **Stone-300** `#E5E0D3` — grouped backgrounds, sand-toned
+- **Onyx-900** `#121216` — primary text (organic near-black, not harsh)
+- **Onyx-600** `#6B6B70` — secondary text
+- **Emerald-700** `#064E3B` — brand primary tint, tab selection, links
+- **Divine Gold** `#D4AF37` — accent, prayer active indicator, notification badges
+- **Emerald-600** `#047857` — success states
+- **Crimson-600** `#B91C1C` — urgent/alert states (Janazah, immediate announcements)
+- **Separator** `#E2DFD8` — warm hairline dividers
 
-**Dark mode — "Midnight in the Masjid" (true black OLED):**
-- **Background** `#000000` — true black for OLED efficiency
-- **Elevated** `#1C1C1E` — card surfaces, modal backgrounds
-- **Grouped** `#2C2C2E` — grouped list backgrounds
-- **Text** `#F5F5F7` — snow white primary text
-- **Tint** `#6AADDB` — lighter Sacred Blue for dark backgrounds
-- **Accent** `#D4B85C` — brighter Divine Gold for dark contrast
+**Dark mode — "Midnight in the Masjid" (near-OLED black):**
+- **Onyx-950** `#0A0A0C` — main background (not pure black, easier on eyes)
+- **Onyx-850** `#1A1A1E` — elevated card surfaces
+- **Onyx-800** `#262628` — grouped list backgrounds
+- **Snow** `#F5F5F7` — primary text
+- **Emerald-400** `#34D399` — lighter emerald tint for dark backgrounds
+- **Gold Bright** `#E5C14B` — brighter Divine Gold for dark contrast
+
+**Semantic layer:** Colors are mapped through `semantic.*` tokens in Colors.ts (surface, text, status, brand) for future theme variants (e.g., Ramadan Mode).
 
 ### Typography (Apple HIG Type Scale)
 - **System fonts** — SF Pro (iOS) / Roboto (Android) with weight variation, no custom font loading

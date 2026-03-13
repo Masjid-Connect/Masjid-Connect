@@ -108,7 +108,7 @@ function buildConnectorPaths(
 export const IslamicPattern = ({
   width,
   height,
-  color = palette.sacredBlue,
+  color = palette.emerald700,
   opacity = 0.03,
   tileSize = 48,
   strokeWidth = 0.8,
