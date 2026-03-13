@@ -12,6 +12,7 @@ import {
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { getColors, getAlpha, palette } from '@/constants/Colors';
@@ -201,6 +202,15 @@ export default function PrayerTimesScreen() {
           </Animated.View>
         </View>
 
+        {/* ── Gradient fade: hero → content ──────────────────────── */}
+        <LinearGradient
+          colors={[
+            gradient[gradient.length - 1] || colors.background,
+            colors.background,
+          ]}
+          style={styles.heroFade}
+        />
+
         {/* ── Sky Arc: sun path visualization ───────────────────── */}
         {prayers.length > 0 && (
           <View style={styles.skyArcContainer}>
@@ -377,6 +387,11 @@ const styles = StyleSheet.create({
   countdown: {
     ...typography.subhead,
     marginTop: spacing.lg, // 16
+  },
+
+  // Gradient fade from hero to content
+  heroFade: {
+    height: HERO_PADDING_BOTTOM, // 48
   },
 
   // Sky Arc — sun path visualization between hero and timetable
