@@ -26,7 +26,8 @@
     "calculatedTimes": "Calculated times",
     "startTime": "Start {{time}}",
     "upcoming": "Next",
-    "todaySchedule": "Today"
+    "todaySchedule": "Today",
+    "today": "Today"
   },
   "announcements": {
     "title": "Announcements",

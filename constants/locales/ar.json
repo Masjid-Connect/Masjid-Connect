@@ -26,7 +26,8 @@
     "calculatedTimes": "أوقات محسوبة",
     "startTime": "البداية {{time}}",
     "upcoming": "التالية",
-    "todaySchedule": "اليوم"
+    "todaySchedule": "اليوم",
+    "today": "اليوم"
   },
   "announcements": {
     "title": "الإعلانات",

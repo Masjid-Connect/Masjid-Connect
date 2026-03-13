@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Dimensions,
   StyleSheet,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   RefreshControl,
   ActivityIndicator,
+  PanResponder,
 } from 'react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,6 +25,7 @@ import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { GlowDot } from '@/components/brand/GlowDot';
 import { SolarLight } from '@/components/brand/SolarLight';
 import { SkyArc } from '@/components/brand/SkyArc';
+import { DateNavigator } from '@/components/prayer/DateNavigator';
 import type { PrayerName } from '@/types';
 
 // ─── Design Philosophy ──────────────────────────────────────────────
@@ -61,10 +63,37 @@ export default function PrayerTimesScreen() {
   const {
     prayers, nextPrayer, countdown, hijriDate,
     isLoading, source, jamaahAvailable, use24h, refresh,
+    selectedDate, isToday, goToNextDay, goToPrevDay, goToToday,
   } = usePrayerTimes();
 
   const [refreshing, setRefreshing] = React.useState(false);
   const [heroLayout, setHeroLayout] = useState({ width: SCREEN_WIDTH, height: layout.heroHeight });
+
+  // Horizontal swipe to change date
+  const swipeHandled = useRef(false);
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) =>
+        Math.abs(gestureState.dx) > 30 && Math.abs(gestureState.dy) < 40,
+      onPanResponderGrant: () => {
+        swipeHandled.current = false;
+      },
+      onPanResponderMove: (_, gestureState) => {
+        if (swipeHandled.current) return;
+        if (Math.abs(gestureState.dx) > 60) {
+          swipeHandled.current = true;
+          if (gestureState.dx > 0) {
+            goToPrevDay();
+          } else {
+            goToNextDay();
+          }
+        }
+      },
+      onPanResponderRelease: () => {
+        swipeHandled.current = false;
+      },
+    })
+  ).current;
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -176,8 +205,17 @@ export default function PrayerTimesScreen() {
           </View>
         )}
 
+        {/* ── Date Navigator ─────────────────────────────────────── */}
+        <DateNavigator
+          selectedDate={selectedDate}
+          isTodayDate={isToday}
+          onPrev={goToPrevDay}
+          onNext={goToNextDay}
+          onToday={goToToday}
+        />
+
         {/* ── Timetable ─────────────────────────────────────────── */}
-        <View style={styles.timetable}>
+        <View style={styles.timetable} {...panResponder.panHandlers}>
           <View style={styles.timetableHeader}>
             <Text style={[
               typography.sectionHeader,
