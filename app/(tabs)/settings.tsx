@@ -134,7 +134,11 @@ export default function SettingsScreen() {
 
   const handleShareApp = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    await Share.share({ message: t('settings.shareMessage') });
+    try {
+      await Share.share({ message: t('settings.shareMessage') });
+    } catch {
+      // Share can throw on web if a previous share is still pending
+    }
   }, [t]);
 
   const handleContactSupport = useCallback(() => {
@@ -157,7 +161,7 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
+      style={[styles.container, { backgroundColor: colors.backgroundSecondary }]}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
@@ -242,7 +246,7 @@ export default function SettingsScreen() {
           icon={{ name: 'information-circle', backgroundColor: colors.textSecondary }}
           label={t('settings.aboutApp')}
           accessory="disclosure"
-          onPress={() => {/* TODO: About screen */}}
+          onPress={() => router.push('/about')}
           position="first"
         />
         <SettingsRow
@@ -270,10 +274,7 @@ export default function SettingsScreen() {
           icon={{ name: 'shield-checkmark', backgroundColor: colors.textSecondary }}
           label={t('settings.privacyPolicy')}
           accessory="disclosure"
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            // TODO: Open privacy policy URL
-          }}
+          onPress={() => router.push('/privacy')}
           position="last"
         />
       </SettingsSection>

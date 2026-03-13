@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Dimensions,
   StyleSheet,
@@ -28,6 +28,8 @@ import { BottomSheet } from '@/components/ui/BottomSheet';
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import type { MosqueEvent, EventCategory } from '@/types';
 import { EVENT_CATEGORY_COLORS } from '@/types';
+import { formatTimeString } from '@/lib/prayer';
+import { getUse24h } from '@/lib/storage';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -50,6 +52,11 @@ export default function EventsScreen() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [detailEvent, setDetailEvent] = useState<MosqueEvent | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [use24h, setUse24h] = useState(false);
+
+  useEffect(() => {
+    getUse24h().then(setUse24h);
+  }, []);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -129,8 +136,8 @@ export default function EventsScreen() {
             </Text>
             <Text style={[typography.subhead, { color: colors.textSecondary, marginTop: spacing.xs }]}>
               {item.speaker ? `${item.speaker} · ` : ''}
-              {format(new Date(dateStr), 'EEE, MMM d')} at {item.start_time}
-              {item.end_time ? ` – ${item.end_time}` : ''}
+              {format(new Date(dateStr), 'EEE, MMM d')} at {formatTimeString(item.start_time, use24h)}
+              {item.end_time ? ` – ${formatTimeString(item.end_time, use24h)}` : ''}
             </Text>
             {mosqueName ? (
               <Text style={[typography.caption1, { color: colors.textSecondary, marginTop: spacing.xs }]}>
@@ -296,8 +303,8 @@ export default function EventsScreen() {
               </Text>
             ) : null}
             <Text style={[typography.footnote, { color: colors.textSecondary, marginTop: spacing.sm }]}>
-              {format(new Date(detailEvent.event_date.split('T')[0] || detailEvent.event_date), 'EEEE, MMMM d')} at {detailEvent.start_time}
-              {detailEvent.end_time ? ` – ${detailEvent.end_time}` : ''}
+              {format(new Date(detailEvent.event_date.split('T')[0] || detailEvent.event_date), 'EEEE, MMMM d')} at {formatTimeString(detailEvent.start_time, use24h)}
+              {detailEvent.end_time ? ` – ${formatTimeString(detailEvent.end_time, use24h)}` : ''}
             </Text>
             {detailEvent.expand?.mosque?.name ? (
               <Text style={[typography.footnote, { color: colors.textSecondary, marginTop: spacing.xs }]}>
