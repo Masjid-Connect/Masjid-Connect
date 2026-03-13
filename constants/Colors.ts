@@ -6,7 +6,7 @@
  * congregants, calm for daily use.
  *
  * Light mode: "Morning Light in the Musalla"
- * Dark mode: "Midnight in the Masjid"
+ * Dark mode: "Midnight in the Masjid" (Obsidian Night — 2-3% sapphire undertone)
  *
  * Palette taxonomy:
  *   Stone    — warm marble backgrounds
@@ -24,11 +24,15 @@ export const palette = {
   stone200: '#F0EDE6',      // Secondary surface — slightly deeper warmth
   stone300: '#E5E0D3',      // Grouped/tertiary — sand-toned
 
-  // ─── Onyx: organic dark tones (dark mode) ───────────────────────
-  onyx950: '#0A0A0C',       // Main background — not pure black, easier on OLED
-  onyx900: '#121216',       // Near-black for text on light backgrounds
-  onyx850: '#1A1A1E',       // Elevated card surfaces
-  onyx800: '#262628',       // Grouped list backgrounds
+  // ─── Onyx: sapphire-tinted obsidian (dark mode) ─────────────────
+  // "Ink & Night" — black that has met blue. The sapphire undertone
+  // lets atmospheric gradients emerge from the surface rather than
+  // float on flat black. ~2-3% blue shift, imperceptible in isolation,
+  // cohesive in context.
+  onyx950: '#090B11',       // Main background — obsidian with sapphire breath
+  onyx900: '#121216',       // Near-black for text on light backgrounds (unchanged)
+  onyx850: '#191B22',       // Elevated card surfaces — sapphire-tinted
+  onyx800: '#25272E',       // Grouped list backgrounds — sapphire-tinted
   onyx600: '#6B6B70',       // Secondary text
   onyx400: '#A8A8AD',       // Tertiary text / disabled
 
@@ -57,7 +61,7 @@ export const palette = {
 
   // ─── Separators ─────────────────────────────────────────────────
   separatorLight: '#E2DFD8', // Warmer than system gray
-  separatorDark: '#333336',  // Dark mode divider
+  separatorDark: '#32343A',  // Dark mode divider — sapphire-tinted
 
   // ─── Tab bar ────────────────────────────────────────────────────
   tabInactive: '#8E8E93',
@@ -71,7 +75,7 @@ export const palette = {
   white: '#FFFFFF',
   googleBlue: '#4285F4',
   backdrop: 'rgba(0,0,0,0.4)',
-  darkCardBorder: '#333336',
+  darkCardBorder: '#32343A',
 
   // ─── Legacy aliases (map old names to new values) ───────────────
   // These exist for gradual migration. Prefer canonical names above.
@@ -90,9 +94,9 @@ export const palette = {
   steelBlue: '#64748B',
   steelBlueLight: '#94A3B8',
   tintLight: '#EBF2FA',
-  black: '#0A0A0C',
-  darkElevated: '#1A1A1E',
-  darkGrouped: '#262628',
+  black: '#090B11',
+  darkElevated: '#191B22',
+  darkGrouped: '#25272E',
   // Legacy emerald aliases → sapphire
   emerald700: '#0F2D52',
   emerald600: '#2D6A4F',
@@ -111,7 +115,7 @@ export const semantic = {
     main: { light: palette.stone100, dark: palette.onyx950 },
     card: { light: palette.white, dark: palette.onyx850 },
     grouped: { light: palette.stone300, dark: palette.onyx800 },
-    frosted: { light: 'rgba(249, 247, 242, 0.85)', dark: 'rgba(26, 26, 30, 0.85)' },
+    frosted: { light: 'rgba(249, 247, 242, 0.85)', dark: 'rgba(14, 16, 24, 0.8)' },
   },
   text: {
     primary: { light: palette.onyx900, dark: palette.snow },
@@ -208,7 +212,7 @@ export const alpha = {
   /** Frosted navigation / sheet backgrounds (tab bar, bottom zones) */
   frostedBg: {
     light: 'rgba(249, 247, 242, 0.85)',
-    dark: 'rgba(26, 26, 30, 0.85)',
+    dark: 'rgba(14, 16, 24, 0.8)',
   },
   /** Subtle frosted border on translucent surfaces */
   frostedBorder: {
