@@ -13,6 +13,7 @@ import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography } from '@/constants/Theme';
@@ -160,11 +161,17 @@ export default function PrayerTimesScreen() {
               {t('prayer.mosqueName')}
             </Text>
 
-            {/* Hijri date — quiet context, not competing */}
+            {/* Hijri date — prominent, decorative border */}
             {hijriDate && (
-              <Text style={[styles.hijriDate, { color: colors.textSecondary }]}>
-                {hijriDate}
-              </Text>
+              <View style={[styles.hijriContainer, {
+                borderColor: isDark ? 'rgba(229,193,75,0.2)' : 'rgba(212,175,55,0.15)',
+              }]}>
+                <Text style={[styles.hijriDate, {
+                  color: isDark ? palette.divineGoldBright : colors.text,
+                }]}>
+                  {hijriDate}
+                </Text>
+              </View>
             )}
 
             {/* THE dominant element: next prayer name */}
@@ -241,13 +248,19 @@ export default function PrayerTimesScreen() {
                 entering={FadeInDown.delay(index * 40).duration(300).springify()}
                 style={[
                   styles.row,
-                  index < prayers.length - 1 && {
+                  index < prayers.length - 1 && !isNext && {
                     borderBottomWidth: StyleSheet.hairlineWidth,
                     borderBottomColor: colors.separator,
                   },
-                  isNext && {
-                    backgroundColor: alphaColors.prayerActiveBg,
-                  },
+                  isNext && [
+                    styles.activeRow,
+                    {
+                      backgroundColor: alphaColors.prayerActiveBg,
+                      borderColor: isDark
+                        ? 'rgba(229,193,75,0.25)'
+                        : 'rgba(212,175,55,0.2)',
+                    },
+                  ],
                 ]}
               >
                 {/* Active dot — Skia glow or empty column */}
@@ -269,6 +282,16 @@ export default function PrayerTimesScreen() {
                 ]}>
                   {t(`prayer.${prayer.name}`)}
                 </Text>
+
+                {/* Bell icon — notification indicator */}
+                {prayer.name !== 'sunrise' && (
+                  <Ionicons
+                    name="notifications-outline"
+                    size={16}
+                    color={isPassed ? colors.textTertiary : colors.textSecondary}
+                    style={styles.bellIcon}
+                  />
+                )}
 
                 {/* Time — right-aligned, tabular */}
                 <View style={styles.timeCol}>
@@ -328,9 +351,16 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: spacing.xs, // 4
   },
+  hijriContainer: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    alignSelf: 'flex-start',
+    marginBottom: spacing.md,
+  },
   hijriDate: {
-    ...typography.footnote,
-    marginBottom: spacing.sm, // 8
+    ...typography.title3,
   },
   prayerLabel: {
     ...typography.sectionHeader,
@@ -371,9 +401,19 @@ const styles = StyleSheet.create({
     paddingVertical: ROW_PADDING_V,
     paddingHorizontal: spacing['3xl'],
   },
+  activeRow: {
+    borderRadius: 12,
+    borderWidth: 1,
+    marginHorizontal: spacing.lg,
+    paddingHorizontal: spacing.xl,
+  },
   dotCol: {
     width: spacing.xl, // 20
     alignItems: 'center',
+  },
+  bellIcon: {
+    marginRight: spacing.md,
+    opacity: 0.6,
   },
   timeCol: {
     alignItems: 'flex-end',
