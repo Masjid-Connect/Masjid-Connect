@@ -47,15 +47,6 @@ export default function TabLayout() {
         name="announcements"
         options={{
           title: t('tabs.announcements'),
-          headerLargeTitle: true,
-          headerLargeStyle: {
-            backgroundColor: colors.background,
-          },
-          headerLargeTitleStyle: {
-            fontSize: 34,
-            fontWeight: '700',
-            color: colors.text,
-          },
           tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
             <Ionicons
               name={focused ? 'megaphone' : 'megaphone-outline'}
