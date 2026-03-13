@@ -109,7 +109,7 @@ export const AuthGate = ({ variant }: AuthGateProps) => {
       <IslamicPattern
         width={SCREEN_WIDTH}
         height={SCREEN_HEIGHT}
-        color={isDark ? palette.emerald400 : palette.emerald700}
+        color={isDark ? palette.sapphire400 : palette.sapphire700}
         opacity={0.03}
         tileSize={56}
       />

@@ -24,7 +24,7 @@ export function getAtmosphericGradient(
     switch (prayer) {
       case 'fajr':     return ['#0D0E1A', '#080A10', '#0A0A0C']; // deep pre-dawn indigo
       case 'sunrise':  return ['#1A120A', '#0F0A06', '#0A0A0C']; // first amber on dark
-      case 'dhuhr':    return ['#0A100E', '#060A08', '#0A0A0C']; // high-noon with emerald whisper
+      case 'dhuhr':    return ['#0A0E14', '#06080C', '#0A0A0C']; // high-noon with sapphire whisper
       case 'asr':      return ['#12100A', '#0A0806', '#0A0A0C']; // warm afternoon
       case 'maghrib':  return ['#14080E', '#0A0508', '#0A0A0C']; // dusky rose
       case 'isha':     return ['#08080E', '#060608', '#0A0A0C']; // deep night
@@ -35,7 +35,7 @@ export function getAtmosphericGradient(
   switch (prayer) {
     case 'fajr':     return ['#D8DDE6', '#E4E7EC', '#F9F7F2']; // steel-blue dawn
     case 'sunrise':  return ['#F0E4D2', '#F2EBE0', '#F9F7F2']; // warm golden wash
-    case 'dhuhr':    return ['#E8EDE8', '#EFF2EE', '#F9F7F2']; // bright clear sky, emerald whisper
+    case 'dhuhr':    return ['#E4E9F0', '#ECF0F4', '#F9F7F2']; // bright clear sky, sapphire whisper
     case 'asr':      return ['#EDE6DA', '#F0EBE2', '#F9F7F2']; // amber afternoon
     case 'maghrib':  return ['#E0D4DE', '#E8DEE4', '#F9F7F2']; // rose-violet dusk
     case 'isha':     return ['#D4D8E2', '#DEE0E6', '#F9F7F2']; // deep blue evening

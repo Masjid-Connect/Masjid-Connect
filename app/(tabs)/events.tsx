@@ -287,7 +287,7 @@ export default function EventsScreen() {
           <IslamicPattern
             width={SCREEN_WIDTH}
             height={SCREEN_HEIGHT}
-            color={effectiveScheme === 'dark' ? palette.emerald400 : palette.emerald700}
+            color={effectiveScheme === 'dark' ? palette.sapphire400 : palette.sapphire700}
             opacity={patterns.opacity}
             tileSize={patterns.tileSize}
           />

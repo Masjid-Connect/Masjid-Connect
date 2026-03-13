@@ -256,7 +256,7 @@ export default function SettingsScreen() {
         footer={t('settings.notificationsFooter')}
       >
         <SettingsRow
-          icon={{ name: 'notifications', backgroundColor: palette.emerald600 }}
+          icon={{ name: 'notifications', backgroundColor: palette.sapphire600 }}
           label={t('settings.prayerReminder')}
           value={reminderLabel}
           accessory="disclosure"
@@ -267,7 +267,7 @@ export default function SettingsScreen() {
           position="first"
         />
         <SettingsRow
-          icon={{ name: 'megaphone', backgroundColor: palette.emerald700 }}
+          icon={{ name: 'megaphone', backgroundColor: palette.sapphire700 }}
           label={t('settings.announcementAlerts')}
           accessory="toggle"
           toggleValue={notifyAnnouncements}
@@ -301,7 +301,7 @@ export default function SettingsScreen() {
           position="first"
         />
         <SettingsRow
-          icon={{ name: 'time', backgroundColor: palette.emerald600 }}
+          icon={{ name: 'time', backgroundColor: palette.sapphire600 }}
           label={t('settings.use24h')}
           accessory="toggle"
           toggleValue={use24h}
@@ -320,7 +320,7 @@ export default function SettingsScreen() {
           position="first"
         />
         <SettingsRow
-          icon={{ name: 'share-social', backgroundColor: palette.emerald700 }}
+          icon={{ name: 'share-social', backgroundColor: palette.sapphire700 }}
           label={t('settings.shareApp')}
           onPress={handleShareApp}
           position="middle"
@@ -335,7 +335,7 @@ export default function SettingsScreen() {
           position="middle"
         />
         <SettingsRow
-          icon={{ name: 'mail', backgroundColor: palette.emerald600 }}
+          icon={{ name: 'mail', backgroundColor: palette.sapphire600 }}
           label={t('settings.contactSupport')}
           onPress={handleContactSupport}
           position="middle"
