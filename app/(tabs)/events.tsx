@@ -24,7 +24,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Calendar, DateData } from 'react-native-calendars';
-import { useRouter } from 'expo-router';
 
 import { useTranslation } from 'react-i18next';
 
@@ -54,7 +53,6 @@ export default function EventsScreen() {
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
   const { t } = useTranslation();
-  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   // ─── Large title collapse animation ────────────────────────────
