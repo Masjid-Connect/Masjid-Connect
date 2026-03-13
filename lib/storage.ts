@@ -135,5 +135,23 @@ export async function setThemePreference(theme: 'light' | 'dark' | 'system'): Pr
   await AsyncStorage.setItem(KEYS.THEME, theme);
 }
 
+/** Read announcements tracking */
+const READ_ANNOUNCEMENTS_KEY = 'read_announcement_ids';
+
+export async function getReadAnnouncementIds(): Promise<Set<string>> {
+  const raw = await AsyncStorage.getItem(READ_ANNOUNCEMENTS_KEY);
+  if (!raw) return new Set();
+  return new Set(JSON.parse(raw) as string[]);
+}
+
+export async function markAnnouncementRead(id: string): Promise<Set<string>> {
+  const existing = await getReadAnnouncementIds();
+  existing.add(id);
+  // Keep only last 500 to prevent unbounded growth
+  const arr = [...existing].slice(-500);
+  await AsyncStorage.setItem(READ_ANNOUNCEMENTS_KEY, JSON.stringify(arr));
+  return new Set(arr);
+}
+
 /** Hardcoded fallback coordinates — The Salafi Masjid, Birmingham, UK */
 export const DEFAULT_LOCATION = { latitude: 52.4694, longitude: -1.8712 };
