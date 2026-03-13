@@ -1,0 +1,144 @@
+import React from 'react';
+import { StyleSheet, View, Text, Pressable } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
+
+import { getColors, palette } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
+import { spacing, borderRadius, getElevation, typography } from '@/constants/Theme';
+
+interface ProfileCardAuthProps {
+  variant: 'authenticated';
+  name: string;
+  email: string;
+  onPress: () => void;
+}
+
+interface ProfileCardGuestProps {
+  variant: 'guest';
+  onSignIn: () => void;
+}
+
+type ProfileCardProps = ProfileCardAuthProps | ProfileCardGuestProps;
+
+export const ProfileCard = (props: ProfileCardProps) => {
+  const { effectiveScheme } = useTheme();
+  const colors = getColors(effectiveScheme);
+  const isDark = effectiveScheme === 'dark';
+  const { t } = useTranslation();
+
+  if (props.variant === 'authenticated') {
+    const initial = (props.name || props.email)[0].toUpperCase();
+
+    return (
+      <View style={styles.wrapper}>
+        <Pressable
+          onPress={props.onPress}
+          style={[
+            styles.card,
+            {
+              backgroundColor: colors.card,
+              ...getElevation('sm', isDark),
+            },
+          ]}
+        >
+          <View style={[styles.avatar, { backgroundColor: colors.accent }]}>
+            <Text style={[typography.title2, { color: colors.onPrimary }]}>
+              {initial}
+            </Text>
+          </View>
+          <View style={styles.info}>
+            <Text style={[typography.title3, { color: colors.text }]} numberOfLines={1}>
+              {props.name || props.email}
+            </Text>
+            <Text style={[typography.footnote, { color: colors.textSecondary, marginTop: 2 }]} numberOfLines={1}>
+              {props.email}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+        </Pressable>
+      </View>
+    );
+  }
+
+  // Guest variant
+  return (
+    <View style={styles.wrapper}>
+      <View
+        style={[
+          styles.card,
+          styles.guestCard,
+          {
+            backgroundColor: colors.card,
+            ...getElevation('sm', isDark),
+          },
+        ]}
+      >
+        <View style={[styles.guestIconCircle, { backgroundColor: isDark ? colors.backgroundGrouped : colors.backgroundSecondary }]}>
+          <Ionicons name="person-circle-outline" size={44} color={colors.textTertiary} />
+        </View>
+        <Text style={[typography.footnote, styles.guestHint, { color: colors.textSecondary }]}>
+          {t('settings.guestHint')}
+        </Text>
+        <Pressable
+          onPress={props.onSignIn}
+          style={[styles.signInButton, { backgroundColor: colors.tint }]}
+        >
+          <Text style={[typography.subhead, { color: colors.onPrimary, fontWeight: '600' }]}>
+            {t('settings.signIn')}
+          </Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  wrapper: {
+    marginTop: spacing.lg,
+  },
+  card: {
+    marginHorizontal: spacing.lg,
+    borderRadius: borderRadius.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
+  avatar: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  info: {
+    flex: 1,
+    marginLeft: spacing.lg,
+    marginRight: spacing.sm,
+  },
+  guestCard: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    paddingVertical: spacing['2xl'],
+    paddingHorizontal: spacing['2xl'],
+  },
+  guestIconCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  guestHint: {
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+    paddingHorizontal: spacing.lg,
+  },
+  signInButton: {
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing['3xl'],
+    borderRadius: borderRadius.sm,
+    alignItems: 'center',
+  },
+});
