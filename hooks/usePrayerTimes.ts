@@ -10,6 +10,26 @@ import type { PrayerTimeEntry, PrayerName, JamaahTimesData } from '@/types';
 const CALCULATION_METHOD_CODE = 4;
 const CALCULATION_METHOD_NAME = 'UmmAlQura';
 
+/**
+ * Get the correct Hijri date, accounting for the Islamic day starting at Maghrib.
+ * If current time is after Maghrib, the Hijri date should be for the *next* Gregorian day.
+ */
+async function getCorrectHijriDate(
+  targetDate: Date,
+  maghribTime: Date | undefined,
+): Promise<string | null> {
+  const { latitude: lat, longitude: lng } = SALAFI_MASJID;
+  const now = new Date();
+  const isAfterMaghrib = maghribTime && isTodayFn(targetDate) && now >= maghribTime;
+  const hijriQueryDate = isAfterMaghrib ? addDays(targetDate, 1) : targetDate;
+
+  const result = await getPrayerTimes(lat, lng, CALCULATION_METHOD_CODE, CALCULATION_METHOD_NAME, hijriQueryDate);
+  if (result.hijriDate && result.hijriMonth && result.hijriYear) {
+    return `${result.hijriDate} ${result.hijriMonth} ${result.hijriYear}`;
+  }
+  return null;
+}
+
 interface UsePrayerTimesResult {
   prayers: PrayerTimeEntry[];
   nextPrayer: PrayerName | null;
@@ -103,12 +123,10 @@ export function usePrayerTimes(): UsePrayerTimesResult {
           }
 
           // Still fetch Aladhan for Hijri date (mosque API doesn't provide it)
+          // Islamic day starts at Maghrib, so after Maghrib we show next day's Hijri date
           try {
-            const { latitude: lat, longitude: lng } = SALAFI_MASJID;
-            const aladhanResult = await getPrayerTimes(lat, lng, CALCULATION_METHOD_CODE, CALCULATION_METHOD_NAME, targetDate);
-            if (aladhanResult.hijriDate && aladhanResult.hijriMonth && aladhanResult.hijriYear) {
-              setHijriDate(`${aladhanResult.hijriDate} ${aladhanResult.hijriMonth} ${aladhanResult.hijriYear}`);
-            }
+            const hijri = await getCorrectHijriDate(targetDate, mosqueResult.times.maghrib);
+            if (hijri) setHijriDate(hijri);
           } catch {
             // Hijri date is nice-to-have, don't fail on it
           }
@@ -129,8 +147,15 @@ export function usePrayerTimes(): UsePrayerTimesResult {
       setSource(result.source);
       setJamaahAvailable(false);
 
-      if (result.hijriDate && result.hijriMonth && result.hijriYear) {
-        setHijriDate(`${result.hijriDate} ${result.hijriMonth} ${result.hijriYear}`);
+      // Islamic day starts at Maghrib — correct the Hijri date accordingly
+      try {
+        const hijri = await getCorrectHijriDate(targetDate, result.times.maghrib);
+        if (hijri) setHijriDate(hijri);
+      } catch {
+        // Fall back to the date from the initial result
+        if (result.hijriDate && result.hijriMonth && result.hijriYear) {
+          setHijriDate(`${result.hijriDate} ${result.hijriMonth} ${result.hijriYear}`);
+        }
       }
 
       if (isTodayFn(targetDate)) {
