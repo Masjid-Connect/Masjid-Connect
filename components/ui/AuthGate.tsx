@@ -114,9 +114,8 @@ export const AuthGate = ({ variant }: AuthGateProps) => {
         tileSize={56}
       />
 
-      {/* ─── Brand zone: bismillah + logo ─── */}
+      {/* ─── Brand zone: logo ─── */}
       <Animated.View style={[styles.brandZone, logoStyle]}>
-        <Text style={[styles.bismillah, { color: colors.accent }]}>﷽</Text>
         <Image
           source={require('@/assets/images/Masjid_Logo.png')}
           style={[styles.logo, isDark && { tintColor: colors.text }]}
@@ -187,10 +186,6 @@ const styles = StyleSheet.create({
   brandZone: {
     alignItems: 'center',
     marginBottom: spacing['2xl'],
-  },
-  bismillah: {
-    fontSize: 28,
-    marginBottom: spacing.lg,
   },
   logo: {
     width: 200,
