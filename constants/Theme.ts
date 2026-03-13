@@ -106,7 +106,7 @@ type ElevationLevel = 'sm' | 'md' | 'lg';
 
 const darkBorder: ViewStyle = {
   borderWidth: StyleSheet.hairlineWidth,
-  borderColor: '#38383A',
+  borderColor: '#333336',
 };
 
 export function getElevation(level: ElevationLevel, isDark: boolean): ViewStyle {

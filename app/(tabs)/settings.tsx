@@ -186,7 +186,7 @@ export default function SettingsScreen() {
         footer={t('settings.notificationsFooter')}
       >
         <SettingsRow
-          icon={{ name: 'notifications', backgroundColor: palette.paradiseGreen }}
+          icon={{ name: 'notifications', backgroundColor: palette.emerald600 }}
           label={t('settings.prayerReminder')}
           value={reminderLabel}
           accessory="disclosure"
@@ -197,7 +197,7 @@ export default function SettingsScreen() {
           position="first"
         />
         <SettingsRow
-          icon={{ name: 'megaphone', backgroundColor: palette.sacredBlue }}
+          icon={{ name: 'megaphone', backgroundColor: palette.emerald700 }}
           label={t('settings.announcementAlerts')}
           accessory="toggle"
           toggleValue={notifyAnnouncements}
@@ -231,7 +231,7 @@ export default function SettingsScreen() {
           position="first"
         />
         <SettingsRow
-          icon={{ name: 'time', backgroundColor: palette.paradiseGreen }}
+          icon={{ name: 'time', backgroundColor: palette.emerald600 }}
           label={t('settings.use24h')}
           accessory="toggle"
           toggleValue={use24h}
@@ -250,7 +250,7 @@ export default function SettingsScreen() {
           position="first"
         />
         <SettingsRow
-          icon={{ name: 'share-social', backgroundColor: palette.sacredBlue }}
+          icon={{ name: 'share-social', backgroundColor: palette.emerald700 }}
           label={t('settings.shareApp')}
           onPress={handleShareApp}
           position="middle"
@@ -265,7 +265,7 @@ export default function SettingsScreen() {
           position="middle"
         />
         <SettingsRow
-          icon={{ name: 'mail', backgroundColor: palette.paradiseGreen }}
+          icon={{ name: 'mail', backgroundColor: palette.emerald600 }}
           label={t('settings.contactSupport')}
           onPress={handleContactSupport}
           position="middle"
@@ -283,14 +283,14 @@ export default function SettingsScreen() {
       {isAuthenticated && (
         <SettingsSection header={t('settings.dangerZone')}>
           <SettingsRow
-            icon={{ name: 'log-out-outline', backgroundColor: palette.moorishTerracotta }}
+            icon={{ name: 'log-out-outline', backgroundColor: palette.crimson600 }}
             label={t('settings.signOut')}
             onPress={handleSignOut}
             destructive
             position="first"
           />
           <SettingsRow
-            icon={{ name: 'trash-outline', backgroundColor: palette.moorishTerracotta }}
+            icon={{ name: 'trash-outline', backgroundColor: palette.crimson600 }}
             label={t('settings.deleteAccount')}
             onPress={handleDeleteAccount}
             destructive

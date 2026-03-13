@@ -52,21 +52,21 @@ const LIGHT_CONFIGS: Record<string, LightConfig> = {
   fajr: {
     x: 0.2,
     y: 0.85,
-    color: '#C8D8E8',   // cool steel-blue dawn light
+    color: '#C8D8E4',   // cool steel dawn light
     opacity: 0.03,
     radiusScale: 0.6,
   },
   sunrise: {
     x: 0.5,
     y: 0.8,
-    color: '#F0DCC0',   // warm golden
+    color: '#F0DCBE',   // warm golden
     opacity: 0.04,
     radiusScale: 0.65,
   },
   dhuhr: {
     x: 0.5,
     y: 0.15,
-    color: '#F5F0E8',   // neutral warm white
+    color: '#F0EDE6',   // warm stone white
     opacity: 0.05,
     radiusScale: 0.7,
   },

@@ -26,10 +26,10 @@ const MosqueLight = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-    primary: palette.sacredBlue,
-    background: palette.limestone,
+    primary: palette.emerald700,
+    background: palette.stone100,
     card: '#FFFFFF',
-    text: palette.ink,
+    text: palette.onyx900,
     border: palette.separatorLight,
     notification: palette.divineGold,
   },
@@ -40,8 +40,8 @@ const MosqueDark = {
   colors: {
     ...DarkTheme.colors,
     primary: palette.divineGoldBright,
-    background: palette.black,
-    card: palette.darkElevated,
+    background: palette.onyx950,
+    card: palette.onyx850,
     text: palette.snow,
     border: palette.separatorDark,
     notification: palette.divineGoldBright,
@@ -123,7 +123,7 @@ function RootLayoutNav() {
           options={{
             presentation: 'modal',
             headerTitle: 'About',
-            headerTintColor: effectiveScheme === 'dark' ? palette.divineGoldBright : palette.sacredBlue,
+            headerTintColor: effectiveScheme === 'dark' ? palette.divineGoldBright : palette.emerald700,
           }}
         />
       </Stack>
