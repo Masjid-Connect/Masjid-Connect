@@ -4,6 +4,7 @@ import {
   View,
   Text,
   SectionList,
+  SectionListData,
   ScrollView,
   RefreshControl,
   ActivityIndicator,
@@ -351,7 +352,7 @@ export default function AnnouncementsScreen() {
   const renderSectionHeader = ({
     section,
   }: {
-    section: { title: string; key: string; data: Announcement[] };
+    section: SectionListData<Announcement>;
   }) => (
     <View style={[styles.sectionHeader, { backgroundColor: colors.background }]}>
       <Text style={[typography.sectionHeader, { color: colors.textSecondary }]}>
