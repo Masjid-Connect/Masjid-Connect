@@ -40,7 +40,7 @@
       [
         "expo-notifications",
         {
-          "sounds": []
+          "sounds": ["./assets/sounds/adhan.wav"]
         }
       ],
       [

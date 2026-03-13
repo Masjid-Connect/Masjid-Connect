@@ -49,6 +49,13 @@ export async function registerForPushNotifications(): Promise<string | null> {
       sound: 'default',
     });
 
+    await Notifications.setNotificationChannelAsync('prayer-athan', {
+      name: 'Adhan',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      sound: 'adhan.wav',
+    });
+
     await Notifications.setNotificationChannelAsync('announcements', {
       name: 'Announcements',
       importance: Notifications.AndroidImportance.DEFAULT,
@@ -108,14 +115,15 @@ export async function schedulePrayerReminders(
       identifier: `prayer-reminder-${prayer}`,
     });
 
-    // Schedule "at athan time" notification (based on start time, not jama'ah)
+    // Schedule "at athan time" notification with adhan sound
     if (prayerStartTime > now) {
       await Notifications.scheduleNotificationAsync({
         content: {
           title: `${PRAYER_LABELS[prayer].en} — ${PRAYER_LABELS[prayer].ar}`,
           body: 'Prayer time has entered',
+          sound: 'adhan.wav',
           data: { type: 'prayer_athan', prayer },
-          ...(Platform.OS === 'android' && { channelId: 'prayer-reminders' }),
+          ...(Platform.OS === 'android' && { channelId: 'prayer-athan' }),
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DATE,
