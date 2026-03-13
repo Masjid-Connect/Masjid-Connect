@@ -182,9 +182,14 @@ export default function SettingsScreen() {
     }
   }, [t]);
 
-  const handleContactSupport = useCallback(() => {
+  const handleReportIssue = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Linking.openURL('mailto:info@salafimasjid.app');
+    Linking.openURL('mailto:info@salafimasjid.app?subject=Bug%20Report%20%E2%80%94%20The%20Salafi%20Masjid%20App');
+  }, []);
+
+  const handleFeatureRequest = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    Linking.openURL('mailto:info@salafimasjid.app?subject=Feature%20Request%20%E2%80%94%20The%20Salafi%20Masjid%20App');
   }, []);
 
   // Derived display values
@@ -314,8 +319,8 @@ export default function SettingsScreen() {
         />
       </SettingsSection>
 
-      {/* ── About & Support ── */}
-      <SettingsSection header={t('settings.aboutAndSupport')}>
+      {/* ── Help & Feedback ── */}
+      <SettingsSection header={t('settings.helpAndFeedback')}>
         <SettingsRow
           icon={{ name: 'information-circle', backgroundColor: colors.textSecondary }}
           label={t('settings.aboutApp')}
@@ -339,9 +344,15 @@ export default function SettingsScreen() {
           position="middle"
         />
         <SettingsRow
-          icon={{ name: 'mail', backgroundColor: palette.sapphire600 }}
-          label={t('settings.contactSupport')}
-          onPress={handleContactSupport}
+          icon={{ name: 'bug', backgroundColor: palette.crimson600 }}
+          label={t('settings.reportIssue')}
+          onPress={handleReportIssue}
+          position="middle"
+        />
+        <SettingsRow
+          icon={{ name: 'bulb', backgroundColor: palette.divineGold }}
+          label={t('settings.featureRequest')}
+          onPress={handleFeatureRequest}
           position="middle"
         />
         <SettingsRow
