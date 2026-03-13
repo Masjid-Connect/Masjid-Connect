@@ -22,11 +22,9 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useAuth } from '@/contexts/AuthContext';
 import { spacing, getElevation, borderRadius, typography } from '@/constants/Theme';
 import { useEvents } from '@/hooks/useEvents';
 import { BottomSheet } from '@/components/ui/BottomSheet';
-import { AuthGate } from '@/components/ui/AuthGate';
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import type { MosqueEvent, EventCategory } from '@/types';
 import { EVENT_CATEGORY_COLORS } from '@/types';
@@ -40,14 +38,13 @@ export default function EventsScreen() {
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
   const { t } = useTranslation();
-  const { isGuest } = useAuth();
   const router = useRouter();
 
   const CATEGORIES = CATEGORY_KEYS.map((key) => ({
     key,
     label: t(`events.categories.${key || 'all'}`),
   }));
-  const { events, isLoading, error, selectedCategory, setSelectedCategory, refresh } = useEvents(!isGuest);
+  const { events, isLoading, error, selectedCategory, setSelectedCategory, refresh } = useEvents();
   const [refreshing, setRefreshing] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -150,10 +147,6 @@ export default function EventsScreen() {
       </Pressable>
     );
   };
-
-  if (isGuest) {
-    return <AuthGate variant="events" />;
-  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>

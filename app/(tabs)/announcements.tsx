@@ -16,11 +16,9 @@ import * as Haptics from 'expo-haptics';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useAuth } from '@/contexts/AuthContext';
 import { spacing, typography, borderRadius } from '@/constants/Theme';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { BottomSheet } from '@/components/ui/BottomSheet';
-import { AuthGate } from '@/components/ui/AuthGate';
 import type { Announcement } from '@/types';
 
 // ─── Time grouping ──────────────────────────────────────────────────
@@ -66,8 +64,7 @@ export default function AnnouncementsScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
-  const { isGuest } = useAuth();
-  const { announcements, isLoading, error, refresh } = useAnnouncements(!isGuest);
+  const { announcements, isLoading, error, refresh } = useAnnouncements();
   const [refreshing, setRefreshing] = useState(false);
   const [expandedItem, setExpandedItem] = useState<Announcement | null>(null);
 
@@ -95,10 +92,6 @@ export default function AnnouncementsScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setExpandedItem(item);
   };
-
-  if (isGuest) {
-    return <AuthGate variant="announcements" />;
-  }
 
   // ─── Loading ────────────────────────────────────────────────────
   if (isLoading && announcements.length === 0) {
