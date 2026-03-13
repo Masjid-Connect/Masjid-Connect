@@ -217,8 +217,7 @@ export function getNextPrayer(times: PrayerTimesData): PrayerName | null {
   const order: PrayerName[] = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
   for (const name of order) {
-    const t = PM_PRAYERS.has(name) ? ensurePM(times[name]) : times[name];
-    if (t > now) {
+    if (times[name] > now) {
       return name;
     }
   }
