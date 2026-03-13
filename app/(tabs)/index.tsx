@@ -213,13 +213,11 @@ export default function PrayerTimesScreen() {
 
         {/* ── Sky Arc: sun path visualization ───────────────────── */}
         {prayers.length > 0 && (
-          <View style={styles.skyArcContainer}>
-            <SkyArc
-              width={SCREEN_WIDTH}
-              prayers={prayers}
-              nextPrayer={nextPrayer}
-            />
-          </View>
+          <SkyArc
+            width={SCREEN_WIDTH}
+            prayers={prayers}
+            nextPrayer={nextPrayer}
+          />
         )}
 
         {/* ── Date Navigator ─────────────────────────────────────── */}
@@ -392,11 +390,6 @@ const styles = StyleSheet.create({
   // Gradient fade from hero to content
   heroFade: {
     height: HERO_PADDING_BOTTOM, // 48
-  },
-
-  // Sky Arc — sun path visualization between hero and timetable
-  skyArcContainer: {
-    paddingHorizontal: spacing['3xl'],
   },
 
   // Timetable — clean rows, hairline separators
