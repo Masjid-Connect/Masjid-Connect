@@ -34,6 +34,8 @@ interface UsePrayerTimesResult {
   prayers: PrayerTimeEntry[];
   nextPrayer: PrayerName | null;
   countdown: string;
+  /** 0-1 progress through the current prayer window (current→next) */
+  windowProgress: number;
   hijriDate: string | null;
   isLoading: boolean;
   source: 'api' | 'offline' | 'cache' | 'mosque';
@@ -56,6 +58,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
   const [prayers, setPrayers] = useState<PrayerTimeEntry[]>([]);
   const [nextPrayer, setNextPrayer] = useState<PrayerName | null>(null);
   const [countdown, setCountdown] = useState('');
+  const [windowProgress, setWindowProgress] = useState(0);
   const [hijriDate, setHijriDate] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [source, setSource] = useState<'api' | 'offline' | 'cache' | 'mosque'>('cache');
@@ -172,7 +175,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     }
   }, []);
 
-  // Update countdown every 30 seconds
+  // Update countdown + window progress every 30 seconds
   useEffect(() => {
     if (!nextPrayer || prayers.length === 0) return;
 
@@ -182,6 +185,17 @@ export function usePrayerTimes(): UsePrayerTimesResult {
         // Count down to jama'ah time if available, else start time
         const target = prayer.jamaahTime || prayer.time;
         setCountdown(getCountdown(target));
+
+        // Calculate window progress: how far through current→next prayer window
+        const nextIdx = prayers.findIndex((p) => p.name === nextPrayer);
+        const prevIdx = nextIdx > 0 ? nextIdx - 1 : 0;
+        const windowStart = prayers[prevIdx].time.getTime();
+        const windowEnd = prayer.time.getTime();
+        const now = Date.now();
+        const total = windowEnd - windowStart;
+        if (total > 0) {
+          setWindowProgress(Math.max(0, Math.min(1, (now - windowStart) / total)));
+        }
       }
     };
 
@@ -224,6 +238,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     prayers,
     nextPrayer,
     countdown,
+    windowProgress,
     hijriDate,
     isLoading,
     source,
