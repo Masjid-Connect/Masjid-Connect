@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { StyleSheet, View, Text, Pressable } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 
-import { getColors, palette } from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, getElevation, typography } from '@/constants/Theme';
+import { spacing, borderRadius, getElevation, typography, springs } from '@/constants/Theme';
 
 interface ProfileCardAuthProps {
   variant: 'authenticated';
@@ -21,25 +26,43 @@ interface ProfileCardGuestProps {
 
 type ProfileCardProps = ProfileCardAuthProps | ProfileCardGuestProps;
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 export const ProfileCard = (props: ProfileCardProps) => {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
   const { t } = useTranslation();
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = useCallback(() => {
+    scale.value = withSpring(0.98, springs.snappy);
+  }, [scale]);
+
+  const handlePressOut = useCallback(() => {
+    scale.value = withSpring(1, springs.gentle);
+  }, [scale]);
 
   if (props.variant === 'authenticated') {
     const initial = (props.name || props.email)[0].toUpperCase();
 
     return (
       <View style={styles.wrapper}>
-        <Pressable
+        <AnimatedPressable
           onPress={props.onPress}
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOut}
           style={[
             styles.card,
             {
               backgroundColor: colors.card,
               ...getElevation('sm', isDark),
             },
+            animatedStyle,
           ]}
         >
           <View style={[styles.avatar, { backgroundColor: colors.accent }]}>
@@ -56,7 +79,7 @@ export const ProfileCard = (props: ProfileCardProps) => {
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
-        </Pressable>
+        </AnimatedPressable>
       </View>
     );
   }
@@ -98,7 +121,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   card: {
-    marginHorizontal: spacing.lg,
+    marginHorizontal: spacing.xl,
     borderRadius: borderRadius.sm,
     flexDirection: 'row',
     alignItems: 'center',

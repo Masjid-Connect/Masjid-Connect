@@ -16,7 +16,8 @@ import * as Haptics from 'expo-haptics';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius } from '@/constants/Theme';
+import { spacing, typography, borderRadius, springs } from '@/constants/Theme';
+import { layout } from '@/lib/layoutGrid';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -38,7 +39,6 @@ interface SettingsRowProps {
 }
 
 const ICON_BOX_SIZE = 29;
-const ICON_RADIUS = 6;
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -63,12 +63,12 @@ export const SettingsRow = ({
 
   const handlePressIn = useCallback(() => {
     if (onPress) {
-      scale.value = withSpring(0.98, { damping: 20, stiffness: 300 });
+      scale.value = withSpring(0.98, springs.snappy);
     }
   }, [onPress, scale]);
 
   const handlePressOut = useCallback(() => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 200 });
+    scale.value = withSpring(1, springs.gentle);
   }, [scale]);
 
   const handleToggle = useCallback(
@@ -136,12 +136,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingLeft: spacing.lg,
-    minHeight: 44,
+    minHeight: layout.minTouchTarget,
   },
   iconBox: {
     width: ICON_BOX_SIZE,
     height: ICON_BOX_SIZE,
-    borderRadius: ICON_RADIUS,
+    borderRadius: borderRadius.xs,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,

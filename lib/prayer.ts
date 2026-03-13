@@ -253,6 +253,20 @@ export function formatPrayerTime(date: Date, use24h: boolean = false): string {
   return format(date, 'h:mm a');
 }
 
+/** Format a time string (HH:mm or HH:mm:ss) for display based on 24h preference */
+export function formatTimeString(timeStr: string, use24h: boolean = false): string {
+  if (use24h) {
+    // Already in 24h format from the API, just ensure HH:mm
+    return timeStr.slice(0, 5);
+  }
+  // Convert HH:mm to 12h format
+  const [hoursStr, minutesStr] = timeStr.split(':');
+  const hours = parseInt(hoursStr, 10);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+  return `${displayHours}:${minutesStr} ${period}`;
+}
+
 /** Parse "HH:mm" or "HH:mm:ss" or "HH:mm (timezone)" string to Date */
 function parseTimeString(timeStr: string, dateStr: string): Date {
   // Aladhan returns "HH:mm (TZ)" format — strip timezone part

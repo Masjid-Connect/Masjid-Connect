@@ -4,6 +4,7 @@ import { StyleSheet, View, Text } from 'react-native';
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, borderRadius, getElevation, typography } from '@/constants/Theme';
+import { layout } from '@/lib/layoutGrid';
 
 interface SettingsSectionProps {
   header?: string;
@@ -49,16 +50,17 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: spacing.sm,
-    paddingHorizontal: spacing['3xl'] + spacing.lg,
+    // Align with row text: card margin (screenInset) + row paddingLeft (lg)
+    paddingHorizontal: layout.screenInset + spacing.lg,
   },
   card: {
-    marginHorizontal: spacing.lg,
+    marginHorizontal: spacing.xl,
     borderRadius: borderRadius.sm,
     overflow: 'hidden',
   },
   footer: {
     marginTop: spacing.sm,
-    paddingHorizontal: spacing['3xl'] + spacing.lg,
+    paddingHorizontal: layout.screenInset + spacing.lg,
     lineHeight: 18,
   },
 });

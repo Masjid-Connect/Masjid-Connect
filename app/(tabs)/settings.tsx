@@ -22,8 +22,6 @@ import {
   setReminderMinutes,
   getUse24h,
   setUse24h,
-  getCalculationMethod,
-  setCalculationMethod,
   getNotifyAnnouncements,
   setNotifyAnnouncements,
   getNotifyEvents,
@@ -40,23 +38,6 @@ import {
 
 const REMINDER_VALUES = [0, 5, 10, 15, 30];
 
-const CALCULATION_METHODS = [
-  { code: 4, key: '4' },
-  { code: 2, key: '2' },
-  { code: 3, key: '3' },
-  { code: 1, key: '1' },
-  { code: 5, key: '5' },
-  { code: 7, key: '7' },
-  { code: 8, key: '8' },
-  { code: 9, key: '9' },
-  { code: 10, key: '10' },
-  { code: 11, key: '11' },
-  { code: 12, key: '12' },
-  { code: 13, key: '13' },
-  { code: 14, key: '14' },
-  { code: 15, key: '15' },
-];
-
 export default function SettingsScreen() {
   const router = useRouter();
   const { effectiveScheme, themePreference, setThemePreference } = useTheme();
@@ -67,13 +48,11 @@ export default function SettingsScreen() {
   // State
   const [reminderMin, setReminderMin] = useState(15);
   const [use24h, setUse24hState] = useState(false);
-  const [calcMethod, setCalcMethod] = useState({ code: 4, name: 'UmmAlQura' });
   const [notifyAnnouncements, setNotifyAnnouncementsState] = useState(true);
   const [notifyEvents, setNotifyEventsState] = useState(true);
 
   // Sheet visibility
   const [showReminderPicker, setShowReminderPicker] = useState(false);
-  const [showCalcMethodPicker, setShowCalcMethodPicker] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
 
   useEffect(() => {
@@ -81,16 +60,14 @@ export default function SettingsScreen() {
   }, []);
 
   const loadSettings = async () => {
-    const [mins, h24, method, announceEnabled, eventsEnabled] = await Promise.all([
+    const [mins, h24, announceEnabled, eventsEnabled] = await Promise.all([
       getReminderMinutes(),
       getUse24h(),
-      getCalculationMethod(),
       getNotifyAnnouncements(),
       getNotifyEvents(),
     ]);
     setReminderMin(mins);
     setUse24hState(h24);
-    setCalcMethod(method);
     setNotifyAnnouncementsState(announceEnabled);
     setNotifyEventsState(eventsEnabled);
   };
@@ -105,13 +82,6 @@ export default function SettingsScreen() {
     setUse24hState(value);
     await setUse24h(value);
   }, []);
-
-  const handleCalcMethodChange = useCallback(async (code: number) => {
-    const name = t(`settings.calculationMethods.${code}`);
-    setCalcMethod({ code, name });
-    await setCalculationMethod(code, name);
-    await reschedulePrayerRemindersForToday();
-  }, [t]);
 
   const handleNotifyAnnouncementsChange = useCallback(async (value: boolean) => {
     setNotifyAnnouncementsState(value);
@@ -164,12 +134,16 @@ export default function SettingsScreen() {
 
   const handleShareApp = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    await Share.share({ message: t('settings.shareMessage') });
+    try {
+      await Share.share({ message: t('settings.shareMessage') });
+    } catch {
+      // Share can throw on web if a previous share is still pending
+    }
   }, [t]);
 
   const handleContactSupport = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Linking.openURL('mailto:support@mosqueconnect.app');
+    Linking.openURL('mailto:info@salafimasjid.app');
   }, []);
 
   // Derived display values
@@ -179,22 +153,15 @@ export default function SettingsScreen() {
 
   const themeLabel = t(`settings.theme${themePreference.charAt(0).toUpperCase() + themePreference.slice(1)}`);
 
-  const calcMethodLabel = t(`settings.calculationMethods.${calcMethod.code}`);
-
   // Build picker options
   const reminderOptions = REMINDER_VALUES.map((v) => ({
     label: v === 0 ? t('settings.atAthanTime') : t('settings.minutesBefore', { minutes: v }),
     value: v,
   }));
 
-  const calcMethodOptions = CALCULATION_METHODS.map((m) => ({
-    label: t(`settings.calculationMethods.${m.key}`),
-    value: m.code,
-  }));
-
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
+      style={[styles.container, { backgroundColor: colors.backgroundSecondary }]}
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
@@ -212,32 +179,6 @@ export default function SettingsScreen() {
           onSignIn={() => router.push('/(auth)/welcome')}
         />
       )}
-
-      {/* ── My Mosque ── */}
-      <SettingsSection
-        header={t('settings.myMosque')}
-        footer={t('settings.calculationMethodFooter')}
-      >
-        <SettingsRow
-          icon={{ name: 'location', backgroundColor: palette.sacredBlue }}
-          label={t('settings.subscribedMosque')}
-          value={t('prayer.mosqueName')}
-          accessory="disclosure"
-          onPress={() => {/* TODO: Mosque picker */}}
-          position="first"
-        />
-        <SettingsRow
-          icon={{ name: 'compass', backgroundColor: palette.divineGold }}
-          label={t('settings.calculationMethod')}
-          value={calcMethodLabel}
-          accessory="disclosure"
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            setShowCalcMethodPicker(true);
-          }}
-          position="last"
-        />
-      </SettingsSection>
 
       {/* ── Notifications & Reminders ── */}
       <SettingsSection
@@ -305,7 +246,7 @@ export default function SettingsScreen() {
           icon={{ name: 'information-circle', backgroundColor: colors.textSecondary }}
           label={t('settings.aboutApp')}
           accessory="disclosure"
-          onPress={() => {/* TODO: About screen */}}
+          onPress={() => router.push('/about')}
           position="first"
         />
         <SettingsRow
@@ -333,10 +274,7 @@ export default function SettingsScreen() {
           icon={{ name: 'shield-checkmark', backgroundColor: colors.textSecondary }}
           label={t('settings.privacyPolicy')}
           accessory="disclosure"
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            // TODO: Open privacy policy URL
-          }}
+          onPress={() => router.push('/privacy')}
           position="last"
         />
       </SettingsSection>
@@ -379,15 +317,6 @@ export default function SettingsScreen() {
         options={reminderOptions}
         selectedValue={reminderMin}
         onSelect={handleReminderChange}
-      />
-
-      <SettingsPickerSheet
-        visible={showCalcMethodPicker}
-        onDismiss={() => setShowCalcMethodPicker(false)}
-        title={t('settings.calculationMethod')}
-        options={calcMethodOptions}
-        selectedValue={calcMethod.code}
-        onSelect={handleCalcMethodChange}
       />
 
       <ThemePreviewSheet
