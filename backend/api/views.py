@@ -5,6 +5,7 @@ import math
 
 import jwt
 import requests
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.utils.dateparse import parse_date
@@ -48,6 +49,11 @@ class AuthRateThrottle(AnonRateThrottle):
     """Strict rate limit for auth endpoints to prevent brute-force."""
 
     rate = "5/minute"
+
+    def allow_request(self, request, view):
+        if getattr(settings, "TESTING", False):
+            return True
+        return super().allow_request(request, view)
 
 
 # ── Permissions ──────────────────────────────────────────────────────
