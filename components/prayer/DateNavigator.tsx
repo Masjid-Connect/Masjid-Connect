@@ -17,6 +17,7 @@ import { spacing, typography } from '@/constants/Theme';
 interface DateNavigatorProps {
   selectedDate: Date;
   isTodayDate: boolean;
+  hijriDate?: string | null;
   onPrev: () => void;
   onNext: () => void;
   onToday: () => void;
@@ -25,6 +26,7 @@ interface DateNavigatorProps {
 export const DateNavigator = ({
   selectedDate,
   isTodayDate,
+  hijriDate,
   onPrev,
   onNext,
   onToday,
@@ -68,15 +70,22 @@ export const DateNavigator = ({
       </Pressable>
 
       <View style={styles.center}>
-        <Text
-          style={[
-            typography.headline,
-            styles.dateText,
-            { color: isTodayDate ? colors.text : colors.accent },
-          ]}
-        >
-          {dateLabel}
-        </Text>
+        <View style={styles.dateStack}>
+          <Text
+            style={[
+              typography.headline,
+              styles.dateText,
+              { color: isTodayDate ? colors.text : colors.accent },
+            ]}
+          >
+            {dateLabel}
+          </Text>
+          {hijriDate && (
+            <Text style={[typography.caption1, styles.hijriText, { color: colors.textSecondary }]}>
+              {hijriDate}
+            </Text>
+          )}
+        </View>
 
         {!isTodayDate && (
           <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)}>
@@ -128,8 +137,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
   },
+  dateStack: {
+    alignItems: 'center',
+  },
   dateText: {
     textAlign: 'center',
+  },
+  hijriText: {
+    textAlign: 'center',
+    marginTop: 2,
   },
   todayPill: {
     paddingHorizontal: spacing.md,
