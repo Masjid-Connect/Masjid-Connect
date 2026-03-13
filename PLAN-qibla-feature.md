@@ -1,8 +1,10 @@
-# Qibla Direction Feature — Research & Implementation Plan
+# Mosque Connect — Competitive Redesign & Qibla Feature Plan
 
 ## Executive Summary
 
-A Qibla compass is a natural, high-value addition to Mosque Connect. It fits perfectly alongside prayer times as a core daily-use utility — users already open the app for prayer schedules, and knowing which direction to face is the immediate next need. This plan covers how it fits architecturally, what the UX should look like, and a step-by-step implementation path.
+After analyzing Pillars (the UK's most popular Muslim prayer app), Mosque Connect has a strong technical foundation but reads as "clinical" rather than "alive." This plan addresses the core visual storytelling gap, restructures navigation, removes unnecessary friction (sign-up), and adds the Qibla compass — all while preserving our differentiator: **mosque-specific community features that Pillars doesn't have.**
+
+The guiding principle: **steal what works, beat them where it matters, keep what makes us different.**
 
 ---
 
@@ -114,310 +116,585 @@ This is explicitly out of scope for v1 but architecturally possible without rewr
 
 ---
 
-## 1. How It Fits Into the App
+## 1. Structural Decisions (What Changes)
 
-### Option A: Dedicated Tab (Recommended Against)
-Adding a 5th tab would crowd the tab bar and violate the "4 tabs max" HIG guideline. Qibla is a utility, not a content feed — it doesn't warrant its own persistent navigation slot.
+### 1.1 Remove Sign-Up Requirement
 
-### Option B: Standalone Screen via Prayer Times Tab (Recommended)
-The Qibla compass lives as a **sub-screen accessible from the Prayer Times (home) tab**. This is the strongest fit because:
+**Decision: No authentication required to use the app.**
 
-- **Contextual proximity** — Users checking prayer times naturally need Qibla direction next
-- **No tab bar changes** — Preserves the clean 4-tab layout
-- **Discoverable entry point** — A prominent "Qibla" button/card on the home screen, positioned between the prayer hero section and the timetable
-- **Route**: `app/qibla.tsx` (a stack screen pushed from the home tab, not a tab itself)
+Pillars has no sign-up. Users download and immediately get prayer times. This is correct because:
 
-### Option C: Settings/Tools Sub-section
-Burying it in Settings would hurt discoverability. Qibla is a primary use-case, not a preference.
+- **Push notifications don't need auth** — Expo push tokens are device-scoped. `getExpoPushTokenAsync()` returns a unique device token without any user account. We store it server-side keyed by the token itself.
+- **Mosque subscriptions can be anonymous** — A device can subscribe to a mosque's notifications without an account. We associate the push token with mosque IDs.
+- **Auth is only needed for admin features** — Posting announcements, managing events. Regular congregants never need to sign in.
+- **Friction kills adoption** — Every sign-up screen loses 30-50% of potential users. A mosque community app needs maximum adoption.
 
-**Verdict: Option B** — a full-screen compass experience launched from the prayer times home screen.
+**What changes:**
+- Remove sign-up/login from the onboarding flow
+- The app opens directly to prayer times after a brief mosque selection (or auto-detect)
+- Push token registration happens silently on first launch
+- `PushToken` model no longer requires a `user` FK — keyed by token + mosque subscription
+- Profile card in Settings becomes optional ("Sign in to manage your mosque" for admins only)
+- Auth screens remain but are accessed only from Settings → "Mosque Admin"
 
----
+### 1.2 Merge Announcements + Events into "Community" Tab
 
-## 2. Entry Point Design
+**Decision: 4 tabs — Prayer, Qibla, Community, Settings**
 
-On the Prayer Times home screen (`app/(tabs)/index.tsx`), add a **Qibla Direction card** below the prayer hero and above the timetable:
+Pillars uses 5 tabs (Prayer, Qibla, Ramadan, Tracker, Settings) where Ramadan is seasonal and Tracker is a feature we'll never need. Our differentiator is mosque-specific community content. Merging announcements and events into a single "Community" tab gives us:
 
+- **4 clean tabs** (Apple HIG sweet spot)
+- **Qibla gets its own tab** (one-tap access, matches Pillars' proven UX)
+- **Community tab** is our unique selling point — the thing Pillars doesn't have
+- **No wasted tabs** on features that don't serve the mosque community
+
+**New tab structure:**
+
+| Tab | Icon | Content |
+|---|---|---|
+| **Prayer** | `time` / `time-outline` | Prayer times, sun arc, date navigation |
+| **Qibla** | `compass` / `compass-outline` | Full Qibla compass experience |
+| **Community** | `people` / `people-outline` | Announcements + Events (segmented control or sections) |
+| **Settings** | `settings` / `settings-outline` | Preferences, sharing, admin access |
+
+**Community tab layout:**
 ```
 ┌─────────────────────────────────────┐
-│  [Atmospheric gradient hero]        │
-│  Next prayer: Asr                   │
-│  15:42  ·  2h 30m remaining         │
-├─────────────────────────────────────┤
+│  Community                          │
 │                                     │
-│  ┌───────────────────────────────┐  │
-│  │ 🧭  Qibla Direction     →    │  │
-│  │ 119.2° SE from your location  │  │
-│  └───────────────────────────────┘  │
+│  ┌──────────────┬────────────────┐  │
+│  │ Announcements │    Events     │  │  ← Segmented control
+│  └──────────────┴────────────────┘  │
 │                                     │
-│  PRAYER SCHEDULE                    │
-│  Fajr ........... 05:12   05:30    │
-│  ...                                │
+│  [Announcement/Event list below]    │
+│                                     │
 └─────────────────────────────────────┘
 ```
 
-The card would:
-- Show the calculated Qibla bearing (static, from `adhan-js`)
-- Use a small compass icon (Ionicons: `compass-outline`)
-- Tapping navigates to the full Qibla compass screen
-- Render in the app's Stone/Onyx card style with subtle elevation
+### 1.3 "Share the Reward" — Prominent, Not Hidden
+
+**Decision: Move sharing from buried Settings to a visible, persistent element.**
+
+Pillars puts "Share the Reward" on multiple screens. We should have it:
+- **Settings screen** — prominent card near the top (not buried in "About")
+- **Community tab** — share button in the header area
+- **Onboarding completion** — "Invite others from your mosque" prompt
+
+The share text should be mosque-specific: "Join [Mosque Name] on Mosque Connect — get prayer times, announcements, and events for our community."
 
 ---
 
-## 3. Qibla Compass Screen — Full UX
+## 2. Prayer Times Screen — The Big Redesign
 
-### Layout (Full-screen, immersive)
+This is where we close the gap with Pillars and surpass them. The current screen is technically impressive but reads as clinical. We're adding **visual storytelling**.
+
+### 2.1 Islamic Geometric Patterns — Make Them Visible
+
+**Current:** 3% opacity — barely perceptible. This undermines the entire purpose.
+
+**Fix:** Bump to **8-12% opacity** in light mode, **6-10%** in dark mode. The pattern should be felt as a subtle architectural presence — like tilework in a real masjid. Not invisible, not loud. The user should notice it on first use and then it becomes ambient.
+
+Additionally, consider varying the pattern density or style per prayer window — denser/more complex during Isha (night architecture), more open/airy during Dhuhr (midday openness). This would be unique to us.
+
+```typescript
+// layoutGrid.ts
+export const patterns = {
+  tileSize: 56,
+  opacity: 0.10,        // was 0.03 — now visible as architectural element
+  opacityDark: 0.08,    // slightly less in dark mode to avoid noise
+};
+```
+
+### 2.2 Sun Arc — Three Ways to Beat Pillars
+
+Pillars' sun arc is their killer feature: an orange parabolic curve with prayer dots showing the sun's journey. It's beautiful and functional. We need to match it AND surpass it.
+
+**What Pillars does:** A static orange arc (half-ellipse) with white dots for each prayer time. The sun's current position is shown. Below/above the horizon is dimmed. Simple, effective.
+
+**How we beat it:**
+
+#### Option A: "Living Sky Arc" — Atmospheric Gradient Arc (RECOMMENDED)
+
+Instead of Pillars' flat orange line on a dark background, our arc IS the sky. The arc itself is a gradient that shifts color based on the prayer window — Fajr blues/pinks, Dhuhr bright sky blue, Asr warm gold, Maghrib deep orange/crimson, Isha deep navy/violet. The arc becomes a **miniature sky map**.
 
 ```
 ┌─────────────────────────────────────┐
-│  ← Qibla Direction                  │  (header with back button)
+│                                     │
+│           ╭─── ● ───╮              │  ← Arc colored as sky gradient
+│          ╱  Dhuhr    ╲             │     (blue→gold→orange→navy)
+│     ●  ╱    ●    ●    ╲  ●        │
+│   Fajr╱   Asr  Mgrb    ╲Isha     │  ← Prayer dots ON the arc
+│  ─────╱─────────────────╲─────    │  ← Horizon line
+│  ☀ Sun position (animated glow)    │  ← Current position pulses gently
+│                                     │
+│  TODAY  ·  Birmingham               │
+│  < Friday 13 March           >     │  ← Date navigation
+│    25 Ramadan 1447                  │  ← Hijri date, prominent
+│                                     │
+└─────────────────────────────────────┘
+```
+
+**What makes this better than Pillars:**
+- The arc isn't just a line — it's a **sky gradient**. You see dawn colors on the left, midday blue at the peak, sunset orange on the right, night navy at the edges.
+- **Animated sun position** — Not just a dot, but a glowing orb (Skia RadialGradient) that moves along the arc. The glow color matches the current prayer window.
+- **Below-horizon treatment** — Left of Fajr and right of Isha, the arc fades into Onyx-950 (night). This creates a natural "underground" feel for nighttime.
+- **Islamic pattern texture** — The arc itself has a very subtle geometric pattern (our 8-point star) at 5% opacity, giving it an architectural quality that Pillars' flat line lacks.
+- **Seasonal arc height** — In summer, the arc is taller (longer days, sun higher). In winter, it's flatter (shorter days, sun lower). This is astronomically accurate and visually interesting — Pillars' arc is always the same shape.
+- **Built on our existing Skia infrastructure** — We already render atmospheric gradients. This extends the same system.
+
+#### Option B: "Celestial Ring" — Circular Prayer Clock
+
+Instead of a parabolic arc, use a **full circle** (like a 12-hour clock face) with prayer times marked as wedge segments. The current prayer window is highlighted with a glowing arc. This would be more unique than Pillars' approach but less immediately intuitive.
+
+```
+        ╭── Fajr ──╮
+       ╱             ╲
+    Isha     12:00    Dhuhr
+      ╲              ╱
+       ╲   ╱ Sun ╲  ╱
+        ╰── Maghrib ─╯
+            Asr
+```
+
+**Pros:** Unique, shows all 24 hours, looks premium
+**Cons:** Less intuitive than a horizon arc, harder to read at a glance, doesn't tell the "sunrise/sunset" story as naturally
+
+#### Option C: "Horizon Panorama" — Full-Width Skyline
+
+A full-width illustration showing an abstract horizon/skyline with the sky above changing color per prayer time. Prayer times are marked along the bottom as time markers. The sun moves across the sky from left to right.
+
+```
+┌─────────────────────────────────────┐
+│  🌅 ····☀️···························│  ← Sky gradient shifts L-to-R
+│  ▓▓▓▓░░░░░░░░░░░░░░░░░░░▓▓▓▓▓▓▓▓ │  ← Abstract minaret silhouette
+│  Fajr  Dhuhr  Asr  Maghrib  Isha  │  ← Time markers along bottom
+└─────────────────────────────────────┘
+```
+
+**Pros:** Most atmospheric, feels like looking out a window, could incorporate a subtle mosque silhouette
+**Cons:** More complex to build, potentially less precise for reading individual prayer times
+
+### Recommendation: Option A — "Living Sky Arc"
+
+Option A is the strongest because:
+1. It's **immediately recognizable** to Pillars users (same mental model: arc = sun journey)
+2. It's **objectively better** (gradient arc > flat line, animated sun > static dot, seasonal height > fixed shape)
+3. It builds on our **existing Skia infrastructure** (SkiaAtmosphericGradient, SolarLight)
+4. It's the **most practical to implement** (SVG path + gradient fill + animated position)
+5. It maintains the **"Timeless Sanctuary" aesthetic** — the arc becomes part of the atmospheric sky, not a UI widget
+
+### 2.3 Date Navigation — Better Than Pillars
+
+**Pillars:** `< Friday 13 March / 25 Ramadan 1447 >` with left/right arrows.
+
+**How we beat it:**
+- **Swipe gesture** (not just arrow buttons) — swipe the entire hero area left/right to change dates. More natural on mobile.
+- **"TODAY" pill** — When swiped away from today, show a floating "TODAY" pill to jump back (like iOS Calendar)
+- **Hijri date is a headline, not a subtitle** — Show it at `title3` size (20px/600), not buried as footnote text. The Islamic date is spiritually significant, not metadata.
+- **Haptic on date change** — Light haptic on each swipe to confirm the action
+- **Prayer times update instantly** — adhan-js calculates for any date, so swiping to tomorrow shows tomorrow's times immediately (no API call needed if offline)
+
+```
+┌─────────────────────────────────────┐
+│                                     │
+│  TODAY  ·  Birmingham               │
+│                                     │
+│  < Friday 13 March           >     │  ← Swipeable + arrow buttons
+│    25 Ramadan 1447                  │  ← Hijri at title3 (20px, 600wt)
+│                                     │
+└─────────────────────────────────────┘
+```
+
+### 2.4 Prayer List — Cleaner Than Pillars
+
+**Current problems:**
+- GlowDot is a subtle indicator that doesn't provide enough visual separation
+- Hairline separators + gold tint background = clinical
+- No per-prayer notification control
+
+**Changes:**
+
+1. **Rounded border for active prayer** (steal from Pillars) — Replace the gold-tinted background + glow dot with a clean rounded border (1.5px, Divine Gold) around the next prayer row. More elegant, more scannable.
+
+```
+┌─────────────────────────────────────┐
+│  Fajr                      04:53   │  (dimmed — passed)
+├─────────────────────────────────────┤
+│  Sunrise                   06:27   │  (dimmed — passed)
+├─────────────────────────────────────┤
+│  Dhuhr                     12:22   │  (dimmed — passed)
+├─────────────────────────────────────┤
+│ ┌─────────────────────────────────┐ │
+│ │ Asr                      15:25 🔔│ │  ← Active: rounded border
+│ └─────────────────────────────────┘ │
+├─────────────────────────────────────┤
+│  Maghrib                   18:12  🔔│
+├─────────────────────────────────────┤
+│  Isha                      19:28  🔔│
+└─────────────────────────────────────┘
+```
+
+2. **Per-prayer notification bells** (steal from Pillars) — Bell icon on each remaining/future prayer row. Tap to toggle that prayer's notification. No digging through Settings. Bell is muted (outline) when off, filled when on. Color: `textTertiary` when off, `accent` (Divine Gold) when on.
+
+3. **Jamaah time display** — Keep our advantage over Pillars. Show both calculated time AND jamaah time when available. Jamaah time is the primary (bold), calculated time is secondary (caption, below).
+
+4. **Warmer row treatment** — Soften the transition between the atmospheric hero and the prayer list. Instead of a hard cut from gradient to flat Stone-100, let the background fade from the gradient's bottom color into the list background over 32-48px. This removes the "clinical" hard edge.
+
+### 2.5 Hero Section Rework
+
+**Current hero:** Gradient + solar light + pattern + mosque name + hijri date + "upcoming" label + prayer name (40px) + time (54px) + countdown.
+
+**New hero (incorporating sun arc):**
+
+```
+┌─────────────────────────────────────┐
+│  The Salafi Masjid                  │  ← Mosque name (caption, uppercase)
+│                                     │
+│         Isha                        │  ← Current/next prayer (bold, 34px)
+│         19:28                       │  ← Time (ultralight, 48px)
+│    8 hrs 36 mins until Fajr         │  ← Countdown (subhead)
+│                                     │
+│         ╭─── ● ───╮               │  ← Living Sky Arc
+│        ╱  ●    ●   ╲              │
+│   ●  ╱    ●    ●    ╲  ●☀        │  ← Sun at current position
+│  ────╱─────────────────╲────      │  ← Horizon
+│                                     │
+│  TODAY  ·  Birmingham               │
+│  < Friday 13 March           >     │  ← Date nav
+│    25 Ramadan 1447                  │  ← Hijri headline
+│                                     │
+└─────────────────────────────────────┘
+│  PRAYER SCHEDULE       Mosque Times │  ← Section header
+│                                     │
+│ ┌─────────────────────────────────┐ │
+│ │ Isha                   19:28  🔔│ │  ← Active row with border
+│ └─────────────────────────────────┘ │
+│  Fajr (tmrw)             04:53   🔔│
+│  ...                                │
+```
+
+This layout puts the prayer identity at the top (what's current), the visual storytelling in the middle (where is the sun), and the practical timetable below (what's coming).
+
+---
+
+## 3. Qibla Tab — Dedicated, One Tap Away
+
+### Decision: Qibla is a tab, not a sub-screen.
+
+Pillars gives Qibla a dedicated tab. For something Muslims need 5x daily, one-tap access is essential. Our plan previously had it as a sub-screen — that was wrong.
+
+**Route:** `app/(tabs)/qibla.tsx` (tab screen, not a stack push)
+
+### Qibla Screen Layout (Pillars-Inspired, Improved)
+
+```
+┌─────────────────────────────────────┐
+│                                     │
+│  LOCATION                           │
+│  ┌──────────────┐                  │
+│  │ Birmingham   │                  │  ← Location pill
+│  └──────────────┘                  │
 │                                     │
 │         ┌─────────────┐            │
-│        /               \           │
-│       │    Compass      │          │
-│       │    Rose with    │          │
-│       │    Qibla        │          │
-│       │    Indicator    │          │
-│        \               /           │
+│        /    N           \           │
+│       │  W    ▲    E    │          │  ← Compass ring rotates
+│       │      ╱ ╲        │          │     with device heading
+│       │     ╱   ╲       │          │
+│       │    ╱ 🕋  ╲      │          │  ← Kaaba icon on ring
+│        \  S        /    │          │     at Qibla bearing
 │         └─────────────┘            │
 │                                     │
-│         119.2° SE                   │  (bearing + cardinal direction)
-│                                     │
-│   ┌─────────────────────────────┐  │
-│   │ Hold your device flat and   │  │
-│   │ point the arrow toward      │  │
-│   │ the Qibla direction         │  │
-│   └─────────────────────────────┘  │
-│                                     │
-│   Accuracy: High ●                  │  (sensor accuracy indicator)
+│     Turn to your right              │  ← Human instruction
+│                                     │  ← (bold on directional word)
+│     8,204 km to the Kaaba           │  ← Distance (emotional)
 │                                     │
 └─────────────────────────────────────┘
 ```
 
-### Visual Design Principles (matching "Timeless Sanctuary")
+### Key Improvements Over Pillars
 
-- **Compass rose**: Custom SVG drawn with `react-native-svg`, using Sapphire-700 (light) / Sapphire-400 (dark) for the ring, Stone colors for tick marks
-- **Qibla indicator**: A Divine Gold arrow/marker pointing toward Mecca — the gold accent naturally draws attention
-- **North indicator**: Subtle Crimson marker for cardinal North
-- **Background**: Clean Stone-100 / Onyx-950 — no gradient noise competing with the compass
-- **Typography**: Bearing displayed in `prayerCountdown` style (54pt ultralight) for visual consistency with the prayer time display
-- **Animation**: Spring-based rotation via `react-native-reanimated` (using `springs.gentle` for smooth compass movement, no linear easing)
-- **Haptic**: Light haptic pulse when the device aligns within ±3° of Qibla (meaningful feedback)
+1. **"Turn to your left/right"** — Steal this directly. It's the best UX decision in their Qibla screen. Non-technical users don't think in degrees.
 
-### States
+2. **Distance to Kaaba** — Pillars doesn't show this. We do. Adds emotional resonance.
 
-1. **Loading** — Requesting location permission + acquiring GPS fix
-2. **Calibration needed** — Magnetometer accuracy is low; show figure-8 calibration prompt
-3. **Active** — Compass rotating in real-time, Qibla indicator visible
-4. **Aligned** — Device pointing within ±3° of Qibla; Divine Gold glow + haptic + "Qibla Found" label
-5. **Error** — No magnetometer (emulator/old device) or location denied; show static bearing + manual instructions
-6. **Offline** — Works fully offline (adhan-js Qibla calculation + device sensors = no network needed)
+3. **Warmer compass** — Pillars uses a white/cream circle with a peach teardrop. We use our Sapphire ring + Divine Gold arrow. Both warm, ours is more branded.
 
----
+4. **"Qibla Found" celebration** — When aligned within ±3°:
+   - Arrow turns full Divine Gold with Skia glow
+   - Haptic pulse (Medium impact)
+   - "Qibla Found" text replaces "Turn to your..."
+   - Kaaba icon scales up slightly (spring animation)
+   - Gentle gold particle effect (subtle, not cheesy)
 
-## 4. Technical Architecture
+5. **No "Autopilot" toggle** — Pillars has this because they support manual location override. We default to GPS with mosque-coordinates fallback. Simpler.
 
-### Dependencies
+### Technical Architecture (unchanged from previous plan)
 
 | Dependency | Status | Purpose |
 |---|---|---|
 | `adhan` (adhan-js) | Already installed | `Qibla(coordinates)` — calculates bearing to Mecca |
-| `expo-location` | Already installed (unused) | Get user's GPS coordinates |
+| `expo-location` | Already installed | Get user's GPS coordinates |
 | `expo-sensors` | **Needs install** | `Magnetometer` API for compass heading |
 | `react-native-reanimated` | Already installed | Spring-animated compass rotation |
-| `react-native-svg` | Already installed | Compass rose SVG rendering |
+| `react-native-svg` | Already installed | Compass ring SVG rendering |
 | `expo-haptics` | Already installed | Alignment feedback |
 
-**Only 1 new dependency: `expo-sensors`** — this is an official Expo SDK package, well within the Doctrine's spirit (it's part of the Expo managed workflow).
+**Only 1 new dependency: `expo-sensors`**
 
-### Qibla Bearing Calculation (Already Solved)
-
-The `adhan` library already provides this:
-
-```typescript
-import { Coordinates, Qibla } from 'adhan';
-
-const coordinates = new Coordinates(52.4694, -1.8712); // Birmingham
-const qiblaBearing = Qibla(coordinates); // ~119° (SE direction)
-```
-
-This is a **pure math calculation** — no network needed, works offline, high precision (derived from "Astronomical Algorithms" by Jean Meeus).
-
-### Compass Heading (New)
-
-```typescript
-import { Magnetometer } from 'expo-sensors';
-
-// Subscribe to magnetometer updates
-Magnetometer.addListener(({ x, y, z }) => {
-  // Calculate heading from magnetic field components
-  let heading = Math.atan2(y, x) * (180 / Math.PI);
-  if (heading < 0) heading += 360;
-  // Apply smoothing (low-pass filter) to reduce jitter
-});
-```
-
-### Qibla Needle Rotation
+### New Files for Qibla
 
 ```
-needleRotation = qiblaBearing - compassHeading
-```
-
-When `needleRotation ≈ 0°`, the device is pointing toward Qibla.
-
-### New Files
-
-```
-/app/qibla.tsx                          # Qibla compass screen (stack route)
-/components/qibla/QiblaCompass.tsx       # Compass rose + needle component
-/components/qibla/QiblaCard.tsx          # Entry point card for home screen
-/components/qibla/CalibrationPrompt.tsx  # Figure-8 calibration overlay
-/components/qibla/index.ts              # Re-exports
-/hooks/useQiblaCompass.ts               # Hook: magnetometer + qibla calculation
-/hooks/useDeviceHeading.ts              # Hook: raw compass heading from magnetometer
-```
-
-### Data Flow
-
-```
-User opens app
-  → Home screen shows QiblaCard with static bearing (from adhan-js + stored coordinates)
-  → User taps QiblaCard
-    → Navigate to /qibla
-    → Request location permission (if not granted)
-    → Get GPS coordinates (or use cached/default mosque coordinates)
-    → Calculate Qibla bearing via adhan-js Qibla()
-    → Subscribe to Magnetometer via expo-sensors
-    → Animate compass rose rotation (Reanimated spring)
-    → When aligned (±3°): haptic + gold glow + "Qibla Found"
-    → On unmount: unsubscribe from Magnetometer
+/app/(tabs)/qibla.tsx                  # Qibla compass TAB screen
+/components/qibla/QiblaCompass.tsx     # Compass ring + arrow component
+/components/qibla/CalibrationPrompt.tsx # Figure-8 calibration (lazy, on-demand)
+/components/qibla/index.ts            # Re-exports
+/hooks/useQiblaCompass.ts             # Hook: magnetometer + qibla calc + direction text
+/hooks/useDeviceHeading.ts            # Hook: raw compass heading from magnetometer
+/lib/qibla.ts                         # Distance to Kaaba, cardinal direction, bearing utils
 ```
 
 ---
 
-## 5. Location Strategy
+## 4. Community Tab — Our Differentiator
 
-Currently the app hardcodes The Salafi Masjid coordinates. For Qibla, this creates a decision point:
+### Merging Announcements + Events
 
-### Approach: Use Mosque Coordinates as Default, Device GPS as Enhancement
+The Community tab combines both feeds with a **segmented control** at the top:
 
-- **Default**: Calculate Qibla from the subscribed mosque's coordinates (already known). For Birmingham, this is ~119° SE. This is accurate enough for anyone in the Birmingham area.
-- **Enhancement**: If the user grants location permission, use their actual GPS coordinates for higher precision. This matters more for users far from their mosque.
-- **Fallback chain**: Device GPS → Cached user location → Subscribed mosque coordinates → Default mosque coordinates
+```
+┌─────────────────────────────────────┐
+│  Community                 🔗 Share │
+│                                     │
+│  ┌───────────────┬─────────────┐   │
+│  │ Announcements │   Events    │   │  ← Segmented control
+│  └───────────────┴─────────────┘   │
+│                                     │
+│  [Urgent] Janazah — Br. Ahmad      │  ← Urgent announcements always first
+│  Tomorrow at 2:00 PM                │
+│                                     │
+│  Friday Khutbah Topic              │
+│  The Salafi Masjid · 2 hours ago   │
+│                                     │
+│  Tafseer Class Cancelled           │
+│  The Salafi Masjid · Yesterday     │
+│                                     │
+└─────────────────────────────────────┘
+```
 
-This approach means the Qibla card on the home screen works **immediately with zero permissions**, showing the bearing from the mosque's location. The full compass screen requests location only if the user hasn't already granted it.
+**Why this works better than separate tabs:**
+- Most mosques post announcements infrequently — a dedicated tab would often look empty
+- Events are also sparse outside Ramadan — same problem
+- Combined, the tab always has content, feels alive
+- Users get both types of community info in one place
+- We save a tab slot for Qibla
+
+### File changes
+- Existing `app/(tabs)/announcements.tsx` content moves into a component
+- Existing `app/(tabs)/events.tsx` content moves into a component
+- New `app/(tabs)/community.tsx` hosts both via segmented control
+- Delete standalone `announcements.tsx` and `events.tsx` tab files
 
 ---
 
-## 6. Internationalization
+## 5. Push Notifications Without Auth
 
-New i18n keys needed in both `en.json` and `ar.json`:
+### How it works
+
+```
+App Launch
+  → Call getExpoPushTokenAsync() (no auth needed)
+  → Get unique device token (e.g., "ExponentPushToken[xxxxxx]")
+  → POST /api/v1/push-tokens/ { token, platform, mosque_ids }
+  → Server stores token → mosque subscription mapping
+  → Server sends notifications to all tokens subscribed to a mosque
+```
+
+### Backend changes needed
+
+- `PushToken` model: Remove required `user` FK, add optional `user` FK (for admin features later)
+- Add `mosque_ids` field to push token registration (which mosques this device follows)
+- `UserSubscription` model: Allow anonymous subscriptions (no user, just push token + mosque)
+- New endpoint: `POST /api/v1/device-subscribe/` — subscribe a device token to a mosque without auth
+
+### Per-prayer notification preferences
+
+Stored **locally on device** (AsyncStorage/expo-sqlite), not on server:
+```json
+{
+  "prayer_notifications": {
+    "fajr": true,
+    "sunrise": false,
+    "dhuhr": false,
+    "asr": true,
+    "maghrib": true,
+    "isha": true
+  },
+  "reminder_minutes": 15
+}
+```
+
+When a bell icon is tapped on the prayer list, it toggles the local preference and schedules/cancels the local notification for that prayer. These are **local scheduled notifications** (not server-pushed), so they work completely offline and need zero auth.
+
+---
+
+## 6. Visual Warmth Fixes
+
+### 6.1 Gradient-to-List Transition
+
+**Current:** Hard cut from atmospheric gradient hero to flat Stone-100 list background.
+**Fix:** Add a 48px fade zone where the gradient's bottom color blends into the list background. Use a Skia LinearGradient overlay at the hero's bottom edge that transitions from the gradient's terminal color to transparent. This removes the clinical hard edge.
+
+### 6.2 Card Treatment
+
+**Current:** Flat rows with hairline separators.
+**Fix:** Prayer rows get slightly rounded backgrounds (borderRadius: 12) with 4px vertical padding increase. Not full cards with shadows — just enough softness to feel less like a spreadsheet.
+
+### 6.3 Color Temperature
+
+**Current palette is correct** — no need to change the foundational colors. The issue is application:
+- Divine Gold is used too sparingly (only glow dots and badges)
+- Sapphire dominates, which reads as corporate
+- **Fix:** Use Divine Gold more liberally — date navigation arrows, section headers, the sun position indicator. Gold becomes the "warmth" accent throughout, not just for sacred moments.
+
+---
+
+## 7. Internationalization
+
+New and updated i18n keys needed in both `en.json` and `ar.json`:
 
 ```json
 {
+  "tabs": {
+    "prayer": "Prayer",
+    "qibla": "Qibla",
+    "community": "Community",
+    "settings": "Settings"
+  },
+  "prayer": {
+    "today": "TODAY",
+    "dateNavHint": "Swipe to change date",
+    "backToToday": "Back to today",
+    "notificationOn": "Notification on",
+    "notificationOff": "Notification off"
+  },
   "qibla": {
     "title": "Qibla Direction",
-    "bearing": "{{degrees}}° {{cardinal}}",
-    "fromLocation": "from your location",
-    "holdFlat": "Hold your device flat and point the arrow toward the Qibla direction",
+    "location": "LOCATION",
+    "turnLeft": "Turn to your left",
+    "turnRight": "Turn to your right",
+    "turnSlightLeft": "Turn slightly left",
+    "turnSlightRight": "Turn slightly right",
     "qiblaFound": "Qibla Found",
-    "calibrationNeeded": "Compass needs calibration",
-    "calibrationInstructions": "Move your device in a figure-8 motion to calibrate the compass",
-    "accuracyHigh": "Accuracy: High",
-    "accuracyLow": "Accuracy: Low",
-    "noSensor": "Compass sensor not available on this device",
-    "manualBearing": "The Qibla direction is {{degrees}}° {{cardinal}} from your location",
-    "locationDenied": "Location access needed for precise Qibla direction",
-    "cardTitle": "Qibla Direction",
+    "distanceToKaaba": "{{distance}} km to the Kaaba",
+    "calibrationNeeded": "Move your device in a figure-8 to calibrate",
+    "noSensor": "Compass not available on this device",
+    "bearing": "{{degrees}}° {{cardinal}}",
     "N": "N", "NE": "NE", "E": "E", "SE": "SE",
     "S": "S", "SW": "SW", "W": "W", "NW": "NW"
+  },
+  "community": {
+    "title": "Community",
+    "announcements": "Announcements",
+    "events": "Events",
+    "shareReward": "Share the Reward",
+    "shareMessage": "Join {{mosqueName}} on Mosque Connect"
   }
 }
 ```
 
-Arabic translations would mirror these with appropriate directional terminology.
-
 ---
 
-## 7. Accessibility & Edge Cases
+## 8. Accessibility & Edge Cases
 
-- **No magnetometer** (emulators, very old devices): Show static bearing with cardinal direction text. No compass animation — just a clear "Qibla is 119° Southeast" message with an arrow illustration.
-- **Low accuracy**: Show calibration prompt (figure-8 animation) before displaying compass.
+- **No magnetometer** (emulators, very old devices): Show static bearing with "Turn to your left/right" + distance to Kaaba. No compass animation — just clear text and an arrow illustration.
+- **Low accuracy**: Show calibration prompt (figure-8 animation) inline, not as a blocking overlay.
 - **Magnetic interference**: Note in UI that metallic objects or cases can affect accuracy.
 - **Location denied**: Fall back to mosque coordinates (still useful for local congregation).
-- **RTL (Arabic)**: Compass is inherently directional (cardinal directions are universal), but all text labels flip. Cardinal abbreviations use Arabic equivalents.
-- **VoiceOver/TalkBack**: Announce bearing and cardinal direction as text. Announce "Qibla found" when aligned.
+- **RTL (Arabic)**: Compass is inherently directional (cardinal directions are universal), but all text labels flip. "Turn to your left" becomes mirrored appropriately. Cardinal abbreviations use Arabic equivalents.
+- **VoiceOver/TalkBack**: Announce "Turn to your left" / "Qibla Found" as live text. Announce prayer times and notification status per row.
+- **Date navigation**: VoiceOver announces "Friday 13 March, 25 Ramadan 1447. Swipe to change date."
 
 ---
 
-## 8. Privacy Considerations
+## 9. Privacy Considerations
 
-Per best practices:
-- Location is used **only** for Qibla calculation — never sent to the backend or stored beyond the session
+- Location is used **only** for Qibla calculation and prayer times — never sent to the backend
 - Magnetometer data stays on-device
+- Push token is the only device identifier sent to the server
 - No analytics on compass usage
-- Location permission description already exists in `app.json` (for prayer times), so no new permission dialogs needed if already granted
+- No tracking of which prayers users enable notifications for (local only)
+- Anonymous by default — no personal data collected unless user chooses to sign in as admin
 
 ---
 
-## 9. Implementation Steps
+## 10. Implementation Steps
 
-### Phase 1: Foundation
-1. Install `expo-sensors` dependency
-2. Create `useDeviceHeading` hook (magnetometer subscription, heading calculation, smoothing)
-3. Create `useQiblaCompass` hook (combines device heading + adhan-js Qibla bearing)
-4. Add i18n keys to `en.json` and `ar.json`
+### Phase 1: Structural Changes
+1. Remove auth requirement from app onboarding (keep auth for admin screens)
+2. Update `PushToken` model to support anonymous device tokens
+3. Merge Announcements + Events into Community tab with segmented control
+4. Update tab layout to 4 tabs: Prayer, Qibla, Community, Settings
+5. Delete standalone `announcements.tsx` and `events.tsx` tab screens
 
-### Phase 2: UI Components
-5. Create `QiblaCard` component (home screen entry point showing static bearing)
-6. Create `QiblaCompass` component (animated SVG compass rose + Qibla needle)
-7. Create `CalibrationPrompt` component (figure-8 animation overlay)
+### Phase 2: Prayer Times Visual Overhaul
+6. Bump Islamic pattern opacity from 3% to 10% (light) / 8% (dark)
+7. Build Living Sky Arc component (Skia gradient arc + prayer dots + animated sun)
+8. Add date navigation (swipe + arrows + "TODAY" pill)
+9. Make Hijri date prominent (title3 size)
+10. Add gradient-to-list fade transition (48px blend zone)
+11. Replace GlowDot + gold-tint with rounded border for active prayer
+12. Add per-prayer notification bell icons to prayer rows
 
-### Phase 3: Screen & Navigation
-8. Create `app/qibla.tsx` screen (full compass experience)
-9. Add `QiblaCard` to home screen (`app/(tabs)/index.tsx`)
-10. Wire up navigation from card tap → qibla screen
+### Phase 3: Qibla Tab
+13. Install `expo-sensors`
+14. Create `useDeviceHeading` hook (magnetometer + smoothing)
+15. Create `useQiblaCompass` hook (heading + bearing + "turn left/right" text)
+16. Create `QiblaCompass` SVG component (ring + arrow + Kaaba icon)
+17. Create `app/(tabs)/qibla.tsx` tab screen
+18. Add distance-to-Kaaba calculation
+19. Add "Qibla Found" celebration (gold glow + haptic + scale animation)
 
-### Phase 4: Polish
-11. Add haptic feedback on Qibla alignment
-12. Add "Qibla Found" gold glow animation
-13. Handle all error/edge states (no sensor, location denied, calibration)
-14. Test on physical device (magnetometer requires real hardware)
+### Phase 4: Polish & Warmth
+20. Soften prayer row treatment (rounded backgrounds, more padding)
+21. Expand Divine Gold usage (date arrows, section headers, sun indicator)
+22. Add "Share the Reward" button to Settings + Community header
+23. Add all new i18n keys (en + ar)
+24. Handle all edge states (no sensor, location denied, calibration, offline)
+25. Test on physical device (magnetometer + GPS require real hardware)
 
 ---
 
-## 10. What This Does NOT Include (Keeping Scope Tight)
+## 11. What This Does NOT Include
 
-Per Doctrine:
-- No AR camera overlay (would require `expo-camera`, adds complexity, niche use)
-- No "Qibla map" with satellite imagery (unnecessary for direction-finding)
-- No backend changes (everything is client-side)
-- No new tab (stays as a sub-screen)
-- No social/sharing features ("share your Qibla" makes no sense)
-- No Tasbih counter or other unrelated features bundled in
+- No AR camera overlay (v2+ consideration)
+- No Prayer Tracker (never needed — gamifying worship is not our philosophy)
+- No Ramadan mode (next year — seasonal feature, out of scope)
+- No Tasbih counter
+- No social features beyond sharing
+- No theme customization beyond light/dark/system (v2 if demanded)
 
 ---
 
-## 11. Summary
+## 12. Summary
 
 | Aspect | Decision |
 |---|---|
-| **Where it lives** | Sub-screen from Prayer Times tab, route: `/qibla` |
-| **Entry point** | QiblaCard on home screen showing bearing |
-| **New dependencies** | Only `expo-sensors` (official Expo package) |
-| **Qibla calculation** | `adhan-js` `Qibla()` — already installed, same haversine math as Google |
-| **Why not react-native-qibla-compass** | Low maintenance (18 commits, no releases in 12mo), black-box math, still needs expo-sensors anyway |
-| **Why not AR (Google-style camera)** | Requires ejecting Expo managed workflow or heavy deps (ViroReact); camera permission friction; builds two UIs. Deferred to v2+ |
-| **What we take from Google** | Clean single-line indicator (not busy compass rose), distance to Kaaba, strong "found it" moment, minimal chrome |
-| **Compass heading** | `expo-sensors` Magnetometer + low-pass filter smoothing |
-| **Compass visual** | Custom SVG — prominent Qibla arrow (Divine Gold) + minimal compass ring (Sapphire) |
-| **Compass animation** | `react-native-reanimated` spring physics with 0°/360° wrap handling |
-| **Distance to Kaaba** | Haversine formula (~10 lines) — e.g., "8,200 km to the Kaaba" |
-| **Magnetic declination** | Ignored for v1 (~1° in Birmingham, within ±3° threshold). WMM lookup possible in v2 |
-| **Offline** | Fully offline — pure math + device sensors, zero network |
-| **Location** | Mosque coordinates default, device GPS enhancement |
-| **Alignment feedback** | Haptic + Divine Gold glow + enlarging Kaaba icon when within ±3° |
-| **Fallback (no sensor)** | Static bearing text + arrow illustration + distance |
-| **i18n** | Full English + Arabic translations |
-| **Backend changes** | None |
-| **Future (v2)** | AR camera overlay (expo-camera + simple line overlay, not full 3D), sensor fusion (expo-sensor-fusion), magnetic declination correction |
+| **Tab structure** | 4 tabs: Prayer, Qibla, Community, Settings |
+| **Authentication** | Removed for regular users. Anonymous push tokens. Auth only for mosque admins |
+| **Announcements + Events** | Merged into "Community" tab with segmented control |
+| **Sun Arc** | "Living Sky Arc" — gradient-colored arc with prayer dots, animated sun, seasonal height. Beats Pillars' flat orange line |
+| **Islamic patterns** | Opacity bumped from 3% to 10%/8%. Visible as architectural presence |
+| **Date navigation** | Swipe gesture + arrows + "TODAY" pill + haptic. Better than Pillars' arrows-only |
+| **Hijri date** | Promoted to title3 (20px/600) — spiritual significance, not metadata |
+| **Active prayer** | Rounded border (Divine Gold, 1.5px) replaces glow dot + tinted background |
+| **Per-prayer notifications** | Bell icon on each prayer row. Local scheduled notifications, no auth needed |
+| **Gradient transition** | 48px fade zone from hero gradient to list background. Removes clinical hard edge |
+| **Qibla** | Dedicated tab. Compass with "Turn to your left/right" instruction + distance to Kaaba |
+| **Qibla calculation** | adhan-js `Qibla()` + expo-sensors Magnetometer |
+| **Compass visual** | Sapphire ring + Divine Gold arrow + Kaaba icon. "Qibla Found" celebration with haptic + gold glow |
+| **Share the Reward** | Prominent button on Settings + Community header. Mosque-specific share text |
+| **Warmth fixes** | More Divine Gold usage, softer row treatments, warmer transitions, visible patterns |
+| **New dependencies** | Only `expo-sensors` (official Expo SDK) |
+| **Backend changes** | PushToken supports anonymous devices. New device-subscribe endpoint |
+| **What we keep** | Jamaah times (Pillars doesn't have), mosque-specific community (our moat), Skia infrastructure, existing design system |
+| **What Pillars has that we skip** | Prayer Tracker (never), Ramadan tab (next year), Themes marketplace |
