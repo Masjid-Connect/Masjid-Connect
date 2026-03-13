@@ -1,4 +1,4 @@
-"""Django settings for Masjid Connect."""
+"""Django settings for The Salafi Masjid."""
 
 import os
 import sys
@@ -170,8 +170,8 @@ LOGGING = {
 
 # API Documentation
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Masjid Connect API",
-    "DESCRIPTION": "REST API for Masjid Connect — prayer times, mosque management, announcements, and events.",
+    "TITLE": "The Salafi Masjid API",
+    "DESCRIPTION": "REST API for The Salafi Masjid — prayer times, announcements, and events.",
     "VERSION": "1.0.0",
 }
 
@@ -185,8 +185,8 @@ CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
 
 # Unfold admin theme
 UNFOLD = {
-    "SITE_TITLE": "Masjid Connect",
-    "SITE_HEADER": "Masjid Connect Admin",
+    "SITE_TITLE": "The Salafi Masjid",
+    "SITE_HEADER": "The Salafi Masjid Admin",
     "COLORS": {
         "font": {
             "subtle-light": "107 114 128",
