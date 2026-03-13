@@ -109,13 +109,13 @@ const ThemeCard = ({
       <View style={styles.labelRow}>
         <Ionicons
           name={icon}
-          size={16}
+          size={18}
           color={selected ? colors.tint : colors.textSecondary}
           style={{ marginRight: spacing.xs }}
         />
         <Text
           style={[
-            typography.footnote,
+            typography.subhead,
             {
               color: selected ? colors.tint : colors.text,
               fontWeight: selected ? '600' : '400',
