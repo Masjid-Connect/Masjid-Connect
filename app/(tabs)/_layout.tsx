@@ -75,6 +75,7 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: t('tabs.settings'),
+          headerShown: false,
           tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
             <Ionicons
               name={focused ? 'person' : 'person-outline'}
