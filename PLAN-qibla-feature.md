@@ -77,9 +77,7 @@ Even without AR, Google's design philosophy has elements we should adopt:
 
 1. **The "blue line" directional indicator** — Instead of a traditional compass rose, consider a cleaner design with a single prominent directional line/arrow pointing to Qibla. Less clutter, more clarity.
 
-2. **Distance to Kaaba** — Google shows "X,XXX km to Kaaba." This is a one-line addition using the haversine formula and adds emotional resonance. adhan-js doesn't provide this, but it's ~10 lines of math.
-
-3. **The "found it" moment** — Google enlarges the Kaaba icon and brightens the line when aligned. We can do this with our Divine Gold glow + haptic feedback + a satisfying animation.
+2. **The "found it" moment** — Google enlarges the Kaaba icon and brightens the line when aligned. We can do this with our Divine Gold glow + haptic feedback + a satisfying animation.
 
 4. **Minimal chrome** — Google's UI is almost empty: just the line, the distance, and the Kaaba icon. No compass rose, no degree numbers cluttering the view. We should lean toward simplicity over traditional compass aesthetics.
 
@@ -102,7 +100,6 @@ This is the right call because:
 - **Heading smoothing** — Low-pass filter on magnetometer data (prevents jitter). ~15 lines of code.
 - **Magnetic declination** — adhan-js returns True North bearing, but the magnetometer reads Magnetic North. The difference varies by location (e.g., ~1° in Birmingham, up to 20° in Alaska). We can either: (a) ignore it for UK-based users (negligible), or (b) use the World Magnetic Model (WMM) lookup from NOAA — but this adds complexity. **Recommendation: ignore for v1** since the Salafi Masjid users are in Birmingham where declination is ~1°, well within the ±3° alignment threshold.
 - **0°/360° wrap handling** — When heading crosses 359° → 1°, naive interpolation spins 358° the wrong way. We handle this with shortest-path angle interpolation. ~10 lines.
-- **Distance to Kaaba** — Haversine distance formula. ~10 lines. Adds the Google-style "8,200 km to Kaaba" emotional element.
 
 ### Future Enhancement: AR Mode (v2+)
 
@@ -405,8 +402,6 @@ Pillars gives Qibla a dedicated tab. For something Muslims need 5x daily, one-ta
 │         └─────────────┘            │
 │                                     │
 │     Turn to your right              │  ← Human instruction
-│                                     │  ← (bold on directional word)
-│     8,204 km to the Kaaba           │  ← Distance (emotional)
 │                                     │
 └─────────────────────────────────────┘
 ```
@@ -415,9 +410,7 @@ Pillars gives Qibla a dedicated tab. For something Muslims need 5x daily, one-ta
 
 1. **"Turn to your left/right"** — Steal this directly. It's the best UX decision in their Qibla screen. Non-technical users don't think in degrees.
 
-2. **Distance to Kaaba** — Pillars doesn't show this. We do. Adds emotional resonance.
-
-3. **Warmer compass** — Pillars uses a white/cream circle with a peach teardrop. We use our Sapphire ring + Divine Gold arrow. Both warm, ours is more branded.
+2. **Warmer compass** — Pillars uses a white/cream circle with a peach teardrop. We use our Sapphire ring + Divine Gold arrow. Both warm, ours is more branded.
 
 4. **"Qibla Found" celebration** — When aligned within ±3°:
    - Arrow turns full Divine Gold with Skia glow
@@ -450,7 +443,7 @@ Pillars gives Qibla a dedicated tab. For something Muslims need 5x daily, one-ta
 /components/qibla/index.ts            # Re-exports
 /hooks/useQiblaCompass.ts             # Hook: magnetometer + qibla calc + direction text
 /hooks/useDeviceHeading.ts            # Hook: raw compass heading from magnetometer
-/lib/qibla.ts                         # Distance to Kaaba, cardinal direction, bearing utils
+/lib/qibla.ts                         # Cardinal direction, bearing utils
 ```
 
 ---
@@ -585,7 +578,6 @@ New and updated i18n keys needed in both `en.json` and `ar.json`:
     "turnSlightLeft": "Turn slightly left",
     "turnSlightRight": "Turn slightly right",
     "qiblaFound": "Qibla Found",
-    "distanceToKaaba": "{{distance}} km to the Kaaba",
     "calibrationNeeded": "Move your device in a figure-8 to calibrate",
     "noSensor": "Compass not available on this device",
     "bearing": "{{degrees}}° {{cardinal}}",
@@ -689,7 +681,7 @@ New and updated i18n keys needed in both `en.json` and `ar.json`:
 | **Active prayer** | Rounded border (Divine Gold, 1.5px) replaces glow dot + tinted background |
 | **Per-prayer notifications** | Bell icon on each prayer row. Local scheduled notifications, no auth needed |
 | **Gradient transition** | 48px fade zone from hero gradient to list background. Removes clinical hard edge |
-| **Qibla** | Dedicated tab. Compass with "Turn to your left/right" instruction + distance to Kaaba |
+| **Qibla** | Dedicated tab. Compass with "Turn to your left/right" instruction |
 | **Qibla calculation** | adhan-js `Qibla()` + expo-sensors Magnetometer |
 | **Compass visual** | Sapphire ring + Divine Gold arrow + Kaaba icon. "Qibla Found" celebration with haptic + gold glow |
 | **Share the Reward** | Prominent button on Settings + Community header. Mosque-specific share text |

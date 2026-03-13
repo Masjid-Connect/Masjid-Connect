@@ -120,7 +120,7 @@ export default function PrayerTimesScreen() {
             width={heroLayout.width}
             height={heroLayout.height}
             color={isDark ? palette.sapphire400 : palette.sapphire700}
-            opacity={patterns.opacity}
+            opacity={isDark ? patterns.opacityDark : patterns.opacity}
             tileSize={patterns.tileSize}
           />
 

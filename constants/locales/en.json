@@ -1,6 +1,9 @@
 {
   "tabs": {
     "prayerTimes": "Prayer Times",
+    "prayer": "Prayer",
+    "qibla": "Qibla",
+    "community": "Community",
     "announcements": "Announcements",
     "events": "Events",
     "settings": "Settings"
@@ -232,6 +235,28 @@
       "prop3Title": "Save to calendar",
       "prop3Subtitle": "Add events directly to your phone's calendar"
     }
+  },
+  "community": {
+    "title": "Community",
+    "announcements": "Announcements",
+    "events": "Events",
+    "shareReward": "Share the Reward",
+    "shareMessage": "Join The Salafi Masjid on Mosque Connect — prayer times, announcements, and events for our community."
+  },
+  "qibla": {
+    "title": "Qibla Direction",
+    "comingSoon": "Qibla compass coming soon",
+    "location": "LOCATION",
+    "turnLeft": "Turn to your left",
+    "turnRight": "Turn to your right",
+    "turnSlightLeft": "Turn slightly left",
+    "turnSlightRight": "Turn slightly right",
+    "qiblaFound": "Qibla Found",
+    "calibrationNeeded": "Move your device in a figure-8 to calibrate",
+    "noSensor": "Compass not available on this device",
+    "bearing": "{{degrees}}° {{cardinal}}",
+    "N": "N", "NE": "NE", "E": "E", "SE": "SE",
+    "S": "S", "SW": "SW", "W": "W", "NW": "NW"
   },
   "common": {
     "loading": "Loading...",
