@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   socialButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    marginLeft: spacing.sm,
+    marginStart: spacing.sm,
   },
   dividerRow: {
     flexDirection: 'row',

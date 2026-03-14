@@ -9,6 +9,11 @@ import type { Mosque, Announcement, MosqueEvent, UserSubscription, MosquePrayerT
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.salafimasjid.app/api/v1';
 
+// Ensure HTTPS in production
+if (__DEV__ === false && !API_URL.startsWith('https://')) {
+  throw new Error('API_URL must use HTTPS in production');
+}
+
 const KEYS = {
   AUTH_TOKEN: 'auth_token',
   AUTH_USER: 'auth_user',
@@ -73,8 +78,22 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   });
 
   if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`API ${response.status}: ${body}`);
+    // Parse error detail from API if available, but don't leak raw responses
+    let detail = '';
+    try {
+      const body = await response.json();
+      detail = body.detail || '';
+    } catch {
+      // Response wasn't JSON
+    }
+    const messages: Record<number, string> = {
+      400: detail || 'Invalid request',
+      401: 'Please sign in again',
+      403: 'You do not have permission',
+      404: 'Not found',
+      429: 'Too many requests. Please try again later',
+    };
+    throw new Error(messages[response.status] || `Request failed (${response.status})`);
   }
 
   if (response.status === 204) return undefined as T;

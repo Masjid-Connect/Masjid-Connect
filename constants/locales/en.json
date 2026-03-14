@@ -68,6 +68,7 @@
     "detecting": "Detecting...",
     "update": "Update",
     "calculationMethod": "Calculation Method",
+    "ummAlQura": "Umm Al-Qura (Makkah)",
     "prayerReminder": "Prayer Reminder",
     "atAthanTime": "At athan time",
     "minutesBefore": "{{minutes}} min before",
@@ -128,6 +129,7 @@
   },
   "about": {
     "title": "About",
+    "appName": "Mosque Connect",
     "tagline": "Your community, connected",
     "version": "Version",
     "prayerTimes": "Prayer Times",

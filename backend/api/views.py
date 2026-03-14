@@ -9,13 +9,14 @@ import jwt
 import requests
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.models.expressions import RawSQL
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from rest_framework import permissions, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action, api_view, permission_classes, throttle_classes
 from rest_framework.response import Response
-from rest_framework.throttling import AnonRateThrottle
+from rest_framework.throttling import AnonRateThrottle, ScopedRateThrottle
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +53,18 @@ class AuthRateThrottle(AnonRateThrottle):
     """Strict rate limit for auth endpoints to prevent brute-force."""
 
     rate = "5/minute"
+
+    def allow_request(self, request, view):
+        from django.conf import settings
+        if getattr(settings, 'TESTING', False):
+            return True
+        return super().allow_request(request, view)
+
+
+class NearbyRateThrottle(AnonRateThrottle):
+    """Rate limit for the computationally expensive nearby endpoint."""
+
+    rate = "30/minute"
 
     def allow_request(self, request, view):
         from django.conf import settings
@@ -368,9 +381,9 @@ class MosqueViewSet(viewsets.ReadOnlyModelViewSet):
             return MosqueListSerializer
         return MosqueSerializer
 
-    @action(detail=False, methods=["get"])
+    @action(detail=False, methods=["get"], throttle_classes=[NearbyRateThrottle])
     def nearby(self, request):
-        """Return mosques within `radius` km of `lat`/`lng` (haversine)."""
+        """Return mosques within `radius` km of `lat`/`lng` (haversine in SQL)."""
         try:
             lat = float(request.query_params["lat"])
             lng = float(request.query_params["lng"])
@@ -381,21 +394,30 @@ class MosqueViewSet(viewsets.ReadOnlyModelViewSet):
             )
         radius = float(request.query_params.get("radius", 50))
 
-        results = []
-        for m in Mosque.objects.all():
-            d = _haversine_km(lat, lng, m.latitude, m.longitude)
-            if d <= radius:
-                data = MosqueListSerializer(m).data
-                data["distance"] = round(d, 2)
-                results.append(data)
+        # Haversine formula executed at the DB level (works with SQLite and PostgreSQL)
+        lat_rad = math.radians(lat)
+        lng_rad = math.radians(lng)
+        qs = Mosque.objects.annotate(
+            distance=RawSQL(
+                """
+                6371 * acos(
+                    cos(%s) * cos(radians(latitude)) * cos(radians(longitude) - %s) +
+                    sin(%s) * sin(radians(latitude))
+                )
+                """,
+                (lat_rad, lng_rad, lat_rad),
+            )
+        ).filter(distance__lte=radius).order_by("distance")
 
-        results.sort(key=lambda x: x["distance"])
-
-        # Paginate the nearby results consistently with other list endpoints
-        page = self.paginate_queryset(results)
+        page = self.paginate_queryset(qs)
         if page is not None:
-            return self.get_paginated_response(page)
-        return Response(results)
+            serializer = MosqueListSerializer(page, many=True)
+            data = _inject_distances(serializer.data, page)
+            return self.get_paginated_response(data)
+
+        serializer = MosqueListSerializer(qs, many=True)
+        data = _inject_distances(serializer.data, qs)
+        return Response(data)
 
 
 # ── Announcements ────────────────────────────────────────────────────
@@ -575,6 +597,13 @@ def _parse_uuid_list(raw: str) -> list[str]:
         except ValueError:
             continue
     return valid
+
+
+def _inject_distances(serialized_data: list[dict], queryset) -> list[dict]:
+    """Add the annotated distance value into each serialized mosque dict."""
+    for item, obj in zip(serialized_data, queryset):
+        item["distance"] = round(obj.distance, 2)
+    return serialized_data
 
 
 def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:

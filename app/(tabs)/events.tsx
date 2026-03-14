@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { format } from 'date-fns';
+import { ar } from 'date-fns/locale';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Calendar, DateData } from 'react-native-calendars';
 
@@ -31,7 +32,8 @@ const CATEGORY_KEYS: (EventCategory | null)[] = [null, 'lesson', 'lecture', 'qur
 export default function EventsScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === 'ar' ? ar : undefined;
 
   const CATEGORIES = CATEGORY_KEYS.map((key) => ({
     key,
@@ -109,7 +111,7 @@ export default function EventsScreen() {
     return (
       <Pressable onPress={() => setDetailEvent(item)}>
         <Animated.View
-          entering={FadeInDown.delay(index * 50).duration(350).springify()}
+          entering={FadeInDown.delay(Math.min(index * 50, 300)).duration(350).springify()}
           style={[
             styles.eventCard,
             { backgroundColor: colors.card, ...elevation.sm },
@@ -125,7 +127,7 @@ export default function EventsScreen() {
             </Text>
             <Text style={[typography.subhead, { color: colors.textSecondary, marginTop: spacing.xs }]}>
               {item.speaker ? `${item.speaker} · ` : ''}
-              {format(new Date(dateStr), 'EEE, MMM d')} at {item.start_time}
+              {format(new Date(dateStr), 'EEE, MMM d', { locale: dateLocale })} at {item.start_time}
               {item.end_time ? ` – ${item.end_time}` : ''}
             </Text>
             {mosqueName ? (
@@ -157,7 +159,7 @@ export default function EventsScreen() {
             size={20}
             color={showCalendar ? colors.accent : colors.textSecondary}
           />
-          <Text style={[typography.subhead, { color: showCalendar ? colors.accent : colors.textSecondary, marginLeft: spacing.xs }]}>
+          <Text style={[typography.subhead, { color: showCalendar ? colors.accent : colors.textSecondary, marginStart: spacing.xs }]}>
             {t('events.calendar')}
           </Text>
         </TouchableOpacity>
@@ -166,7 +168,7 @@ export default function EventsScreen() {
           style={styles.toolbarButton}
         >
           <Ionicons name="funnel-outline" size={18} color={selectedCategory ? colors.accent : colors.textSecondary} />
-          <Text style={[typography.subhead, { color: selectedCategory ? colors.accent : colors.textSecondary, marginLeft: spacing.xs }]}>
+          <Text style={[typography.subhead, { color: selectedCategory ? colors.accent : colors.textSecondary, marginStart: spacing.xs }]}>
             {selectedCategory ? CATEGORIES.find((c) => c.key === selectedCategory)?.label : t('events.filter')}
           </Text>
         </TouchableOpacity>
@@ -195,9 +197,9 @@ export default function EventsScreen() {
         <Pressable onPress={() => setSelectedDate(null)}>
           <View style={[styles.dateChip, { backgroundColor: colors.tintLight }]}>
             <Text style={[typography.footnote, { color: colors.tint }]}>
-              {format(new Date(selectedDate), 'EEE, MMM d')}
+              {format(new Date(selectedDate), 'EEE, MMM d', { locale: dateLocale })}
             </Text>
-            <Ionicons name="close-circle" size={16} color={colors.tint} style={{ marginLeft: spacing.xs }} />
+            <Ionicons name="close-circle" size={16} color={colors.tint} style={{ marginStart: spacing.xs }} />
           </View>
         </Pressable>
       )}
@@ -287,7 +289,7 @@ export default function EventsScreen() {
               </Text>
             ) : null}
             <Text style={[typography.footnote, { color: colors.textSecondary, marginTop: spacing.sm }]}>
-              {format(new Date(detailEvent.event_date.split('T')[0] || detailEvent.event_date), 'EEEE, MMMM d')} at {detailEvent.start_time}
+              {format(new Date(detailEvent.event_date.split('T')[0] || detailEvent.event_date), 'EEEE, MMMM d', { locale: dateLocale })} at {detailEvent.start_time}
               {detailEvent.end_time ? ` – ${detailEvent.end_time}` : ''}
             </Text>
             {detailEvent.expand?.mosque?.name ? (
@@ -304,7 +306,7 @@ export default function EventsScreen() {
               onPress={() => handleAddToCalendar(detailEvent)}
               style={[styles.addBtn, { backgroundColor: colors.tint }]}
             >
-              <Ionicons name="calendar-outline" size={18} color="#FFFFFF" style={{ marginRight: spacing.sm }} />
+              <Ionicons name="calendar-outline" size={18} color="#FFFFFF" style={{ marginEnd: spacing.sm }} />
               <Text style={[typography.headline, { color: '#FFFFFF' }]}>{t('events.addToCalendar')}</Text>
             </TouchableOpacity>
           </View>

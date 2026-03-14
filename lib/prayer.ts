@@ -8,7 +8,6 @@ import {
   CalculationMethod,
   PrayerTimes,
   Prayer,
-  SunnahTimes,
 } from 'adhan';
 import { format } from 'date-fns';
 import type { PrayerTimesData, PrayerTimeEntry, PrayerName, JamaahTimesData, MosquePrayerTimeResponse } from '@/types';

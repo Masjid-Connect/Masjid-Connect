@@ -11,6 +11,7 @@ import {
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { formatDistanceToNow } from 'date-fns';
+import { ar } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 
 import { getColors } from '@/constants/Colors';
@@ -23,7 +24,8 @@ import type { Announcement } from '@/types';
 export default function AnnouncementsScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === 'ar' ? ar : undefined;
   const { announcements, isLoading, error, refresh } = useAnnouncements();
   const [refreshing, setRefreshing] = useState(false);
   const [expandedItem, setExpandedItem] = useState<Announcement | null>(null);
@@ -42,13 +44,13 @@ export default function AnnouncementsScreen() {
     const isUrgent = item.priority === 'urgent';
     const mosqueName = item.expand?.mosque?.name || '';
     const timeAgo = item.published_at
-      ? formatDistanceToNow(new Date(item.published_at), { addSuffix: true })
+      ? formatDistanceToNow(new Date(item.published_at), { addSuffix: true, locale: dateLocale })
       : '';
 
     return (
       <Pressable onPress={() => setExpandedItem(item)}>
         <Animated.View
-          entering={FadeInDown.delay(index * 50).duration(350).springify()}
+          entering={FadeInDown.delay(Math.min(index * 50, 300)).duration(350).springify()}
           style={[
             styles.row,
             index < sortedAnnouncements.length - 1 && {
@@ -61,7 +63,7 @@ export default function AnnouncementsScreen() {
             {isUrgent && (
               <>
                 <View style={[styles.urgentDot, { backgroundColor: colors.urgent }]} />
-                <Text style={[typography.caption2, { color: colors.urgent, fontWeight: '600', marginRight: spacing.xs }]}>
+                <Text style={[typography.caption2, { color: colors.urgent, fontWeight: '600', marginEnd: spacing.xs }]}>
                   {t('announcements.urgent')}
                 </Text>
                 {mosqueName ? (
@@ -182,7 +184,7 @@ export default function AnnouncementsScreen() {
             </Text>
             <Text style={[typography.footnote, { color: colors.textTertiary, marginTop: spacing.lg, opacity: 0.7 }]}>
               {expandedItem.published_at
-                ? formatDistanceToNow(new Date(expandedItem.published_at), { addSuffix: true })
+                ? formatDistanceToNow(new Date(expandedItem.published_at), { addSuffix: true, locale: dateLocale })
                 : ''}
             </Text>
           </View>
@@ -216,7 +218,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    marginRight: spacing.xs,
+    marginEnd: spacing.xs,
   },
   retryBtn: {
     marginTop: spacing.xl,

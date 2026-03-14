@@ -85,15 +85,15 @@ export default function SettingsScreen() {
       ids = await getSubscribedMosqueIds();
     }
 
-    const list: Mosque[] = [];
-    for (const id of ids) {
-      try {
-        const m = await mosquesApi.getById(id);
-        list.push(m);
-      } catch {
-        list.push({ id, name: id.slice(0, 8) + '…', address: '', city: '', state: '', country: '', latitude: 0, longitude: 0, calculation_method: '', jumua_time: null, contact_phone: '', contact_email: '', website: '', photo: '', created: '', updated: '' });
-      }
-    }
+    const list = await Promise.all(
+      ids.map(async (id) => {
+        try {
+          return await mosquesApi.getById(id);
+        } catch {
+          return { id, name: id.slice(0, 8) + '…', address: '', city: '', state: '', country: '', latitude: 0, longitude: 0, calculation_method: '', jumua_time: null, contact_phone: '', contact_email: '', website: '', photo: '', created: '', updated: '' } as Mosque;
+        }
+      })
+    );
     setSubscribedMosques(list);
   }, [isAuthenticated]);
 
@@ -288,7 +288,7 @@ export default function SettingsScreen() {
                 {(user.name || user.email)[0].toUpperCase()}
               </Text>
             </View>
-            <View style={{ flex: 1, marginLeft: spacing.md }}>
+            <View style={{ flex: 1, marginStart: spacing.md }}>
               <Text style={[typography.body, { color: colors.text }]}>{user.name || user.email}</Text>
               <Text style={[typography.caption1, { color: colors.textSecondary }]}>{user.email}</Text>
             </View>
@@ -319,7 +319,7 @@ export default function SettingsScreen() {
           onPress={() => router.push('/privacy-policy')}
           style={[styles.row, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}
         >
-          <Ionicons name="shield-checkmark-outline" size={20} color={colors.tint} style={{ marginRight: spacing.md }} />
+          <Ionicons name="shield-checkmark-outline" size={20} color={colors.tint} style={{ marginEnd: spacing.md }} />
           <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{t('settings.privacyPolicy')}</Text>
           <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
         </TouchableOpacity>
@@ -327,7 +327,7 @@ export default function SettingsScreen() {
           onPress={() => router.push('/terms')}
           style={styles.row}
         >
-          <Ionicons name="document-text-outline" size={20} color={colors.tint} style={{ marginRight: spacing.md }} />
+          <Ionicons name="document-text-outline" size={20} color={colors.tint} style={{ marginEnd: spacing.md }} />
           <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{t('settings.termsOfService')}</Text>
           <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
         </TouchableOpacity>
@@ -433,8 +433,8 @@ export default function SettingsScreen() {
       <SectionHeader title={t('settings.calculationMethod')} />
       <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
         <View style={styles.row}>
-          <Ionicons name="information-circle-outline" size={20} color={colors.tint} style={{ marginRight: spacing.sm }} />
-          <Text style={[typography.body, { color: colors.text, flex: 1 }]}>Umm Al-Qura (Makkah)</Text>
+          <Ionicons name="information-circle-outline" size={20} color={colors.tint} style={{ marginEnd: spacing.sm }} />
+          <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{t('settings.ummAlQura')}</Text>
         </View>
       </View>
 

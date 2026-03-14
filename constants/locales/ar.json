@@ -68,6 +68,7 @@
     "detecting": "جارٍ التحديد...",
     "update": "تحديث",
     "calculationMethod": "طريقة الحساب",
+    "ummAlQura": "أم القرى (مكة)",
     "prayerReminder": "تذكير الصلاة",
     "atAthanTime": "عند وقت الأذان",
     "minutesBefore": "{{minutes}} دقيقة قبل",
@@ -128,6 +129,7 @@
   },
   "about": {
     "title": "حول",
+    "appName": "Masjid Connect",
     "tagline": "مجتمعك، متصل",
     "version": "الإصدار",
     "prayerTimes": "أوقات الصلاة",
