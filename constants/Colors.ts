@@ -50,6 +50,8 @@ export const palette = {
   divineGold: '#D4AF37',    // Rich matte leaf gold — accent, prayer active
   divineGoldBright: '#E5C14B', // Brighter variant for dark mode contrast
   divineGoldGlow: 'rgba(212, 175, 55, 0.08)', // Subtle glow for active prayer
+  divineGoldText: '#8A7023',        // Darker gold for text on light backgrounds (4.5:1 contrast on white)
+  divineGoldTextDark: '#E0C96B',    // Lighter gold for text on dark backgrounds (4.5:1 contrast on black)
 
   // ─── Crimson: urgent/alert states ───────────────────────────────
   crimson600: '#B91C1C',    // Janazah, immediate announcements (light)
@@ -150,6 +152,7 @@ const Colors = {
     tint: palette.sapphire700,
     tintLight: palette.sapphireLight,
     accent: palette.divineGold,
+    accentText: palette.divineGoldText,
     success: palette.sage600,
     urgent: palette.crimson600,
     info: palette.slate500,
@@ -174,6 +177,7 @@ const Colors = {
     tint: palette.sapphire400,
     tintLight: 'rgba(15, 45, 82, 0.12)',
     accent: palette.divineGoldBright,
+    accentText: palette.divineGoldTextDark,
     success: palette.sage400,
     urgent: palette.crimson400,
     info: palette.slate400,

@@ -140,6 +140,10 @@
       "other": "أخرى"
     },
     "privacyPolicy": "سياسة الخصوصية",
+    "termsOfService": "شروط الخدمة",
+    "deleteAccountButton": "حذف حسابي",
+    "deleteAccountHint": "سيتم حذف حسابك وجميع البيانات نهائياً",
+    "ummAlQura": "أم القرى (مكة)",
     "dangerZone": "إجراءات الحساب",
     "shareMessage": "جرب تطبيق المسجد السلفي — أوقات الصلاة والإعلانات والفعاليات من مسجدك المحلي.",
     "calculationMethods": {
@@ -303,6 +307,12 @@
     "locationPermission": "إذن الموقع مطلوب لحساب أوقات الصلاة.",
     "locationError": "تعذر تحديد موقعك. يرجى المحاولة مرة أخرى.",
     "calendarError": "تعذر فتح التقويم.",
-    "networkError": "تعذر الاتصال. يرجى التحقق من الإنترنت والمحاولة مرة أخرى."
+    "networkError": "تعذر الاتصال. يرجى التحقق من الإنترنت والمحاولة مرة أخرى.",
+    "clearFilter": "مسح الفلتر"
+  },
+  "legal": {
+    "privacyPolicy": "سياسة الخصوصية",
+    "termsOfService": "شروط الخدمة",
+    "lastUpdated": "آخر تحديث: مارس ٢٠٢٦"
   }
 }

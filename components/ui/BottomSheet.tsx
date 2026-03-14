@@ -76,6 +76,7 @@ export const BottomSheet = ({ visible, onDismiss, children, maxHeight }: BottomS
         />
       </Pressable>
       <Animated.View
+        accessibilityViewIsModal={true}
         style={[
           styles.sheet,
           {

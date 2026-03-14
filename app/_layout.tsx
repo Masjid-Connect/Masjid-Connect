@@ -5,6 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useState } from 'react';
 import { AppState } from 'react-native';
 import 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 
 import { palette } from '@/constants/Colors';
 import { AnimatedSplash } from '@/components/brand/AnimatedSplash';
@@ -96,6 +97,7 @@ function RootLayoutNav() {
   const { isAuthenticated, isLoading, hasCompletedOnboarding } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (isLoading) return;
@@ -122,7 +124,7 @@ function RootLayoutNav() {
           name="modal"
           options={{
             presentation: 'modal',
-            headerTitle: 'About',
+            headerTitle: t('about.title'),
             headerTintColor: effectiveScheme === 'dark' ? palette.divineGoldBright : palette.sapphire700,
           }}
         />

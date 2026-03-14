@@ -22,7 +22,7 @@ export default function AboutModal() {
         </View>
 
         <Text style={[typography.title1, styles.title, { color: colors.text }]}>
-          The Salafi Masjid
+          {t('about.appName')}
         </Text>
 
         <Text style={[typography.body, styles.tagline, { color: colors.textSecondary }]}>

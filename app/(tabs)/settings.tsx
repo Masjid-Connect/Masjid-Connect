@@ -57,7 +57,7 @@ export default function SettingsScreen() {
   const { effectiveScheme, themePreference, setThemePreference } = useTheme();
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, isGuest, logout, deleteAccount } = useAuth();
   const insets = useSafeAreaInsets();
 
   // ─── Large title collapse animation ────────────────────────────

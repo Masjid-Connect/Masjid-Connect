@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useColorScheme } from 'react-native';
 import { getThemePreference, setThemePreference as persistThemePreference } from '@/lib/storage';
 
@@ -30,11 +30,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       ? (systemScheme === 'dark' ? 'dark' : 'light')
       : themePreference;
 
-  const value: ThemeContextValue = {
+  const value = useMemo<ThemeContextValue>(() => ({
     themePreference,
     setThemePreference,
     effectiveScheme,
-  };
+  }), [themePreference, setThemePreference, effectiveScheme]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

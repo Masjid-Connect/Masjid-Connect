@@ -140,6 +140,10 @@
       "other": "Other"
     },
     "privacyPolicy": "Privacy policy",
+    "termsOfService": "Terms of service",
+    "deleteAccountButton": "Delete My Account",
+    "deleteAccountHint": "This will permanently delete your account and all data",
+    "ummAlQura": "Umm Al-Qura (Makkah)",
     "dangerZone": "Account Actions",
     "shareMessage": "Check out The Salafi Masjid App — prayer times, announcements, and events from your local masjid.",
     "calculationMethods": {
@@ -303,6 +307,12 @@
     "locationPermission": "Location permission is required to calculate prayer times.",
     "locationError": "Could not detect your location. Please try again.",
     "calendarError": "Could not open calendar.",
-    "networkError": "Unable to connect. Please check your internet and try again."
+    "networkError": "Unable to connect. Please check your internet and try again.",
+    "clearFilter": "Clear filter"
+  },
+  "legal": {
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "lastUpdated": "Last updated: March 2026"
   }
 }

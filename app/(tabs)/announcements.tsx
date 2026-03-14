@@ -14,6 +14,8 @@ import {
 } from 'react-native';
 import Animated, {
   FadeInDown,
+  FadeIn,
+  useReducedMotion,
   useSharedValue,
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -23,6 +25,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { formatDistanceToNow, isToday, isThisWeek, format } from 'date-fns';
+import { ar } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 
@@ -80,11 +83,13 @@ export default function AnnouncementsScreen() {
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
   const alphaColors = getAlpha(effectiveScheme);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === 'ar' ? ar : undefined;
   const { announcements, isLoading, error, refresh } = useAnnouncements();
   const { isUnread, markRead } = useReadAnnouncements();
   const [refreshing, setRefreshing] = useState(false);
   const [expandedItem, setExpandedItem] = useState<Announcement | null>(null);
+  const reducedMotion = useReducedMotion();
   const insets = useSafeAreaInsets();
 
   // ─── Large title collapse animation ────────────────────────────
@@ -245,13 +250,17 @@ export default function AnnouncementsScreen() {
     const unread = isUnread(item.id);
     const mosqueName = item.expand?.mosque?.name || '';
     const timeAgo = item.published_at
-      ? formatDistanceToNow(new Date(item.published_at), { addSuffix: true })
+      ? formatDistanceToNow(new Date(item.published_at), { addSuffix: true, locale: dateLocale })
       : '';
 
     return (
-      <Pressable onPress={() => handlePress(item)}>
+      <Pressable
+        onPress={() => handlePress(item)}
+        accessibilityRole="button"
+        accessibilityLabel={`${item.title}${isUrgent ? `, ${t('announcements.urgent')}` : ''}${mosqueName ? `, ${mosqueName}` : ''}`}
+      >
         <Animated.View
-          entering={FadeInDown.delay(index * 40).duration(300).springify()}
+          entering={reducedMotion ? FadeIn.duration(300) : FadeInDown.delay(Math.min(index * 40, 300)).duration(300).springify()}
           style={[
             styles.row,
             isUrgent && {
@@ -286,7 +295,7 @@ export default function AnnouncementsScreen() {
                     <Text
                       style={[
                         typography.caption2,
-                        { color: colors.urgent, fontWeight: '600', marginRight: spacing.xs },
+                        { color: colors.urgent, fontWeight: '600', marginEnd: spacing.xs },
                       ]}>
                       {t('announcements.urgent')}
                     </Text>
@@ -407,6 +416,9 @@ export default function AnnouncementsScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
         }
         showsVerticalScrollIndicator={false}
+        initialNumToRender={10}
+        maxToRenderPerBatch={5}
+        windowSize={5}
       />
 
       {/* Detail bottom sheet */}
@@ -446,7 +458,7 @@ export default function AnnouncementsScreen() {
             ) : null}
 
             {/* Title */}
-            <Text style={[typography.title2, { color: colors.text, marginTop: spacing.md }]}>
+            <Text style={[typography.title2, { color: colors.text, marginTop: spacing.md }]} accessibilityRole="header">
               {expandedItem.title}
             </Text>
 
@@ -475,6 +487,11 @@ export default function AnnouncementsScreen() {
               ]}>
               {expandedItem.body}
             </Text>
+            <Text style={[typography.footnote, { color: colors.textTertiary, marginTop: spacing.lg, opacity: 0.7 }]}>
+              {expandedItem.published_at
+                ? formatDistanceToNow(new Date(expandedItem.published_at), { addSuffix: true, locale: dateLocale })
+                : ''}
+            </Text>
 
             {/* Actions */}
             <View style={[styles.sheetActions, { borderTopColor: colors.separator }]}>
@@ -485,7 +502,7 @@ export default function AnnouncementsScreen() {
                   handleShare(expandedItem);
                 }}>
                 <Ionicons name="share-outline" size={18} color={colors.tint} />
-                <Text style={[typography.subhead, { color: colors.tint, marginLeft: spacing.sm }]}>
+                <Text style={[typography.subhead, { color: colors.tint, marginStart: spacing.sm }]}>
                   {t('announcements.share')}
                 </Text>
               </Pressable>
@@ -499,7 +516,7 @@ export default function AnnouncementsScreen() {
                     setExpandedItem(null);
                   }}>
                   <Ionicons name="checkmark-circle-outline" size={18} color={colors.success} />
-                  <Text style={[typography.subhead, { color: colors.success, marginLeft: spacing.sm }]}>
+                  <Text style={[typography.subhead, { color: colors.success, marginStart: spacing.sm }]}>
                     {t('announcements.markRead')}
                   </Text>
                 </Pressable>
@@ -599,7 +616,7 @@ const styles = StyleSheet.create({
     width: badge.smallDotSize,
     height: badge.smallDotSize,
     borderRadius: badge.smallDotSize / 2,
-    marginRight: spacing.xs,
+    marginEnd: spacing.xs,
   },
   retryBtn: {
     marginTop: spacing.xl,

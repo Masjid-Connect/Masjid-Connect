@@ -22,12 +22,17 @@ User = get_user_model()
 
 class RegisterSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    password = serializers.CharField(write_only=True, min_length=8)
+    password = serializers.CharField(write_only=True, min_length=10)
     name = serializers.CharField(max_length=255)
 
     def validate_email(self, value):
         if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("A user with this email already exists.")
+            raise serializers.ValidationError("Unable to complete registration. Please try again.")
+        return value
+
+    def validate_password(self, value):
+        from django.contrib.auth.password_validation import validate_password
+        validate_password(value)
         return value
 
     def create(self, validated_data):
@@ -152,6 +157,18 @@ class UserSubscriptionSerializer(serializers.ModelSerializer):
             "created",
         ]
         read_only_fields = ["id", "user", "created"]
+
+    def validate(self, attrs):
+        request = self.context.get("request")
+        if request and not self.instance:
+            mosque = attrs.get("mosque")
+            if mosque and UserSubscription.objects.filter(
+                user=request.user, mosque=mosque
+            ).exists():
+                raise serializers.ValidationError(
+                    "You are already subscribed to this mosque."
+                )
+        return attrs
 
 
 # ── Push Token ────────────────────────────────────────────────────────

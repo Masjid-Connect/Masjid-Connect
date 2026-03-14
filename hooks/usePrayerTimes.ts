@@ -175,8 +175,16 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     }
   }, []);
 
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const nextPrayerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   // Update countdown + window progress every 30 seconds
   useEffect(() => {
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+      countdownIntervalRef.current = null;
+    }
+
     if (!nextPrayer || prayers.length === 0) return;
 
     const updateCountdown = () => {
@@ -200,12 +208,22 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     };
 
     updateCountdown();
-    const interval = setInterval(updateCountdown, 30_000);
-    return () => clearInterval(interval);
+    countdownIntervalRef.current = setInterval(updateCountdown, 30_000);
+    return () => {
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+        countdownIntervalRef.current = null;
+      }
+    };
   }, [nextPrayer, prayers]);
 
   // Check if next prayer changed every minute
   useEffect(() => {
+    if (nextPrayerIntervalRef.current) {
+      clearInterval(nextPrayerIntervalRef.current);
+      nextPrayerIntervalRef.current = null;
+    }
+
     if (prayers.length === 0) return;
 
     const checkNextPrayer = () => {
@@ -220,8 +238,13 @@ export function usePrayerTimes(): UsePrayerTimesResult {
       setNextPrayer(getNextPrayer(times));
     };
 
-    const interval = setInterval(checkNextPrayer, 60_000);
-    return () => clearInterval(interval);
+    nextPrayerIntervalRef.current = setInterval(checkNextPrayer, 60_000);
+    return () => {
+      if (nextPrayerIntervalRef.current) {
+        clearInterval(nextPrayerIntervalRef.current);
+        nextPrayerIntervalRef.current = null;
+      }
+    };
   }, [prayers]);
 
   // Initial load

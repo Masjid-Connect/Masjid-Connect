@@ -17,6 +17,7 @@ import { Dimensions, Image, Platform, StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withDelay,
   withSpring,
@@ -58,6 +59,7 @@ export const AnimatedSplash = ({
   children,
 }: AnimatedSplashProps) => {
   const isWeb = Platform.OS === 'web';
+  const reducedMotion = useReducedMotion();
 
   // Animation shared values
   const logoOpacity = useSharedValue(0);
@@ -86,11 +88,22 @@ export const AnimatedSplash = ({
   useEffect(() => {
     if (!isVisible) return;
 
+    // When reduced motion is preferred, skip all animations and show content immediately
+    if (reducedMotion) {
+      logoOpacity.value = 1;
+      logoScale.value = 1;
+      splashOpacity.value = 0;
+      contentOpacity.value = 1;
+      notifyComplete();
+      return;
+    }
+
     // Pattern fades in during silence phase — breath inhale rhythm
     patternOpacity.value = withTiming(patterns.opacity, {
       duration: breath.inhale,
       easing: breathEasing.inhale,
     });
+
 
     // Phase 2: Haptic + logo fades in with gentle scale
     logoOpacity.value = withDelay(
@@ -207,7 +220,7 @@ export const AnimatedSplash = ({
         </Animated.View>
 
         {/* The logo — centered, fades in with scale */}
-        <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
+        <Animated.View style={[styles.logoContainer, logoAnimatedStyle]} accessibilityLabel="Mosque Connect">
           <Image
             source={require('@/assets/images/Masjid_Logo.png')}
             style={styles.logo}

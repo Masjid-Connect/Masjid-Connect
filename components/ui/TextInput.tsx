@@ -57,6 +57,8 @@ export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
             onBlur={() => setFocused(false)}
             secureTextEntry={secureTextEntry && !showPassword}
             autoCapitalize="none"
+            accessibilityLabel={label}
+            accessibilityHint={error ? error : undefined}
             {...props}
           />
           {secureTextEntry && (

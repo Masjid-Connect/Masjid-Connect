@@ -12,6 +12,7 @@ const KEYS = {
   REMINDER_MINUTES: 'reminder_minutes',
   USE_24H: 'use_24h_format',
   THEME: 'theme_preference',
+  LANGUAGE: 'language_preference',
   NOTIFY_ANNOUNCEMENTS: 'notify_announcements',
   NOTIFY_EVENTS: 'notify_events',
 };
@@ -50,10 +51,16 @@ export async function cachePrayerTimes(
 export async function getCachedPrayerTimes(
   date: string
 ): Promise<{ times: PrayerTimesData; jamaahTimes: JamaahTimesData | null } | null> {
-  const cachedDate = await AsyncStorage.getItem(KEYS.PRAYER_DATE);
-  if (cachedDate !== date) return null;
+  const results = await AsyncStorage.multiGet([
+    KEYS.PRAYER_DATE,
+    KEYS.PRAYER_TIMES,
+    KEYS.JAMAAH_TIMES,
+  ]);
+  const cachedDate = results[0][1];
+  const raw = results[1][1];
+  const rawJamaah = results[2][1];
 
-  const raw = await AsyncStorage.getItem(KEYS.PRAYER_TIMES);
+  if (cachedDate !== date) return null;
   if (!raw) return null;
 
   const parsed = JSON.parse(raw);
@@ -67,7 +74,6 @@ export async function getCachedPrayerTimes(
   };
 
   let jamaahTimes: JamaahTimesData | null = null;
-  const rawJamaah = await AsyncStorage.getItem(KEYS.JAMAAH_TIMES);
   if (rawJamaah) {
     const parsedJamaah = JSON.parse(rawJamaah);
     jamaahTimes = {
@@ -94,8 +100,9 @@ export async function setUserLocation(latitude: number, longitude: number): Prom
 
 /** Calculation method */
 export async function getCalculationMethod(): Promise<{ code: number; name: string }> {
-  const code = await AsyncStorage.getItem(KEYS.CALCULATION_METHOD);
-  const name = await AsyncStorage.getItem(KEYS.CALCULATION_METHOD_NAME);
+  const results = await AsyncStorage.multiGet([KEYS.CALCULATION_METHOD, KEYS.CALCULATION_METHOD_NAME]);
+  const code = results[0][1];
+  const name = results[1][1];
   return {
     code: code ? parseInt(code, 10) : 2,
     name: name || 'NorthAmerica',
@@ -135,6 +142,15 @@ export async function getThemePreference(): Promise<'light' | 'dark' | 'system'>
 
 export async function setThemePreference(theme: 'light' | 'dark' | 'system'): Promise<void> {
   await AsyncStorage.setItem(KEYS.THEME, theme);
+}
+
+/** Language preference */
+export async function getLanguage(): Promise<string | null> {
+  return AsyncStorage.getItem(KEYS.LANGUAGE);
+}
+
+export async function setLanguage(language: string): Promise<void> {
+  await AsyncStorage.setItem(KEYS.LANGUAGE, language);
 }
 
 /** Notification preferences */

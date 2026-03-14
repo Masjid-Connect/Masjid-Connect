@@ -2,18 +2,22 @@
 
 import logging
 import math
+import os
+import uuid as uuid_mod
 
 import jwt
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db import transaction
+from django.db.models.expressions import RawSQL
 from django.utils import timezone
 from django.utils.dateparse import parse_date
 from rest_framework import permissions, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action, api_view, permission_classes, throttle_classes
 from rest_framework.response import Response
-from rest_framework.throttling import AnonRateThrottle
+from rest_framework.throttling import AnonRateThrottle, ScopedRateThrottle
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +37,7 @@ from .serializers import (
     EventSerializer,
     FeedbackCreateSerializer,
     FeedbackSerializer,
+    MosqueAdminSerializer,
     MosqueListSerializer,
     MosquePrayerTimeSerializer,
     MosqueSerializer,
@@ -59,6 +64,17 @@ class AuthRateThrottle(AnonRateThrottle):
         return super().allow_request(request, view)
 
 
+class NearbyRateThrottle(AnonRateThrottle):
+    """Rate limit for the computationally expensive nearby endpoint."""
+
+    rate = "30/minute"
+
+    def allow_request(self, request, view):
+        if getattr(settings, "TESTING", False):
+            return True
+        return super().allow_request(request, view)
+
+
 class FeedbackRateThrottle(AnonRateThrottle):
     """Limit feedback submissions to prevent spam."""
 
@@ -75,6 +91,21 @@ class FeedbackRateThrottle(AnonRateThrottle):
 
 class IsMosqueAdminOrReadOnly(permissions.BasePermission):
     """Allow write operations only if the user is a mosque admin for the target mosque."""
+
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        if not request.user or not request.user.is_authenticated:
+            return False
+        # Staff users can do anything
+        if request.user.is_staff:
+            return True
+        # For create actions, check that the user is admin for the target mosque
+        mosque_id = request.data.get("mosque")
+        if mosque_id:
+            return MosqueAdmin.objects.filter(user=request.user, mosque_id=mosque_id).exists()
+        # If no mosque specified, let the serializer handle validation
+        return True
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
@@ -113,17 +144,13 @@ def register(request):
 @permission_classes([permissions.AllowAny])
 @throttle_classes([AuthRateThrottle])
 def login(request):
-    """Authenticate and return token. Accepts email (primary) or username as fallback."""
+    """Authenticate and return token."""
     email = request.data.get("email", "")
     password = request.data.get("password", "")
     try:
         user = User.objects.get(email=email)
     except User.DoesNotExist:
-        # Fallback: try username for legacy superusers created via createsuperuser
-        try:
-            user = User.objects.get(username=email)
-        except User.DoesNotExist:
-            return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
 
     if not user.check_password(password):
         return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
@@ -168,19 +195,20 @@ def social_login(request):
     # Use provided name, then social provider name, then email prefix
     display_name = name or social_name or email.split("@")[0]
 
-    # Find or create user
-    user, created = User.objects.get_or_create(
-        email=email,
-        defaults={
-            "username": email,
-            "name": display_name,
-        },
-    )
+    # Find or create user (atomic to prevent race conditions)
+    with transaction.atomic():
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                "username": email,
+                "name": display_name,
+            },
+        )
 
-    if created:
-        # Set unusable password for social-only accounts
-        user.set_unusable_password()
-        user.save()
+        if created:
+            # Set unusable password for social-only accounts
+            user.set_unusable_password()
+            user.save()
 
     token, _ = Token.objects.get_or_create(user=user)
     return Response(
@@ -211,7 +239,7 @@ def _verify_apple_token(id_token: str) -> tuple[str, str]:
             id_token,
             public_key,
             algorithms=["RS256"],
-            audience=["com.masjidconnect.app"],
+            audience=[os.environ.get("APPLE_BUNDLE_ID", "app.salafimasjid")],
             issuer="https://appleid.apple.com",
         )
 
@@ -225,16 +253,45 @@ def _verify_apple_token(id_token: str) -> tuple[str, str]:
 
 
 def _verify_google_token(id_token: str) -> tuple[str, str]:
-    """Verify Google ID token via Google's tokeninfo endpoint."""
+    """Verify Google ID token using Google's public keys (JWT verification)."""
     try:
-        resp = requests.get(
-            f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}",
-            timeout=10,
-        )
-        if resp.status_code != 200:
-            raise ValueError("Invalid Google token.")
+        # Decode header to get key ID
+        header = jwt.get_unverified_header(id_token)
+        kid = header.get("kid")
 
-        payload = resp.json()
+        # Fetch Google's public keys
+        resp = requests.get("https://www.googleapis.com/oauth2/v3/certs", timeout=10)
+        resp.raise_for_status()
+        google_keys = resp.json()["keys"]
+
+        # Find matching key
+        key_data = next((k for k in google_keys if k["kid"] == kid), None)
+        if not key_data:
+            raise ValueError("Google key not found.")
+
+        public_key = jwt.algorithms.RSAAlgorithm.from_jwk(key_data)
+        google_client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
+
+        # Build audience list — accept both web and iOS client IDs if configured
+        audiences = [a for a in [
+            google_client_id,
+            os.environ.get("GOOGLE_IOS_CLIENT_ID", ""),
+        ] if a]
+
+        decode_options = {}
+        if not audiences:
+            # No client IDs configured — skip audience verification (dev only)
+            decode_options["verify_aud"] = False
+
+        payload = jwt.decode(
+            id_token,
+            public_key,
+            algorithms=["RS256"],
+            audience=audiences if audiences else None,
+            issuer=["accounts.google.com", "https://accounts.google.com"],
+            options=decode_options,
+        )
+
         email = payload.get("email", "")
         name = payload.get("name", "")
 
@@ -244,8 +301,11 @@ def _verify_google_token(id_token: str) -> tuple[str, str]:
             raise ValueError("Google email not verified.")
 
         return email, name
-    except requests.RequestException as e:
+    except jwt.PyJWTError as e:
         logger.warning("Google token verification failed: %s", e)
+        raise ValueError("Invalid Google token.") from e
+    except requests.RequestException as e:
+        logger.warning("Google key fetch failed: %s", e)
         raise ValueError("Could not verify Google token.") from e
 
 
@@ -265,6 +325,59 @@ def me(request):
     return Response(UserSerializer(request.user).data)
 
 
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def export_user_data(request):
+    """GDPR-compliant data export — return all data associated with the authenticated user."""
+    user = request.user
+
+    profile = UserSerializer(user).data
+    user_subscriptions = UserSubscription.objects.filter(user=user).select_related("mosque")
+    user_push_tokens = PushToken.objects.filter(user=user)
+    user_announcements = Announcement.objects.filter(author=user).select_related("mosque")
+    user_events = Event.objects.filter(author=user).select_related("mosque")
+    user_admin_roles = MosqueAdmin.objects.filter(user=user).select_related("mosque")
+
+    return Response({
+        "profile": profile,
+        "subscriptions": UserSubscriptionSerializer(user_subscriptions, many=True).data,
+        "push_tokens": PushTokenSerializer(user_push_tokens, many=True).data,
+        "announcements": AnnouncementSerializer(user_announcements, many=True).data,
+        "events": EventSerializer(user_events, many=True).data,
+        "admin_roles": MosqueAdminSerializer(user_admin_roles, many=True).data,
+        "exported_at": timezone.now().isoformat(),
+    })
+
+
+@api_view(["DELETE"])
+@permission_classes([permissions.IsAuthenticated])
+def delete_account(request):
+    """
+    Permanently delete the authenticated user's account and all associated data.
+    Requires password confirmation for password-based accounts.
+    """
+    user = request.user
+
+    # Require password confirmation for accounts that have a usable password
+    if user.has_usable_password():
+        password = request.data.get("password", "")
+        if not user.check_password(password):
+            return Response(
+                {"detail": "Password confirmation required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    with transaction.atomic():
+        # Delete auth token
+        if hasattr(user, "auth_token"):
+            user.auth_token.delete()
+        # Cascade deletes: subscriptions, push_tokens, mosque_roles
+        # Orphan authored content (SET_NULL on announcements/events)
+        user.delete()
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 # ── Mosques ──────────────────────────────────────────────────────────
 
 
@@ -281,9 +394,9 @@ class MosqueViewSet(viewsets.ReadOnlyModelViewSet):
             return MosqueListSerializer
         return MosqueSerializer
 
-    @action(detail=False, methods=["get"])
+    @action(detail=False, methods=["get"], throttle_classes=[NearbyRateThrottle])
     def nearby(self, request):
-        """Return mosques within `radius` km of `lat`/`lng` (haversine)."""
+        """Return mosques within `radius` km of `lat`/`lng` (haversine in SQL)."""
         try:
             lat = float(request.query_params["lat"])
             lng = float(request.query_params["lng"])
@@ -294,21 +407,30 @@ class MosqueViewSet(viewsets.ReadOnlyModelViewSet):
             )
         radius = float(request.query_params.get("radius", 50))
 
-        results = []
-        for m in Mosque.objects.all():
-            d = _haversine_km(lat, lng, m.latitude, m.longitude)
-            if d <= radius:
-                data = MosqueListSerializer(m).data
-                data["distance"] = round(d, 2)
-                results.append(data)
+        # Haversine formula executed at the DB level (works with SQLite and PostgreSQL)
+        lat_rad = math.radians(lat)
+        lng_rad = math.radians(lng)
+        qs = Mosque.objects.annotate(
+            distance=RawSQL(
+                """
+                6371 * acos(
+                    cos(%s) * cos(radians(latitude)) * cos(radians(longitude) - %s) +
+                    sin(%s) * sin(radians(latitude))
+                )
+                """,
+                (lat_rad, lng_rad, lat_rad),
+            )
+        ).filter(distance__lte=radius).order_by("distance")
 
-        results.sort(key=lambda x: x["distance"])
-
-        # Paginate the nearby results consistently with other list endpoints
-        page = self.paginate_queryset(results)
+        page = self.paginate_queryset(qs)
         if page is not None:
-            return self.get_paginated_response(page)
-        return Response(results)
+            serializer = MosqueListSerializer(page, many=True)
+            data = _inject_distances(serializer.data, page)
+            return self.get_paginated_response(data)
+
+        serializer = MosqueListSerializer(qs, many=True)
+        data = _inject_distances(serializer.data, qs)
+        return Response(data)
 
 
 # ── Announcements ────────────────────────────────────────────────────
@@ -327,7 +449,7 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         qs = Announcement.objects.select_related("mosque", "author")
         mosque_ids = self.request.query_params.get("mosque_ids")
         if mosque_ids:
-            ids = [mid.strip() for mid in mosque_ids.split(",") if mid.strip()]
+            ids = _parse_uuid_list(mosque_ids)
             qs = qs.filter(mosque_id__in=ids)
 
         now = timezone.now()
@@ -363,7 +485,7 @@ class EventViewSet(viewsets.ModelViewSet):
         qs = Event.objects.select_related("mosque", "author")
         mosque_ids = self.request.query_params.get("mosque_ids")
         if mosque_ids:
-            ids = [mid.strip() for mid in mosque_ids.split(",") if mid.strip()]
+            ids = _parse_uuid_list(mosque_ids)
             qs = qs.filter(mosque_id__in=ids)
 
         from_date = self.request.query_params.get("from_date")
@@ -509,6 +631,28 @@ class MosquePrayerTimeViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 # ── Helpers ──────────────────────────────────────────────────────────
+
+
+def _parse_uuid_list(raw: str) -> list[str]:
+    """Parse and validate a comma-separated list of UUIDs. Skip invalid entries."""
+    valid = []
+    for part in raw.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        try:
+            uuid_mod.UUID(part)
+            valid.append(part)
+        except ValueError:
+            continue
+    return valid
+
+
+def _inject_distances(serialized_data: list[dict], queryset) -> list[dict]:
+    """Add the annotated distance value into each serialized mosque dict."""
+    for item, obj in zip(serialized_data, queryset):
+        item["distance"] = round(obj.distance, 2)
+    return serialized_data
 
 
 def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:

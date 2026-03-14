@@ -42,42 +42,53 @@ echo "Done."
 echo ""
 
 # -----------------------------------------------------------
-# Step 2: Build Docker image
+# Step 2: Tag previous image for rollback, then build
 # -----------------------------------------------------------
-echo "Step 2/6: Building new Docker image..."
-echo "(This may take a few minutes the first time)"
+echo "Step 2/7: Building new Docker image..."
+PREV_IMAGE=$(docker compose -f "$COMPOSE_FILE" images web -q 2>/dev/null || true)
+if [ -n "$PREV_IMAGE" ]; then
+    docker tag "$PREV_IMAGE" masjid-connect-web:rollback 2>/dev/null || true
+    echo "  (Previous image tagged for rollback)"
+fi
 docker compose -f "$COMPOSE_FILE" build web
 echo "Done."
 echo ""
 
 # -----------------------------------------------------------
-# Step 3: Run database migrations
+# Step 3: Preview database migrations
 # -----------------------------------------------------------
-echo "Step 3/6: Running database migrations..."
+echo "Step 3/7: Checking pending database migrations..."
+docker compose -f "$COMPOSE_FILE" run --rm web python manage.py migrate --plan 2>&1 || true
+echo ""
+
+# -----------------------------------------------------------
+# Step 4: Run database migrations
+# -----------------------------------------------------------
+echo "Step 4/7: Running database migrations..."
 docker compose -f "$COMPOSE_FILE" run --rm web python manage.py migrate --noinput
 echo "Done."
 echo ""
 
 # -----------------------------------------------------------
-# Step 4: Collect static files
+# Step 5: Collect static files
 # -----------------------------------------------------------
-echo "Step 4/6: Collecting static files..."
+echo "Step 5/7: Collecting static files..."
 docker compose -f "$COMPOSE_FILE" run --rm web python manage.py collectstatic --noinput
 echo "Done."
 echo ""
 
 # -----------------------------------------------------------
-# Step 5: Restart containers
+# Step 6: Restart containers
 # -----------------------------------------------------------
-echo "Step 5/6: Restarting containers..."
+echo "Step 6/7: Restarting containers..."
 docker compose -f "$COMPOSE_FILE" up -d
 echo "Done."
 echo ""
 
 # -----------------------------------------------------------
-# Step 6: Health check
+# Step 7: Health check (with automatic rollback)
 # -----------------------------------------------------------
-echo "Step 6/6: Checking that everything is working..."
+echo "Step 7/7: Checking that everything is working..."
 echo "Waiting 10 seconds for the app to start..."
 sleep 10
 
@@ -90,21 +101,33 @@ if echo "$HEALTH" | grep -q "ok"; then
     echo "   App is running and healthy."
     echo "   $(date)"
     echo "============================================"
+    # Clean up old images
+    docker system prune -f --filter "until=24h" 2>/dev/null || true
 else
     echo ""
     echo "============================================"
-    echo "   WARNING: Health check did not pass!"
+    echo "   HEALTH CHECK FAILED — Rolling back..."
     echo "============================================"
     echo ""
-    echo "The app may still be starting up. Wait 30 seconds and try:"
-    echo "  curl http://localhost:8000/health/"
-    echo ""
-    echo "If it still fails, check the logs:"
-    echo "  docker compose -f $COMPOSE_FILE logs web --tail 100"
-    echo ""
-    echo "To roll back to the previous version:"
-    echo "  git log --oneline -5    (find the previous commit)"
-    echo "  git checkout <commit>   (go back to it)"
-    echo "  ./scripts/deploy.sh     (redeploy)"
+
+    # Attempt automatic rollback if previous image exists
+    if docker image inspect masjid-connect-web:rollback >/dev/null 2>&1; then
+        echo "Rolling back to previous image..."
+        docker compose -f "$COMPOSE_FILE" down
+        docker tag masjid-connect-web:rollback "$(docker compose -f "$COMPOSE_FILE" config --images | grep web | head -1)" 2>/dev/null || true
+        docker compose -f "$COMPOSE_FILE" up -d
+        sleep 10
+        ROLLBACK_HEALTH=$(curl -sf http://localhost:8000/health/ 2>/dev/null || echo "FAILED")
+        if echo "$ROLLBACK_HEALTH" | grep -q "ok"; then
+            echo "Rollback successful — previous version restored."
+        else
+            echo "Rollback also failed. Manual intervention required."
+        fi
+    else
+        echo "No rollback image available. Manual intervention required."
+        echo ""
+        echo "Check the logs:"
+        echo "  docker compose -f $COMPOSE_FILE logs web --tail 100"
+    fi
     exit 1
 fi

@@ -10,7 +10,7 @@ import {
   PanResponder,
   type ViewStyle,
 } from 'react-native';
-import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeIn, useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -63,6 +63,7 @@ export default function PrayerTimesScreen() {
   const isDark = effectiveScheme === 'dark';
   const { t } = useTranslation();
   const alphaColors = getAlpha(effectiveScheme);
+  const reducedMotion = useReducedMotion();
   const {
     prayers, nextPrayer, countdown, windowProgress, hijriDate,
     isLoading, source, jamaahAvailable, use24h, refresh,
@@ -237,7 +238,8 @@ export default function PrayerTimesScreen() {
             return (
               <Animated.View
                 key={prayer.name}
-                entering={FadeInDown.delay(index * 40).duration(300).springify()}
+                entering={reducedMotion ? FadeIn.duration(300) : FadeInDown.delay(Math.min(index * 40, 300)).duration(300).springify()}
+                accessibilityLabel={`${t(`prayer.${prayer.name}`)}, ${formatPrayerTime(prayer.jamaahTime || prayer.time, use24h)}${isNext ? `, ${t('prayer.nextPrayer')}` : ''}`}
                 style={[
                   styles.row,
                   index < prayers.length - 1 && !isNext && {

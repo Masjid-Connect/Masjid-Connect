@@ -1,0 +1,21 @@
+# Pinned dependency versions — generated from pip freeze
+# To update: pip install -r requirements.txt && pip freeze > requirements.lock
+# Then manually prune to only project dependencies (no system packages).
+
+Django==5.1.15
+djangorestframework==3.16.1
+django-environ==0.13.0
+django-cors-headers==4.9.0
+django-filter==25.1
+django-unfold==0.84.0
+gunicorn==25.1.0
+whitenoise==6.12.0
+pillow==12.1.1
+psycopg[binary]==3.3.3
+drf-spectacular==0.29.0
+PyJWT==2.12.1
+cryptography==46.0.5
+requests==2.32.5
+PyMuPDF==1.27.2
+beautifulsoup4==4.14.3
+brotli==1.2.0

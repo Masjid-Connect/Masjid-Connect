@@ -18,6 +18,11 @@ services:
   db:
     image: postgres:16-alpine
     restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-masjid_connect}
       POSTGRES_USER: ${POSTGRES_USER:-mosque}
@@ -41,6 +46,11 @@ services:
   web:
     build: .
     restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "100m"
+        max-file: "10"
     # No ports exposed — Traefik connects via Docker network
     labels:
       - "traefik.enable=true"
