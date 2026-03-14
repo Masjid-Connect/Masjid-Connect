@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Pressable,
 } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeIn, useReducedMotion } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { formatDistanceToNow } from 'date-fns';
 import { ar } from 'date-fns/locale';
@@ -29,6 +29,7 @@ export default function AnnouncementsScreen() {
   const { announcements, isLoading, error, refresh } = useAnnouncements();
   const [refreshing, setRefreshing] = useState(false);
   const [expandedItem, setExpandedItem] = useState<Announcement | null>(null);
+  const reducedMotion = useReducedMotion();
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -48,9 +49,13 @@ export default function AnnouncementsScreen() {
       : '';
 
     return (
-      <Pressable onPress={() => setExpandedItem(item)}>
+      <Pressable
+        onPress={() => setExpandedItem(item)}
+        accessibilityRole="button"
+        accessibilityLabel={`${item.title}${isUrgent ? `, ${t('announcements.urgent')}` : ''}${mosqueName ? `, ${mosqueName}` : ''}`}
+      >
         <Animated.View
-          entering={FadeInDown.delay(Math.min(index * 50, 300)).duration(350).springify()}
+          entering={reducedMotion ? FadeIn.duration(300) : FadeInDown.delay(Math.min(index * 50, 300)).duration(350).springify()}
           style={[
             styles.row,
             index < sortedAnnouncements.length - 1 && {
@@ -103,8 +108,8 @@ export default function AnnouncementsScreen() {
 
   if (isLoading && announcements.length === 0) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
-        <ActivityIndicator size="large" color={colors.accent} />
+      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]} accessibilityLiveRegion="polite">
+        <ActivityIndicator size="large" color={colors.accent} accessibilityLabel={t('common.loading')} />
       </View>
     );
   }
@@ -125,11 +130,11 @@ export default function AnnouncementsScreen() {
 
   if (announcements.length === 0) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
-        <Text style={[typography.largeTitle, { color: colors.accent, marginBottom: spacing.lg }]}>
+      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]} accessibilityLiveRegion="polite">
+        <Text style={[typography.largeTitle, { color: colors.accent, marginBottom: spacing.lg }]} accessibilityElementsHidden>
           ﷽
         </Text>
-        <Text style={[typography.headline, { color: colors.textSecondary, textAlign: 'center' }]}>
+        <Text style={[typography.headline, { color: colors.textSecondary, textAlign: 'center' }]} accessibilityRole="header">
           {t('announcements.empty')}
         </Text>
         <Text
@@ -176,7 +181,7 @@ export default function AnnouncementsScreen() {
                 {expandedItem.expand.mosque.name.toUpperCase()}
               </Text>
             ) : null}
-            <Text style={[typography.title2, { color: colors.text, marginTop: spacing.sm }]}>
+            <Text style={[typography.title2, { color: colors.text, marginTop: spacing.sm }]} accessibilityRole="header">
               {expandedItem.title}
             </Text>
             <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.md }]}>

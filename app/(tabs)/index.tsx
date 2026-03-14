@@ -7,7 +7,7 @@ import {
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
-import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeIn, useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Line, Circle } from 'react-native-svg';
 
@@ -38,6 +38,7 @@ export default function PrayerTimesScreen() {
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
   const { prayers, nextPrayer, countdown, hijriDate, isLoading, source, jamaahAvailable, use24h, refresh } = usePrayerTimes();
+  const reducedMotion = useReducedMotion();
 
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -56,10 +57,10 @@ export default function PrayerTimesScreen() {
       style={{ paddingTop: insets.top }}
     >
       {/* Header */}
-      <Animated.View entering={FadeIn.duration(600)} style={styles.header}>
+      <Animated.View entering={reducedMotion ? undefined : FadeIn.duration(600)} style={styles.header}>
         <View style={styles.headerRow}>
           <View style={styles.headerText}>
-            <Text style={[typography.title1, { color: colors.text }]}>{t('tabs.prayerTimes')}</Text>
+            <Text style={[typography.title1, { color: colors.text }]} accessibilityRole="header">{t('tabs.prayerTimes')}</Text>
             {hijriDate && (
               <Text style={[typography.footnote, { color: colors.textSecondary, marginTop: spacing.xs }]}>
                 {hijriDate}
@@ -86,8 +87,8 @@ export default function PrayerTimesScreen() {
       </Animated.View>
 
       {isLoading && prayers.length === 0 ? (
-        <View style={styles.loading}>
-          <ActivityIndicator size="large" color={colors.accent} />
+        <View style={styles.loading} accessibilityLiveRegion="polite">
+          <ActivityIndicator size="large" color={colors.accent} accessibilityLabel={t('prayer.calculating')} />
           <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.lg }]}>
             {t('prayer.calculating')}
           </Text>
@@ -103,8 +104,10 @@ export default function PrayerTimesScreen() {
           {/* Hero countdown section */}
           {nextPrayerData && (
             <Animated.View
-              entering={FadeInDown.duration(500).springify()}
+              entering={reducedMotion ? undefined : FadeInDown.duration(500).springify()}
               style={styles.countdownSection}
+              accessibilityRole="summary"
+              accessibilityLabel={`${t('prayer.nextPrayer')}: ${nextPrayerData.label}, ${formatPrayerTime(nextPrayerData.jamaahTime || nextPrayerData.time, use24h)}, ${t('prayer.timeRemaining', { countdown })}`}
             >
               <GoldDivider color={colors.accent} />
 
@@ -141,13 +144,15 @@ export default function PrayerTimesScreen() {
               return (
                 <Animated.View
                   key={prayer.name}
-                  entering={FadeInDown.delay(index * 50).duration(350).springify()}
+                  entering={reducedMotion ? undefined : FadeInDown.delay(index * 50).duration(350).springify()}
                   style={[
                     styles.prayerRow,
                     index < prayers.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator },
-                  ]}>
+                  ]}
+                  accessibilityLabel={`${prayer.label}, ${formatPrayerTime(prayer.jamaahTime || prayer.time, use24h)}${isNext ? `, ${t('prayer.nextPrayer')}` : ''}`}
+                >
                   {/* Gold dot for active prayer */}
-                  <View style={styles.dotContainer}>
+                  <View style={styles.dotContainer} accessibilityElementsHidden>
                     {isNext && (
                       <View style={[styles.activeDot, { backgroundColor: colors.prayerActive }]} />
                     )}

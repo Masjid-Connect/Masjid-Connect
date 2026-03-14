@@ -1,3 +1,6 @@
+from unittest.mock import MagicMock, patch
+
+import jwt as pyjwt
 from django.test import TestCase
 from rest_framework.test import APIClient
 from rest_framework import status
@@ -292,3 +295,139 @@ class AuthDeleteAccountTests(TestCase):
         response = social_client.delete("/api/v1/auth/delete-account/")
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(User.objects.filter(id=social_user_id).exists())
+
+
+class SocialLoginTests(TestCase):
+    """Tests for POST /api/v1/auth/social/ (Apple & Google social login)."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.apple_payload = {
+            "email": "apple@example.com",
+            "email_verified": True,
+            "sub": "apple-user-id-001",
+        }
+        self.google_payload = {
+            "email": "google@example.com",
+            "email_verified": True,
+            "name": "Google User",
+            "sub": "google-user-id-001",
+        }
+        self.fake_jwks_keys = [{"kid": "test-kid", "kty": "RSA", "n": "fake", "e": "AQAB"}]
+
+    def _mock_jwt_verification(self, mock_from_jwk, mock_get_header, mock_jwt_decode, mock_requests_get, payload):
+        """Helper to configure all JWT verification mocks."""
+        # Mock requests.get to return fake JWKS keys
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"keys": self.fake_jwks_keys}
+        mock_response.status_code = 200
+        mock_response.raise_for_status = MagicMock()
+        mock_requests_get.return_value = mock_response
+
+        # Mock JWT header extraction
+        mock_get_header.return_value = {"kid": "test-kid"}
+
+        # Mock RSA key extraction
+        mock_from_jwk.return_value = MagicMock()
+
+        # Mock JWT decode to return the payload
+        mock_jwt_decode.return_value = payload
+
+    @patch("api.views.jwt.algorithms.RSAAlgorithm.from_jwk")
+    @patch("api.views.jwt.get_unverified_header")
+    @patch("api.views.jwt.decode")
+    @patch("api.views.requests.get")
+    def test_apple_social_login_creates_user(self, mock_requests_get, mock_jwt_decode, mock_get_header, mock_from_jwk):
+        """Apple social login with a valid token creates a new user and returns a token."""
+        self._mock_jwt_verification(mock_from_jwk, mock_get_header, mock_jwt_decode, mock_requests_get, self.apple_payload)
+
+        response = self.client.post("/api/v1/auth/social/", {
+            "provider": "apple",
+            "token": "fake-apple-id-token",
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn("token", response.data)
+        self.assertIn("user", response.data)
+        self.assertEqual(response.data["user"]["email"], "apple@example.com")
+        # Verify user was actually created in the database
+        self.assertTrue(User.objects.filter(email="apple@example.com").exists())
+        user = User.objects.get(email="apple@example.com")
+        self.assertFalse(user.has_usable_password())
+
+    @patch("api.views.jwt.algorithms.RSAAlgorithm.from_jwk")
+    @patch("api.views.jwt.get_unverified_header")
+    @patch("api.views.jwt.decode")
+    @patch("api.views.requests.get")
+    def test_google_social_login_creates_user(self, mock_requests_get, mock_jwt_decode, mock_get_header, mock_from_jwk):
+        """Google social login with a valid token creates a new user and returns a token."""
+        self._mock_jwt_verification(mock_from_jwk, mock_get_header, mock_jwt_decode, mock_requests_get, self.google_payload)
+
+        response = self.client.post("/api/v1/auth/social/", {
+            "provider": "google",
+            "token": "fake-google-id-token",
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn("token", response.data)
+        self.assertIn("user", response.data)
+        self.assertEqual(response.data["user"]["email"], "google@example.com")
+        self.assertTrue(User.objects.filter(email="google@example.com").exists())
+
+    @patch("api.views.jwt.algorithms.RSAAlgorithm.from_jwk")
+    @patch("api.views.jwt.get_unverified_header")
+    @patch("api.views.jwt.decode")
+    @patch("api.views.requests.get")
+    def test_social_login_existing_user(self, mock_requests_get, mock_jwt_decode, mock_get_header, mock_from_jwk):
+        """Social login with an email that already exists returns the existing user's token."""
+        existing_user = User.objects.create_user(
+            username="google@example.com",
+            email="google@example.com",
+            password="existingpass123",
+            name="Existing User",
+        )
+        self._mock_jwt_verification(mock_from_jwk, mock_get_header, mock_jwt_decode, mock_requests_get, self.google_payload)
+
+        response = self.client.post("/api/v1/auth/social/", {
+            "provider": "google",
+            "token": "fake-google-id-token",
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("token", response.data)
+        self.assertEqual(response.data["user"]["email"], "google@example.com")
+        # Should NOT create a new user
+        self.assertEqual(User.objects.filter(email="google@example.com").count(), 1)
+
+    @patch("api.views.jwt.algorithms.RSAAlgorithm.from_jwk")
+    @patch("api.views.jwt.get_unverified_header")
+    @patch("api.views.jwt.decode")
+    @patch("api.views.requests.get")
+    def test_social_login_invalid_token(self, mock_requests_get, mock_jwt_decode, mock_get_header, mock_from_jwk):
+        """Social login with an invalid token returns 401."""
+        mock_response = MagicMock()
+        mock_response.json.return_value = {"keys": self.fake_jwks_keys}
+        mock_response.status_code = 200
+        mock_response.raise_for_status = MagicMock()
+        mock_requests_get.return_value = mock_response
+        mock_get_header.return_value = {"kid": "test-kid"}
+        mock_from_jwk.return_value = MagicMock()
+        # Simulate JWT decode failure
+        mock_jwt_decode.side_effect = pyjwt.PyJWTError("Invalid token")
+
+        response = self.client.post("/api/v1/auth/social/", {
+            "provider": "apple",
+            "token": "invalid-token",
+        })
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_social_login_missing_fields(self):
+        """Social login without provider or token returns 400."""
+        # Missing both
+        response = self.client.post("/api/v1/auth/social/", {})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Missing token
+        response = self.client.post("/api/v1/auth/social/", {"provider": "apple"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # Missing provider
+        response = self.client.post("/api/v1/auth/social/", {"token": "some-token"})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

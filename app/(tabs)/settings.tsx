@@ -258,7 +258,7 @@ export default function SettingsScreen() {
   const subscribedIds = subscribedMosques.map((m) => m.id);
 
   const SectionHeader = ({ title }: { title: string }) => (
-    <Text style={[typography.sectionHeader, { color: colors.textSecondary, marginTop: spacing['2xl'], marginBottom: spacing.sm, paddingHorizontal: spacing['3xl'] }]}>
+    <Text style={[typography.sectionHeader, { color: colors.textSecondary, marginTop: spacing['2xl'], marginBottom: spacing.sm, paddingHorizontal: spacing['3xl'] }]} accessibilityRole="header">
       {title}
     </Text>
   );
@@ -469,6 +469,7 @@ export default function SettingsScreen() {
             onValueChange={handleToggle24h}
             trackColor={{ false: colors.separator, true: colors.tint }}
             thumbColor="#FFFFFF"
+            accessibilityLabel={t('settings.use24h')}
           />
         </View>
       </View>
@@ -481,6 +482,9 @@ export default function SettingsScreen() {
             <TouchableOpacity
               onPress={handleDeleteAccount}
               style={[styles.actionBtn, { backgroundColor: colors.urgent }]}
+              accessibilityRole="button"
+              accessibilityLabel={t('settings.deleteAccountButton')}
+              accessibilityHint={t('settings.deleteAccountHint')}
             >
               <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>
                 {t('settings.deleteAccountButton')}

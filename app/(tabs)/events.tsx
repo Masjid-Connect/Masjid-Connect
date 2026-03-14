@@ -11,7 +11,7 @@ import {
   Linking,
   Alert,
 } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeIn, useReducedMotion } from 'react-native-reanimated';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -45,6 +45,7 @@ export default function EventsScreen() {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [detailEvent, setDetailEvent] = useState<MosqueEvent | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const reducedMotion = useReducedMotion();
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -109,9 +110,13 @@ export default function EventsScreen() {
     const dateStr = item.event_date.split('T')[0] || item.event_date;
 
     return (
-      <Pressable onPress={() => setDetailEvent(item)}>
+      <Pressable
+        onPress={() => setDetailEvent(item)}
+        accessibilityRole="button"
+        accessibilityLabel={`${item.title}, ${item.category.replace('_', ' ')}, ${format(new Date(dateStr), 'EEE, MMM d', { locale: dateLocale })} at ${item.start_time}${mosqueName ? `, ${mosqueName}` : ''}`}
+      >
         <Animated.View
-          entering={FadeInDown.delay(Math.min(index * 50, 300)).duration(350).springify()}
+          entering={reducedMotion ? FadeIn.duration(300) : FadeInDown.delay(Math.min(index * 50, 300)).duration(350).springify()}
           style={[
             styles.eventCard,
             { backgroundColor: colors.card, ...elevation.sm },
@@ -153,6 +158,9 @@ export default function EventsScreen() {
         <TouchableOpacity
           onPress={() => setShowCalendar(!showCalendar)}
           style={styles.toolbarButton}
+          accessibilityRole="button"
+          accessibilityState={{ expanded: showCalendar }}
+          accessibilityLabel={t('events.calendar')}
         >
           <Ionicons
             name={showCalendar ? 'calendar' : 'calendar-outline'}
@@ -166,6 +174,8 @@ export default function EventsScreen() {
         <TouchableOpacity
           onPress={() => setShowFilters(true)}
           style={styles.toolbarButton}
+          accessibilityRole="button"
+          accessibilityLabel={selectedCategory ? CATEGORIES.find((c) => c.key === selectedCategory)?.label : t('events.filter')}
         >
           <Ionicons name="funnel-outline" size={18} color={selectedCategory ? colors.accent : colors.textSecondary} />
           <Text style={[typography.subhead, { color: selectedCategory ? colors.accent : colors.textSecondary, marginStart: spacing.xs }]}>
@@ -194,7 +204,11 @@ export default function EventsScreen() {
 
       {/* Selected date indicator */}
       {selectedDate && (
-        <Pressable onPress={() => setSelectedDate(null)}>
+        <Pressable
+          onPress={() => setSelectedDate(null)}
+          accessibilityRole="button"
+          accessibilityLabel={`${format(new Date(selectedDate), 'EEE, MMM d', { locale: dateLocale })}, ${t('common.clearFilter')}`}
+        >
           <View style={[styles.dateChip, { backgroundColor: colors.tintLight }]}>
             <Text style={[typography.footnote, { color: colors.tint }]}>
               {format(new Date(selectedDate), 'EEE, MMM d', { locale: dateLocale })}
@@ -206,8 +220,8 @@ export default function EventsScreen() {
 
       {/* Event list */}
       {isLoading && events.length === 0 ? (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={colors.accent} />
+        <View style={styles.centered} accessibilityLiveRegion="polite">
+          <ActivityIndicator size="large" color={colors.accent} accessibilityLabel={t('common.loading')} />
         </View>
       ) : error && events.length === 0 ? (
         <View style={[styles.centered, { padding: spacing['3xl'] }]}>
@@ -260,7 +274,11 @@ export default function EventsScreen() {
               style={[
                 styles.filterRow,
                 { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator },
-              ]}>
+              ]}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: isActive }}
+              accessibilityLabel={cat.label}
+            >
               <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{cat.label}</Text>
               {isActive && <Ionicons name="checkmark" size={20} color={colors.tint} />}
             </TouchableOpacity>
