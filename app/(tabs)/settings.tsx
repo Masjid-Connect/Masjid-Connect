@@ -7,7 +7,6 @@ import {
   Alert,
   Platform,
   Share,
-  Linking,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -42,6 +41,8 @@ import {
   SettingsRow,
   SettingsPickerSheet,
   ThemePreviewSheet,
+  ReportIssueSheet,
+  FeatureRequestSheet,
 } from '@/components/settings';
 
 const REMINDER_VALUES = [0, 5, 10, 15, 30];
@@ -95,6 +96,8 @@ export default function SettingsScreen() {
   // Sheet visibility
   const [showReminderPicker, setShowReminderPicker] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
+  const [showReportIssue, setShowReportIssue] = useState(false);
+  const [showFeatureRequest, setShowFeatureRequest] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -184,12 +187,12 @@ export default function SettingsScreen() {
 
   const handleReportIssue = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Linking.openURL('mailto:info@salafimasjid.app?subject=Bug%20Report%20%E2%80%94%20The%20Salafi%20Masjid%20App');
+    setShowReportIssue(true);
   }, []);
 
   const handleFeatureRequest = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    Linking.openURL('mailto:info@salafimasjid.app?subject=Feature%20Request%20%E2%80%94%20The%20Salafi%20Masjid%20App');
+    setShowFeatureRequest(true);
   }, []);
 
   // Derived display values
@@ -409,6 +412,16 @@ export default function SettingsScreen() {
         onDismiss={() => setShowThemePicker(false)}
         selectedTheme={themePreference}
         onSelect={handleThemeChange}
+      />
+
+      <ReportIssueSheet
+        visible={showReportIssue}
+        onDismiss={() => setShowReportIssue(false)}
+      />
+
+      <FeatureRequestSheet
+        visible={showFeatureRequest}
+        onDismiss={() => setShowFeatureRequest(false)}
       />
 
     </AnimatedScrollView>
