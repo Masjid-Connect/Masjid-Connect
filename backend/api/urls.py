@@ -8,6 +8,7 @@ router.register("mosques", views.MosqueViewSet)
 router.register("announcements", views.AnnouncementViewSet, basename="announcement")
 router.register("events", views.EventViewSet, basename="event")
 router.register("subscriptions", views.UserSubscriptionViewSet, basename="subscription")
+router.register("feedback", views.FeedbackViewSet, basename="feedback")
 
 prayer_time_router = DefaultRouter()
 prayer_time_router.register("", views.MosquePrayerTimeViewSet, basename="mosque-prayer-time")

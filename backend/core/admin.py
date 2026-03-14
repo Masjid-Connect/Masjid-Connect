@@ -7,6 +7,7 @@ from unfold.admin import ModelAdmin
 from .models import (
     Announcement,
     Event,
+    Feedback,
     Mosque,
     MosqueAdmin,
     MosquePrayerTime,
@@ -67,6 +68,21 @@ class MosqueAdminAdmin(ModelAdmin):
     list_display = ["user", "mosque", "role", "created"]
     list_filter = ["role"]
     raw_id_fields = ["user", "mosque"]
+
+
+@admin.register(Feedback)
+class FeedbackAdmin(ModelAdmin):
+    list_display = ["type", "category", "status", "user", "created"]
+    list_filter = ["type", "status", "category"]
+    search_fields = ["description", "user__email", "category"]
+    date_hierarchy = "created"
+    ordering = ["-created"]
+    readonly_fields = ["id", "user", "type", "category", "description", "device_info", "created", "updated"]
+    fieldsets = (
+        (None, {"fields": ("id", "type", "category", "status", "user")}),
+        ("Submission", {"fields": ("description", "device_info", "created", "updated")}),
+        ("Admin", {"fields": ("admin_notes", "resolved_at")}),
+    )
 
 
 @admin.register(MosquePrayerTime)
