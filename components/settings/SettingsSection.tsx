@@ -20,7 +20,10 @@ export const SettingsSection = ({ header, footer, children }: SettingsSectionPro
   return (
     <View style={styles.wrapper}>
       {header && (
-        <Text style={[typography.sectionHeader, styles.header, { color: colors.textSecondary }]}>
+        <Text
+          style={[typography.sectionHeader, styles.header, { color: colors.textSecondary }]}
+          accessibilityRole="header"
+        >
           {header}
         </Text>
       )}

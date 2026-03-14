@@ -36,6 +36,8 @@ export default function SignUpScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [generalError, setGeneralError] = useState('');
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
 
   const emailRef = useRef<RNTextInput>(null);
   const passwordRef = useRef<RNTextInput>(null);
@@ -49,6 +51,7 @@ export default function SignUpScreen() {
     if (!password) errs.password = t('auth.passwordRequired');
     else if (password.length < 8) errs.password = t('auth.weakPasswordHint');
     if (password !== confirmPassword) errs.confirmPassword = t('auth.passwordsMismatch');
+    if (!agreePrivacy || !agreeTerms) errs.consent = t('auth.consentRequired');
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -156,6 +159,53 @@ export default function SignUpScreen() {
               onSubmitEditing={handleSignUp}
             />
 
+            {/* Consent Checkboxes */}
+            <View style={styles.consentContainer}>
+              <TouchableOpacity
+                style={styles.consentRow}
+                onPress={() => setAgreePrivacy(!agreePrivacy)}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: agreePrivacy }}
+                accessibilityLabel={t('auth.agreeToPrivacy') + t('auth.privacyPolicyLink')}
+              >
+                <View style={[styles.checkbox, agreePrivacy && styles.checkboxChecked, agreePrivacy && { backgroundColor: colors.tint, borderColor: colors.tint }]} />
+                <Text style={[typography.subhead, { color: colors.textSecondary, flex: 1 }]}>
+                  {t('auth.agreeToPrivacy')}
+                  <Text
+                    style={{ color: colors.tint, fontWeight: '600' }}
+                    onPress={() => router.push('/privacy')}
+                  >
+                    {t('auth.privacyPolicyLink')}
+                  </Text>
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.consentRow}
+                onPress={() => setAgreeTerms(!agreeTerms)}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: agreeTerms }}
+                accessibilityLabel={t('auth.agreeToTerms') + t('auth.termsLink')}
+              >
+                <View style={[styles.checkbox, agreeTerms && styles.checkboxChecked, agreeTerms && { backgroundColor: colors.tint, borderColor: colors.tint }]} />
+                <Text style={[typography.subhead, { color: colors.textSecondary, flex: 1 }]}>
+                  {t('auth.agreeToTerms')}
+                  <Text
+                    style={{ color: colors.tint, fontWeight: '600' }}
+                    onPress={() => router.push('/terms')}
+                  >
+                    {t('auth.termsLink')}
+                  </Text>
+                </Text>
+              </TouchableOpacity>
+
+              {errors.consent ? (
+                <Text style={[typography.footnote, { color: colors.urgent, marginTop: spacing.xs }]}>
+                  {errors.consent}
+                </Text>
+              ) : null}
+            </View>
+
             {generalError ? (
               <Text style={[typography.callout, { color: colors.urgent, textAlign: 'center', marginBottom: spacing.md }]}>
                 {generalError}
@@ -212,6 +262,27 @@ const styles = StyleSheet.create({
   submitButton: {
     borderRadius: borderRadius.xl,
     marginTop: spacing.sm,
+  },
+  consentContainer: {
+    marginTop: spacing.md,
+    marginBottom: spacing.md,
+  },
+  consentRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: '#C0C0C0',
+    marginTop: 2,
+  },
+  checkboxChecked: {
+    borderWidth: 0,
   },
   footer: {
     flexDirection: 'row',

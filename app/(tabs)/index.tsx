@@ -111,8 +111,8 @@ export default function PrayerTimesScreen() {
   // ─── Loading state ──────────────────────────────────────────────
   if (isLoading && prayers.length === 0) {
     return (
-      <View style={[styles.root, styles.loading, { backgroundColor: colors.background, paddingTop: insets.top }]}>
-        <ActivityIndicator size="large" color={colors.accent} />
+      <View style={[styles.root, styles.loading, { backgroundColor: colors.background, paddingTop: insets.top }]} accessibilityLabel={t('prayer.calculating')} accessibilityRole="progressbar">
+        <ActivityIndicator size="large" color={colors.accent} accessibilityLabel={t('prayer.calculating')} />
       </View>
     );
   }
@@ -158,11 +158,16 @@ export default function PrayerTimesScreen() {
             tileSize={patterns.tileSize}
           />
 
-          <Animated.View entering={FadeIn.duration(600)} style={styles.heroContent}>
+          <Animated.View
+            entering={FadeIn.duration(600)}
+            style={styles.heroContent}
+            accessibilityRole="header"
+            accessibilityLabel={nextPrayerData ? `${t('prayer.nextPrayer')}: ${t(`prayer.${nextPrayerData.name}`)}, ${countdown || ''}` : undefined}
+          >
             {/* THE dominant element: next prayer name */}
             {nextPrayerData && (
               <>
-                <Text style={[styles.prayerName, { color: colors.text }]}>
+                <Text style={[styles.prayerName, { color: colors.text }]} accessibilityRole="header">
                   {t(`prayer.${nextPrayerData.name}`)}
                 </Text>
 
@@ -216,11 +221,14 @@ export default function PrayerTimesScreen() {
 
         {/* ── Timetable ─────────────────────────────────────────── */}
         <View style={styles.timetable} {...panResponder.panHandlers}>
-          <View style={styles.timetableHeader}>
-            <Text style={[
-              typography.sectionHeader,
-              { color: colors.textSecondary },
-            ]}>
+          <View style={styles.timetableHeader} accessibilityRole="header">
+            <Text
+              style={[
+                typography.sectionHeader,
+                { color: colors.textSecondary },
+              ]}
+              accessibilityRole="header"
+            >
               {t('prayer.todaySchedule')}
             </Text>
             <Text style={[
