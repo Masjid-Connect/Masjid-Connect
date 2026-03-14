@@ -91,6 +91,7 @@
     "deleteAccount": "Delete Account",
     "deleteAccountConfirm": "Are you sure? This will permanently delete your account, subscriptions, and all associated data. This cannot be undone.",
     "deleteAccountButton": "Delete My Account",
+    "deleteAccountHint": "Warning: this will permanently delete your account and all data. This action cannot be undone.",
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service"
   },
@@ -155,6 +156,7 @@
     "searchFailed": "Could not search masajid. Check your connection.",
     "nearbyFailed": "Could not find nearby masajid. Check your connection.",
     "calendarError": "Could not open calendar.",
-    "networkError": "Unable to connect. Please check your internet and try again."
+    "networkError": "Unable to connect. Please check your internet and try again.",
+    "clearFilter": "Clear filter"
   }
 }
