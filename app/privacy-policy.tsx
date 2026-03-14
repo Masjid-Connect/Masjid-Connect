@@ -42,10 +42,7 @@ export default function PrivacyPolicyScreen() {
         </Text>
 
         <Text style={bodyStyle}>
-          Mosque Connect ("we," "our," or "us") operates the Mosque Connect mobile application
-          (the "App"). This Privacy Policy explains how we collect, use, disclose, and safeguard
-          your information when you use our App. Please read this policy carefully. By using the
-          App, you agree to the collection and use of information in accordance with this policy.
+          {'Mosque Connect (\u201cwe,\u201d \u201cour,\u201d or \u201cus\u201d) operates the Mosque Connect mobile application (the \u201cApp\u201d). This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our App. Please read this policy carefully. By using the App, you agree to the collection and use of information in accordance with this policy.'}
         </Text>
 
         {/* Information We Collect */}
@@ -60,7 +57,7 @@ export default function PrivacyPolicyScreen() {
 
         <Text style={[styles.subheading, { color: colors.text }]}>Location Data</Text>
         <Text style={bodyStyle}>
-          With your explicit permission, we collect your device's approximate location to:
+          {'With your explicit permission, we collect your device\u2019s approximate location to:'}
         </Text>
         <Text style={bulletStyle}>
           {'\u2022'} Calculate accurate prayer times for your area{'\n'}
@@ -68,22 +65,17 @@ export default function PrivacyPolicyScreen() {
           {'\u2022'} Determine your local timezone for prayer time display
         </Text>
         <Text style={bodyStyle}>
-          Location data is stored locally on your device and on our servers only as latitude/longitude
-          coordinates associated with your account. You can revoke location access at any time through
-          your device settings.
+          {'Location data is stored locally on your device and on our servers only as latitude/longitude coordinates associated with your account. You can revoke location access at any time through your device settings.'}
         </Text>
 
         <Text style={[styles.subheading, { color: colors.text }]}>Push Notification Tokens</Text>
         <Text style={bodyStyle}>
-          If you enable push notifications, we store your device's push notification token to send you
-          prayer reminders, mosque announcements, and event notifications. You can disable notifications
-          at any time through your device settings or in the App.
+          {'If you enable push notifications, we store your device\u2019s push notification token to send you prayer reminders, mosque announcements, and event notifications. You can disable notifications at any time through your device settings or in the App.'}
         </Text>
 
         <Text style={[styles.subheading, { color: colors.text }]}>Usage Data</Text>
         <Text style={bodyStyle}>
-          We collect anonymized usage data such as app interactions, crash reports, and performance
-          metrics to improve the App experience. This data does not personally identify you.
+          {'We collect anonymized usage data such as app interactions, crash reports, and performance metrics to improve the App experience. This data does not personally identify you.'}
         </Text>
 
         {/* How We Use Your Information */}
@@ -101,17 +93,13 @@ export default function PrivacyPolicyScreen() {
         {/* Data Storage */}
         <Text style={headingStyle}>3. Data Storage and Security</Text>
         <Text style={bodyStyle}>
-          Your account data is stored on our servers hosted on Digital Ocean infrastructure.
-          Authentication tokens are stored securely on your device using platform-native secure
-          storage (Keychain on iOS, EncryptedSharedPreferences on Android). We implement
-          industry-standard security measures including encrypted data transmission (HTTPS/TLS),
-          secure token-based authentication, and regular security updates.
+          {'Your account data is stored on our servers hosted on Digital Ocean infrastructure. Authentication tokens are stored securely on your device using platform-native secure storage (Keychain on iOS, EncryptedSharedPreferences on Android). We implement industry-standard security measures including encrypted data transmission (HTTPS/TLS), secure token-based authentication, and regular security updates.'}
         </Text>
 
         {/* Third-Party Services */}
         <Text style={headingStyle}>4. Third-Party Services</Text>
         <Text style={bodyStyle}>
-          The App integrates with the following third-party services:
+          {'The App integrates with the following third-party services:'}
         </Text>
         <Text style={bulletStyle}>
           {'\u2022'} <Text style={{ fontWeight: '600' }}>Aladhan API</Text> — Provides prayer time
@@ -122,14 +110,13 @@ export default function PrivacyPolicyScreen() {
           the authentication process{'\n'}
           {'\u2022'} <Text style={{ fontWeight: '600' }}>Expo Push Notification Service</Text> —
           Delivers push notifications to your device. Your push token (not personal data) is shared
-          with Expo's servers to facilitate notification delivery
+          with Expo{'\u2019'}s servers to facilitate notification delivery
         </Text>
 
         {/* Data Sharing */}
         <Text style={headingStyle}>5. Data Sharing</Text>
         <Text style={bodyStyle}>
-          We do not sell, trade, or rent your personal information to third parties. We may share
-          your information only in the following circumstances:
+          {'We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:'}
         </Text>
         <Text style={bulletStyle}>
           {'\u2022'} With your consent{'\n'}
@@ -163,8 +150,7 @@ export default function PrivacyPolicyScreen() {
         {/* GDPR */}
         <Text style={headingStyle}>7. GDPR Compliance (European Users)</Text>
         <Text style={bodyStyle}>
-          If you are located in the European Economic Area (EEA), you have additional rights under
-          the General Data Protection Regulation (GDPR). Our lawful basis for processing your data is:
+          {'If you are located in the European Economic Area (EEA), you have additional rights under the General Data Protection Regulation (GDPR). Our lawful basis for processing your data is:'}
         </Text>
         <Text style={bulletStyle}>
           {'\u2022'} <Text style={{ fontWeight: '600' }}>Consent</Text> — For location data and push
@@ -175,8 +161,7 @@ export default function PrivacyPolicyScreen() {
           improvement and security
         </Text>
         <Text style={bodyStyle}>
-          You may lodge a complaint with your local data protection authority if you believe we have
-          not handled your data appropriately.
+          {'You may lodge a complaint with your local data protection authority if you believe we have not handled your data appropriately.'}
         </Text>
 
         {/* CCPA */}
@@ -194,26 +179,21 @@ export default function PrivacyPolicyScreen() {
         </Text>
 
         {/* Children */}
-        <Text style={headingStyle}>9. Children's Privacy</Text>
+        <Text style={headingStyle}>{'9. Children\u2019s Privacy'}</Text>
         <Text style={bodyStyle}>
-          The App is not directed at children under the age of 13. We do not knowingly collect
-          personal information from children under 13. If we become aware that we have collected
-          data from a child under 13, we will take steps to delete that information promptly.
+          {'The App is not directed at children under the age of 13. We do not knowingly collect personal information from children under 13. If we become aware that we have collected data from a child under 13, we will take steps to delete that information promptly.'}
         </Text>
 
         {/* Changes */}
         <Text style={headingStyle}>10. Changes to This Policy</Text>
         <Text style={bodyStyle}>
-          We may update this Privacy Policy from time to time. We will notify you of any changes
-          by posting the new Privacy Policy within the App and updating the "Last Updated" date.
-          Your continued use of the App after changes are posted constitutes your acceptance of
-          the revised policy.
+          {'We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy within the App and updating the \u201cLast Updated\u201d date. Your continued use of the App after changes are posted constitutes your acceptance of the revised policy.'}
         </Text>
 
         {/* Contact */}
         <Text style={headingStyle}>11. Contact Us</Text>
         <Text style={bodyStyle}>
-          If you have questions or concerns about this Privacy Policy, please contact us at:
+          {'If you have questions or concerns about this Privacy Policy, please contact us at:'}
         </Text>
         <TouchableOpacity onPress={() => Linking.openURL(`mailto:${CONTACT_EMAIL}`)}>
           <Text style={[styles.link, { color: colors.tint }]}>{CONTACT_EMAIL}</Text>

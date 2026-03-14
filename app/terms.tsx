@@ -42,10 +42,7 @@ export default function TermsScreen() {
         </Text>
 
         <Text style={bodyStyle}>
-          Welcome to Mosque Connect. These Terms of Service ("Terms") govern your use of the
-          Mosque Connect mobile application (the "App") operated by Mosque Connect ("we," "our,"
-          or "us"). By downloading, installing, or using the App, you agree to be bound by these
-          Terms. If you do not agree to these Terms, do not use the App.
+          {'Welcome to Mosque Connect. These Terms of Service (\u201cTerms\u201d) govern your use of the Mosque Connect mobile application (the \u201cApp\u201d) operated by Mosque Connect (\u201cwe,\u201d \u201cour,\u201d or \u201cus\u201d). By downloading, installing, or using the App, you agree to be bound by these Terms. If you do not agree to these Terms, do not use the App.'}
         </Text>
 
         {/* Use of the App */}
@@ -60,7 +57,7 @@ export default function TermsScreen() {
         <Text style={headingStyle}>2. Account Registration</Text>
         <Text style={bodyStyle}>
           Some features of the App require you to create an account. When you create an account,
-          you agree to:
+          {'you agree to:'}
         </Text>
         <Text style={bulletStyle}>
           {'\u2022'} Provide accurate and complete information{'\n'}
@@ -90,7 +87,7 @@ export default function TermsScreen() {
         <Text style={bulletStyle}>
           {'\u2022'} Use the App for any unlawful purpose{'\n'}
           {'\u2022'} Attempt to gain unauthorized access to the App or its systems{'\n'}
-          {'\u2022'} Interfere with or disrupt the App's functionality{'\n'}
+          {'\u2022'} Interfere with or disrupt the App{'\u2019'}s functionality{'\n'}
           {'\u2022'} Upload or transmit malicious code or content{'\n'}
           {'\u2022'} Impersonate any person or entity{'\n'}
           {'\u2022'} Scrape, harvest, or collect data from the App without permission{'\n'}
@@ -137,11 +134,7 @@ export default function TermsScreen() {
         {/* Disclaimer of Warranties */}
         <Text style={headingStyle}>9. Disclaimer of Warranties</Text>
         <Text style={bodyStyle}>
-          THE APP IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER
-          EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY,
-          FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. WE DO NOT WARRANT THAT THE APP
-          WILL BE UNINTERRUPTED, ERROR-FREE, OR SECURE. PRAYER TIMES ARE PROVIDED FOR INFORMATIONAL
-          PURPOSES ONLY.
+          {'THE APP IS PROVIDED \u201cAS IS\u201d AND \u201cAS AVAILABLE\u201d WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. WE DO NOT WARRANT THAT THE APP WILL BE UNINTERRUPTED, ERROR-FREE, OR SECURE. PRAYER TIMES ARE PROVIDED FOR INFORMATIONAL PURPOSES ONLY.'}
         </Text>
 
         {/* Limitation of Liability */}
@@ -165,10 +158,7 @@ export default function TermsScreen() {
         {/* Changes to Terms */}
         <Text style={headingStyle}>12. Changes to Terms</Text>
         <Text style={bodyStyle}>
-          We may update these Terms from time to time. We will notify you of significant changes
-          by posting the updated Terms within the App and updating the "Last Updated" date.
-          Continued use of the App after changes are posted constitutes acceptance of the revised
-          Terms.
+          {'We may update these Terms from time to time. We will notify you of significant changes by posting the updated Terms within the App and updating the \u201cLast Updated\u201d date. Continued use of the App after changes are posted constitutes acceptance of the revised Terms.'}
         </Text>
 
         {/* Governing Law */}
