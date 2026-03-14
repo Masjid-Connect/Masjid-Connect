@@ -25,6 +25,8 @@ export const palette = {
   sacredBlueLight: '#6AADDB',
   divineGold: '#BFA14E',
   divineGoldBright: '#D4B85C',
+  divineGoldText: '#8A7023',        // Darker gold for text on light backgrounds (4.5:1 contrast on white)
+  divineGoldTextDark: '#E0C96B',    // Lighter gold for text on dark backgrounds (4.5:1 contrast on black)
   divineGoldGlow: 'rgba(191, 161, 78, 0.08)',
 
   // Semantic
@@ -70,6 +72,7 @@ const Colors = {
     tint: palette.sacredBlue,
     tintLight: palette.tintLight,
     accent: palette.divineGold,
+    accentText: palette.divineGoldText,
     success: palette.paradiseGreen,
     urgent: palette.moorishTerracotta,
     info: palette.steelBlue,
@@ -92,6 +95,7 @@ const Colors = {
     tint: palette.sacredBlueLight,
     tintLight: 'rgba(26, 82, 118, 0.12)',
     accent: palette.divineGoldBright,
+    accentText: palette.divineGoldTextDark,
     success: palette.paradiseGreenLight,
     urgent: palette.moorishTerracottaLight,
     info: palette.steelBlueLight,
