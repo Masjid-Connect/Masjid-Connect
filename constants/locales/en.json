@@ -112,6 +112,10 @@
     "reportIssueDescription": "Tell us more (optional)",
     "reportIssueSend": "Send Report",
     "reportIssueNoDetails": "No description provided",
+    "feedbackSending": "Sending...",
+    "feedbackSuccess": "Thank you!",
+    "feedbackSuccessDetail": "We've received your report and will look into it.",
+    "featureSuccessDetail": "We love hearing your ideas — thank you for helping us improve!",
     "issueCategory": {
       "prayer_times": "Prayer Times",
       "notifications": "Notifications",

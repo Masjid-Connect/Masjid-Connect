@@ -131,6 +131,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {
         "anon": "100/hour",
         "user": "1000/hour",
+        "feedback": "5/hour",
     },
 }
 
@@ -167,6 +168,19 @@ LOGGING = {
         },
     },
 }
+
+# Email — console backend in dev, SMTP in production via .env
+EMAIL_BACKEND = env(
+    "EMAIL_BACKEND",
+    default="django.core.mail.backends.console.EmailBackend",
+)
+EMAIL_HOST = env("EMAIL_HOST", default="")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@salafimasjid.app")
+FEEDBACK_NOTIFY_EMAIL = env("FEEDBACK_NOTIFY_EMAIL", default="info@salafimasjid.app")
 
 # API Documentation
 SPECTACULAR_SETTINGS = {
@@ -224,6 +238,12 @@ UNFOLD = {
                 "items": [
                     {"title": "Announcements", "link": "/admin/core/announcement/", "icon": "campaign"},
                     {"title": "Events", "link": "/admin/core/event/", "icon": "event"},
+                ],
+            },
+            {
+                "title": "Feedback",
+                "items": [
+                    {"title": "Feedback", "link": "/admin/core/feedback/", "icon": "feedback"},
                 ],
             },
             {

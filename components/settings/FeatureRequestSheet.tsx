@@ -18,6 +18,7 @@ import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography, borderRadius, components } from '@/constants/Theme';
 import { BottomSheet } from '@/components/ui/BottomSheet';
+import { feedback } from '@/lib/api';
 
 interface FeatureRequestSheetProps {
   visible: boolean;
@@ -48,11 +49,15 @@ export const FeatureRequestSheet = ({ visible, onDismiss }: FeatureRequestSheetP
 
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey | null>(null);
   const [description, setDescription] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     if (!visible) {
       setSelectedCategory(null);
       setDescription('');
+      setSubmitting(false);
+      setSubmitted(false);
     }
   }, [visible]);
 
@@ -61,133 +66,164 @@ export const FeatureRequestSheet = ({ visible, onDismiss }: FeatureRequestSheetP
     setSelectedCategory((prev) => (prev === key ? null : key));
   }, []);
 
-  const handleSubmit = useCallback(async () => {
-    if (!selectedCategory) return;
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-
-    const categoryLabel = t(`settings.featureCategory.${selectedCategory}`);
+  const fallbackToEmail = useCallback((category: string) => {
     const appVersion = Constants.expoConfig?.version ?? '1.0.0';
-    const subject = `Feature Suggestion — ${categoryLabel} — The Salafi Masjid App`;
+    const subject = `Feature Suggestion — ${category} — The Salafi Masjid App`;
     const body = [
       t('settings.featureEmailGreeting'),
       '',
       t('settings.featureEmailIntro'),
       '',
-      `Category: ${categoryLabel}`,
+      `Category: ${category}`,
       `Details: ${description.trim() || t('settings.featureNoDetails')}`,
       '',
       '---',
       `Sent from The Salafi Masjid App v${appVersion}`,
       `Platform: ${Platform.OS}`,
     ].join('\n');
-
     const url = `mailto:info@salafimasjid.app?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    Linking.openURL(url).catch(() => {
+      Alert.alert(t('settings.featureRequest'), 'info@salafimasjid.app');
+    });
+  }, [description, t]);
+
+  const handleSubmit = useCallback(async () => {
+    if (!selectedCategory || submitting) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setSubmitting(true);
+
+    const categoryLabel = t(`settings.featureCategory.${selectedCategory}`);
 
     try {
-      await Linking.openURL(url);
+      await feedback.submit({
+        type: 'feature_request',
+        category: categoryLabel,
+        description: description.trim(),
+        device_info: {
+          app_version: Constants.expoConfig?.version ?? '1.0.0',
+          platform: Platform.OS,
+        },
+      });
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setSubmitted(true);
+      setTimeout(() => onDismiss(), 1500);
     } catch {
-      Alert.alert(
-        t('settings.featureRequest'),
-        'info@salafimasjid.app',
-      );
+      // API failed — fall back to email
+      fallbackToEmail(categoryLabel);
+      onDismiss();
+    } finally {
+      setSubmitting(false);
     }
-    onDismiss();
-  }, [selectedCategory, description, t, onDismiss]);
+  }, [selectedCategory, description, t, onDismiss, submitting, fallbackToEmail]);
 
   return (
     <BottomSheet visible={visible} onDismiss={onDismiss} maxHeight="75%">
-      <Text style={[typography.title3, { color: colors.text, marginBottom: spacing.sm }]}>
-        {t('settings.featureTitle')}
-      </Text>
-      <Text style={[typography.subhead, { color: colors.textSecondary, marginBottom: spacing.xl }]}>
-        {t('settings.featureSubtitle')}
-      </Text>
+      {submitted ? (
+        <View style={styles.successContainer}>
+          <Ionicons name="checkmark-circle" size={48} color={palette.divineGold} />
+          <Text style={[typography.title3, { color: colors.text, marginTop: spacing.lg }]}>
+            {t('settings.feedbackSuccess')}
+          </Text>
+          <Text style={[typography.subhead, { color: colors.textSecondary, marginTop: spacing.sm, textAlign: 'center' }]}>
+            {t('settings.featureSuccessDetail')}
+          </Text>
+        </View>
+      ) : (
+        <>
+          <Text style={[typography.title3, { color: colors.text, marginBottom: spacing.sm }]}>
+            {t('settings.featureTitle')}
+          </Text>
+          <Text style={[typography.subhead, { color: colors.textSecondary, marginBottom: spacing.xl }]}>
+            {t('settings.featureSubtitle')}
+          </Text>
 
-      {/* Category pills */}
-      <View style={styles.categoryGrid}>
-        {CATEGORIES.map((cat) => {
-          const isSelected = selectedCategory === cat.key;
-          return (
-            <Pressable
-              key={cat.key}
-              onPress={() => handleCategorySelect(cat.key)}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isSelected }}
-              style={[
-                styles.categoryPill,
-                {
-                  backgroundColor: isSelected ? colors.tintLight : colors.background,
-                  borderColor: isSelected ? colors.tint : colors.separator,
-                  borderWidth: isSelected ? 2 : StyleSheet.hairlineWidth,
-                },
-              ]}
-            >
-              <Ionicons
-                name={cat.icon}
-                size={18}
-                color={isSelected ? colors.tint : cat.color}
-              />
-              <Text
-                style={[
-                  typography.subhead,
-                  {
-                    color: isSelected ? colors.tint : colors.text,
-                    marginLeft: spacing.sm,
-                  },
-                ]}
-              >
-                {t(`settings.featureCategory.${cat.key}`)}
-              </Text>
-              {isSelected && (
-                <Ionicons
-                  name="checkmark"
-                  size={16}
-                  color={colors.tint}
-                  style={{ marginLeft: spacing.xs }}
-                />
-              )}
-            </Pressable>
-          );
-        })}
-      </View>
+          {/* Category pills */}
+          <View style={styles.categoryGrid}>
+            {CATEGORIES.map((cat) => {
+              const isSelected = selectedCategory === cat.key;
+              return (
+                <Pressable
+                  key={cat.key}
+                  onPress={() => handleCategorySelect(cat.key)}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: isSelected }}
+                  style={[
+                    styles.categoryPill,
+                    {
+                      backgroundColor: isSelected ? colors.tintLight : colors.background,
+                      borderColor: isSelected ? colors.tint : colors.separator,
+                      borderWidth: isSelected ? 2 : StyleSheet.hairlineWidth,
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={cat.icon}
+                    size={18}
+                    color={isSelected ? colors.tint : cat.color}
+                  />
+                  <Text
+                    style={[
+                      typography.subhead,
+                      {
+                        color: isSelected ? colors.tint : colors.text,
+                        marginLeft: spacing.sm,
+                      },
+                    ]}
+                  >
+                    {t(`settings.featureCategory.${cat.key}`)}
+                  </Text>
+                  {isSelected && (
+                    <Ionicons
+                      name="checkmark"
+                      size={16}
+                      color={colors.tint}
+                      style={{ marginLeft: spacing.xs }}
+                    />
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
 
-      {/* Optional description */}
-      <RNTextInput
-        style={[
-          styles.textInput,
-          typography.body,
-          {
-            color: colors.text,
-            backgroundColor: colors.background,
-            borderColor: colors.separator,
-          },
-        ]}
-        placeholder={t('settings.featureDescriptionPlaceholder')}
-        placeholderTextColor={colors.textTertiary}
-        value={description}
-        onChangeText={setDescription}
-        multiline
-        maxLength={500}
-        textAlignVertical="top"
-      />
+          {/* Optional description */}
+          <RNTextInput
+            style={[
+              styles.textInput,
+              typography.body,
+              {
+                color: colors.text,
+                backgroundColor: colors.background,
+                borderColor: colors.separator,
+              },
+            ]}
+            placeholder={t('settings.featureDescriptionPlaceholder')}
+            placeholderTextColor={colors.textTertiary}
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            maxLength={500}
+            textAlignVertical="top"
+          />
 
-      {/* Submit button */}
-      <Pressable
-        onPress={handleSubmit}
-        disabled={!selectedCategory}
-        style={[
-          styles.submitButton,
-          {
-            backgroundColor: palette.divineGold,
-            opacity: selectedCategory ? 1 : 0.4,
-          },
-        ]}
-      >
-        <Ionicons name="bulb" size={18} color="#FFFFFF" style={{ marginRight: spacing.sm }} />
-        <Text style={[typography.headline, { color: '#FFFFFF' }]}>
-          {t('settings.featureSend')}
-        </Text>
-      </Pressable>
+          {/* Submit button */}
+          <Pressable
+            onPress={handleSubmit}
+            disabled={!selectedCategory || submitting}
+            style={[
+              styles.submitButton,
+              {
+                backgroundColor: palette.divineGold,
+                opacity: selectedCategory && !submitting ? 1 : 0.4,
+              },
+            ]}
+          >
+            <Ionicons name="bulb" size={18} color="#FFFFFF" style={{ marginRight: spacing.sm }} />
+            <Text style={[typography.headline, { color: '#FFFFFF' }]}>
+              {submitting ? t('settings.feedbackSending') : t('settings.featureSend')}
+            </Text>
+          </Pressable>
+        </>
+      )}
     </BottomSheet>
   );
 };
@@ -220,5 +256,9 @@ const styles = StyleSheet.create({
     height: components.button.height,
     borderRadius: borderRadius.sm,
     marginBottom: spacing.md,
+  },
+  successContainer: {
+    alignItems: 'center',
+    paddingVertical: spacing['4xl'],
   },
 });

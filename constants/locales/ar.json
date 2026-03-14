@@ -112,6 +112,10 @@
     "reportIssueDescription": "أخبرنا بالمزيد (اختياري)",
     "reportIssueSend": "إرسال البلاغ",
     "reportIssueNoDetails": "لم يتم تقديم وصف",
+    "feedbackSending": "جاري الإرسال...",
+    "feedbackSuccess": "شكراً لك!",
+    "feedbackSuccessDetail": "لقد تلقينا بلاغك وسننظر فيه.",
+    "featureSuccessDetail": "نحب سماع أفكارك — شكراً لمساعدتنا في التحسين!",
     "issueCategory": {
       "prayer_times": "أوقات الصلاة",
       "notifications": "الإشعارات",

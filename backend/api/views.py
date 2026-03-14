@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 from core.models import (
     Announcement,
     Event,
+    Feedback,
     Mosque,
     MosqueAdmin,
     MosquePrayerTime,
@@ -30,6 +31,8 @@ from core.models import (
 from .serializers import (
     AnnouncementSerializer,
     EventSerializer,
+    FeedbackCreateSerializer,
+    FeedbackSerializer,
     MosqueListSerializer,
     MosquePrayerTimeSerializer,
     MosqueSerializer,
@@ -49,6 +52,17 @@ class AuthRateThrottle(AnonRateThrottle):
     """Strict rate limit for auth endpoints to prevent brute-force."""
 
     rate = "5/minute"
+
+    def allow_request(self, request, view):
+        if getattr(settings, "TESTING", False):
+            return True
+        return super().allow_request(request, view)
+
+
+class FeedbackRateThrottle(AnonRateThrottle):
+    """Limit feedback submissions to prevent spam."""
+
+    scope = "feedback"
 
     def allow_request(self, request, view):
         if getattr(settings, "TESTING", False):
@@ -410,6 +424,42 @@ def register_push_token(request):
         PushTokenSerializer(push_token).data,
         status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
     )
+
+
+# ── Feedback ─────────────────────────────────────────────────────────
+
+
+class FeedbackViewSet(viewsets.ModelViewSet):
+    """
+    Submit and view feedback (bug reports / feature requests).
+    POST is open to everyone (guests too). GET requires auth (own feedback only).
+    """
+
+    http_method_names = ["get", "post", "head", "options"]
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return FeedbackCreateSerializer
+        return FeedbackSerializer
+
+    def get_permissions(self):
+        if self.action == "create":
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+
+    def get_throttles(self):
+        if self.action == "create":
+            return [FeedbackRateThrottle()]
+        return []
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return Feedback.objects.filter(user=self.request.user)
+        return Feedback.objects.none()
+
+    def perform_create(self, serializer):
+        user = self.request.user if self.request.user.is_authenticated else None
+        serializer.save(user=user)
 
 
 # ── Helpers ──────────────────────────────────────────────────────────

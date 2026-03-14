@@ -330,6 +330,29 @@ export const subscriptions = {
 
 // ── Push Tokens ──────────────────────────────────────────────────────
 
+// ── Feedback ────────────────────────────────────────────────────────
+
+interface FeedbackPayload {
+  type: 'bug_report' | 'feature_request';
+  category: string;
+  description: string;
+  device_info: Record<string, string>;
+}
+
+export const feedback = {
+  async submit(data: FeedbackPayload) {
+    return request<{ id: string; type: string; category: string; status: string }>(
+      '/feedback/',
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      },
+    );
+  },
+};
+
+// ── Push Tokens ──────────────────────────────────────────────────────
+
 export const pushTokens = {
   async register(token: string, platform: 'ios' | 'android') {
     if (!auth.isLoggedIn) return;
