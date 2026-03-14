@@ -15,6 +15,7 @@ import { Dimensions, Image, Platform, StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withDelay,
   withSpring,
@@ -51,6 +52,7 @@ export const AnimatedSplash = ({
   children,
 }: AnimatedSplashProps) => {
   const isWeb = Platform.OS === 'web';
+  const reducedMotion = useReducedMotion();
 
   // Animation shared values
   const logoOpacity = useSharedValue(0);
@@ -68,6 +70,16 @@ export const AnimatedSplash = ({
 
   useEffect(() => {
     if (!isVisible) return;
+
+    // When reduced motion is preferred, skip all animations and show content immediately
+    if (reducedMotion) {
+      logoOpacity.value = 1;
+      logoScale.value = 1;
+      splashOpacity.value = 0;
+      contentOpacity.value = 1;
+      notifyComplete();
+      return;
+    }
 
     // Phase 1: Pure paper, silence
     // Phase 2: Haptic + logo fades in with gentle scale
