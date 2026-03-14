@@ -3,3 +3,5 @@ export { SettingsSection } from './SettingsSection';
 export { ProfileCard } from './ProfileCard';
 export { SettingsPickerSheet } from './SettingsPickerSheet';
 export { ThemePreviewSheet } from './ThemePreviewSheet';
+export { ReportIssueSheet } from './ReportIssueSheet';
+export { FeatureRequestSheet } from './FeatureRequestSheet';
