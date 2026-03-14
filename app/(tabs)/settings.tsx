@@ -33,8 +33,11 @@ import {
   setNotifyAnnouncements,
   getNotifyEvents,
   setNotifyEvents,
+  getLanguage,
+  setLanguage as persistLanguage,
 } from '@/lib/storage';
 import { reschedulePrayerRemindersForToday } from '@/lib/notifications';
+import i18n from '@/lib/i18n';
 import {
   ProfileCard,
   SettingsSection,
@@ -93,9 +96,12 @@ export default function SettingsScreen() {
   const [notifyAnnouncements, setNotifyAnnouncementsState] = useState(true);
   const [notifyEvents, setNotifyEventsState] = useState(true);
 
+  const [currentLanguage, setCurrentLanguage] = useState(i18n.language || 'en');
+
   // Sheet visibility
   const [showReminderPicker, setShowReminderPicker] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
+  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
   const [showReportIssue, setShowReportIssue] = useState(false);
   const [showFeatureRequest, setShowFeatureRequest] = useState(false);
 
@@ -115,6 +121,12 @@ export default function SettingsScreen() {
     setNotifyAnnouncementsState(announceEnabled);
     setNotifyEventsState(eventsEnabled);
   };
+
+  const handleLanguageChange = useCallback(async (lang: string) => {
+    setCurrentLanguage(lang);
+    await persistLanguage(lang);
+    await i18n.changeLanguage(lang);
+  }, []);
 
   const handleReminderChange = useCallback(async (minutes: number) => {
     setReminderMin(minutes);
@@ -168,13 +180,17 @@ export default function SettingsScreen() {
         {
           text: t('settings.deleteAccount'),
           style: 'destructive',
-          onPress: () => {
-            // TODO: Implement account deletion API call
+          onPress: async () => {
+            try {
+              await deleteAccount();
+            } catch {
+              Alert.alert(t('common.error'), t('common.networkError'));
+            }
           },
         },
       ]
     );
-  }, [t]);
+  }, [t, deleteAccount]);
 
   const handleShareApp = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -313,6 +329,17 @@ export default function SettingsScreen() {
           position="first"
         />
         <SettingsRow
+          icon={{ name: 'globe', backgroundColor: palette.sapphire600 }}
+          label={t('settings.language')}
+          value={currentLanguage === 'ar' ? t('settings.languageAr') : t('settings.languageEn')}
+          accessory="disclosure"
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            setShowLanguagePicker(true);
+          }}
+          position="middle"
+        />
+        <SettingsRow
           icon={{ name: 'time', backgroundColor: palette.sapphire600 }}
           label={t('settings.use24h')}
           accessory="toggle"
@@ -363,6 +390,13 @@ export default function SettingsScreen() {
           label={t('settings.privacyPolicy')}
           accessory="disclosure"
           onPress={() => router.push('/privacy')}
+          position="middle"
+        />
+        <SettingsRow
+          icon={{ name: 'document-text', backgroundColor: colors.textSecondary }}
+          label={t('settings.termsOfService')}
+          accessory="disclosure"
+          onPress={() => router.push('/terms')}
           position="last"
         />
       </SettingsSection>
@@ -405,6 +439,18 @@ export default function SettingsScreen() {
         options={reminderOptions}
         selectedValue={reminderMin}
         onSelect={handleReminderChange}
+      />
+
+      <SettingsPickerSheet
+        visible={showLanguagePicker}
+        onDismiss={() => setShowLanguagePicker(false)}
+        title={t('settings.language')}
+        options={[
+          { label: 'English', value: 'en' },
+          { label: 'العربية', value: 'ar' },
+        ]}
+        selectedValue={currentLanguage}
+        onSelect={(val: number | string) => handleLanguageChange(String(val))}
       />
 
       <ThemePreviewSheet

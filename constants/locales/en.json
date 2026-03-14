@@ -211,7 +211,12 @@
     "loginFailed": "Login failed",
     "loginFailedHint": "Check your email and password.",
     "registerFailed": "Registration failed",
-    "registerFailedHint": "Try again."
+    "registerFailedHint": "Try again.",
+    "agreeToPrivacy": "I agree to the ",
+    "privacyPolicyLink": "Privacy Policy",
+    "agreeToTerms": "I agree to the ",
+    "termsLink": "Terms of Service",
+    "consentRequired": "You must agree to both the Privacy Policy and Terms of Service."
   },
   "about": {
     "title": "About",

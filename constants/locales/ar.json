@@ -211,7 +211,12 @@
     "loginFailed": "فشل تسجيل الدخول",
     "loginFailedHint": "تحقق من بريدك الإلكتروني وكلمة المرور.",
     "registerFailed": "فشل التسجيل",
-    "registerFailedHint": "حاول مرة أخرى."
+    "registerFailedHint": "حاول مرة أخرى.",
+    "agreeToPrivacy": "أوافق على ",
+    "privacyPolicyLink": "سياسة الخصوصية",
+    "agreeToTerms": "أوافق على ",
+    "termsLink": "شروط الخدمة",
+    "consentRequired": "يجب الموافقة على كل من سياسة الخصوصية وشروط الخدمة."
   },
   "about": {
     "title": "حول",
