@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { auth, pushTokens } from '@/lib/api';
@@ -24,6 +24,7 @@ interface AuthContextValue {
   register: (email: string, password: string, name: string) => Promise<void>;
   continueAsGuest: () => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: (password?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -102,22 +103,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.removeItem(GUEST_KEY);
   }, []);
 
+  const deleteAccount = useCallback(async (password?: string) => {
+    await auth.deleteAccount(password);
+    setUser(null);
+    setIsGuest(false);
+    await AsyncStorage.removeItem(GUEST_KEY);
+  }, []);
+
   const hasCompletedOnboarding = user !== null || isGuest;
+
+  const value = useMemo<AuthContextValue>(() => ({
+    user,
+    isAuthenticated: user !== null,
+    isGuest,
+    isLoading,
+    hasCompletedOnboarding,
+    login,
+    loginWithSocial,
+    register,
+    continueAsGuest,
+    logout,
+    deleteAccount,
+  }), [user, isGuest, isLoading, hasCompletedOnboarding, login, loginWithSocial, register, continueAsGuest, logout, deleteAccount]);
 
   return (
     <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: user !== null,
-        isGuest,
-        isLoading,
-        hasCompletedOnboarding,
-        login,
-        loginWithSocial,
-        register,
-        continueAsGuest,
-        logout,
-      }}>
+      value={value}>
       {children}
     </AuthContext.Provider>
   );

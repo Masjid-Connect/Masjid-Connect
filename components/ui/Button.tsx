@@ -48,6 +48,9 @@ export const Button = ({
       onPress={handlePress}
       disabled={isDisabled}
       activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      accessibilityState={{ disabled: isDisabled }}
       style={[
         styles.button,
         {

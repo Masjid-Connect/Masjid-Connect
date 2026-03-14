@@ -1,6 +1,6 @@
 {
   "cli": {
-    "version": ">= 13.0.0",
+    "version": ">= 15.0.0",
     "appVersionSource": "remote"
   },
   "build": {
@@ -12,12 +12,10 @@
       }
     },
     "preview": {
-      "distribution": "internal",
-      "ios": {
-        "simulator": false
-      }
+      "distribution": "internal"
     },
     "production": {
+      "distribution": "store",
       "autoIncrement": true
     }
   },
@@ -30,7 +28,7 @@
       },
       "android": {
         "serviceAccountKeyPath": "./google-service-account.json",
-        "track": "production"
+        "track": "internal"
       }
     }
   }

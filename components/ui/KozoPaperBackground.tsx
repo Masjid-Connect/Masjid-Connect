@@ -63,7 +63,7 @@ export const KozoPaperBackground = ({
     <View style={[styles.container, { backgroundColor: color }, style]}>
       {showTexture && (
         <View style={styles.textureOverlay} pointerEvents="none">
-          <Svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <Svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" accessible={false}>
             {/* Subtle warm grain overlay */}
             <Rect
               x="0"

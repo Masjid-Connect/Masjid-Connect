@@ -1,0 +1,36 @@
+# Backend (not needed in mobile builds)
+backend/
+
+# Documentation
+docs/
+*.md
+
+# CI/CD
+.github/
+
+# Dependencies (reinstalled during build)
+node_modules/
+
+# Environment files
+.env*
+
+# Git
+.git/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test files
+__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+coverage/
+
+# OS files
+.DS_Store
+Thumbs.db

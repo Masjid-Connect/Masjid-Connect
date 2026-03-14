@@ -86,7 +86,12 @@
     "appInfo": "معلومات التطبيق",
     "version": "Masjid Connect v{{version}}",
     "prayerSource": "أوقات الصلاة من Aladhan API",
-    "guestHint": "سجل الدخول للحصول على إشعارات ومزامنة مساجدك عبر الأجهزة."
+    "guestHint": "سجل الدخول للحصول على إشعارات ومزامنة مساجدك عبر الأجهزة.",
+    "deleteAccount": "حذف الحساب",
+    "deleteAccountConfirm": "هل أنت متأكد؟ سيتم حذف حسابك واشتراكاتك وجميع البيانات المرتبطة نهائياً. لا يمكن التراجع عن هذا الإجراء.",
+    "deleteAccountButton": "حذف حسابي",
+    "privacyPolicy": "سياسة الخصوصية",
+    "termsOfService": "شروط الخدمة"
   },
   "welcome": {
     "title": "مجتمعك، متصل",
@@ -129,6 +134,11 @@
     "offlineFallback": "البديل بدون اتصال",
     "framework": "إطار العمل",
     "footer": "صُنع بعناية لخدمة المجتمع المسلم.\nبيانات أوقات الصلاة من Aladhan API."
+  },
+  "legal": {
+    "privacyPolicy": "سياسة الخصوصية",
+    "termsOfService": "شروط الخدمة",
+    "lastUpdated": "آخر تحديث: {{date}}"
   },
   "common": {
     "loading": "جارٍ التحميل...",

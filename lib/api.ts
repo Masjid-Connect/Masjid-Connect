@@ -3,6 +3,8 @@
  * Wraps all REST endpoints with token auth.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 import type { Mosque, Announcement, MosqueEvent, UserSubscription, MosquePrayerTimeResponse } from '@/types';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.salafimasjid.app/api/v1';
@@ -23,10 +25,36 @@ interface AuthUser {
   date_joined: string;
 }
 
+// SecureStore is not available on web — fall back to AsyncStorage
+const isSecureStoreAvailable = Platform.OS !== 'web';
+
+async function secureGet(key: string): Promise<string | null> {
+  if (isSecureStoreAvailable) {
+    return SecureStore.getItemAsync(key);
+  }
+  return AsyncStorage.getItem(key);
+}
+
+async function secureSet(key: string, value: string): Promise<void> {
+  if (isSecureStoreAvailable) {
+    await SecureStore.setItemAsync(key, value);
+  } else {
+    await AsyncStorage.setItem(key, value);
+  }
+}
+
+async function secureDelete(key: string): Promise<void> {
+  if (isSecureStoreAvailable) {
+    await SecureStore.deleteItemAsync(key);
+  } else {
+    await AsyncStorage.removeItem(key);
+  }
+}
+
 async function loadToken() {
   if (_token) return;
-  _token = await AsyncStorage.getItem(KEYS.AUTH_TOKEN);
-  const raw = await AsyncStorage.getItem(KEYS.AUTH_USER);
+  _token = await secureGet(KEYS.AUTH_TOKEN);
+  const raw = await secureGet(KEYS.AUTH_USER);
   if (raw) _user = JSON.parse(raw);
 }
 
@@ -63,8 +91,8 @@ export const auth = {
     });
     _token = data.token;
     _user = data.user;
-    await AsyncStorage.setItem(KEYS.AUTH_TOKEN, data.token);
-    await AsyncStorage.setItem(KEYS.AUTH_USER, JSON.stringify(data.user));
+    await secureSet(KEYS.AUTH_TOKEN, data.token);
+    await secureSet(KEYS.AUTH_USER, JSON.stringify(data.user));
     return data;
   },
 
@@ -75,8 +103,8 @@ export const auth = {
     });
     _token = data.token;
     _user = data.user;
-    await AsyncStorage.setItem(KEYS.AUTH_TOKEN, data.token);
-    await AsyncStorage.setItem(KEYS.AUTH_USER, JSON.stringify(data.user));
+    await secureSet(KEYS.AUTH_TOKEN, data.token);
+    await secureSet(KEYS.AUTH_USER, JSON.stringify(data.user));
     return data;
   },
 
@@ -88,8 +116,8 @@ export const auth = {
     }
     _token = null;
     _user = null;
-    await AsyncStorage.removeItem(KEYS.AUTH_TOKEN);
-    await AsyncStorage.removeItem(KEYS.AUTH_USER);
+    await secureDelete(KEYS.AUTH_TOKEN);
+    await secureDelete(KEYS.AUTH_USER);
   },
 
   get isLoggedIn() {
@@ -114,9 +142,32 @@ export const auth = {
     });
     _token = data.token;
     _user = data.user;
-    await AsyncStorage.setItem(KEYS.AUTH_TOKEN, data.token);
-    await AsyncStorage.setItem(KEYS.AUTH_USER, JSON.stringify(data.user));
+    await secureSet(KEYS.AUTH_TOKEN, data.token);
+    await secureSet(KEYS.AUTH_USER, JSON.stringify(data.user));
     return data;
+  },
+
+  async exportData() {
+    return request<{
+      profile: AuthUser;
+      subscriptions: UserSubscription[];
+      push_tokens: Array<{ id: string; token: string; platform: string; created: string; updated: string }>;
+      announcements: Announcement[];
+      events: MosqueEvent[];
+      admin_roles: Array<{ id: string; mosque: string; user: string; role: string; created: string }>;
+      exported_at: string;
+    }>('/auth/export-data/');
+  },
+
+  async deleteAccount(password?: string) {
+    await request('/auth/delete-account/', {
+      method: 'DELETE',
+      body: password ? JSON.stringify({ password }) : undefined,
+    });
+    _token = null;
+    _user = null;
+    await secureDelete(KEYS.AUTH_TOKEN);
+    await secureDelete(KEYS.AUTH_USER);
   },
 };
 

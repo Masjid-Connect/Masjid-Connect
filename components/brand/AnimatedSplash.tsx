@@ -159,7 +159,7 @@ export const AnimatedSplash = ({
         <View style={styles.paperBackground} />
 
         {/* The logo — centered, fades in with scale */}
-        <Animated.View style={[styles.logoContainer, logoAnimatedStyle]}>
+        <Animated.View style={[styles.logoContainer, logoAnimatedStyle]} accessibilityLabel="Mosque Connect">
           <Image
             source={require('@/assets/images/splash-logo.png')}
             style={styles.logo}

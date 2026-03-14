@@ -87,6 +87,9 @@ class AnnouncementCreateTests(TestCase):
             "password": "testpass123",
         })
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {response.data['token']}")
+        # Make user a mosque admin so they can create announcements
+        from core.models import MosqueAdmin
+        MosqueAdmin.objects.create(user=self.user, mosque=self.mosque, role="admin")
 
     def test_create_announcement(self):
         response = self.client.post("/api/v1/announcements/", {

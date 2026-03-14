@@ -3,10 +3,17 @@
     "name": "Mosque Connect",
     "slug": "mosque-connect",
     "version": "1.0.0",
+    "owner": "masjid-connect",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "salafimasjid",
     "userInterfaceStyle": "automatic",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/YOUR_PROJECT_ID_HERE"
+    },
     "splash": {
       "image": "./assets/images/splash-logo.png",
       "resizeMode": "contain",
@@ -16,7 +23,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "app.salafimasjid",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Mosque Connect uses your location to calculate accurate prayer times and find nearby mosques."
+        "NSLocationWhenInUseUsageDescription": "Mosque Connect uses your location to calculate accurate prayer times and find nearby mosques.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -55,7 +63,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": ""
+        "projectId": "SET_YOUR_EAS_PROJECT_ID_HERE"
       }
     }
   }

@@ -54,11 +54,15 @@ export const BrandTabIcon = ({
   });
 
   return (
-    <Animated.View style={[styles.container, animatedContainer, style]}>
+    <Animated.View
+      style={[styles.container, animatedContainer, style]}
+      accessibilityLabel="Mosque Connect"
+    >
       <Svg
         width={width}
         height={size}
         viewBox={`0 0 ${ARCH_VIEWBOX.width} ${ARCH_VIEWBOX.height}`}
+        accessible={false}
       >
         <Path
           d={ARCH_PATH}

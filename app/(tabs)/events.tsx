@@ -74,9 +74,12 @@ export default function EventsScreen() {
     return marks;
   }, [events, selectedDate, colors.accent]);
 
-  const filteredByDate = selectedDate
-    ? events.filter((e) => (e.event_date.split('T')[0] || e.event_date) === selectedDate)
-    : events;
+  const filteredByDate = useMemo(
+    () => selectedDate
+      ? events.filter((e) => (e.event_date.split('T')[0] || e.event_date) === selectedDate)
+      : events,
+    [events, selectedDate]
+  );
 
   const buildAddToCalendarUrl = (event: MosqueEvent): string => {
     const dateStr = event.event_date.split('T')[0] || event.event_date;
@@ -234,6 +237,9 @@ export default function EventsScreen() {
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
           }
           showsVerticalScrollIndicator={false}
+          initialNumToRender={10}
+          maxToRenderPerBatch={5}
+          windowSize={5}
         />
       )}
 

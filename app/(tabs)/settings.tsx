@@ -43,7 +43,7 @@ export default function SettingsScreen() {
   const { effectiveScheme, themePreference, setThemePreference } = useTheme();
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
-  const { user, isAuthenticated, isGuest, logout } = useAuth();
+  const { user, isAuthenticated, isGuest, logout, deleteAccount } = useAuth();
 
   const REMINDER_OPTIONS = REMINDER_VALUES.map((v) => ({
     label: v === 0 ? t('settings.atAthanTime') : t('settings.minutesBefore', { minutes: v }),
@@ -234,6 +234,27 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      t('settings.deleteAccount'),
+      t('settings.deleteAccountConfirm'),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('settings.deleteAccountButton'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteAccount();
+            } catch {
+              Alert.alert(t('common.error'), t('common.networkError'));
+            }
+          },
+        },
+      ],
+    );
+  };
+
   const subscribedIds = subscribedMosques.map((m) => m.id);
 
   const SectionHeader = ({ title }: { title: string }) => (
@@ -290,6 +311,26 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           </View>
         )}
+      </View>
+
+      {/* Legal */}
+      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm, marginTop: spacing.md, marginHorizontal: spacing['3xl'] }]}>
+        <TouchableOpacity
+          onPress={() => router.push('/privacy-policy')}
+          style={[styles.row, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}
+        >
+          <Ionicons name="shield-checkmark-outline" size={20} color={colors.tint} style={{ marginRight: spacing.md }} />
+          <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{t('settings.privacyPolicy')}</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => router.push('/terms')}
+          style={styles.row}
+        >
+          <Ionicons name="document-text-outline" size={20} color={colors.tint} style={{ marginRight: spacing.md }} />
+          <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{t('settings.termsOfService')}</Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
+        </TouchableOpacity>
       </View>
 
       {/* My Mosques */}
@@ -431,6 +472,23 @@ export default function SettingsScreen() {
           />
         </View>
       </View>
+
+      {/* Delete Account */}
+      {isAuthenticated && !isGuest && (
+        <>
+          <SectionHeader title={t('settings.deleteAccount')} />
+          <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
+            <TouchableOpacity
+              onPress={handleDeleteAccount}
+              style={[styles.actionBtn, { backgroundColor: colors.urgent }]}
+            >
+              <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>
+                {t('settings.deleteAccountButton')}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
 
       {/* App info */}
       <View style={styles.footer}>

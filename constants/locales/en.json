@@ -86,7 +86,12 @@
     "appInfo": "App Info",
     "version": "Masjid Connect v{{version}}",
     "prayerSource": "Prayer times via Aladhan API",
-    "guestHint": "Sign in to get push notifications and sync your masajid across devices."
+    "guestHint": "Sign in to get push notifications and sync your masajid across devices.",
+    "deleteAccount": "Delete Account",
+    "deleteAccountConfirm": "Are you sure? This will permanently delete your account, subscriptions, and all associated data. This cannot be undone.",
+    "deleteAccountButton": "Delete My Account",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service"
   },
   "welcome": {
     "title": "Your community, connected",
@@ -129,6 +134,11 @@
     "offlineFallback": "Offline Fallback",
     "framework": "Framework",
     "footer": "Built with care for the Muslim community.\nPrayer time data provided by Aladhan API."
+  },
+  "legal": {
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "lastUpdated": "Last updated: {{date}}"
   },
   "common": {
     "loading": "Loading...",
