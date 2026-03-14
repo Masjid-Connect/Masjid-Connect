@@ -85,12 +85,12 @@ class Announcement(models.Model):
 
 
 class Event(models.Model):
-    """Mosque event — lesson, lecture, Quran circle, etc."""
+    """Mosque event — lesson, lecture, Quran school, etc."""
 
     class Category(models.TextChoices):
         LESSON = "lesson", "Lesson"
         LECTURE = "lecture", "Lecture"
-        QURAN_CIRCLE = "quran_circle", "Quran Circle"
+        QURAN_SCHOOL = "quran_school", "Quran School"
         YOUTH = "youth", "Youth"
         SISTERS = "sisters", "Sisters"
         COMMUNITY = "community", "Community"
@@ -199,6 +199,51 @@ class MosqueAdmin(models.Model):
 
     def __str__(self):
         return f"{self.user} — {self.mosque} ({self.role})"
+
+
+class Feedback(models.Model):
+    """User-submitted bug reports and feature requests — stored in DB, not lost in email."""
+
+    class Type(models.TextChoices):
+        BUG_REPORT = "bug_report", "Bug Report"
+        FEATURE_REQUEST = "feature_request", "Feature Request"
+
+    class Status(models.TextChoices):
+        NEW = "new", "New"
+        ACKNOWLEDGED = "acknowledged", "Acknowledged"
+        IN_PROGRESS = "in_progress", "In Progress"
+        RESOLVED = "resolved", "Resolved"
+        CLOSED = "closed", "Closed"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="feedback",
+        help_text="Null for guest submissions",
+    )
+    type = models.CharField(max_length=20, choices=Type.choices)
+    category = models.CharField(max_length=50)
+    description = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.NEW)
+    admin_notes = models.TextField(blank=True, help_text="Internal notes — not visible to user")
+    device_info = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Auto-collected: platform, os_version, app_version, device_model, screen_size, theme",
+    )
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created"]
+        verbose_name_plural = "feedback"
+
+    def __str__(self):
+        return f"{self.get_type_display()} — {self.category}"
 
 
 class MosquePrayerTime(models.Model):

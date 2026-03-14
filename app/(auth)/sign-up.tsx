@@ -8,24 +8,25 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
-  useColorScheme,
   TextInput as RNTextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import { getColors } from '@/constants/Colors';
-import { spacing, typography } from '@/constants/Theme';
-import { KozoPaperBackground } from '@/components/ui/KozoPaperBackground';
+import { useTheme } from '@/contexts/ThemeContext';
+import { spacing, borderRadius, typography } from '@/constants/Theme';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function SignUpScreen() {
-  const colorScheme = useColorScheme();
-  const colors = getColors(colorScheme);
+  const { effectiveScheme } = useTheme();
+  const colors = getColors(effectiveScheme);
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
   const { register } = useAuth();
 
   const [name, setName] = useState('');
@@ -42,12 +43,12 @@ export default function SignUpScreen() {
 
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
-    if (!name.trim()) errs.name = 'Name is required.';
-    if (!email.trim()) errs.email = 'Email is required.';
-    else if (!/\S+@\S+\.\S+/.test(email)) errs.email = 'Enter a valid email.';
-    if (!password) errs.password = 'Password is required.';
-    else if (password.length < 8) errs.password = 'At least 8 characters.';
-    if (password !== confirmPassword) errs.confirmPassword = 'Passwords do not match.';
+    if (!name.trim()) errs.name = t('auth.nameRequired');
+    if (!email.trim()) errs.email = t('auth.emailRequired');
+    else if (!/\S+@\S+\.\S+/.test(email)) errs.email = t('auth.emailInvalid');
+    if (!password) errs.password = t('auth.passwordRequired');
+    else if (password.length < 8) errs.password = t('auth.weakPasswordHint');
+    if (password !== confirmPassword) errs.confirmPassword = t('auth.passwordsMismatch');
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -59,14 +60,13 @@ export default function SignUpScreen() {
     setLoading(true);
     try {
       await register(email.trim(), password, name.trim());
-      // After registration, navigate to mosque search for onboarding
-      router.replace('/mosque-search');
+      router.replace('/(tabs)');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Registration failed';
       if (message.includes('400')) {
-        setGeneralError('An account with this email may already exist.');
+        setGeneralError(t('auth.accountExists'));
       } else {
-        setGeneralError('Could not connect. Please try again.');
+        setGeneralError(t('auth.networkError'));
       }
     } finally {
       setLoading(false);
@@ -74,41 +74,43 @@ export default function SignUpScreen() {
   };
 
   return (
-    <KozoPaperBackground>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}>
+        style={styles.flex}>
         <ScrollView
           contentContainerStyle={[
             styles.content,
-            { paddingTop: insets.top + spacing['2xl'] },
+            { paddingTop: insets.top + spacing['3xl'] },
           ]}
-          keyboardShouldPersistTaps="handled">
-          {/* Brand Logo */}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+
+          {/* Logo */}
           <View style={styles.logoContainer}>
             <Image
               source={require('@/assets/images/Masjid_Logo.png')}
-              style={styles.logo}
+              style={[styles.logo, effectiveScheme === 'dark' && { tintColor: colors.text }]}
               resizeMode="contain"
             />
           </View>
 
           {/* Heading */}
-          <Text style={[typography.title1, { color: colors.text, textAlign: 'center' }]}>
-            Join your community
+          <Text style={[typography.title2, { color: colors.text, textAlign: 'center' }]}>
+            {t('auth.joinCommunity')}
           </Text>
           <Text
             style={[
-              typography.body,
+              typography.subhead,
               { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm, marginBottom: spacing['2xl'] },
             ]}>
-            Create an account to connect with your mosque
+            {t('auth.signUpSubtitle')}
           </Text>
 
           {/* Form */}
           <View style={styles.form}>
             <TextInput
-              label="Name"
+              label={t('auth.name')}
               value={name}
               onChangeText={setName}
               autoComplete="name"
@@ -119,11 +121,12 @@ export default function SignUpScreen() {
 
             <TextInput
               ref={emailRef}
-              label="Email"
+              label={t('auth.email')}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoComplete="email"
+              autoCapitalize="none"
               returnKeyType="next"
               error={errors.email}
               onSubmitEditing={() => passwordRef.current?.focus()}
@@ -131,20 +134,20 @@ export default function SignUpScreen() {
 
             <TextInput
               ref={passwordRef}
-              label="Password"
+              label={t('auth.password')}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
               autoComplete="new-password"
               returnKeyType="next"
               error={errors.password}
-              placeholder="At least 8 characters"
+              placeholder={t('auth.passwordHint')}
               onSubmitEditing={() => confirmRef.current?.focus()}
             />
 
             <TextInput
               ref={confirmRef}
-              label="Confirm Password"
+              label={t('auth.confirmPassword')}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry
@@ -154,53 +157,65 @@ export default function SignUpScreen() {
             />
 
             {generalError ? (
-              <Text style={[typography.callout, { color: colors.urgent, marginBottom: spacing.md }]}>
+              <Text style={[typography.callout, { color: colors.urgent, textAlign: 'center', marginBottom: spacing.md }]}>
                 {generalError}
               </Text>
             ) : null}
 
-            <Button title="Create Account" onPress={handleSignUp} loading={loading} />
+            <Button
+              title={t('auth.register')}
+              onPress={handleSignUp}
+              loading={loading}
+              style={styles.submitButton}
+            />
           </View>
 
           {/* Sign In Link */}
           <View style={styles.footer}>
-            <Text style={[typography.body, { color: colors.textSecondary }]}>
-              Already have an account?{' '}
+            <Text style={[typography.subhead, { color: colors.textSecondary }]}>
+              {t('auth.haveAccountQuestion')}{' '}
             </Text>
             <TouchableOpacity onPress={() => router.back()}>
-              <Text style={[typography.body, { color: colors.tint, fontWeight: '600' }]}>
-                Sign In
+              <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>
+                {t('auth.login')}
               </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </KozoPaperBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
+    flex: 1,
+  },
+  flex: {
     flex: 1,
   },
   content: {
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing['3xl'],
     paddingBottom: spacing['3xl'],
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   logo: {
-    width: 260,
-    height: 72,
+    width: 220,
+    height: 220 * 0.28, // consistent aspect ratio
   },
   form: {
     marginBottom: spacing.lg,
   },
+  submitButton: {
+    borderRadius: borderRadius.xl,
+    marginTop: spacing.sm,
+  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: spacing.lg,
+    marginTop: spacing.xl,
   },
 });

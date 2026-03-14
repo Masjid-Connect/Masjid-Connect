@@ -4,39 +4,53 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
-  Switch,
   Alert,
   Platform,
-  TextInput,
-  ActivityIndicator,
+  Share,
 } from 'react-native';
-import * as Location from 'expo-location';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import Animated, {
+  useSharedValue,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  interpolate,
+  Extrapolation,
+} from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { spacing, elevation, borderRadius, typography } from '@/constants/Theme';
+import { spacing, typography } from '@/constants/Theme';
 import {
-  getUserLocation,
-  setUserLocation,
   getReminderMinutes,
   setReminderMinutes,
   getUse24h,
   setUse24h,
-  getSubscribedMosqueIds,
-  setSubscribedMosqueIds,
+  getNotifyAnnouncements,
+  setNotifyAnnouncements,
+  getNotifyEvents,
+  setNotifyEvents,
 } from '@/lib/storage';
-import type { ThemePreference } from '@/contexts/ThemeContext';
 import { reschedulePrayerRemindersForToday } from '@/lib/notifications';
-import { mosques as mosquesApi, subscriptions as subscriptionsApi } from '@/lib/api';
-import type { Mosque, UserSubscription } from '@/types';
+import {
+  ProfileCard,
+  SettingsSection,
+  SettingsRow,
+  SettingsPickerSheet,
+  ThemePreviewSheet,
+  ReportIssueSheet,
+  FeatureRequestSheet,
+} from '@/components/settings';
 
 const REMINDER_VALUES = [0, 5, 10, 15, 30];
-const THEME_VALUES: ThemePreference[] = ['light', 'dark', 'system'];
+
+const HEADER_HEIGHT = 44;
+const LARGE_TITLE_HEIGHT = 52;
+
+const AnimatedScrollView = Animated.createAnimatedComponent(ScrollView);
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -44,526 +58,413 @@ export default function SettingsScreen() {
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
   const { user, isAuthenticated, isGuest, logout, deleteAccount } = useAuth();
+  const insets = useSafeAreaInsets();
 
-  const REMINDER_OPTIONS = REMINDER_VALUES.map((v) => ({
-    label: v === 0 ? t('settings.atAthanTime') : t('settings.minutesBefore', { minutes: v }),
-    value: v,
+  // ─── Large title collapse animation ────────────────────────────
+  const scrollY = useSharedValue(0);
+
+  const onScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  const largeTitleStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollY.value, [0, LARGE_TITLE_HEIGHT], [1, 0], Extrapolation.CLAMP),
+    transform: [
+      {
+        translateY: interpolate(
+          scrollY.value,
+          [0, LARGE_TITLE_HEIGHT],
+          [0, -LARGE_TITLE_HEIGHT / 2],
+          Extrapolation.CLAMP,
+        ),
+      },
+    ],
   }));
 
-  const THEME_OPTIONS = THEME_VALUES.map((v) => ({
-    value: v,
-    label: t(`settings.theme${v.charAt(0).toUpperCase() + v.slice(1)}`),
+  const inlineHeaderOpacity = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollY.value, [LARGE_TITLE_HEIGHT - 10, LARGE_TITLE_HEIGHT], [0, 1], Extrapolation.CLAMP),
   }));
 
-  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  // State
   const [reminderMin, setReminderMin] = useState(15);
   const [use24h, setUse24hState] = useState(false);
-  const [locationLoading, setLocationLoading] = useState(false);
-  const [subscribedMosques, setSubscribedMosques] = useState<Mosque[]>([]);
-  const [backendSubscriptions, setBackendSubscriptions] = useState<UserSubscription[]>([]);
-  const [searchCity, setSearchCity] = useState('');
-  const [searchResults, setSearchResults] = useState<Mosque[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [nearbyLoading, setNearbyLoading] = useState(false);
+  const [notifyAnnouncements, setNotifyAnnouncementsState] = useState(true);
+  const [notifyEvents, setNotifyEventsState] = useState(true);
 
-  const loadSubscribedMosques = useCallback(async () => {
-    let ids: string[] = [];
-
-    // If authenticated, sync from backend subscriptions
-    if (isAuthenticated) {
-      try {
-        const subs = await subscriptionsApi.list();
-        setBackendSubscriptions(subs);
-        ids = subs.map((s) => s.mosque);
-        // Sync backend subscriptions to local storage
-        await setSubscribedMosqueIds(ids);
-      } catch {
-        // Fall back to local storage
-        ids = await getSubscribedMosqueIds();
-      }
-    } else {
-      ids = await getSubscribedMosqueIds();
-    }
-
-    const list = await Promise.all(
-      ids.map(async (id) => {
-        try {
-          return await mosquesApi.getById(id);
-        } catch {
-          return { id, name: id.slice(0, 8) + '…', address: '', city: '', state: '', country: '', latitude: 0, longitude: 0, calculation_method: '', jumua_time: null, contact_phone: '', contact_email: '', website: '', photo: '', created: '', updated: '' } as Mosque;
-        }
-      })
-    );
-    setSubscribedMosques(list);
-  }, [isAuthenticated]);
+  // Sheet visibility
+  const [showReminderPicker, setShowReminderPicker] = useState(false);
+  const [showThemePicker, setShowThemePicker] = useState(false);
+  const [showReportIssue, setShowReportIssue] = useState(false);
+  const [showFeatureRequest, setShowFeatureRequest] = useState(false);
 
   useEffect(() => {
     loadSettings();
-    loadSubscribedMosques();
-  }, [loadSubscribedMosques]);
+  }, []);
 
   const loadSettings = async () => {
-    const loc = await getUserLocation();
-    if (loc) setLocation(loc);
-
-    const mins = await getReminderMinutes();
+    const [mins, h24, announceEnabled, eventsEnabled] = await Promise.all([
+      getReminderMinutes(),
+      getUse24h(),
+      getNotifyAnnouncements(),
+      getNotifyEvents(),
+    ]);
     setReminderMin(mins);
-
-    const h24 = await getUse24h();
     setUse24hState(h24);
+    setNotifyAnnouncementsState(announceEnabled);
+    setNotifyEventsState(eventsEnabled);
   };
 
-  const handleDetectLocation = async () => {
-    setLocationLoading(true);
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(t('common.permissionNeeded'), t('common.locationPermission'));
-        return;
-      }
-
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const { latitude, longitude } = loc.coords;
-      await setUserLocation(latitude, longitude);
-      setLocation({ latitude, longitude });
-    } catch {
-      Alert.alert(t('common.error'), t('common.locationError'));
-    } finally {
-      setLocationLoading(false);
-    }
-  };
-
-  const handleReminderChange = async (minutes: number) => {
+  const handleReminderChange = useCallback(async (minutes: number) => {
     setReminderMin(minutes);
     await setReminderMinutes(minutes);
     await reschedulePrayerRemindersForToday();
-  };
+  }, []);
 
-  const handleToggle24h = async (value: boolean) => {
+  const handleToggle24h = useCallback(async (value: boolean) => {
     setUse24hState(value);
     await setUse24h(value);
-  };
+  }, []);
 
-  const handleSignOut = async () => {
+  const handleNotifyAnnouncementsChange = useCallback(async (value: boolean) => {
+    setNotifyAnnouncementsState(value);
+    await setNotifyAnnouncements(value);
+  }, []);
+
+  const handleNotifyEventsChange = useCallback(async (value: boolean) => {
+    setNotifyEventsState(value);
+    await setNotifyEvents(value);
+  }, []);
+
+  const handleThemeChange = useCallback(async (theme: 'light' | 'dark' | 'system') => {
+    await setThemePreference(theme);
+  }, [setThemePreference]);
+
+  const handleSignOut = useCallback(async () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     if (Platform.OS === 'web') {
-      // Alert.alert is not supported on web — use window.confirm
       const confirmed = window.confirm(t('settings.signOutConfirm'));
-      if (confirmed) {
-        await logout();
-      }
+      if (confirmed) await logout();
     } else {
       Alert.alert(t('settings.signOut'), t('settings.signOutConfirm'), [
         { text: t('common.cancel'), style: 'cancel' },
         {
           text: t('settings.signOut'),
           style: 'destructive',
-          onPress: async () => {
-            await logout();
-          },
+          onPress: () => logout(),
         },
       ]);
     }
-  };
+  }, [t, logout]);
 
-  const handleSubscribe = async (mosqueId: string) => {
-    const ids = await getSubscribedMosqueIds();
-    if (ids.includes(mosqueId)) return;
-    await setSubscribedMosqueIds([...ids, mosqueId]);
-
-    // Also subscribe on backend if authenticated
-    if (isAuthenticated) {
-      try {
-        await subscriptionsApi.subscribe(mosqueId);
-      } catch {
-        // Local subscription saved; backend sync will retry on next load
-      }
-    }
-
-    await loadSubscribedMosques();
-    setSearchResults((prev) => prev.filter((m) => m.id !== mosqueId));
-  };
-
-  const handleUnsubscribe = async (mosqueId: string) => {
-    const ids = await getSubscribedMosqueIds();
-    await setSubscribedMosqueIds(ids.filter((id) => id !== mosqueId));
-
-    // Also unsubscribe on backend if authenticated
-    if (isAuthenticated) {
-      const sub = backendSubscriptions.find((s) => s.mosque === mosqueId);
-      if (sub) {
-        try {
-          await subscriptionsApi.unsubscribe(sub.id);
-        } catch {
-          // Local unsubscription saved; backend sync will retry on next load
-        }
-      }
-    }
-
-    await loadSubscribedMosques();
-  };
-
-  const handleSearchByCity = async () => {
-    if (!searchCity.trim()) return;
-    setSearchLoading(true);
-    try {
-      const { items } = await mosquesApi.list(searchCity.trim());
-      setSearchResults(items);
-    } catch {
-      Alert.alert(t('common.error'), t('common.searchFailed'));
-    } finally {
-      setSearchLoading(false);
-    }
-  };
-
-  const handleNearby = async () => {
-    setNearbyLoading(true);
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(t('common.permissionNeeded'), t('common.locationPermission'));
-        setNearbyLoading(false);
-        return;
-      }
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const list = await mosquesApi.nearby(loc.coords.latitude, loc.coords.longitude);
-      setSearchResults(list);
-    } catch {
-      Alert.alert(t('common.error'), t('common.nearbyFailed'));
-    } finally {
-      setNearbyLoading(false);
-    }
-  };
-
-  const handleDeleteAccount = () => {
+  const handleDeleteAccount = useCallback(() => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     Alert.alert(
-      t('settings.deleteAccount'),
+      t('settings.deleteAccountTitle'),
       t('settings.deleteAccountConfirm'),
       [
         { text: t('common.cancel'), style: 'cancel' },
         {
-          text: t('settings.deleteAccountButton'),
+          text: t('settings.deleteAccount'),
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteAccount();
-            } catch {
-              Alert.alert(t('common.error'), t('common.networkError'));
-            }
+          onPress: () => {
+            // TODO: Implement account deletion API call
           },
         },
-      ],
+      ]
     );
-  };
+  }, [t]);
 
-  const subscribedIds = subscribedMosques.map((m) => m.id);
+  const handleShareApp = useCallback(async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    try {
+      await Share.share({ message: t('settings.shareMessage') });
+    } catch {
+      // Share can throw on web if a previous share is still pending
+    }
+  }, [t]);
 
-  const SectionHeader = ({ title }: { title: string }) => (
-    <Text style={[typography.sectionHeader, { color: colors.textSecondary, marginTop: spacing['2xl'], marginBottom: spacing.sm, paddingHorizontal: spacing['3xl'] }]} accessibilityRole="header">
-      {title}
-    </Text>
-  );
+  const handleReportIssue = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowReportIssue(true);
+  }, []);
 
-  const CheckRow = ({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) => (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[styles.row, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}
-    >
-      <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{label}</Text>
-      {selected && <Ionicons name="checkmark" size={20} color={colors.tint} />}
-    </TouchableOpacity>
-  );
+  const handleFeatureRequest = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShowFeatureRequest(true);
+  }, []);
+
+  // Derived display values
+  const reminderLabel = reminderMin === 0
+    ? t('settings.atAthanTime')
+    : t('settings.minutesBefore', { minutes: reminderMin });
+
+  const themeLabel = t(`settings.theme${themePreference.charAt(0).toUpperCase() + themePreference.slice(1)}`);
+
+  // Build picker options
+  const reminderOptions = REMINDER_VALUES.map((v) => ({
+    label: v === 0 ? t('settings.atAthanTime') : t('settings.minutesBefore', { minutes: v }),
+    value: v,
+  }));
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={styles.content}
-    >
-      {/* Account */}
-      <SectionHeader title={t('settings.account')} />
-      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
-        {isAuthenticated && user ? (
-          <View style={styles.row}>
-            <View style={[styles.avatar, { backgroundColor: colors.accent }]}>
-              <Text style={[typography.title2, { color: '#FFFFFF' }]}>
-                {(user.name || user.email)[0].toUpperCase()}
-              </Text>
-            </View>
-            <View style={{ flex: 1, marginStart: spacing.md }}>
-              <Text style={[typography.body, { color: colors.text }]}>{user.name || user.email}</Text>
-              <Text style={[typography.caption1, { color: colors.textSecondary }]}>{user.email}</Text>
-            </View>
-            <TouchableOpacity onPress={handleSignOut}>
-              <Text style={[typography.subhead, { color: colors.urgent }]}>{t('settings.signOut')}</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View>
-            {isGuest && (
-              <Text style={[typography.footnote, { color: colors.textSecondary, textAlign: 'center', paddingTop: spacing.lg, paddingHorizontal: spacing.lg }]}>
-                {t('settings.guestHint')}
-              </Text>
-            )}
-            <TouchableOpacity
-              onPress={() => router.push('/(auth)/welcome')}
-              style={[styles.actionBtn, { backgroundColor: colors.tint }]}
-            >
-              <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>{t('settings.signIn')}</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+    <View style={[styles.root, { backgroundColor: colors.backgroundSecondary }]}>
+      {/* Inline header — appears when large title scrolls away */}
+      <View style={[styles.inlineHeader, { paddingTop: insets.top, height: insets.top + HEADER_HEIGHT, backgroundColor: colors.backgroundSecondary }]}>
+        <Animated.Text
+          style={[
+            typography.headline,
+            { color: colors.text, textAlign: 'center' },
+            inlineHeaderOpacity,
+          ]}>
+          {t('settings.title')}
+        </Animated.Text>
+        <Animated.View
+          style={[
+            styles.headerSeparator,
+            { backgroundColor: colors.separator },
+            inlineHeaderOpacity,
+          ]}
+        />
       </View>
 
-      {/* Legal */}
-      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm, marginTop: spacing.md, marginHorizontal: spacing['3xl'] }]}>
-        <TouchableOpacity
-          onPress={() => router.push('/privacy-policy')}
-          style={[styles.row, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}
-        >
-          <Ionicons name="shield-checkmark-outline" size={20} color={colors.tint} style={{ marginEnd: spacing.md }} />
-          <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{t('settings.privacyPolicy')}</Text>
-          <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() => router.push('/terms')}
-          style={styles.row}
-        >
-          <Ionicons name="document-text-outline" size={20} color={colors.tint} style={{ marginEnd: spacing.md }} />
-          <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{t('settings.termsOfService')}</Text>
-          <Ionicons name="chevron-forward" size={18} color={colors.textSecondary} />
-        </TouchableOpacity>
-      </View>
+      <AnimatedScrollView
+        style={styles.container}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + HEADER_HEIGHT }]}
+        showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+      >
+        {/* Large title */}
+        <Animated.View style={[styles.largeTitleContainer, largeTitleStyle]}>
+          <Text style={[typography.largeTitle, { color: colors.text }]}>
+            {t('settings.title')}
+          </Text>
+        </Animated.View>
 
-      {/* My Mosques */}
-      <SectionHeader title={t('settings.myMosques')} />
-      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
-        {subscribedMosques.length === 0 ? (
-          <View style={styles.emptyMosque}>
-            <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center' }]}>
-              {t('settings.noMosques')}
-            </Text>
-          </View>
-        ) : (
-          subscribedMosques.map((m, i) => (
-            <View key={m.id} style={[styles.row, i < subscribedMosques.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}>
-              <Text style={[typography.body, { color: colors.text, flex: 1 }]} numberOfLines={1}>{m.name}</Text>
-              <TouchableOpacity onPress={() => handleUnsubscribe(m.id)}>
-                <Text style={[typography.subhead, { color: colors.urgent }]}>{t('settings.remove')}</Text>
-              </TouchableOpacity>
-            </View>
-          ))
-        )}
-
-        {/* Search section */}
-        <View style={[styles.searchSection, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.separator }]}>
-          <Text style={[typography.footnote, { color: colors.textSecondary, marginBottom: spacing.sm }]}>{t('settings.addMosque')}</Text>
-          <TextInput
-            style={[styles.input, { backgroundColor: colors.backgroundGrouped, borderColor: colors.separator, color: colors.text }]}
-            placeholder={t('settings.cityName')}
-            placeholderTextColor={colors.textSecondary}
-            value={searchCity}
-            onChangeText={setSearchCity}
-            returnKeyType="search"
-            onSubmitEditing={handleSearchByCity}
-          />
-          <View style={styles.searchButtons}>
-            <TouchableOpacity
-              onPress={handleSearchByCity}
-              disabled={searchLoading}
-              style={[styles.searchBtn, { backgroundColor: colors.tint }]}
-            >
-              {searchLoading ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>{t('settings.search')}</Text>}
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleNearby}
-              disabled={nearbyLoading}
-              style={[styles.searchBtn, { backgroundColor: colors.accent }]}
-            >
-              {nearbyLoading ? <ActivityIndicator size="small" color="#FFF" /> : <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>{t('settings.nearby')}</Text>}
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {searchResults.length > 0 && (
-          <View style={[styles.searchSection, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.separator }]}>
-            <Text style={[typography.footnote, { color: colors.textSecondary, marginBottom: spacing.sm }]}>{t('settings.results')}</Text>
-            {searchResults.map((m, i) => {
-              const isSubscribed = subscribedIds.includes(m.id);
-              return (
-                <View key={m.id} style={[styles.row, i < searchResults.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}>
-                  <Text style={[typography.body, { color: colors.text, flex: 1 }]} numberOfLines={1}>{m.name}</Text>
-                  {isSubscribed ? (
-                    <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-                  ) : (
-                    <TouchableOpacity onPress={() => handleSubscribe(m.id)}>
-                      <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>{t('settings.add')}</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              );
-            })}
-          </View>
-        )}
-      </View>
-
-      {/* Location */}
-      <SectionHeader title={t('settings.location')} />
-      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
-        {location ? (
-          <View style={styles.row}>
-            <View style={{ flex: 1 }}>
-              <Text style={[typography.body, { color: colors.text }]}>{t('settings.locationDetected')}</Text>
-              <Text style={[typography.caption1, { color: colors.textSecondary }]}>
-                {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
-              </Text>
-            </View>
-            <TouchableOpacity onPress={handleDetectLocation}>
-              <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>{t('settings.update')}</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity onPress={handleDetectLocation} style={[styles.actionBtn, { backgroundColor: colors.tint }]}>
-            <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>
-              {locationLoading ? t('settings.detecting') : t('settings.detectLocation')}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Calculation Method */}
-      <SectionHeader title={t('settings.calculationMethod')} />
-      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
-        <View style={styles.row}>
-          <Ionicons name="information-circle-outline" size={20} color={colors.tint} style={{ marginEnd: spacing.sm }} />
-          <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{t('settings.ummAlQura')}</Text>
-        </View>
-      </View>
-
-      {/* Prayer Reminders */}
-      <SectionHeader title={t('settings.prayerReminder')} />
-      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
-        {REMINDER_OPTIONS.map((opt) => (
-          <CheckRow
-            key={opt.value}
-            label={opt.label}
-            selected={opt.value === reminderMin}
-            onPress={() => handleReminderChange(opt.value)}
-          />
-        ))}
-      </View>
-
-      {/* Preferences */}
-      <SectionHeader title={t('settings.appearance')} />
-      <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
-        {THEME_OPTIONS.map((opt) => (
-          <CheckRow
-            key={opt.value}
-            label={opt.label}
-            selected={themePreference === opt.value}
-            onPress={() => setThemePreference(opt.value)}
-          />
-        ))}
-        <View style={[styles.row, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.separator }]}>
-          <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{t('settings.use24h')}</Text>
-          <Switch
-            value={use24h}
-            onValueChange={handleToggle24h}
-            trackColor={{ false: colors.separator, true: colors.tint }}
-            thumbColor="#FFFFFF"
-            accessibilityLabel={t('settings.use24h')}
-          />
-        </View>
-      </View>
-
-      {/* Delete Account */}
-      {isAuthenticated && !isGuest && (
-        <>
-          <SectionHeader title={t('settings.deleteAccount')} />
-          <View style={[styles.card, { backgroundColor: colors.card, ...elevation.sm }]}>
-            <TouchableOpacity
-              onPress={handleDeleteAccount}
-              style={[styles.actionBtn, { backgroundColor: colors.urgent }]}
-              accessibilityRole="button"
-              accessibilityLabel={t('settings.deleteAccountButton')}
-              accessibilityHint={t('settings.deleteAccountHint')}
-            >
-              <Text style={[typography.subhead, { color: '#FFFFFF', fontWeight: '600' }]}>
-                {t('settings.deleteAccountButton')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </>
+        {/* ── Profile Card (Hero) ── */}
+      {isAuthenticated && user ? (
+        <ProfileCard
+          variant="authenticated"
+          name={user.name || user.email}
+          email={user.email}
+          onPress={() => {/* TODO: Account details screen */}}
+        />
+      ) : (
+        <ProfileCard
+          variant="guest"
+          onSignIn={() => router.push('/(auth)/welcome')}
+        />
       )}
 
-      {/* App info */}
+      {/* ── Notifications & Reminders ── */}
+      <SettingsSection
+        header={t('settings.notifications')}
+        footer={t('settings.notificationsFooter')}
+      >
+        <SettingsRow
+          icon={{ name: 'notifications', backgroundColor: palette.sapphire600 }}
+          label={t('settings.prayerReminder')}
+          value={reminderLabel}
+          accessory="disclosure"
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            setShowReminderPicker(true);
+          }}
+          position={isAuthenticated ? 'first' : 'only'}
+        />
+        {isAuthenticated && (
+          <SettingsRow
+            icon={{ name: 'megaphone', backgroundColor: palette.sapphire700 }}
+            label={t('settings.announcementAlerts')}
+            accessory="toggle"
+            toggleValue={notifyAnnouncements}
+            onToggleChange={handleNotifyAnnouncementsChange}
+            position="middle"
+          />
+        )}
+        {isAuthenticated && (
+          <SettingsRow
+            icon={{ name: 'calendar', backgroundColor: palette.divineGold }}
+            label={t('settings.eventReminders')}
+            accessory="toggle"
+            toggleValue={notifyEvents}
+            onToggleChange={handleNotifyEventsChange}
+            position="last"
+          />
+        )}
+      </SettingsSection>
+
+      {/* ── Appearance ── */}
+      <SettingsSection
+        header={t('settings.appearance')}
+        footer={t('settings.appearanceFooter')}
+      >
+        <SettingsRow
+          icon={{ name: 'moon', backgroundColor: colors.text }}
+          label={t('settings.theme')}
+          value={themeLabel}
+          accessory="disclosure"
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            setShowThemePicker(true);
+          }}
+          position="first"
+        />
+        <SettingsRow
+          icon={{ name: 'time', backgroundColor: palette.sapphire600 }}
+          label={t('settings.use24h')}
+          accessory="toggle"
+          toggleValue={use24h}
+          onToggleChange={handleToggle24h}
+          position="last"
+        />
+      </SettingsSection>
+
+      {/* ── Help & Feedback ── */}
+      <SettingsSection header={t('settings.helpAndFeedback')}>
+        <SettingsRow
+          icon={{ name: 'information-circle', backgroundColor: colors.textSecondary }}
+          label={t('settings.aboutApp')}
+          accessory="disclosure"
+          onPress={() => router.push('/about')}
+          position="first"
+        />
+        <SettingsRow
+          icon={{ name: 'share-social', backgroundColor: palette.sapphire700 }}
+          label={t('settings.shareApp')}
+          onPress={handleShareApp}
+          position="middle"
+        />
+        <SettingsRow
+          icon={{ name: 'star', backgroundColor: palette.divineGold }}
+          label={t('settings.rateApp')}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            // TODO: StoreReview.requestReview()
+          }}
+          position="middle"
+        />
+        <SettingsRow
+          icon={{ name: 'bug', backgroundColor: palette.crimson600 }}
+          label={t('settings.reportIssue')}
+          onPress={handleReportIssue}
+          position="middle"
+        />
+        <SettingsRow
+          icon={{ name: 'bulb', backgroundColor: palette.divineGold }}
+          label={t('settings.featureRequest')}
+          onPress={handleFeatureRequest}
+          position="middle"
+        />
+        <SettingsRow
+          icon={{ name: 'shield-checkmark', backgroundColor: colors.textSecondary }}
+          label={t('settings.privacyPolicy')}
+          accessory="disclosure"
+          onPress={() => router.push('/privacy')}
+          position="last"
+        />
+      </SettingsSection>
+
+      {/* ── Danger Zone (authenticated only) ── */}
+      {isAuthenticated && (
+        <SettingsSection header={t('settings.dangerZone')}>
+          <SettingsRow
+            icon={{ name: 'log-out-outline', backgroundColor: palette.crimson600 }}
+            label={t('settings.signOut')}
+            onPress={handleSignOut}
+            destructive
+            position="first"
+          />
+          <SettingsRow
+            icon={{ name: 'trash-outline', backgroundColor: palette.crimson600 }}
+            label={t('settings.deleteAccount')}
+            onPress={handleDeleteAccount}
+            destructive
+            position="last"
+          />
+        </SettingsSection>
+      )}
+
+      {/* ── Footer ── */}
       <View style={styles.footer}>
-        <Text style={[typography.caption1, { color: colors.textSecondary, textAlign: 'center' }]}>
+        <Text style={[typography.caption1, { color: colors.textTertiary, textAlign: 'center' }]}>
           {t('settings.version', { version: '1.0.0' })}
         </Text>
-        <Text style={[typography.caption1, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xs }]}>
+        <Text style={[typography.caption1, { color: colors.textTertiary, textAlign: 'center', marginTop: spacing.xs }]}>
           {t('settings.prayerSource')}
         </Text>
       </View>
-    </ScrollView>
+
+      {/* ── Bottom Sheets ── */}
+      <SettingsPickerSheet
+        visible={showReminderPicker}
+        onDismiss={() => setShowReminderPicker(false)}
+        title={t('settings.prayerReminder')}
+        options={reminderOptions}
+        selectedValue={reminderMin}
+        onSelect={handleReminderChange}
+      />
+
+      <ThemePreviewSheet
+        visible={showThemePicker}
+        onDismiss={() => setShowThemePicker(false)}
+        selectedTheme={themePreference}
+        onSelect={handleThemeChange}
+      />
+
+      <ReportIssueSheet
+        visible={showReportIssue}
+        onDismiss={() => setShowReportIssue(false)}
+      />
+
+      <FeatureRequestSheet
+        visible={showFeatureRequest}
+        onDismiss={() => setShowFeatureRequest(false)}
+      />
+
+    </AnimatedScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   container: {
     flex: 1,
+  },
+  // ─── Large title header ────────────────────────────────────────
+  inlineHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    height: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerSeparator: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: StyleSheet.hairlineWidth,
+  },
+  largeTitleContainer: {
+    paddingHorizontal: spacing['3xl'],
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
   },
   content: {
     paddingBottom: spacing['5xl'],
   },
-  card: {
-    marginHorizontal: spacing['3xl'],
-    borderRadius: borderRadius.md,
-    overflow: 'hidden',
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.lg,
-  },
-  emptyMosque: {
-    padding: spacing.lg,
-  },
-  searchSection: {
-    padding: spacing.lg,
-  },
-  input: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: borderRadius.sm,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    fontSize: 17,
-  },
-  searchButtons: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  searchBtn: {
-    flex: 1,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.sm,
-    alignItems: 'center',
-  },
-  actionBtn: {
-    margin: spacing.lg,
-    paddingVertical: spacing.lg,
-    borderRadius: borderRadius.sm,
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   footer: {
     marginTop: spacing['4xl'],
     paddingHorizontal: spacing['3xl'],
+    marginBottom: spacing.lg,
   },
 });

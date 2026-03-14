@@ -55,7 +55,7 @@ export default function LoginScreen() {
         <View style={styles.logoContainer}>
           <Image
             source={require('@/assets/images/Masjid_Logo.png')}
-            style={styles.logo}
+            style={[styles.logo, effectiveScheme === 'dark' && { tintColor: colors.text }]}
             resizeMode="contain"
           />
         </View>
@@ -84,7 +84,7 @@ export default function LoginScreen() {
           disabled={loading}
           style={[styles.button, { backgroundColor: colors.tint }]}
         >
-          {loading ? <ActivityIndicator color="#FFF" /> : <Text style={[typography.callout, { color: '#FFFFFF' }]}>{t('auth.login')}</Text>}
+          {loading ? <ActivityIndicator color={colors.onPrimary} /> : <Text style={[typography.callout, { color: colors.onPrimary }]}>{t('auth.login')}</Text>}
         </TouchableOpacity>
         <Link href="/(auth)/register" asChild>
           <TouchableOpacity style={styles.link}>
@@ -109,15 +109,15 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   logo: {
-    width: 260,
-    height: 72,
+    width: 220,
+    height: 220 * 0.28, // consistent aspect ratio
   },
   input: {
     borderWidth: 1,
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    fontSize: 16,
+    fontSize: typography.callout.fontSize,
     marginBottom: spacing.md,
   },
   button: {

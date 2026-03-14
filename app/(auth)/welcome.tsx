@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
   StyleSheet,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Platform,
   ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,24 +16,117 @@ import * as AppleAuthentication from 'expo-apple-authentication';
 import * as AuthSession from 'expo-auth-session';
 import * as Crypto from 'expo-crypto';
 import { useTranslation } from 'react-i18next';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withDelay,
+  withTiming,
+  Easing,
+} from 'react-native-reanimated';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography } from '@/constants/Theme';
-import { KozoPaperBackground } from '@/components/ui/KozoPaperBackground';
+import { spacing, borderRadius, typography, springs, components, timing } from '@/constants/Theme';
+import { patterns } from '@/lib/layoutGrid';
 import { useAuth } from '@/contexts/AuthContext';
+import { SkiaAtmosphericGradient, IslamicPattern, SolarLight } from '@/components/brand';
+import { getAtmosphericGradient } from '@/lib/prayerGradients';
+
+/**
+ * Google "G" logo via Skia — per Google branding guidelines (Dec 2025).
+ * Standard multicolor "G" at the given size. Returns null on web.
+ */
+const GOOGLE_G_PATHS = [
+  { d: 'M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z', color: '#FFC107' },
+  { d: 'M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z', color: '#FF3D00' },
+  { d: 'M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0124 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z', color: '#4CAF50' },
+  { d: 'M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002l6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z', color: '#1976D2' },
+];
+
+const GoogleGLogo = ({ size = 18 }: { size?: number }) => {
+  if (Platform.OS === 'web') return null;
+
+  const { Canvas, Path: SkiaPath, Group, Skia } = require('@shopify/react-native-skia');
+  const scale = size / 48;
+
+  return (
+    <Canvas style={{ width: size, height: size }}>
+      <Group transform={[{ scale }]}>
+        {GOOGLE_G_PATHS.map((p, i) => {
+          const path = Skia.Path.MakeFromSVGString(p.d);
+          return path ? <SkiaPath key={i} path={path} color={p.color} /> : null;
+        })}
+      </Group>
+    </Canvas>
+  );
+};
+
+/**
+ * Animated action button wrapper — staggered fade-in from bottom.
+ */
+const AnimatedButton = ({
+  index,
+  children,
+}: {
+  index: number;
+  children: React.ReactNode;
+}) => {
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(20);
+
+  useEffect(() => {
+    const delay = timing.slow + index * (timing.staggerOffset + 20);
+    opacity.value = withDelay(delay, withTiming(1, { duration: 400, easing: Easing.out(Easing.quad) }));
+    translateY.value = withDelay(delay, withSpring(0, springs.gentle));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return <Animated.View style={animatedStyle}>{children}</Animated.View>;
+};
 
 export default function WelcomeScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
+  const isDark = effectiveScheme === 'dark';
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useTranslation();
   const { continueAsGuest, loginWithSocial } = useAuth();
+  const { width, height } = useWindowDimensions();
 
   const [appleLoading, setAppleLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // ─── Logo entrance animation ────────────────────────────
+  const logoOpacity = useSharedValue(0);
+  const logoScale = useSharedValue(0.95);
+  const taglineOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    logoOpacity.value = withDelay(200, withTiming(1, { duration: 600, easing: Easing.out(Easing.quad) }));
+    logoScale.value = withDelay(200, withSpring(1, springs.gentle));
+    taglineOpacity.value = withDelay(400, withTiming(1, { duration: 500, easing: Easing.out(Easing.quad) }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const logoAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: logoOpacity.value,
+    transform: [{ scale: logoScale.value }],
+  }));
+
+  const taglineAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: taglineOpacity.value,
+  }));
+
+  // ─── Atmospheric gradient (default/neutral prayer sky) ──
+  const gradientColors = getAtmosphericGradient(null, isDark);
 
   const handleAppleSignIn = async () => {
     setError('');
@@ -65,7 +159,6 @@ export default function WelcomeScreen() {
     setError('');
     setGoogleLoading(true);
     try {
-      // Use expo-auth-session for Google OAuth
       const redirectUri = AuthSession.makeRedirectUri({ scheme: 'masjidconnect' });
       const nonce = await Crypto.digestStringAsync(
         Crypto.CryptoDigestAlgorithm.SHA256,
@@ -102,179 +195,244 @@ export default function WelcomeScreen() {
     router.replace('/(tabs)');
   };
 
+  const alphaColors = getAlpha(effectiveScheme);
   const isLoading = appleLoading || googleLoading;
 
+  // Google button colors per official branding guidelines (Dec 2025)
+  const googleBtnBg = isDark ? '#131314' : palette.white;
+  const googleBtnBorder = isDark ? '#8E918F' : '#747775';
+  const googleBtnText = isDark ? '#E3E3E3' : '#1F1F1F';
+
   return (
-    <KozoPaperBackground
-      color={colors.background}
-      showTexture={effectiveScheme !== 'dark'}
-      style={{ paddingTop: insets.top }}
-    >
-      <View style={styles.container}>
-        {/* Brand area */}
-        <View style={styles.brandArea}>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
+      {/* ─── Atmosphere: Skia GPU gradient + Islamic pattern + Solar light ─── */}
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <SkiaAtmosphericGradient
+          width={width}
+          height={height}
+          colors={gradientColors}
+        />
+        <IslamicPattern
+          width={width}
+          height={height}
+          opacity={patterns.opacity}
+          tileSize={patterns.tileSize}
+        />
+        <SolarLight
+          prayer="dhuhr"
+          width={width}
+          height={height}
+          isDark={isDark}
+        />
+      </View>
+
+      {/* ─── Zone 1: Identity (upper — brand presence with breathing room) ─── */}
+      <View style={[styles.identityZone, { paddingTop: insets.top + spacing['5xl'] }]}>
+        <Animated.View style={logoAnimatedStyle}>
           <Image
             source={require('@/assets/images/Masjid_Logo.png')}
-            style={styles.logo}
+            style={[styles.logo, isDark && { tintColor: colors.text }]}
             resizeMode="contain"
           />
-          <Text style={[typography.title1, { color: colors.text, textAlign: 'center', marginTop: spacing.xl }]}>
-            {t('welcome.title')}
+        </Animated.View>
+
+        <Animated.View style={taglineAnimatedStyle}>
+          <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.lg }]}>
+            {t('welcome.tagline')}
           </Text>
-          <Text style={[typography.body, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm }]}>
-            {t('welcome.subtitle')}
+        </Animated.View>
+      </View>
+
+      {/* ─── Zone 2: Actions (bottom — frosted card with auth buttons) ─── */}
+      <View
+        style={[
+          styles.actionsZone,
+          {
+            paddingBottom: insets.bottom + spacing.lg,
+            backgroundColor: alphaColors.frostedBg,
+            borderTopColor: alphaColors.frostedBorder,
+          },
+        ]}
+      >
+        {error ? (
+          <Text style={[typography.callout, { color: colors.urgent, textAlign: 'center', marginBottom: spacing.md }]}>
+            {error}
           </Text>
-        </View>
+        ) : null}
 
-        {/* Auth buttons */}
-        <View style={styles.buttonArea}>
-          {error ? (
-            <Text style={[typography.callout, { color: colors.urgent, textAlign: 'center', marginBottom: spacing.md }]}>
-              {error}
-            </Text>
-          ) : null}
-
-          {/* Apple Sign In — iOS only */}
-          {Platform.OS === 'ios' && (
-            <TouchableOpacity
-              onPress={handleAppleSignIn}
-              disabled={isLoading}
-              style={[styles.socialButton, styles.appleButton]}
-              activeOpacity={0.8}
-            >
-              {appleLoading ? (
-                <ActivityIndicator color="#FFFFFF" size="small" />
-              ) : (
-                <>
-                  <Ionicons name="logo-apple" size={20} color="#FFFFFF" />
-                  <Text style={[styles.socialButtonText, { color: '#FFFFFF' }]}>
-                    {t('welcome.continueWithApple')}
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-          )}
-
-          {/* Google Sign In */}
+        {/* Google Sign In — official branding: fill, 1px stroke, multicolor G */}
+        <AnimatedButton index={0}>
           <TouchableOpacity
             onPress={handleGoogleSignIn}
             disabled={isLoading}
-            style={[styles.socialButton, styles.googleButton, { borderColor: colors.separator }]}
+            style={[
+              styles.authButton,
+              {
+                backgroundColor: googleBtnBg,
+                borderColor: googleBtnBorder,
+                borderWidth: 1,
+              },
+            ]}
             activeOpacity={0.8}
           >
             {googleLoading ? (
-              <ActivityIndicator color={colors.text} size="small" />
+              <ActivityIndicator color={googleBtnText} size="small" />
             ) : (
               <>
-                <Ionicons name="logo-google" size={18} color="#4285F4" />
-                <Text style={[styles.socialButtonText, { color: colors.text }]}>
+                <View style={styles.googleIconContainer}>
+                  <GoogleGLogo size={20} />
+                </View>
+                <Text style={[styles.authButtonText, { color: googleBtnText }]}>
                   {t('welcome.continueWithGoogle')}
                 </Text>
               </>
             )}
           </TouchableOpacity>
+        </AnimatedButton>
 
-          {/* Divider */}
-          <View style={styles.dividerRow}>
-            <View style={[styles.dividerLine, { backgroundColor: colors.separator }]} />
-            <Text style={[typography.caption1, { color: colors.textSecondary, marginHorizontal: spacing.md }]}>
-              {t('welcome.or')}
-            </Text>
-            <View style={[styles.dividerLine, { backgroundColor: colors.separator }]} />
-          </View>
+        {/* Apple Sign In — iOS only */}
+        {Platform.OS === 'ios' && (
+          <AnimatedButton index={1}>
+            <TouchableOpacity
+              onPress={handleAppleSignIn}
+              disabled={isLoading}
+              style={[
+                styles.authButton,
+                { backgroundColor: isDark ? palette.white : palette.black },
+              ]}
+              activeOpacity={0.8}
+            >
+              {appleLoading ? (
+                <ActivityIndicator color={isDark ? palette.black : palette.white} size="small" />
+              ) : (
+                <>
+                  <Ionicons
+                    name="logo-apple"
+                    size={20}
+                    color={isDark ? palette.black : palette.white}
+                    style={styles.appleIcon}
+                  />
+                  <Text
+                    style={[
+                      styles.authButtonText,
+                      { color: isDark ? palette.black : palette.white },
+                    ]}
+                  >
+                    {t('welcome.continueWithApple')}
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </AnimatedButton>
+        )}
 
-          {/* Email sign up */}
+        {/* Email sign up — secondary, outlined in Sacred Blue */}
+        <AnimatedButton index={Platform.OS === 'ios' ? 2 : 1}>
           <TouchableOpacity
             onPress={() => router.push('/(auth)/sign-up')}
             disabled={isLoading}
-            style={[styles.socialButton, { backgroundColor: colors.tint }]}
+            style={[
+              styles.authButton,
+              styles.emailButton,
+              { borderColor: colors.tint },
+            ]}
             activeOpacity={0.8}
           >
-            <Ionicons name="mail-outline" size={18} color="#FFFFFF" />
-            <Text style={[styles.socialButtonText, { color: '#FFFFFF' }]}>
-              {t('welcome.createWithEmail')}
+            <Text style={[styles.authButtonText, { color: colors.tint }]}>
+              {t('welcome.signUpWithEmail')}
             </Text>
           </TouchableOpacity>
+        </AnimatedButton>
 
-          {/* Sign in link */}
+        {/* Sign in text link */}
+        <AnimatedButton index={Platform.OS === 'ios' ? 3 : 2}>
           <View style={styles.signInRow}>
-            <Text style={[typography.body, { color: colors.textSecondary }]}>
+            <Text style={[typography.subhead, { color: colors.textSecondary }]}>
               {t('welcome.haveAccount')}{' '}
             </Text>
             <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')}>
-              <Text style={[typography.body, { color: colors.tint, fontWeight: '600' }]}>
+              <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>
                 {t('welcome.signIn')}
               </Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </AnimatedButton>
 
-        {/* Guest option */}
-        <View style={[styles.guestArea, { paddingBottom: insets.bottom + spacing.lg }]}>
-          <TouchableOpacity onPress={handleContinueAsGuest} disabled={isLoading}>
-            <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center' }]}>
+        {/* Guest — barely visible at the very bottom */}
+        <AnimatedButton index={Platform.OS === 'ios' ? 4 : 3}>
+          <TouchableOpacity
+            onPress={handleContinueAsGuest}
+            disabled={isLoading}
+            style={styles.guestLink}
+          >
+            <Text style={[typography.caption1, { color: colors.textTertiary, textAlign: 'center' }]}>
               {t('welcome.continueAsGuest')}
             </Text>
           </TouchableOpacity>
-        </View>
+        </AnimatedButton>
       </View>
-    </KozoPaperBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
-    justifyContent: 'space-between',
   },
-  brandArea: {
+
+  // ─── Zone 1: Identity (upper — generous breathing room) ────
+  identityZone: {
+    flex: 1,
     alignItems: 'center',
-    paddingTop: spacing['5xl'],
-    paddingHorizontal: spacing.xl,
+    justifyContent: 'center',
+    paddingHorizontal: spacing['3xl'],
   },
   logo: {
     width: 280,
-    height: 78,
+    height: 280 * 0.28, // fixed aspect ratio
   },
-  buttonArea: {
-    paddingHorizontal: spacing['2xl'],
+
+  // ─── Zone 2: Actions (bottom — semi-transparent card) ──────
+  actionsZone: {
+    paddingHorizontal: spacing['3xl'],
+    paddingTop: spacing['2xl'],
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopLeftRadius: borderRadius.xl,
+    borderTopRightRadius: borderRadius.xl,
   },
-  socialButton: {
+  authButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.md,
-    borderRadius: borderRadius.sm,
-    minHeight: 50,
+    height: components.button.height,
+    borderRadius: borderRadius.xl,
     marginBottom: spacing.md,
   },
-  appleButton: {
-    backgroundColor: '#000000',
+  googleIconContainer: {
+    width: 20,
+    height: 20,
+    marginRight: spacing.sm,
   },
-  googleButton: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
+  appleIcon: {
+    marginRight: spacing.sm,
   },
-  socialButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
+  authButtonText: {
+    fontSize: 15,
+    fontWeight: '500',
+    letterSpacing: -0.1,
     marginStart: spacing.sm,
   },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: spacing.md,
-  },
-  dividerLine: {
-    flex: 1,
-    height: StyleSheet.hairlineWidth,
+  emailButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
   },
   signInRow: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: spacing.sm,
+    marginTop: spacing.lg,
   },
-  guestArea: {
-    paddingVertical: spacing.xl,
+  guestLink: {
+    marginTop: spacing['2xl'],
+    paddingVertical: spacing.sm,
   },
 });

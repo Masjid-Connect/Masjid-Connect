@@ -5,7 +5,7 @@ import { format } from 'date-fns';
 import type { PrayerTimesData, PrayerName, JamaahTimesData } from '@/types';
 import { PRAYER_LABELS } from '@/types';
 import { getPrayerTimes } from '@/lib/prayer';
-import { getCachedPrayerTimes, getReminderMinutes, getUserLocation, getCalculationMethod } from '@/lib/storage';
+import { getCachedPrayerTimes, getReminderMinutes, getUserLocation, getCalculationMethod, DEFAULT_LOCATION } from '@/lib/storage';
 
 /** Configure notification handler (native only) */
 if (Platform.OS !== 'web') {
@@ -47,6 +47,13 @@ export async function registerForPushNotifications(): Promise<string | null> {
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
       sound: 'default',
+    });
+
+    await Notifications.setNotificationChannelAsync('prayer-athan', {
+      name: 'Adhan',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      sound: 'adhan.wav',
     });
 
     await Notifications.setNotificationChannelAsync('announcements', {
@@ -108,14 +115,15 @@ export async function schedulePrayerReminders(
       identifier: `prayer-reminder-${prayer}`,
     });
 
-    // Schedule "at athan time" notification (based on start time, not jama'ah)
+    // Schedule "at athan time" notification with adhan sound
     if (prayerStartTime > now) {
       await Notifications.scheduleNotificationAsync({
         content: {
           title: `${PRAYER_LABELS[prayer].en} — ${PRAYER_LABELS[prayer].ar}`,
           body: 'Prayer time has entered',
+          sound: 'adhan.wav',
           data: { type: 'prayer_athan', prayer },
-          ...(Platform.OS === 'android' && { channelId: 'prayer-reminders' }),
+          ...(Platform.OS === 'android' && { channelId: 'prayer-athan' }),
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -141,8 +149,8 @@ export async function reschedulePrayerRemindersForToday(): Promise<void> {
   } else {
     const location = await getUserLocation();
     const method = await getCalculationMethod();
-    const lat = location?.latitude ?? 21.4225;
-    const lng = location?.longitude ?? 39.8262;
+    const lat = location?.latitude ?? DEFAULT_LOCATION.latitude;
+    const lng = location?.longitude ?? DEFAULT_LOCATION.longitude;
     const result = await getPrayerTimes(lat, lng, method.code, method.name);
     times = result.times;
   }

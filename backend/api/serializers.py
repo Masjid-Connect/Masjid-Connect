@@ -6,6 +6,7 @@ from rest_framework import serializers
 from core.models import (
     Announcement,
     Event,
+    Feedback,
     Mosque,
     MosqueAdmin,
     MosquePrayerTime,
@@ -190,6 +191,38 @@ class MosqueAdminSerializer(serializers.ModelSerializer):
         model = MosqueAdmin
         fields = ["id", "mosque", "user", "user_detail", "role", "created"]
         read_only_fields = ["id", "created"]
+
+
+# ── Prayer Times ─────────────────────────────────────────────────────
+
+
+# ── Feedback ─────────────────────────────────────────────────────────
+
+
+class FeedbackCreateSerializer(serializers.ModelSerializer):
+    """Write-only serializer for submitting feedback."""
+
+    class Meta:
+        model = Feedback
+        fields = ["type", "category", "description", "device_info"]
+
+
+class FeedbackSerializer(serializers.ModelSerializer):
+    """Read-only serializer for viewing submitted feedback."""
+
+    class Meta:
+        model = Feedback
+        fields = [
+            "id",
+            "type",
+            "category",
+            "description",
+            "status",
+            "device_info",
+            "created",
+            "updated",
+        ]
+        read_only_fields = fields
 
 
 # ── Prayer Times ─────────────────────────────────────────────────────

@@ -1,0 +1,56 @@
+name: Scrape Prayer Timetables
+
+on:
+  # Run every Sunday at 2am UTC — refreshes monthly timetable data
+  schedule:
+    - cron: "0 2 * * 0"      # Every Sunday at 2am UTC
+    - cron: "0 2 30 * *"     # 30th of each month
+    - cron: "0 2 31 * *"     # 31st of each month (skipped for short months)
+    - cron: "0 2 1 * *"      # 1st of each month
+  # Allow manual trigger from GitHub Actions UI
+  workflow_dispatch:
+    inputs:
+      mosque:
+        description: "Scraper key (leave blank for all)"
+        required: false
+        default: "wright_street"
+
+jobs:
+  scrape:
+    name: Scrape Timetables
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - run: pip install -r requirements.txt
+
+      - name: Run migrations
+        run: python manage.py migrate --run-syncdb
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          ALLOWED_HOSTS: "*"
+
+      - name: Seed mosque data (idempotent)
+        run: python manage.py seed_data --production
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          ALLOWED_HOSTS: "*"
+
+      - name: Scrape timetables
+        run: python manage.py scrape_timetables --mosque ${{ github.event.inputs.mosque || 'wright_street' }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          ALLOWED_HOSTS: "*"

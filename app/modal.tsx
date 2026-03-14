@@ -16,7 +16,7 @@ export default function AboutModal() {
         <View style={styles.logoContainer}>
           <Image
             source={require('@/assets/images/Masjid_Logo.png')}
-            style={styles.logo}
+            style={[styles.logo, effectiveScheme === 'dark' && { tintColor: colors.text }]}
             resizeMode="contain"
           />
         </View>

@@ -77,6 +77,31 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers: { ...headers(), ...(options.headers as Record<string, string>) },
   });
 
+  // If we get 401, clear any stored token and retry without auth.
+  // DRF rejects invalid tokens even on IsAuthenticatedOrReadOnly endpoints,
+  // so retrying without the header allows read-only access to succeed.
+  if (response.status === 401) {
+    const hadToken = !!_token;
+    _token = null;
+    _user = null;
+    await AsyncStorage.multiRemove([KEYS.AUTH_TOKEN, KEYS.AUTH_USER]);
+
+    // Only retry read requests — write requests genuinely need auth
+    const method = (options.method || 'GET').toUpperCase();
+    if (hadToken && (method === 'GET' || method === 'HEAD')) {
+      const retry = await fetch(url, {
+        ...options,
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!retry.ok) {
+        const body = await retry.text();
+        throw new Error(`API ${retry.status}: ${body}`);
+      }
+      if (retry.status === 204) return undefined as T;
+      return retry.json();
+    }
+  }
+
   if (!response.ok) {
     // Parse error detail from API if available, but don't leak raw responses
     let detail = '';
@@ -370,6 +395,29 @@ export const subscriptions = {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
+  },
+};
+
+// ── Push Tokens ──────────────────────────────────────────────────────
+
+// ── Feedback ────────────────────────────────────────────────────────
+
+interface FeedbackPayload {
+  type: 'bug_report' | 'feature_request';
+  category: string;
+  description: string;
+  device_info: Record<string, string>;
+}
+
+export const feedback = {
+  async submit(data: FeedbackPayload) {
+    return request<{ id: string; type: string; category: string; status: string }>(
+      '/feedback/',
+      {
+        method: 'POST',
+        body: JSON.stringify(data),
+      },
+    );
   },
 };
 

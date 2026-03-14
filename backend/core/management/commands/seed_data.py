@@ -1,22 +1,76 @@
-"""Seed sample mosques, announcements, and events for development."""
+"""Seed the database with The Salafi Masjid and sample data for development."""
 
 from datetime import date, time, timedelta
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from core.models import Announcement, Event, Mosque
+from core.models import Announcement, Event, Mosque, MosquePrayerTime
+
+
+# The Salafi Masjid is always ensured to exist (idempotent).
+SALAFI_MASJID_DATA = {
+    "name": "The Salafi Masjid (Wright Street)",
+    "address": "Wright Street, Small Heath",
+    "city": "Birmingham",
+    "state": "England",
+    "country": "United Kingdom",
+    "latitude": 52.4694,
+    "longitude": -1.8712,
+    "calculation_method": 4,
+    "jumua_time": time(12, 30),
+    "contact_phone": "",
+    "website": "https://www.wrightstreetmosque.com",
+}
 
 
 class Command(BaseCommand):
-    help = "Seed the database with sample mosques, announcements, and events"
+    help = "Seed the database with The Salafi Masjid (idempotent) and sample data"
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--production",
+            action="store_true",
+            help="Only create The Salafi Masjid, skip sample data",
+        )
 
     def handle(self, *args, **options):
-        if Mosque.objects.exists():
-            self.stdout.write(self.style.WARNING("Data already seeded — skipping."))
+        # Always ensure The Salafi Masjid exists (idempotent)
+        salafi, created = Mosque.objects.get_or_create(
+            name=SALAFI_MASJID_DATA["name"],
+            defaults=SALAFI_MASJID_DATA,
+        )
+        if created:
+            self.stdout.write(self.style.SUCCESS(
+                f"  Created mosque: {salafi.name}"
+            ))
+        else:
+            self.stdout.write(f"  Mosque already exists: {salafi.name}")
+
+        # Clean up any stale duplicate mosques (e.g. "Salafi Masjid" without
+        # the full canonical name). Only the canonical record should exist.
+        stale = Mosque.objects.filter(name__icontains="salafi").exclude(pk=salafi.pk)
+        if stale.exists():
+            names = list(stale.values_list("name", flat=True))
+            stale.delete()
+            self.stdout.write(self.style.WARNING(
+                f"  Deleted stale duplicate(s): {', '.join(names)}"
+            ))
+
+        if options["production"]:
+            self.stdout.write(self.style.SUCCESS(
+                "\nProduction seed complete — The Salafi Masjid ensured."
+            ))
             return
 
-        mosques_data = [
+        # Skip sample data if other mosques already exist
+        if Mosque.objects.exclude(pk=salafi.pk).exists():
+            self.stdout.write(self.style.WARNING(
+                "Sample data already seeded — skipping."
+            ))
+            return
+
+        sample_mosques_data = [
             {
                 "name": "East London Mosque",
                 "address": "82-92 Whitechapel Rd",
@@ -76,23 +130,10 @@ class Command(BaseCommand):
                 "contact_phone": "+44 20 7724 3363",
                 "website": "https://www.iccuk.org",
             },
-            {
-                "name": "The Salafi Masjid (Wright Street)",
-                "address": "Wright Street, Small Heath",
-                "city": "Birmingham",
-                "state": "England",
-                "country": "United Kingdom",
-                "latitude": 52.4694,
-                "longitude": -1.8712,
-                "calculation_method": 4,
-                "jumua_time": time(12, 30),
-                "contact_phone": "",
-                "website": "https://www.wrightstreetmosque.com",
-            },
         ]
 
-        created_mosques = []
-        for data in mosques_data:
+        created_mosques = [salafi]
+        for data in sample_mosques_data:
             m = Mosque.objects.create(**data)
             created_mosques.append(m)
             self.stdout.write(f"  Created mosque: {m.name}")
@@ -101,25 +142,25 @@ class Command(BaseCommand):
         now = timezone.now()
         announcements_data = [
             {
-                "mosque": created_mosques[0],
+                "mosque": created_mosques[1],
                 "title": "Ramadan Timetable Available",
                 "body": "The Ramadan timetable for this year is now available. Please collect your copy from the mosque reception or download from our website.",
                 "priority": "normal",
             },
             {
-                "mosque": created_mosques[0],
+                "mosque": created_mosques[1],
                 "title": "Emergency — Boiler Repair",
                 "body": "The heating system is under repair. Please bring warm clothing for prayers until further notice. We apologise for the inconvenience.",
                 "priority": "urgent",
             },
             {
-                "mosque": created_mosques[1],
+                "mosque": created_mosques[2],
                 "title": "New Quran Classes Starting",
                 "body": "Weekly Quran memorisation classes for adults will begin next Monday after Isha. All levels welcome. Please register at the office.",
                 "priority": "normal",
             },
             {
-                "mosque": created_mosques[4],
+                "mosque": created_mosques[5],
                 "title": "Jumu'ah Time Change",
                 "body": "Starting next week, the first Jumu'ah khutbah will begin at 1:00 PM and the second at 1:45 PM due to seasonal time changes.",
                 "priority": "normal",
@@ -134,7 +175,7 @@ class Command(BaseCommand):
         today = date.today()
         events_data = [
             {
-                "mosque": created_mosques[0],
+                "mosque": created_mosques[1],
                 "title": "Tafsir of Surah Al-Kahf",
                 "description": "Weekly tafsir session covering Surah Al-Kahf, verse by verse.",
                 "speaker": "Shaykh Abdul Rahman",
@@ -145,7 +186,7 @@ class Command(BaseCommand):
                 "recurring": "weekly",
             },
             {
-                "mosque": created_mosques[0],
+                "mosque": created_mosques[1],
                 "title": "Youth Football Tournament",
                 "description": "Annual youth 5-a-side football tournament. Teams of ages 12-18. Prizes for winners!",
                 "event_date": today + timedelta(days=7),
@@ -154,7 +195,7 @@ class Command(BaseCommand):
                 "category": "youth",
             },
             {
-                "mosque": created_mosques[1],
+                "mosque": created_mosques[2],
                 "title": "Sisters Halaqah",
                 "description": "Weekly halaqah for sisters covering topics of faith, family, and personal development.",
                 "speaker": "Ustadha Maryam Khan",
@@ -165,7 +206,7 @@ class Command(BaseCommand):
                 "recurring": "weekly",
             },
             {
-                "mosque": created_mosques[4],
+                "mosque": created_mosques[5],
                 "title": "Community Iftar",
                 "description": "Open iftar for the community. All are welcome. Please bring a dish to share.",
                 "event_date": today + timedelta(days=5),
@@ -173,14 +214,14 @@ class Command(BaseCommand):
                 "category": "community",
             },
             {
-                "mosque": created_mosques[2],
+                "mosque": created_mosques[3],
                 "title": "Qur'an Memorisation Circle",
                 "description": "Structured hifz programme with individual attention. Students at all levels welcome.",
                 "speaker": "Qari Ibrahim",
                 "event_date": today + timedelta(days=1),
                 "start_time": time(19, 0),
                 "end_time": time(20, 30),
-                "category": "quran_circle",
+                "category": "quran_school",
                 "recurring": "weekly",
             },
         ]
@@ -189,8 +230,37 @@ class Command(BaseCommand):
             e = Event.objects.create(**data)
             self.stdout.write(f"  Created event: {e.title}")
 
+        # Prayer times for The Salafi Masjid (realistic March 2026 times)
+        prayer_times_saved = 0
+        for day_offset in range(30):
+            prayer_date = today + timedelta(days=day_offset)
+            _, created = MosquePrayerTime.objects.update_or_create(
+                mosque=salafi,
+                date=prayer_date,
+                defaults={
+                    "fajr_start": time(5, 15),
+                    "fajr_jamat": time(5, 45),
+                    "sunrise": time(6, 45),
+                    "dhuhr_start": time(12, 15),
+                    "dhuhr_jamat": time(12, 30),
+                    "asr_start": time(15, 30),
+                    "asr_jamat": time(16, 0),
+                    "maghrib_jamat": time(18, 5),
+                    "isha_start": time(19, 30),
+                    "isha_jamat": time(20, 0),
+                },
+            )
+            if created:
+                prayer_times_saved += 1
+
+        if prayer_times_saved:
+            self.stdout.write(
+                f"  Created {prayer_times_saved} prayer time records for {salafi.name}"
+            )
+
         self.stdout.write(self.style.SUCCESS(
             f"\nSeeded {len(created_mosques)} mosques, "
             f"{len(announcements_data)} announcements, "
-            f"{len(events_data)} events."
+            f"{len(events_data)} events, "
+            f"{prayer_times_saved} prayer time records."
         ))

@@ -54,7 +54,7 @@ export interface MosqueEvent {
 export type EventCategory =
   | 'lesson'
   | 'lecture'
-  | 'quran_circle'
+  | 'quran_school'
   | 'youth'
   | 'sisters'
   | 'community';
@@ -109,7 +109,6 @@ export type PrayerName = 'fajr' | 'sunrise' | 'dhuhr' | 'asr' | 'maghrib' | 'ish
 export interface PrayerTimeEntry {
   name: PrayerName;
   label: string;
-  arabicLabel: string;
   time: Date;
   jamaahTime: Date | null;
 }
@@ -132,10 +131,10 @@ export const CALCULATION_METHODS: Record<string, { label: string; code: number }
 };
 
 export const EVENT_CATEGORY_COLORS: Record<EventCategory, string> = {
-  lesson: '#1B4965',
-  lecture: '#2D6A4F',
-  quran_circle: '#C8A951',
-  youth: '#6A5ACD',
-  sisters: '#C44536',
-  community: '#2A6A8F',
+  lesson: '#0F2D52',     // sapphire — primary brand
+  lecture: '#1A3F6B',    // sapphire-600 — interactive
+  quran_school: '#D4AF37', // divine gold
+  youth: '#6A5ACD',     // violet — youthful energy
+  sisters: '#B91C1C',   // crimson
+  community: '#64748B', // slate — neutral
 };

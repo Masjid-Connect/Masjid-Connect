@@ -72,10 +72,10 @@ export async function fetchPrayerTimesFromAPI(
       timings: {
         fajr: parseTimeString(timings.Fajr, today),
         sunrise: parseTimeString(timings.Sunrise, today),
-        dhuhr: parseTimeString(timings.Dhuhr, today),
-        asr: parseTimeString(timings.Asr, today),
-        maghrib: parseTimeString(timings.Maghrib, today),
-        isha: parseTimeString(timings.Isha, today),
+        dhuhr: ensurePM(parseTimeString(timings.Dhuhr, today)),
+        asr: ensurePM(parseTimeString(timings.Asr, today)),
+        maghrib: ensurePM(parseTimeString(timings.Maghrib, today)),
+        isha: ensurePM(parseTimeString(timings.Isha, today)),
       },
       hijriDate: json.data.date.hijri.day,
       hijriMonth: json.data.date.hijri.month.en,
@@ -166,42 +166,48 @@ function parseMosquePrayerTimesResponse(
   dateStr: string
 ): { times: PrayerTimesData; jamaahTimes: JamaahTimesData } {
   // Jama'ah times (always present)
+  // Dhuhr, Asr, Maghrib, Isha are always PM — ensurePM corrects any AM values
   const jamaahTimes: JamaahTimesData = {
     fajr: parseTimeString(response.fajr_jamat, dateStr),
-    dhuhr: parseTimeString(response.dhuhr_jamat, dateStr),
-    asr: parseTimeString(response.asr_jamat, dateStr),
-    maghrib: parseTimeString(response.maghrib_jamat, dateStr),
-    isha: parseTimeString(response.isha_jamat, dateStr),
+    dhuhr: ensurePM(parseTimeString(response.dhuhr_jamat, dateStr)),
+    asr: ensurePM(parseTimeString(response.asr_jamat, dateStr)),
+    maghrib: ensurePM(parseTimeString(response.maghrib_jamat, dateStr)),
+    isha: ensurePM(parseTimeString(response.isha_jamat, dateStr)),
   };
 
   // Start times — use scraped values if available, otherwise use jama'ah times as approximation
   const times: PrayerTimesData = {
     fajr: response.fajr_start ? parseTimeString(response.fajr_start, dateStr) : jamaahTimes.fajr,
     sunrise: response.sunrise ? parseTimeString(response.sunrise, dateStr) : parseTimeString('07:00', dateStr),
-    dhuhr: response.dhuhr_start ? parseTimeString(response.dhuhr_start, dateStr) : jamaahTimes.dhuhr,
-    asr: response.asr_start ? parseTimeString(response.asr_start, dateStr) : jamaahTimes.asr,
+    dhuhr: response.dhuhr_start ? ensurePM(parseTimeString(response.dhuhr_start, dateStr)) : jamaahTimes.dhuhr,
+    asr: response.asr_start ? ensurePM(parseTimeString(response.asr_start, dateStr)) : jamaahTimes.asr,
     maghrib: jamaahTimes.maghrib, // Maghrib start = jama'ah (prayed immediately at sunset)
-    isha: response.isha_start ? parseTimeString(response.isha_start, dateStr) : jamaahTimes.isha,
+    isha: response.isha_start ? ensurePM(parseTimeString(response.isha_start, dateStr)) : jamaahTimes.isha,
   };
 
   return { times, jamaahTimes };
 }
 
-/** Build prayer time entries list for display */
+/** Prayers that are always in the PM (after noon) */
+const PM_PRAYERS = new Set<PrayerName>(['dhuhr', 'asr', 'maghrib', 'isha']);
+
+/** Build prayer time entries list for display.
+ *  This is the single enforcement point: all display paths flow through here,
+ *  so ensurePM is applied regardless of data source (cache, mosque API, Aladhan, offline).
+ */
 export function buildPrayerEntries(
   times: PrayerTimesData,
   jamaahTimes?: JamaahTimesData | null
 ): PrayerTimeEntry[] {
   const names: PrayerName[] = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
-  return names.map((name) => ({
-    name,
-    label: PRAYER_LABELS[name].en,
-    arabicLabel: PRAYER_LABELS[name].ar,
-    time: times[name],
-    jamaahTime: (jamaahTimes && name !== 'sunrise' && name in jamaahTimes)
-      ? jamaahTimes[name as keyof JamaahTimesData]
-      : null,
-  }));
+  return names.map((name) => {
+    const shouldEnsurePM = PM_PRAYERS.has(name);
+    const time = shouldEnsurePM ? ensurePM(times[name]) : times[name];
+    const jamaahTime = (jamaahTimes && name !== 'sunrise' && name in jamaahTimes)
+      ? (shouldEnsurePM ? ensurePM(jamaahTimes[name as keyof JamaahTimesData]) : jamaahTimes[name as keyof JamaahTimesData])
+      : null;
+    return { name, label: PRAYER_LABELS[name].en, time, jamaahTime };
+  });
 }
 
 /** Determine the next upcoming prayer */
@@ -246,12 +252,43 @@ export function formatPrayerTime(date: Date, use24h: boolean = false): string {
   return format(date, 'h:mm a');
 }
 
-/** Parse "HH:mm" or "HH:mm (timezone)" string to Date */
+/** Format a time string (HH:mm or HH:mm:ss) for display based on 24h preference */
+export function formatTimeString(timeStr: string, use24h: boolean = false): string {
+  if (use24h) {
+    // Already in 24h format from the API, just ensure HH:mm
+    return timeStr.slice(0, 5);
+  }
+  // Convert HH:mm to 12h format
+  const [hoursStr, minutesStr] = timeStr.split(':');
+  const hours = parseInt(hoursStr, 10);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+  return `${displayHours}:${minutesStr} ${period}`;
+}
+
+/** Parse "HH:mm" or "HH:mm:ss" or "HH:mm (timezone)" string to Date */
 function parseTimeString(timeStr: string, dateStr: string): Date {
   // Aladhan returns "HH:mm (TZ)" format — strip timezone part
   const clean = timeStr.split(' ')[0];
   const [hours, minutes] = clean.split(':').map(Number);
-  const date = new Date(dateStr);
-  date.setHours(hours, minutes, 0, 0);
+  // Use explicit year/month/day to avoid UTC vs local timezone mismatch
+  // (new Date("YYYY-MM-DD") creates UTC midnight, but setHours is local)
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(y, m - 1, d, hours, minutes, 0, 0);
+  return date;
+}
+
+/**
+ * Ensure a Date is in the PM range (hour >= 12).
+ * Prayers like Dhuhr, Asr, Maghrib, and Isha are always after noon.
+ * If the backend returns an AM value (e.g. "04:00" instead of "16:00"),
+ * this corrects it by adding 12 hours.
+ */
+export function ensurePM(date: Date): Date {
+  if (date.getHours() < 12) {
+    const corrected = new Date(date);
+    corrected.setHours(corrected.getHours() + 12);
+    return corrected;
+  }
   return date;
 }

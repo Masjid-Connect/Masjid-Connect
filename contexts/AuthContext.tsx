@@ -110,7 +110,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.removeItem(GUEST_KEY);
   }, []);
 
-  const hasCompletedOnboarding = user !== null || isGuest;
+  // Skip onboarding — go straight to tabs. Auth is optional, accessible from Settings.
+  const hasCompletedOnboarding = true;
 
   const value = useMemo<AuthContextValue>(() => ({
     user,

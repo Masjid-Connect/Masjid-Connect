@@ -1,4 +1,4 @@
-import { TextStyle } from 'react-native';
+import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
 
 /**
  * Font families — system-first strategy.
@@ -33,37 +33,11 @@ export const spacing = {
   '5xl': 64,
 } as const;
 
-/**
- * Brand Identity — The Convergent Arch
- */
-export const brand = {
-  splash: {
-    pauseBeforeDraw: 1000,
-    drawDuration: 1500,
-    pauseAfterDraw: 200,
-    goldFadeDuration: 600,
-    contentFadeDelay: 400,
-    contentFadeDuration: 800,
-  },
-  stroke: {
-    splash: 1.5,
-    tabBar: 1.2,
-    tabBarActive: 1.5,
-    header: 1.0,
-  },
-  node: {
-    splash: 4,
-    tabBar: 2.5,
-    tabBarActive: 3.5,
-    header: 3,
-  },
-  tabIcon: {
-    size: 26,
-  },
-  badge: {
-    dotSize: 8,
-    countSize: 18,
-  },
+/** Badge sizing tokens */
+export const badge = {
+  dotSize: 8,
+  smallDotSize: 6,
+  countSize: 18,
 } as const;
 
 /**
@@ -122,6 +96,23 @@ export const elevation = {
     elevation: 8,
   },
 } as const;
+
+/**
+ * Theme-aware elevation — Apple HIG dark mode convention.
+ * Light mode: black shadows create depth.
+ * Dark mode: subtle hairline borders define card edges (shadows invisible on black).
+ */
+type ElevationLevel = 'sm' | 'md' | 'lg';
+
+const darkBorder: ViewStyle = {
+  borderWidth: StyleSheet.hairlineWidth,
+  borderColor: '#32343A', // sapphire-tinted to match obsidian surfaces
+};
+
+export function getElevation(level: ElevationLevel, isDark: boolean): ViewStyle {
+  if (isDark) return darkBorder;
+  return elevation[level];
+}
 
 export const borderRadius = {
   xs: 6,
@@ -223,6 +214,18 @@ export const typography: Record<string, TextStyle> = {
     lineHeight: 18,
     textTransform: 'uppercase',
   },
+  categoryLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    lineHeight: 13,
+  },
+  prayerName: {
+    fontSize: 40,
+    fontWeight: '300',
+    letterSpacing: 0.4,
+    lineHeight: 48,
+  },
   // Legacy aliases for compatibility
   display: {
     fontSize: 34,
@@ -257,6 +260,48 @@ export const arabicTypography: Record<string, TextStyle> = {
     lineHeight: 20,
   },
 };
+
+/**
+ * Component-specific dimension tokens.
+ * For values that don't fit the spacing/borderRadius scales
+ * but are reused across components.
+ */
+export const components = {
+  avatar: {
+    sm: 56,
+    md: 64,
+  },
+  button: {
+    height: 52,
+    compactHeight: 44,
+  },
+  grabber: {
+    width: 36,
+    height: 5,
+  },
+  iconBox: {
+    size: 32,
+  },
+  categoryAccent: {
+    width: 4,
+  },
+  tabGlow: {
+    size: 64,
+    opacity: 0.08,
+  },
+} as const;
+
+/**
+ * Animation timing tokens (milliseconds).
+ * Spring configs are preferred for interactive motion.
+ * Use timing for backdrop fades and simple opacity transitions.
+ */
+export const timing = {
+  fast: 150,
+  normal: 300,
+  slow: 500,
+  staggerOffset: 40,
+} as const;
 
 /** Reanimated spring configs */
 export const springs = {

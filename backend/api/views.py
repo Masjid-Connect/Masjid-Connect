@@ -7,6 +7,7 @@ import uuid as uuid_mod
 
 import jwt
 import requests
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models.expressions import RawSQL
@@ -23,6 +24,7 @@ logger = logging.getLogger(__name__)
 from core.models import (
     Announcement,
     Event,
+    Feedback,
     Mosque,
     MosqueAdmin,
     MosquePrayerTime,
@@ -33,6 +35,8 @@ from core.models import (
 from .serializers import (
     AnnouncementSerializer,
     EventSerializer,
+    FeedbackCreateSerializer,
+    FeedbackSerializer,
     MosqueAdminSerializer,
     MosqueListSerializer,
     MosquePrayerTimeSerializer,
@@ -55,8 +59,7 @@ class AuthRateThrottle(AnonRateThrottle):
     rate = "5/minute"
 
     def allow_request(self, request, view):
-        from django.conf import settings
-        if getattr(settings, 'TESTING', False):
+        if getattr(settings, "TESTING", False):
             return True
         return super().allow_request(request, view)
 
@@ -67,8 +70,18 @@ class NearbyRateThrottle(AnonRateThrottle):
     rate = "30/minute"
 
     def allow_request(self, request, view):
-        from django.conf import settings
-        if getattr(settings, 'TESTING', False):
+        if getattr(settings, "TESTING", False):
+            return True
+        return super().allow_request(request, view)
+
+
+class FeedbackRateThrottle(AnonRateThrottle):
+    """Limit feedback submissions to prevent spam."""
+
+    scope = "feedback"
+
+    def allow_request(self, request, view):
+        if getattr(settings, "TESTING", False):
             return True
         return super().allow_request(request, view)
 
@@ -533,6 +546,42 @@ def register_push_token(request):
         PushTokenSerializer(push_token).data,
         status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
     )
+
+
+# ── Feedback ─────────────────────────────────────────────────────────
+
+
+class FeedbackViewSet(viewsets.ModelViewSet):
+    """
+    Submit and view feedback (bug reports / feature requests).
+    POST is open to everyone (guests too). GET requires auth (own feedback only).
+    """
+
+    http_method_names = ["get", "post", "head", "options"]
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return FeedbackCreateSerializer
+        return FeedbackSerializer
+
+    def get_permissions(self):
+        if self.action == "create":
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+
+    def get_throttles(self):
+        if self.action == "create":
+            return [FeedbackRateThrottle()]
+        return []
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return Feedback.objects.filter(user=self.request.user)
+        return Feedback.objects.none()
+
+    def perform_create(self, serializer):
+        user = self.request.user if self.request.user.is_authenticated else None
+        serializer.save(user=user)
 
 
 # ── Helpers ──────────────────────────────────────────────────────────

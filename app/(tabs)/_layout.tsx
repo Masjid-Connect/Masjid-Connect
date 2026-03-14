@@ -1,63 +1,32 @@
 import React from 'react';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
-import { Platform } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { getColors } from '@/constants/Colors';
-import { BrandTabIcon } from '@/components/brand/BrandTabIcon';
 import { useTheme } from '@/contexts/ThemeContext';
+import { AmbientTabBar } from '@/components/navigation/AmbientTabIndicator';
 
 export default function TabLayout() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
-  const isDark = effectiveScheme === 'dark';
   const { t } = useTranslation();
 
   return (
     <Tabs
+      tabBar={(props) => <AmbientTabBar {...props} />}
       screenOptions={{
         tabBarActiveTintColor: colors.tabIconSelected,
         tabBarInactiveTintColor: colors.tabIconDefault,
-        tabBarStyle: {
-          backgroundColor: isDark ? 'rgba(0,0,0,0.85)' : 'rgba(248,246,241,0.85)',
-          borderTopWidth: 0,
-          paddingTop: 4,
-          height: Platform.OS === 'ios' ? 83 : 64,
-          ...(Platform.OS === 'ios' ? {} : { paddingBottom: 8 }),
-        },
-        tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: '500',
-          marginTop: 2,
-        },
-        headerStyle: {
-          backgroundColor: isDark ? '#000000' : '#F8F6F1',
-        },
-        headerTintColor: colors.text,
-        headerShadowVisible: false,
-        headerTitleStyle: {
-          fontSize: 17,
-          fontWeight: '600',
-        },
+        headerShown: false,
       }}>
       <Tabs.Screen
         name="index"
         options={{
-          title: t('tabs.prayerTimes'),
-          tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
-            <BrandTabIcon focused={focused} color={color} />
-          ),
-          headerShown: false,
-        }}
-      />
-      <Tabs.Screen
-        name="announcements"
-        options={{
-          title: t('tabs.announcements'),
+          title: t('tabs.prayer'),
           tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
             <Ionicons
-              name={focused ? 'megaphone' : 'megaphone-outline'}
+              name={focused ? 'time' : 'time-outline'}
               size={24}
               color={color}
             />
@@ -65,12 +34,25 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="events"
+        name="qibla"
         options={{
-          title: t('tabs.events'),
+          title: t('tabs.qibla'),
           tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
             <Ionicons
-              name={focused ? 'calendar' : 'calendar-outline'}
+              name={focused ? 'compass' : 'compass-outline'}
+              size={24}
+              color={color}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="community"
+        options={{
+          title: t('tabs.community'),
+          tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
+            <Ionicons
+              name={focused ? 'people' : 'people-outline'}
               size={24}
               color={color}
             />
@@ -83,13 +65,16 @@ export default function TabLayout() {
           title: t('tabs.settings'),
           tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
             <Ionicons
-              name={focused ? 'person' : 'person-outline'}
+              name={focused ? 'settings' : 'settings-outline'}
               size={24}
               color={color}
             />
           ),
         }}
       />
+      {/* Hide old standalone tabs — kept as files for now but not in tab bar */}
+      <Tabs.Screen name="announcements" options={{ href: null, tabBarItemStyle: { display: 'none' } }} />
+      <Tabs.Screen name="events" options={{ href: null, tabBarItemStyle: { display: 'none' } }} />
     </Tabs>
   );
 }

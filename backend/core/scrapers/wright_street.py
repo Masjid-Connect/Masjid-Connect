@@ -9,7 +9,7 @@ PDF format: Monthly timetable with columns:
 
 import logging
 import re
-from datetime import date
+from datetime import date, time
 
 import requests
 from bs4 import BeautifulSoup
@@ -213,18 +213,20 @@ class WrightStreetScraper(MosqueTimetableScraper):
                 i += 1
                 continue
 
+            # The PDF uses 12-hour format without AM/PM labels.
+            # Columns 0-2 (fajr, sunrise) are AM; 3-9 (dhuhr onward) are PM.
             day_data = DailyPrayerData(
                 date=the_date,
                 fajr_start=self.parse_time(time_values[0]),
                 fajr_jamat=self.parse_time(time_values[1]),
                 sunrise=self.parse_time(time_values[2]),
-                dhuhr_start=self.parse_time(time_values[3]),
-                dhuhr_jamat=self.parse_time(time_values[4]),
-                asr_start=self.parse_time(time_values[5]),
-                asr_jamat=self.parse_time(time_values[6]),
-                maghrib_jamat=self.parse_time(time_values[7]),
-                isha_start=self.parse_time(time_values[8]),
-                isha_jamat=self.parse_time(time_values[9]),
+                dhuhr_start=self._ensure_pm(self.parse_time(time_values[3])),
+                dhuhr_jamat=self._ensure_pm(self.parse_time(time_values[4])),
+                asr_start=self._ensure_pm(self.parse_time(time_values[5])),
+                asr_jamat=self._ensure_pm(self.parse_time(time_values[6])),
+                maghrib_jamat=self._ensure_pm(self.parse_time(time_values[7])),
+                isha_start=self._ensure_pm(self.parse_time(time_values[8])),
+                isha_jamat=self._ensure_pm(self.parse_time(time_values[9])),
             )
             days.append(day_data)
 
@@ -232,6 +234,20 @@ class WrightStreetScraper(MosqueTimetableScraper):
             i += 1 + j
 
         return days
+
+    @staticmethod
+    def _ensure_pm(t: time | None) -> time | None:
+        """Convert 12h PM time to 24h. Mosque PDFs use 12h without AM/PM labels.
+
+        Dhuhr, Asr, Maghrib, and Isha are always after noon, so if the parsed
+        hour is < 12, add 12 (e.g. 4:00 → 16:00). Already-correct values
+        (hour >= 12, e.g. 12:45) are left unchanged.
+        """
+        if t is None:
+            return None
+        if t.hour < 12:
+            return t.replace(hour=t.hour + 12)
+        return t
 
     def _detect_starting_month(self, text: str) -> int:
         """Detect the starting Gregorian month from the PDF title."""

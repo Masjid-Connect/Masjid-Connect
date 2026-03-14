@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { announcements as announcementsApi } from '@/lib/api';
-import { getSubscribedMosqueIds, getSelectedMosqueId } from '@/lib/storage';
+import { getMosqueId } from '@/constants/mosque';
 import type { Announcement } from '@/types';
 
 interface UseAnnouncementsResult {
@@ -19,12 +19,8 @@ export function useAnnouncements(): UseAnnouncementsResult {
     setIsLoading(true);
     setError(null);
     try {
-      // Use subscribed mosques if available, otherwise fall back to selected mosque (guest mode)
-      let mosqueIds = await getSubscribedMosqueIds();
-      if (mosqueIds.length === 0) {
-        const selectedId = await getSelectedMosqueId();
-        if (selectedId) mosqueIds = [selectedId];
-      }
+      const mosqueId = await getMosqueId();
+      const mosqueIds = mosqueId ? [mosqueId] : [];
       const result = await announcementsApi.list(mosqueIds);
       setItems(result.items);
     } catch (err) {

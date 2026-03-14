@@ -97,8 +97,8 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: typography.callout.fontSize,
+    lineHeight: typography.callout.lineHeight,
     paddingVertical: spacing.md,
   },
   eyeButton: {

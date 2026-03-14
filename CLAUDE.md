@@ -14,8 +14,8 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
 - **Push Notifications**: Expo Notifications + Expo Push Service
 - **Local Storage**: expo-sqlite for offline-first caching
 - **Animations**: react-native-reanimated
-- **SVG**: react-native-svg (brand mark, textures)
-- **Haptics**: expo-haptics (splash reveal, meaningful interactions)
+- **SVG**: react-native-svg
+- **Haptics**: expo-haptics (meaningful interactions)
 - **Icons**: @expo/vector-icons/Ionicons (outline/filled pairs)
 - **Date Handling**: date-fns
 - **i18n**: i18next + react-i18next (English + Arabic, RTL-ready)
@@ -32,14 +32,11 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
     settings.tsx        # Settings & preferences
   /_layout.tsx          # Root layout
 /components             # Reusable UI components
-  /brand                # Brand identity system (Convergent Arch)
-    ConvergentArch.tsx  # The SVG mark — single continuous arch line + gold node
-    AnimatedSplash.tsx  # Splash screen with vector-draw reveal animation
-    BrandTabIcon.tsx    # Tab bar icon with gold node illumination
+  /brand                # Brand identity components
+    AnimatedSplash.tsx  # Splash screen animation
     GoldBadge.tsx       # Divine Gold notification badge (not red)
     index.ts            # Re-exports for clean imports
   /ui                   # Base design system components
-    KozoPaperBackground.tsx  # Kozo paper texture substrate
     BottomSheet.tsx      # Spring-animated bottom sheet (replaces centered modals)
   /prayer               # Prayer time components
   /announcements        # Announcement components
@@ -61,90 +58,48 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
   /sounds               # Oud, ney, riq notification sounds
 ```
 
-## Brand Identity — The Convergent Arch
+## Brand Identity
 
-### The Mark
-The central element is a single, unbroken line that simultaneously suggests two things:
+The app uses the **Masjid_Logo.png** (The Salafi Masjid logo with transparent background) as the primary brand mark. It appears on the welcome screen, auth screens, and splash screen. No custom SVG brand mark — the logo PNG is the identity.
 
-- **The Mihrab Niche**: A subtle, inward-curving arch at the base, representing the individual's quiet direction and focus.
-- **The Dome**: The line flows upward, arcing to create a simplified suggestion of a dome's interior, representing the community gathered under one roof.
+**Notification Badge:** Divine Gold circle, never red.
 
-The two curves meet at a single elevated point — the **apex** — creating a unified form that feels both ancient and utterly modern. It is an abstract architectural section, not a literal building.
-
-### Material & Execution
-The execution is more crucial than the form. This isn't a digital graphic; it's a rendering of a physical object.
-
-- **The Substrate**: Not just `#F8F6F1`. A digital interpretation of **Kozo paper** — Japanese mulberry paper known for its incredible strength, long fibers, and subtle natural luster. The `KozoPaperBackground` component renders this with barely-visible organic fiber texture.
-- **The Line Work**: A single, continuous line in Sacred Blue (`#1A5276`). Consistent weight, suggesting precision and engineering. It feels etched.
-- **The Gilding**: At the apex where the two curves meet — a single, matte **gold leaf node** (`#BFA14E`). Not decoration; a structural pin, a point of convergence. The gold has the soft, non-reflective quality of gold leaf burnished into paper.
-- **The Depth**: A blind emboss sensibility. Soft ambient lighting from above creates the faintest shadows. The gold node sits atop the surface, the only element with its own materiality.
-
-### The Living Identity System
-
-**Animated Splash Screen (The Reveal):**
-1. Pure, unadorned Kozo paper background for 1 second. Silence.
-2. Haptic `impact(Medium)` triggers. The hair-thin line draws in Sacred Blue over 1.5s — a vector draw, as if an invisible hand traces the geometry.
-3. Microscopic pause at completion.
-4. Matte gold node fades in at the apex with a soft `spring()` animation.
-5. App content subtly fades in around it.
-
-**Tab Bar Icon:**
-The full mark at thinnest possible line weight in muted Sacred Blue. Sits quietly. When selected, the gold node gently illuminates and the mark scales subtly.
-
-**Notification Badge:**
-A tiny, perfect circle. Not red. **Divine Gold**. Not an error; a glint of light catching attention. A small, precious seal.
-
-**Typography Integration:**
-Prayer time numerals use `tabular-nums` font variant with thin, confident weight — designed to feel like an extension of the mark's line work.
-
-### SVG Architecture
-The mark is defined as a single cubic Bézier path:
-```
-M 20 130 C 35 108, 28 48, 50 10 C 72 48, 65 108, 80 130
-```
-- viewBox: `0 0 100 140`
-- Apex (gold node): `(50, 10)`
-- Approximate path length: `280` viewBox units
-- All components reference constants from `ConvergentArch.tsx`
-
-### Brand Tokens (in `Theme.ts`)
-```ts
-brand.splash.*       // Animation timing constants
-brand.stroke.*       // Line weights per context (splash, tabBar, header)
-brand.node.*         // Gold node radii per context
-brand.tabIcon.size   // Tab bar icon height
-brand.badge.*        // Notification badge sizing
-```
+**Typography:** Prayer time numerals use `tabular-nums` font variant with confident weight.
 
 ## Design System
 
-### Color Palette (Apple-inspired with Islamic soul)
+### Color Palette — "Timeless Sanctuary" (Jewel & Stone philosophy)
+
+**Palette taxonomy:** Stone (backgrounds), Onyx (dark tones), Sapphire (brand primary), Gold (divine accent), Sage (success), Crimson (urgent), Slate (info). High-contrast for older congregants, calm for daily use.
 
 **Light mode — "Morning Light in the Musalla":**
-- **Limestone** `#F8F6F1` — Kozo paper substrate (warm ivory)
-- **Limestone Secondary** `#F2EFEA` — grouped backgrounds
-- **Ink** `#1C1C1E` — primary text (true near-black)
-- **Ink Secondary** `#636366` — secondary text
-- **Sacred Blue** `#1A5276` — primary tint, tab selection, brand line
-- **Divine Gold** `#BFA14E` — accent, prayer active indicator, notification badges
-- **Paradise Green** `#2D6A4F` — success states
-- **Moorish Terracotta** `#C44536` — urgent/alert states
-- **Separator** `#E5E5EA` — hairline dividers
+- **Stone-100** `#F9F7F2` — main background, clean masjid marble
+- **Stone-200** `#F0EDE6` — secondary surfaces
+- **Stone-300** `#E5E0D3` — grouped backgrounds, sand-toned
+- **Onyx-900** `#121216` — primary text (organic near-black, not harsh)
+- **Onyx-600** `#6B6B70` — secondary text
+- **Sapphire-700** `#0F2D52` — brand primary tint, tab selection, links (deep blue)
+- **Divine Gold** `#D4AF37` — accent, prayer active indicator, notification badges
+- **Sage-600** `#2D6A4F` — success states
+- **Crimson-600** `#B91C1C` — urgent/alert states (Janazah, immediate announcements)
+- **Separator** `#E2DFD8` — warm hairline dividers
 
-**Dark mode — "Midnight in the Masjid" (true black OLED):**
-- **Background** `#000000` — true black for OLED efficiency
-- **Elevated** `#1C1C1E` — card surfaces, modal backgrounds
-- **Grouped** `#2C2C2E` — grouped list backgrounds
-- **Text** `#F5F5F7` — snow white primary text
-- **Tint** `#6AADDB` — lighter Sacred Blue for dark backgrounds
-- **Accent** `#D4B85C` — brighter Divine Gold for dark contrast
+**Dark mode — "Midnight in the Masjid" (near-OLED black):**
+- **Onyx-950** `#0A0A0C` — main background (not pure black, easier on eyes)
+- **Onyx-850** `#1A1A1E` — elevated card surfaces
+- **Onyx-800** `#262628` — grouped list backgrounds
+- **Snow** `#F5F5F7` — primary text
+- **Sapphire-400** `#5B9BD5` — lighter sapphire tint for dark backgrounds
+- **Gold Bright** `#E5C14B` — brighter Divine Gold for dark contrast
+
+**Semantic layer:** Colors are mapped through `semantic.*` tokens in Colors.ts (surface, text, status, brand) for future theme variants (e.g., Ramadan Mode).
 
 ### Typography (Apple HIG Type Scale)
 - **System fonts** — SF Pro (iOS) / Roboto (Android) with weight variation, no custom font loading
 - **14 named styles**: largeTitle (34/700), title1 (28/700), title2 (22/700), title3 (20/600), headline (17/600), body (17/400), callout (16/400), subhead (15/400), footnote (13/400), caption1 (12/400), caption2 (11/400)
 - **Special purpose**: prayerCountdown (54/200, ultralight), prayerTime (17/600), sectionHeader (13/600, uppercase + letter-spacing)
 - **Arabic**: System Arabic fonts (SF Arabic / Noto) with mirrored scale
-- `tabular-nums` font variant for prayer times — thin, confident, extension of mark line work
+- `tabular-nums` font variant for prayer times
 - SpaceMono for technical accents only
 
 ### Design Principles
@@ -154,11 +109,9 @@ brand.badge.*        // Notification badge sizing
 - RTL-native from day one via `I18nManager.forceRTL()`
 - Spring-based animations (Reanimated `springs.gentle/snappy/bouncy`), no linear easing
 - **BottomSheet pattern** — spring-animated, gesture-dismissible sheets replace all centered modals
-- Haptic feedback on meaningful interactions (splash reveal, prayer transitions)
+- Haptic feedback on meaningful interactions (prayer transitions)
 - **Ionicons** (outline/filled pairs) for tab bar and UI icons — no FontAwesome
-- Kozo paper texture on light-mode backgrounds via `KozoPaperBackground`
 - Notification badges are Divine Gold, never red — a glint, not an error
-- Brand mark appears in prayer times header and as the home tab icon
 - **i18n throughout** — all user-facing strings via `t()` calls, English + Arabic locale files
 
 ## Backend — Django REST Framework

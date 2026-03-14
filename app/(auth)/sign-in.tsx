@@ -8,24 +8,25 @@ import {
   KeyboardAvoidingView,
   Platform,
   TouchableOpacity,
-  useColorScheme,
   TextInput as RNTextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTranslation } from 'react-i18next';
 
 import { getColors } from '@/constants/Colors';
-import { spacing, typography, fonts } from '@/constants/Theme';
-import { KozoPaperBackground } from '@/components/ui/KozoPaperBackground';
+import { useTheme } from '@/contexts/ThemeContext';
+import { spacing, borderRadius, typography } from '@/constants/Theme';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function SignInScreen() {
-  const colorScheme = useColorScheme();
-  const colors = getColors(colorScheme);
+  const { effectiveScheme } = useTheme();
+  const colors = getColors(effectiveScheme);
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { t } = useTranslation();
   const { login } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -38,20 +39,19 @@ export default function SignInScreen() {
   const handleSignIn = async () => {
     setError('');
     if (!email.trim() || !password) {
-      setError('Please enter your email and password.');
+      setError(t('auth.enterEmailPassword'));
       return;
     }
 
     setLoading(true);
     try {
       await login(email.trim(), password);
-      // Navigation handled by _layout.tsx auth redirect
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Sign in failed';
       if (message.includes('401')) {
-        setError('Invalid email or password.');
+        setError(t('auth.loginFailedHint'));
       } else {
-        setError('Could not connect. Please try again.');
+        setError(t('auth.networkError'));
       }
     } finally {
       setLoading(false);
@@ -59,52 +59,55 @@ export default function SignInScreen() {
   };
 
   return (
-    <KozoPaperBackground>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.container}>
+        style={styles.flex}>
         <ScrollView
           contentContainerStyle={[
             styles.content,
-            { paddingTop: insets.top + spacing['2xl'] },
+            { paddingTop: insets.top + spacing['4xl'] },
           ]}
-          keyboardShouldPersistTaps="handled">
-          {/* Brand Logo */}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+
+          {/* Logo */}
           <View style={styles.logoContainer}>
             <Image
               source={require('@/assets/images/Masjid_Logo.png')}
-              style={styles.logo}
+              style={[styles.logo, effectiveScheme === 'dark' && { tintColor: colors.text }]}
               resizeMode="contain"
             />
           </View>
 
           {/* Heading */}
-          <Text style={[typography.title1, { color: colors.text, textAlign: 'center' }]}>
-            Welcome back
+          <Text style={[typography.title2, { color: colors.text, textAlign: 'center' }]}>
+            {t('auth.welcomeBack')}
           </Text>
           <Text
             style={[
-              typography.body,
-              { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm, marginBottom: spacing['2xl'] },
+              typography.subhead,
+              { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm, marginBottom: spacing['3xl'] },
             ]}>
-            Sign in to your community
+            {t('auth.signInSubtitle')}
           </Text>
 
           {/* Form */}
           <View style={styles.form}>
             <TextInput
-              label="Email"
+              label={t('auth.email')}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoComplete="email"
+              autoCapitalize="none"
               returnKeyType="next"
               onSubmitEditing={() => passwordRef.current?.focus()}
             />
 
             <TextInput
               ref={passwordRef}
-              label="Password"
+              label={t('auth.password')}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -114,53 +117,65 @@ export default function SignInScreen() {
             />
 
             {error ? (
-              <Text style={[typography.callout, { color: colors.urgent, marginBottom: spacing.md }]}>
+              <Text style={[typography.callout, { color: colors.urgent, textAlign: 'center', marginBottom: spacing.md }]}>
                 {error}
               </Text>
             ) : null}
 
-            <Button title="Sign In" onPress={handleSignIn} loading={loading} />
+            <Button
+              title={t('auth.login')}
+              onPress={handleSignIn}
+              loading={loading}
+              style={styles.submitButton}
+            />
           </View>
 
           {/* Sign Up Link */}
           <View style={styles.footer}>
-            <Text style={[typography.body, { color: colors.textSecondary }]}>
-              Don&apos;t have an account?{' '}
+            <Text style={[typography.subhead, { color: colors.textSecondary }]}>
+              {t('auth.noAccountQuestion')}{' '}
             </Text>
             <TouchableOpacity onPress={() => router.push('/(auth)/sign-up')}>
-              <Text style={[typography.body, { color: colors.tint, fontWeight: '600' }]}>
-                Sign Up
+              <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>
+                {t('auth.signUp')}
               </Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </KozoPaperBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
+    flex: 1,
+  },
+  flex: {
     flex: 1,
   },
   content: {
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing['3xl'],
     paddingBottom: spacing['3xl'],
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: spacing['2xl'],
   },
   logo: {
-    width: 260,
-    height: 72,
+    width: 220,
+    height: 220 * 0.28, // consistent aspect ratio
   },
   form: {
     marginBottom: spacing.lg,
   },
+  submitButton: {
+    borderRadius: borderRadius.xl,
+    marginTop: spacing.sm,
+  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: spacing.lg,
+    marginTop: spacing.xl,
   },
 });

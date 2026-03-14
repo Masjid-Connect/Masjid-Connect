@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Mosque Connect",
+    "name": "The Salafi Masjid",
     "slug": "mosque-connect",
     "version": "1.0.0",
     "owner": "masjid-connect",
@@ -15,21 +15,21 @@
       "url": "https://u.expo.dev/YOUR_PROJECT_ID_HERE"
     },
     "splash": {
-      "image": "./assets/images/splash-logo.png",
+      "image": "./assets/images/Masjid_Logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FAF7F2"
+      "backgroundColor": "#F9F7F2"
     },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.salafimasjid",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Mosque Connect uses your location to calculate accurate prayer times and find nearby mosques.",
+        "NSLocationWhenInUseUsageDescription": "The Salafi Masjid app uses your location to calculate accurate prayer times and find nearby mosques.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#FAF7F2",
+        "backgroundColor": "#F9F7F2",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -48,13 +48,13 @@
       [
         "expo-notifications",
         {
-          "sounds": []
+          "sounds": ["./assets/sounds/adhan.wav"]
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Mosque Connect uses your location to calculate prayer times and find nearby mosques."
+          "locationWhenInUsePermission": "The Salafi Masjid app uses your location to calculate prayer times."
         }
       ]
     ],

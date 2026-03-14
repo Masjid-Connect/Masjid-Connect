@@ -16,9 +16,9 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, springs } from '@/constants/Theme';
+import { spacing, borderRadius, springs, getElevation, components } from '@/constants/Theme';
 
 interface BottomSheetProps {
   visible: boolean;
@@ -33,6 +33,7 @@ export const BottomSheet = ({ visible, onDismiss, children, maxHeight }: BottomS
   const insets = useSafeAreaInsets();
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
+  const isDark = effectiveScheme === 'dark';
 
   const translateY = useSharedValue(SCREEN_HEIGHT);
   const backdropOpacity = useSharedValue(0);
@@ -82,6 +83,7 @@ export const BottomSheet = ({ visible, onDismiss, children, maxHeight }: BottomS
             backgroundColor: colors.card,
             paddingBottom: insets.bottom + spacing.lg,
             maxHeight: maxHeight || '85%',
+            ...getElevation('lg', isDark),
           },
           sheetStyle,
         ]}
@@ -105,7 +107,7 @@ export const BottomSheet = ({ visible, onDismiss, children, maxHeight }: BottomS
 const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: palette.backdrop,
   },
   sheet: {
     position: 'absolute',
@@ -121,9 +123,9 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xs,
   },
   grabber: {
-    width: 36,
-    height: 5,
-    borderRadius: 2.5,
+    width: components.grabber.width,
+    height: components.grabber.height,
+    borderRadius: components.grabber.height / 2,
     opacity: 0.3,
   },
   content: {

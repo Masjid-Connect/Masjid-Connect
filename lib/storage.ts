@@ -1,12 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { PrayerTimesData, JamaahTimesData } from '@/types';
+import { ensurePM } from '@/lib/prayer';
 
 const KEYS = {
   PRAYER_TIMES: 'cached_prayer_times',
   PRAYER_DATE: 'cached_prayer_date',
   JAMAAH_TIMES: 'cached_jamaah_times',
-  SUBSCRIBED_MOSQUES: 'subscribed_mosque_ids',
-  SELECTED_MOSQUE: 'selected_mosque_id',
   USER_LOCATION: 'user_location',
   CALCULATION_METHOD: 'calculation_method',
   CALCULATION_METHOD_NAME: 'calculation_method_name',
@@ -14,6 +13,8 @@ const KEYS = {
   USE_24H: 'use_24h_format',
   THEME: 'theme_preference',
   LANGUAGE: 'language_preference',
+  NOTIFY_ANNOUNCEMENTS: 'notify_announcements',
+  NOTIFY_EVENTS: 'notify_events',
 };
 
 /** Prayer times cache */
@@ -66,10 +67,10 @@ export async function getCachedPrayerTimes(
   const times: PrayerTimesData = {
     fajr: new Date(parsed.fajr),
     sunrise: new Date(parsed.sunrise),
-    dhuhr: new Date(parsed.dhuhr),
-    asr: new Date(parsed.asr),
-    maghrib: new Date(parsed.maghrib),
-    isha: new Date(parsed.isha),
+    dhuhr: ensurePM(new Date(parsed.dhuhr)),
+    asr: ensurePM(new Date(parsed.asr)),
+    maghrib: ensurePM(new Date(parsed.maghrib)),
+    isha: ensurePM(new Date(parsed.isha)),
   };
 
   let jamaahTimes: JamaahTimesData | null = null;
@@ -77,37 +78,14 @@ export async function getCachedPrayerTimes(
     const parsedJamaah = JSON.parse(rawJamaah);
     jamaahTimes = {
       fajr: new Date(parsedJamaah.fajr),
-      dhuhr: new Date(parsedJamaah.dhuhr),
-      asr: new Date(parsedJamaah.asr),
-      maghrib: new Date(parsedJamaah.maghrib),
-      isha: new Date(parsedJamaah.isha),
+      dhuhr: ensurePM(new Date(parsedJamaah.dhuhr)),
+      asr: ensurePM(new Date(parsedJamaah.asr)),
+      maghrib: ensurePM(new Date(parsedJamaah.maghrib)),
+      isha: ensurePM(new Date(parsedJamaah.isha)),
     };
   }
 
   return { times, jamaahTimes };
-}
-
-/** Subscribed mosque IDs */
-export async function getSubscribedMosqueIds(): Promise<string[]> {
-  const raw = await AsyncStorage.getItem(KEYS.SUBSCRIBED_MOSQUES);
-  return raw ? JSON.parse(raw) : [];
-}
-
-export async function setSubscribedMosqueIds(ids: string[]): Promise<void> {
-  await AsyncStorage.setItem(KEYS.SUBSCRIBED_MOSQUES, JSON.stringify(ids));
-}
-
-/** Selected mosque for guest users (no account needed) */
-export async function getSelectedMosqueId(): Promise<string | null> {
-  return AsyncStorage.getItem(KEYS.SELECTED_MOSQUE);
-}
-
-export async function setSelectedMosqueId(id: string | null): Promise<void> {
-  if (id) {
-    await AsyncStorage.setItem(KEYS.SELECTED_MOSQUE, id);
-  } else {
-    await AsyncStorage.removeItem(KEYS.SELECTED_MOSQUE);
-  }
 }
 
 /** User location */
@@ -174,3 +152,43 @@ export async function getLanguage(): Promise<string | null> {
 export async function setLanguage(language: string): Promise<void> {
   await AsyncStorage.setItem(KEYS.LANGUAGE, language);
 }
+
+/** Notification preferences */
+export async function getNotifyAnnouncements(): Promise<boolean> {
+  const raw = await AsyncStorage.getItem(KEYS.NOTIFY_ANNOUNCEMENTS);
+  return raw !== 'false'; // default true
+}
+
+export async function setNotifyAnnouncements(enabled: boolean): Promise<void> {
+  await AsyncStorage.setItem(KEYS.NOTIFY_ANNOUNCEMENTS, enabled.toString());
+}
+
+export async function getNotifyEvents(): Promise<boolean> {
+  const raw = await AsyncStorage.getItem(KEYS.NOTIFY_EVENTS);
+  return raw !== 'false'; // default true
+}
+
+export async function setNotifyEvents(enabled: boolean): Promise<void> {
+  await AsyncStorage.setItem(KEYS.NOTIFY_EVENTS, enabled.toString());
+}
+
+/** Read announcements tracking */
+const READ_ANNOUNCEMENTS_KEY = 'read_announcement_ids';
+
+export async function getReadAnnouncementIds(): Promise<Set<string>> {
+  const raw = await AsyncStorage.getItem(READ_ANNOUNCEMENTS_KEY);
+  if (!raw) return new Set();
+  return new Set(JSON.parse(raw) as string[]);
+}
+
+export async function markAnnouncementRead(id: string): Promise<Set<string>> {
+  const existing = await getReadAnnouncementIds();
+  existing.add(id);
+  // Keep only last 500 to prevent unbounded growth
+  const arr = [...existing].slice(-500);
+  await AsyncStorage.setItem(READ_ANNOUNCEMENTS_KEY, JSON.stringify(arr));
+  return new Set(arr);
+}
+
+/** Hardcoded fallback coordinates — The Salafi Masjid, Birmingham, UK */
+export const DEFAULT_LOCATION = { latitude: 52.4694, longitude: -1.8712 };

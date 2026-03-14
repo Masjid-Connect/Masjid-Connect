@@ -1,0 +1,1 @@
+export { AmbientTabBar } from './AmbientTabIndicator';

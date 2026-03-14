@@ -1,79 +1,120 @@
-# Plan: Scraped Prayer Times as Primary Source (Frontend Integration)
+# Feedback System — 10-Year Architecture Plan
 
-## Goal
-Make scraped jama'ah times from the backend the **primary** source for mosques that have them, with Aladhan API as fallback. The app should show both **start times** (when prayer begins) and **jama'ah times** (when congregation starts) when available.
+## Problem
+Report Issue and Feature Request currently bounce users to their native mail client. This is fragile (no mail app = dead end), untraceable (reports vanish into an inbox), and unscalable (no categorization, no status tracking, no analytics).
 
-## Architecture
+## Design Principles
+- **Data lives in the database, not email** — every submission is a first-class Django model
+- **Admin gets notified instantly** — email alert on every new submission
+- **Status lifecycle** — new → acknowledged → in_progress → resolved → closed
+- **No external dependencies for MVP** — Django's built-in `send_mail` + console backend in dev, SMTP in prod
+- **Frontend stays simple** — POST to endpoint, show success toast, done
+- **10-year maintainability** — standard Django patterns, no magic, trivially extensible
+
+---
+
+## Phase 1: Backend — Feedback Model (`backend/core/models.py`)
+
+New `Feedback` model following all existing conventions (UUID pk, TextChoices, auto timestamps):
 
 ```
-User opens app
-    ↓
-usePrayerTimes() hook
-    ↓
-1. Check cache (existing behavior)
-2. If user is subscribed to a mosque (or guest-selected mosque):
-   → Try backend API: GET /api/v1/mosques/{id}/prayer-times/?date=YYYY-MM-DD
-   → If data exists → use scraped times (start + jama'ah)
-   → If no data → fall back to Aladhan API (start times only, no jama'ah)
-3. If no mosque selected:
-   → Use Aladhan API as before (coordinate-based calculation)
+Feedback
+├── id              UUID (pk, default=uuid4)
+├── user            FK → User (nullable — guests can submit too)
+├── type            TextChoices: "bug_report" | "feature_request"
+├── category        CharField (matches frontend pill categories)
+├── description     TextField (optional user input)
+├── status          TextChoices: "new" | "acknowledged" | "in_progress" | "resolved" | "closed"
+├── admin_notes     TextField (internal notes, not visible to user)
+├── device_info     JSONField (platform, os_version, app_version, device_model, screen_size, theme)
+├── created         DateTimeField (auto_now_add)
+├── updated         DateTimeField (auto_now)
+└── resolved_at     DateTimeField (nullable)
 ```
 
-## Changes Required
+## Phase 2: Backend — Admin Registration (`backend/core/admin.py`)
 
-### 1. Types (`types/index.ts`)
-- Add `JamaahTimes` interface: `{ fajr, dhuhr, asr, maghrib, isha }` (all `Date | null`)
-- Extend `PrayerTimeEntry` with optional `jamaahTime: Date | null` field
-- Add `MosquePrayerTimeResponse` interface matching the API response
+- Register with Unfold `ModelAdmin` (matching all existing admin patterns)
+- `list_display`: type, category, status, user email, created
+- `list_filter`: type, status, category
+- `search_fields`: description, user__email
+- `date_hierarchy`: created
+- `ordering`: ["-created"]
+- Add to Unfold sidebar under new "Feedback" section with "feedback" icon
+- Read-only `device_info` display (JSON pretty-printed)
 
-### 2. API Client (`lib/api.ts`)
-- Add `mosques.getPrayerTimes(mosqueId, date)` method
-- Returns `MosquePrayerTimeResponse | null`
+## Phase 3: Backend — API Endpoint
 
-### 3. Prayer Service (`lib/prayer.ts`)
-- Add `fetchMosquePrayerTimes(mosqueId, date)` — calls backend API
-- Add `parseMosquePrayerTimesResponse()` — converts API response to `PrayerTimesData` + `JamaahTimes`
-- Modify `buildPrayerEntries()` to accept optional jama'ah times
-- When jama'ah times present, each `PrayerTimeEntry` gets both `time` (start) and `jamaahTime`
+```
+POST /api/v1/feedback/          # Submit (AllowAny — guests too)
+GET  /api/v1/feedback/          # List own feedback (IsAuthenticated)
+GET  /api/v1/feedback/{id}/     # Detail (IsAuthenticated, own only)
+```
 
-### 4. Hook (`hooks/usePrayerTimes.ts`)
-- Add `jamaahAvailable` state boolean
-- In `loadPrayerTimes()`:
-  1. Get selected mosque ID from storage
-  2. If mosque ID exists → try `fetchMosquePrayerTimes()` first
-  3. If backend returns data → use scraped start times + jama'ah times, set `source: 'mosque'`
-  4. If backend returns nothing → fall back to existing Aladhan flow
-  5. If no mosque → existing Aladhan flow unchanged
-- Pass jama'ah times to `buildPrayerEntries()`
-- Expose `jamaahAvailable` to the screen
+- `FeedbackCreateSerializer` — write-only: type, category, description, device_info
+- `FeedbackSerializer` — read-only for listing
+- `perform_create()` attaches `request.user` if authenticated
+- Custom throttle: 5 submissions/hour per IP (spam prevention)
 
-### 5. Storage (`lib/storage.ts`)
-- Extend prayer time cache to include optional jama'ah times
-- Same daily invalidation logic
+## Phase 4: Backend — Admin Email Notification (`backend/core/signals.py`)
 
-### 6. Home Screen (`app/(tabs)/index.tsx`)
-- When `jamaahAvailable` is true:
-  - Show jama'ah time as the **primary displayed time** (this is what people need — when to show up)
-  - Show start time as a secondary label (smaller, muted text below)
-  - Source badge shows mosque name instead of "api"/"cached"
-- When jama'ah not available:
-  - Existing display unchanged (start times only from Aladhan)
+- New file: `backend/core/signals.py`
+- `post_save` signal on Feedback (creation only, not updates)
+- Sends structured email to `FEEDBACK_NOTIFY_EMAIL` setting
+- Email body: type, category, description, device info, user email, admin link
+- Wire up in `CoreConfig.ready()` in `apps.py`
 
-### 7. Notifications (`lib/notifications.ts`)
-- When jama'ah times available, schedule reminders relative to **jama'ah time** (not start time)
-- "15 minutes before jama'ah" is more useful than "15 minutes before athan"
+## Phase 5: Backend — Email Configuration (`backend/config/settings.py`)
 
-## Files to Modify
-1. `types/index.ts` — new interfaces
-2. `lib/api.ts` — new endpoint method
-3. `lib/prayer.ts` — fetchMosquePrayerTimes + buildPrayerEntries update
-4. `hooks/usePrayerTimes.ts` — mosque-first fetch logic
-5. `lib/storage.ts` — cache jama'ah times
-6. `app/(tabs)/index.tsx` — dual-time display
-7. `lib/notifications.ts` — jama'ah-based reminders
+```python
+EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+EMAIL_HOST = env("EMAIL_HOST", default="")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@salafimasjid.app")
+FEEDBACK_NOTIFY_EMAIL = env("FEEDBACK_NOTIFY_EMAIL", default="info@salafimasjid.app")
+```
 
-## What We're NOT Changing
-- Aladhan API integration (stays as-is, just becomes fallback)
-- Offline adhan-js calculation (stays as tertiary fallback)
-- Settings screen (no new settings needed)
-- Countdown logic (counts down to next jama'ah when available, else next start time)
+Console backend in dev (prints to terminal), real SMTP in production via `.env`.
+
+## Phase 6: Backend — Migration
+
+Single auto-generated migration for the Feedback table.
+
+## Phase 7: Frontend — API Client (`lib/api.ts`)
+
+Add `submitFeedback(data)` function that POSTs to `/api/v1/feedback/`.
+
+## Phase 8: Frontend — Update Both Sheets
+
+Replace `Linking.openURL(mailto:...)` with:
+1. Call `submitFeedback()` with type, category, description, device_info
+2. On success → dismiss sheet + show success toast
+3. On network failure → fall back to mailto (graceful degradation)
+
+## Phase 9: Frontend — i18n for Success/Error States
+
+Add toast message keys to `en.json` and `ar.json`.
+
+---
+
+## Files to Create/Modify
+
+| File | Action |
+|------|--------|
+| `backend/core/models.py` | Add `Feedback` model |
+| `backend/core/admin.py` | Register `FeedbackAdmin` with Unfold |
+| `backend/core/signals.py` | **Create** — post_save email notification |
+| `backend/core/apps.py` | Wire signals in `ready()` |
+| `backend/api/serializers.py` | Add `FeedbackCreateSerializer` + `FeedbackSerializer` |
+| `backend/api/views.py` | Add `FeedbackViewSet` |
+| `backend/api/urls.py` | Register feedback route |
+| `backend/config/settings.py` | Add email config + `FEEDBACK_NOTIFY_EMAIL` |
+| `backend/core/migrations/` | Auto-generated migration |
+| `lib/api.ts` | Add `submitFeedback()` |
+| `components/settings/ReportIssueSheet.tsx` | Replace mailto with API call + toast |
+| `components/settings/FeatureRequestSheet.tsx` | Replace mailto with API call + toast |
+| `constants/locales/en.json` | Add success/error toast keys |
+| `constants/locales/ar.json` | Add success/error toast keys |
