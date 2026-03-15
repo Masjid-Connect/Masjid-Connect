@@ -132,6 +132,7 @@ REST_FRAMEWORK = {
         "anon": "100/hour",
         "user": "1000/hour",
         "feedback": "5/hour",
+        "contact": "5/hour",
     },
 }
 
@@ -181,6 +182,14 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@salafimasjid.app")
 FEEDBACK_NOTIFY_EMAIL = env("FEEDBACK_NOTIFY_EMAIL", default="info@salafimasjid.app")
+
+# Resend — email service for contact form
+RESEND_API_KEY = env("RESEND_API_KEY", default="")
+CONTACT_TO_EMAIL = env("CONTACT_TO_EMAIL", default="info@salafimasjid.app")
+
+# Stripe
+STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="")
+STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default="")
 
 # API Documentation
 SPECTACULAR_SETTINGS = {

@@ -69,6 +69,7 @@
         <a href="features.html" class="navbar__link">Features</a>
         <a href="about.html" class="navbar__link">About</a>
         <a href="contact.html" class="navbar__link">Contact</a>
+        <a href="donate.html" class="navbar__link navbar__link--donate">Donate</a>
         <a href="download.html" class="navbar__link navbar__link--cta">Download</a>
       </nav>
     </div>
@@ -141,7 +142,7 @@
         </div>
 
         <div class="hero__phones reveal reveal--delay-1">
-          <div class="phone phone--hero phone--left">
+          <div class="phone phone--hero phone--left parallax" data-speed="0.06">
             <div class="phone__screen phone__screen--prayer">
               <div class="phone__status-bar">
                 <span>9:41</span>
@@ -172,7 +173,7 @@
             </div>
           </div>
 
-          <div class="phone phone--hero phone--right">
+          <div class="phone phone--hero phone--right parallax" data-speed="-0.04">
             <div class="phone__screen phone__screen--community">
               <div class="phone__status-bar phone__status-bar--light">
                 <span>9:41</span>
@@ -215,8 +216,8 @@
         <h2 class="section-label reveal">Upon the Quran &amp; Sunnah</h2>
         <p class="section-heading reveal">Keeping you connected to your salah and your masjid</p>
 
-        <div class="features__grid">
-          <div class="feature-card reveal">
+        <div class="features__grid reveal-stagger">
+          <div class="feature-card">
             <div class="feature-card__icon feature-card__icon--sapphire">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"/>
@@ -231,7 +232,7 @@
             </p>
           </div>
 
-          <div class="feature-card reveal reveal--delay-1">
+          <div class="feature-card">
             <div class="feature-card__icon feature-card__icon--gold">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -248,7 +249,7 @@
             </p>
           </div>
 
-          <div class="feature-card reveal reveal--delay-2">
+          <div class="feature-card">
             <div class="feature-card__icon feature-card__icon--sage">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"/>
@@ -274,8 +275,8 @@
 
         <!-- Showcase A: Prayer Times -->
         <div class="showcase__row">
-          <div class="showcase__phone reveal">
-            <div class="phone">
+          <div class="showcase__phone reveal-left">
+            <div class="phone parallax" data-speed="0.05">
               <div class="phone__screen phone__screen--prayer-detail">
                 <div class="phone__status-bar">
                   <span>9:41</span>
@@ -307,7 +308,7 @@
               </div>
             </div>
           </div>
-          <div class="showcase__text reveal reveal--delay-1">
+          <div class="showcase__text reveal-right">
             <h3 class="showcase__title">Prayer times that feel alive</h3>
             <p class="showcase__desc">
               The sky on your screen shifts with each prayer — from the deep blues
@@ -326,8 +327,8 @@
 
         <!-- Showcase B: Community -->
         <div class="showcase__row showcase__row--reverse">
-          <div class="showcase__phone reveal">
-            <div class="phone">
+          <div class="showcase__phone reveal-right">
+            <div class="phone parallax" data-speed="0.05">
               <div class="phone__screen phone__screen--community-detail">
                 <div class="phone__status-bar phone__status-bar--light">
                   <span>9:41</span>
@@ -356,7 +357,7 @@
               </div>
             </div>
           </div>
-          <div class="showcase__text reveal reveal--delay-1">
+          <div class="showcase__text reveal-left">
             <h3 class="showcase__title">Stay upon knowledge</h3>
             <p class="showcase__desc">
               Weekly duroos in aqeedah, tafseer, and fiqh from the scholars
@@ -374,8 +375,8 @@
 
         <!-- Showcase C: Qibla -->
         <div class="showcase__row">
-          <div class="showcase__phone reveal">
-            <div class="phone">
+          <div class="showcase__phone reveal-left">
+            <div class="phone parallax" data-speed="0.05">
               <div class="phone__screen phone__screen--qibla">
                 <div class="phone__status-bar">
                   <span>9:41</span>
@@ -404,7 +405,7 @@
               </div>
             </div>
           </div>
-          <div class="showcase__text reveal reveal--delay-1">
+          <div class="showcase__text reveal-right">
             <h3 class="showcase__title">Find the Qibla, anywhere</h3>
             <p class="showcase__desc">
               A precise, beautifully crafted compass that uses your device's
@@ -436,8 +437,8 @@
           our community connected.
         </p>
 
-        <div class="trust__grid">
-          <div class="trust__card reveal">
+        <div class="trust__grid reveal-stagger">
+          <div class="trust__card">
             <div class="trust__icon">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
@@ -450,7 +451,7 @@
               or sell your information. Ever.
             </p>
           </div>
-          <div class="trust__card reveal reveal--delay-1">
+          <div class="trust__card">
             <div class="trust__icon">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -462,7 +463,7 @@
               considered, from accessible fonts to serene colour choices.
             </p>
           </div>
-          <div class="trust__card reveal reveal--delay-2">
+          <div class="trust__card">
             <div class="trust__icon">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -550,6 +551,7 @@
             <li><a href="about.html" class="footer__link">About</a></li>
             <li><a href="contact.html" class="footer__link">Contact</a></li>
             <li><a href="download.html" class="footer__link">Download</a></li>
+            <li><a href="donate.html" class="footer__link">Donate</a></li>
           </ul>
         </div>
 

@@ -7,36 +7,59 @@
   'use strict';
 
   // ─── Scroll Reveal (Intersection Observer) ──────────────────
-  const revealElements = document.querySelectorAll('.reveal');
+  var revealSelectors = '.reveal, .reveal-scale, .reveal-left, .reveal-right, .reveal-stagger';
+  var revealElements = document.querySelectorAll(revealSelectors);
+  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  if ('IntersectionObserver' in window) {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if ('IntersectionObserver' in window && !prefersReducedMotion) {
+    var revealObserver = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+    );
 
-    if (prefersReducedMotion) {
-      revealElements.forEach(function (el) {
-        el.classList.add('is-visible');
-      });
-    } else {
-      const revealObserver = new IntersectionObserver(
-        function (entries) {
-          entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('is-visible');
-              revealObserver.unobserve(entry.target);
-            }
-          });
-        },
-        { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
-      );
-
-      revealElements.forEach(function (el) {
-        revealObserver.observe(el);
-      });
-    }
+    revealElements.forEach(function (el) {
+      revealObserver.observe(el);
+    });
   } else {
     revealElements.forEach(function (el) {
       el.classList.add('is-visible');
     });
+  }
+
+  // ─── Parallax (subtle Y-shift on scroll) ──────────────────
+  var parallaxEls = document.querySelectorAll('.parallax');
+
+  if (parallaxEls.length && !prefersReducedMotion) {
+    var ticking = false;
+
+    function updateParallax() {
+      var scrollY = window.scrollY;
+
+      parallaxEls.forEach(function (el) {
+        var rect = el.getBoundingClientRect();
+        var speed = parseFloat(el.dataset.speed) || 0.08;
+        var center = rect.top + rect.height / 2;
+        var viewCenter = window.innerHeight / 2;
+        var offset = (center - viewCenter) * speed;
+        el.style.transform = 'translateY(' + offset + 'px)';
+      });
+
+      ticking = false;
+    }
+
+    window.addEventListener('scroll', function () {
+      if (!ticking) {
+        requestAnimationFrame(updateParallax);
+        ticking = true;
+      }
+    }, { passive: true });
   }
 
   // ─── Navbar scroll state ───────────────────────────────────
@@ -107,7 +130,7 @@
         message: formData.get('message')
       };
 
-      fetch('/api/contact', {
+      fetch('https://api.salafimasjid.app/api/v1/contact/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)

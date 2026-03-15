@@ -28,4 +28,8 @@ urlpatterns = [
     path("", include(router.urls)),
     # Nested: /mosques/{mosque_pk}/prayer-times/
     path("mosques/<uuid:mosque_pk>/prayer-times/", include(prayer_time_router.urls)),
+    # Contact form
+    path("contact/", views.contact_submit, name="contact"),
+    # Donations
+    path("donate/", views.create_donation, name="donate"),
 ]
