@@ -193,8 +193,15 @@ ul {
 }
 
 .navbar__logo-img {
-  height: 44px;
-  width: auto;
+  height: 36px;
+  width: 36px;
+  object-fit: contain;
+  filter: brightness(0) invert(1);
+  transition: filter 0.3s ease;
+}
+
+.navbar.is-scrolled .navbar__logo-img {
+  filter: none;
 }
 
 .navbar__nav {
