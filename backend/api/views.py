@@ -697,6 +697,80 @@ def _build_contact_email_html(data: dict, subject_display: str) -> str:
 </html>"""
 
 
+# ── Donations (Stripe) ───────────────────────────────────────────────
+
+
+class DonationRateThrottle(AnonRateThrottle):
+    """Limit donation attempts."""
+
+    scope = "contact"  # reuse same rate
+
+    def allow_request(self, request, view):
+        if getattr(settings, "TESTING", False):
+            return True
+        return super().allow_request(request, view)
+
+
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+@throttle_classes([DonationRateThrottle])
+def create_donation(request):
+    """Create a Stripe PaymentIntent for a donation."""
+    import stripe as stripe_lib
+
+    secret_key = getattr(settings, "STRIPE_SECRET_KEY", "")
+    if not secret_key:
+        return Response(
+            {"detail": "Payment service not configured."},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+    stripe_lib.api_key = secret_key
+
+    amount = request.data.get("amount")  # in pence
+    currency = request.data.get("currency", "gbp")
+    frequency = request.data.get("frequency", "one-time")
+    email = request.data.get("email", "")
+
+    # Validate amount (100p = £1 minimum, £10000 max)
+    try:
+        amount = int(amount)
+    except (TypeError, ValueError):
+        return Response(
+            {"detail": "Invalid amount."}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if amount < 100 or amount > 1000000:
+        return Response(
+            {"detail": "Amount must be between £1 and £10,000."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        metadata = {"frequency": frequency, "source": "website"}
+        if email:
+            metadata["donor_email"] = email
+
+        intent = stripe_lib.PaymentIntent.create(
+            amount=amount,
+            currency=currency,
+            metadata=metadata,
+            description=f"Donation to The Salafi Masjid ({frequency})",
+            receipt_email=email if email else None,
+        )
+
+        return Response(
+            {"client_secret": intent.client_secret},
+            status=status.HTTP_200_OK,
+        )
+    except Exception:
+        logger.exception("Stripe PaymentIntent creation failed")
+        return Response(
+            {"detail": "Failed to process donation. Please try again."},
+            status=status.HTTP_502_BAD_GATEWAY,
+        )
+
+
 # ── Helpers ──────────────────────────────────────────────────────────
 
 

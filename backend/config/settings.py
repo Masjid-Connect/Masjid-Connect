@@ -187,6 +187,10 @@ FEEDBACK_NOTIFY_EMAIL = env("FEEDBACK_NOTIFY_EMAIL", default="info@salafimasjid.
 RESEND_API_KEY = env("RESEND_API_KEY", default="")
 CONTACT_TO_EMAIL = env("CONTACT_TO_EMAIL", default="info@salafimasjid.app")
 
+# Stripe
+STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="")
+STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default="")
+
 # API Documentation
 SPECTACULAR_SETTINGS = {
     "TITLE": "The Salafi Masjid API",
