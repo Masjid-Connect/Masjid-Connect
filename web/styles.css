@@ -193,9 +193,8 @@ ul {
 }
 
 .navbar__logo-img {
-  height: 36px;
-  width: 36px;
-  object-fit: contain;
+  height: 28px;
+  width: auto;
   filter: brightness(0) invert(1);
   transition: filter 0.3s ease;
 }
