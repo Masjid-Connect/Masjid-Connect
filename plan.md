@@ -1,120 +1,177 @@
-# Feedback System — 10-Year Architecture Plan
+# The Salafi Masjid App — Landing Page Plan
 
-## Problem
-Report Issue and Feature Request currently bounce users to their native mail client. This is fragile (no mail app = dead end), untraceable (reports vanish into an inbox), and unscalable (no categorization, no status tracking, no analytics).
-
-## Design Principles
-- **Data lives in the database, not email** — every submission is a first-class Django model
-- **Admin gets notified instantly** — email alert on every new submission
-- **Status lifecycle** — new → acknowledged → in_progress → resolved → closed
-- **No external dependencies for MVP** — Django's built-in `send_mail` + console backend in dev, SMTP in prod
-- **Frontend stays simple** — POST to endpoint, show success toast, done
-- **10-year maintainability** — standard Django patterns, no magic, trivially extensible
+> **Reference:** [thepillarsapp.com](https://www.thepillarsapp.com/) — but more refined, sacred, and Salafi-rooted.
 
 ---
 
-## Phase 1: Backend — Feedback Model (`backend/core/models.py`)
+## Council of 8: Expert Perspectives
 
-New `Feedback` model following all existing conventions (UUID pk, TextChoices, auto timestamps):
+### 1. Brand Strategist — "Identity & Positioning"
+Pillars positions itself as "more than a prayer app" — broad Muslim market. We position **The Salafi Masjid** differently: **your local masjid in your pocket**. Not a generic prayer app — a direct connection to *your* community, *your* imam, *your* masjid. The Salafi identity is the differentiator. Where Pillars is broad, we are specific, rooted, and authentic.
 
-```
-Feedback
-├── id              UUID (pk, default=uuid4)
-├── user            FK → User (nullable — guests can submit too)
-├── type            TextChoices: "bug_report" | "feature_request"
-├── category        CharField (matches frontend pill categories)
-├── description     TextField (optional user input)
-├── status          TextChoices: "new" | "acknowledged" | "in_progress" | "resolved" | "closed"
-├── admin_notes     TextField (internal notes, not visible to user)
-├── device_info     JSONField (platform, os_version, app_version, device_model, screen_size, theme)
-├── created         DateTimeField (auto_now_add)
-├── updated         DateTimeField (auto_now)
-└── resolved_at     DateTimeField (nullable)
-```
+**Proposed tagline:** "Your Masjid. Always With You."
+**Subtext:** "Stay connected to prayer times, community announcements, and events from The Salafi Masjid."
 
-## Phase 2: Backend — Admin Registration (`backend/core/admin.py`)
+### 2. Visual Designer — "Aesthetic Direction"
+Pillars uses generic modern SaaS aesthetics (Plus Jakarta Sans, dark gradients). We go **architectural and sacred** — inspired by the existing app's "Timeless Sanctuary" design system:
 
-- Register with Unfold `ModelAdmin` (matching all existing admin patterns)
-- `list_display`: type, category, status, user email, created
-- `list_filter`: type, status, category
-- `search_fields`: description, user__email
-- `date_hierarchy`: created
-- `ordering`: ["-created"]
-- Add to Unfold sidebar under new "Feedback" section with "feedback" icon
-- Read-only `device_info` display (JSON pretty-printed)
+- **Hero:** Full-bleed atmospheric gradient (Sapphire → Onyx, "Midnight in the Masjid") with subtle Islamic geometric pattern overlay
+- **Colors:** Stone (#F9F7F2) backgrounds, Sapphire (#0F2D52) brand, Divine Gold (#D4AF37) accents
+- **Typography:** Clean system sans-serif for body, confident weights for headings — elevated, not startup-y
+- **Phone mockups:** Floating phones showing Prayer Times (atmospheric gradient), Community, and Qibla screens — angled with subtle shadows
+- **No clutter** — clean, confident, serene. Gold accents for CTAs and sacred moments only
 
-## Phase 3: Backend — API Endpoint
+### 3. UX Architect — "Page Structure & Flow"
 
 ```
-POST /api/v1/feedback/          # Submit (AllowAny — guests too)
-GET  /api/v1/feedback/          # List own feedback (IsAuthenticated)
-GET  /api/v1/feedback/{id}/     # Detail (IsAuthenticated, own only)
+┌──────────────────────────────────────────────────┐
+│  NAVBAR: Logo  ·  Features  ·  About  ·  Download│
+├──────────────────────────────────────────────────┤
+│                                                  │
+│  HERO SECTION                                    │
+│  Sapphire-to-Onyx gradient + geometric pattern   │
+│  ┌────────────────────────────────────────┐       │
+│  │  Masjid Logo (white/light)            │       │
+│  │                                        │       │
+│  │  "Your Masjid. Always With You."       │       │
+│  │                                        │       │
+│  │  Subtext description                   │       │
+│  │                                        │       │
+│  │  [App Store]  [Google Play]            │       │
+│  │                                        │       │
+│  │     ┌──────┐    ┌──────┐              │       │
+│  │     │Phone │    │Phone │              │       │
+│  │     │Mock  │    │Mock  │              │       │
+│  │     └──────┘    └──────┘              │       │
+│  └────────────────────────────────────────┘       │
+│                                                  │
+├──────────────────────────────────────────────────┤
+│                                                  │
+│  FEATURES GRID (3 columns, Stone background)     │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐       │
+│  │ 🕌 Prayer │  │ 📢 Comm- │  │ 🧭 Qibla│       │
+│  │  Times    │  │  unity   │  │ Compass  │       │
+│  │           │  │          │  │          │       │
+│  │ Accurate  │  │ Announce-│  │ Find the │       │
+│  │ times,    │  │ ments,   │  │ Qibla    │       │
+│  │ beautiful │  │ events & │  │ from     │       │
+│  │ gradients │  │ lessons  │  │ anywhere │       │
+│  └──────────┘  └──────────┘  └──────────┘       │
+│                                                  │
+├──────────────────────────────────────────────────┤
+│                                                  │
+│  APP SHOWCASE (alternating left/right)           │
+│                                                  │
+│  A) Prayer Times — phone left, text right        │
+│     • Atmospheric sky gradients                  │
+│     • Umm Al-Qura calculation                    │
+│     • Customizable reminders (5–30 min)          │
+│     • Hijri calendar integration                 │
+│                                                  │
+│  B) Community — text left, phone right           │
+│     • Announcements from your masjid             │
+│     • Events, lessons & Quran circles            │
+│     • Urgent Janazah alerts                      │
+│                                                  │
+│  C) Qibla Compass — phone left, text right       │
+│     • Real-time magnetometer compass             │
+│     • Works fully offline                        │
+│     • Calibration guidance                       │
+│                                                  │
+├──────────────────────────────────────────────────┤
+│                                                  │
+│  TRUST SECTION (centered, Stone-200 bg)          │
+│  "Built for the community, by the community."   │
+│  3 pillars: Privacy-first · Ad-free · Open       │
+│                                                  │
+├──────────────────────────────────────────────────┤
+│                                                  │
+│  DOWNLOAD CTA (full-width Sapphire gradient)     │
+│  "Download The Salafi Masjid"                    │
+│  [App Store]  [Google Play]                      │
+│                                                  │
+├──────────────────────────────────────────────────┤
+│                                                  │
+│  FOOTER: Logo · Privacy · Terms · Contact        │
+│  © 2026 The Salafi Masjid                        │
+│                                                  │
+└──────────────────────────────────────────────────┘
 ```
 
-- `FeedbackCreateSerializer` — write-only: type, category, description, device_info
-- `FeedbackSerializer` — read-only for listing
-- `perform_create()` attaches `request.user` if authenticated
-- Custom throttle: 5 submissions/hour per IP (spam prevention)
+### 4. Frontend Engineer — "Technical Implementation"
+Built as a **static HTML/CSS/JS page** (not React Native Web) for performance and SEO:
 
-## Phase 4: Backend — Admin Email Notification (`backend/core/signals.py`)
+- **Single `index.html`** in a `/web` directory
+- **Vanilla CSS** with CSS custom properties mapping the existing design tokens
+- **Minimal JS** — smooth scroll, intersection observer fade-in animations, mobile nav toggle
+- **No framework** — fast, lightweight, Lighthouse 95+
+- **Responsive** — mobile-first, breakpoints at 768px and 1200px
+- **Phone mockups** — Pure CSS device frames with gradient placeholders (real screenshots can replace later)
+- **Target:** Under 100KB total page weight
 
-- New file: `backend/core/signals.py`
-- `post_save` signal on Feedback (creation only, not updates)
-- Sends structured email to `FEEDBACK_NOTIFY_EMAIL` setting
-- Email body: type, category, description, device info, user email, admin link
-- Wire up in `CoreConfig.ready()` in `apps.py`
-
-## Phase 5: Backend — Email Configuration (`backend/config/settings.py`)
-
-```python
-EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
-EMAIL_HOST = env("EMAIL_HOST", default="")
-EMAIL_PORT = env.int("EMAIL_PORT", default=587)
-EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
-EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@salafimasjid.app")
-FEEDBACK_NOTIFY_EMAIL = env("FEEDBACK_NOTIFY_EMAIL", default="info@salafimasjid.app")
+**File structure:**
+```
+/web/
+  index.html          # Complete landing page
+  styles.css          # All styles with CSS custom properties
+  script.js           # Minimal interactions (~50 lines)
 ```
 
-Console backend in dev (prints to terminal), real SMTP in production via `.env`.
+### 5. Islamic Scholar Advisor — "Authenticity & Sensitivity"
+- **Bismillah** subtly in the footer — quiet acknowledgment
+- **Prayer names** use proper transliteration: Fajr, Dhuhr, 'Asr, Maghrib, 'Isha
+- **No images of people** — geometric patterns, architectural motifs, calligraphy only
+- **Language:** Respectful, not preachy. "Stay connected to your masjid" not "become a better Muslim"
+- **Salafi identity** expressed through design: clean, unadorned, purposeful — simplicity IS the statement
+- **No music references** — notification tones described as "custom notification sounds"
 
-## Phase 6: Backend — Migration
+### 6. Conversion Optimizer — "Drive Downloads"
+- **Two CTA placements:** Hero (above fold) + bottom banner (after all features)
+- **Feature benefits, not features:** "Never miss a Janazah announcement" not "push notifications"
+- **Single clear action:** Download. No email signup, no distractions
+- **Mobile visitors** get prominent app store buttons that deep-link to stores
+- **Social proof:** "Serving the community of The Salafi Masjid, Birmingham"
 
-Single auto-generated migration for the Feedback table.
+### 7. Accessibility Expert — "Inclusive Design"
+- **WCAG 2.1 AA** — all text meets 4.5:1 contrast ratio
+- **Semantic HTML:** `<header>`, `<nav>`, `<main>`, `<section>`, `<footer>`, proper headings
+- **Alt text** on all images and mockups
+- **Reduced motion** — respect `prefers-reduced-motion` media query
+- **Minimum 16px body text** — generous line height for older congregants
+- **Keyboard navigable** with visible focus indicators
 
-## Phase 7: Frontend — API Client (`lib/api.ts`)
-
-Add `submitFeedback(data)` function that POSTs to `/api/v1/feedback/`.
-
-## Phase 8: Frontend — Update Both Sheets
-
-Replace `Linking.openURL(mailto:...)` with:
-1. Call `submitFeedback()` with type, category, description, device_info
-2. On success → dismiss sheet + show success toast
-3. On network failure → fall back to mailto (graceful degradation)
-
-## Phase 9: Frontend — i18n for Success/Error States
-
-Add toast message keys to `en.json` and `ar.json`.
+### 8. Performance & SEO Specialist — "Discoverability"
+- **Meta tags:** Open Graph, Twitter Card, proper title/description
+- **Structured data:** JSON-LD `MobileApplication` schema
+- **Canonical URL:** `https://salafimasjid.app/`
+- **No frameworks** — inline critical CSS, lazy-load below-fold images
+- **Apple Smart Banner:** `<meta name="apple-itunes-app">` for iOS Safari
+- **Favicon** from existing assets
 
 ---
 
-## Files to Create/Modify
+## Implementation Steps
 
-| File | Action |
-|------|--------|
-| `backend/core/models.py` | Add `Feedback` model |
-| `backend/core/admin.py` | Register `FeedbackAdmin` with Unfold |
-| `backend/core/signals.py` | **Create** — post_save email notification |
-| `backend/core/apps.py` | Wire signals in `ready()` |
-| `backend/api/serializers.py` | Add `FeedbackCreateSerializer` + `FeedbackSerializer` |
-| `backend/api/views.py` | Add `FeedbackViewSet` |
-| `backend/api/urls.py` | Register feedback route |
-| `backend/config/settings.py` | Add email config + `FEEDBACK_NOTIFY_EMAIL` |
-| `backend/core/migrations/` | Auto-generated migration |
-| `lib/api.ts` | Add `submitFeedback()` |
-| `components/settings/ReportIssueSheet.tsx` | Replace mailto with API call + toast |
-| `components/settings/FeatureRequestSheet.tsx` | Replace mailto with API call + toast |
-| `constants/locales/en.json` | Add success/error toast keys |
-| `constants/locales/ar.json` | Add success/error toast keys |
+| Step | Task | Details |
+|------|------|---------|
+| 1 | Create `/web` directory | Set up file structure |
+| 2 | Build `index.html` | All 7 sections, semantic HTML, meta tags, Open Graph, JSON-LD |
+| 3 | Build `styles.css` | Map design tokens to CSS properties, responsive layout, Islamic geometric SVG pattern, atmospheric gradient, phone mockup frames |
+| 4 | Build `script.js` | Smooth scroll, intersection observer animations, mobile nav, prefers-reduced-motion |
+| 5 | Polish & test | Responsive check, accessibility, contrast ratios |
+| 6 | Commit & push | To `claude/design-app-page-Wmo1D` branch |
+
+---
+
+## Key Differences from Pillars
+
+| Aspect | Pillars | The Salafi Masjid |
+|--------|---------|-------------------|
+| **Positioning** | Generic prayer app | Your masjid's app |
+| **Aesthetic** | Modern SaaS | Sacred & architectural |
+| **Colors** | Dark generic gradients | Jewel & Stone (Sapphire, Gold, Stone) |
+| **Tone** | "Empower yourself" | "Stay connected" |
+| **Community** | Generic features | Specific masjid connection |
+| **Identity** | Broad Muslim market | Salafi, rooted, authentic |
+| **Design density** | Feature-heavy, busy | Serene, confident, breathing room |
+| **Trust signals** | Press logos, review counts | Community-first, privacy, ad-free |
