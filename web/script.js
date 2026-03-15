@@ -107,7 +107,7 @@
         message: formData.get('message')
       };
 
-      fetch('/api/contact', {
+      fetch('https://api.salafimasjid.app/api/v1/contact/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)

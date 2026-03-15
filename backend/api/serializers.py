@@ -199,6 +199,30 @@ class MosqueAdminSerializer(serializers.ModelSerializer):
 # ── Feedback ─────────────────────────────────────────────────────────
 
 
+# ── Contact Form ──────────────────────────────────────────────────────
+
+
+class ContactSerializer(serializers.Serializer):
+    """Validate contact form submissions from the website."""
+
+    SUBJECT_CHOICES = [
+        ("general", "General Enquiry"),
+        ("app-feedback", "App Feedback"),
+        ("bug-report", "Bug Report"),
+        ("mosque-admin", "Mosque Administration"),
+        ("volunteering", "Volunteering"),
+        ("other", "Other"),
+    ]
+
+    name = serializers.CharField(max_length=100)
+    email = serializers.EmailField()
+    subject = serializers.ChoiceField(choices=SUBJECT_CHOICES)
+    message = serializers.CharField(max_length=5000)
+
+
+# ── Feedback ─────────────────────────────────────────────────────────
+
+
 class FeedbackCreateSerializer(serializers.ModelSerializer):
     """Write-only serializer for submitting feedback."""
 

@@ -584,6 +584,119 @@ class FeedbackViewSet(viewsets.ModelViewSet):
         serializer.save(user=user)
 
 
+# ── Contact Form (Resend) ────────────────────────────────────────────
+
+
+class ContactRateThrottle(AnonRateThrottle):
+    """Limit contact form submissions to prevent spam."""
+
+    scope = "contact"
+
+    def allow_request(self, request, view):
+        if getattr(settings, "TESTING", False):
+            return True
+        return super().allow_request(request, view)
+
+
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+@throttle_classes([ContactRateThrottle])
+def contact_submit(request):
+    """Handle contact form submissions — validate and send via Resend."""
+    from api.serializers import ContactSerializer
+
+    serializer = ContactSerializer(data=request.data)
+
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    data = serializer.validated_data
+    api_key = getattr(settings, "RESEND_API_KEY", "")
+
+    if not api_key:
+        logger.error("RESEND_API_KEY not configured")
+        return Response(
+            {"detail": "Email service not configured."},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+    subject_display = dict(ContactSerializer.SUBJECT_CHOICES).get(
+        data["subject"], data["subject"]
+    )
+
+    try:
+        import resend
+
+        resend.api_key = api_key
+
+        resend.Emails.send(
+            {
+                "from": "The Salafi Masjid <noreply@salafimasjid.app>",
+                "to": [settings.CONTACT_TO_EMAIL],
+                "reply_to": data["email"],
+                "subject": f"[Contact] {subject_display} — {data['name']}",
+                "html": _build_contact_email_html(data, subject_display),
+            }
+        )
+    except Exception:
+        logger.exception("Failed to send contact email via Resend")
+        return Response(
+            {"detail": "Failed to send message. Please try again later."},
+            status=status.HTTP_502_BAD_GATEWAY,
+        )
+
+    return Response({"detail": "Message sent successfully."}, status=status.HTTP_200_OK)
+
+
+def _build_contact_email_html(data: dict, subject_display: str) -> str:
+    """Build a branded HTML email for contact form submissions."""
+    from django.utils.html import escape
+
+    name = escape(data["name"])
+    email = escape(data["email"])
+    message = escape(data["message"])
+    subject_display = escape(subject_display)
+
+    return f"""<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#f4f2ed;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f2ed;padding:40px 20px;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+        <!-- Header -->
+        <tr><td style="background:#0F2D52;padding:28px 32px;text-align:center;">
+          <span style="color:#D4AF37;font-size:13px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;">New Contact Message</span>
+        </td></tr>
+        <!-- Body -->
+        <tr><td style="padding:32px;">
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr><td style="padding-bottom:20px;">
+              <span style="font-size:12px;color:#6B6B70;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">From</span><br>
+              <span style="font-size:15px;color:#121216;font-weight:500;">{name}</span><br>
+              <a href="mailto:{email}" style="font-size:14px;color:#0F2D52;">{email}</a>
+            </td></tr>
+            <tr><td style="padding-bottom:20px;border-top:1px solid #E2DFD8;padding-top:20px;">
+              <span style="font-size:12px;color:#6B6B70;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Subject</span><br>
+              <span style="font-size:15px;color:#121216;">{subject_display}</span>
+            </td></tr>
+            <tr><td style="border-top:1px solid #E2DFD8;padding-top:20px;">
+              <span style="font-size:12px;color:#6B6B70;text-transform:uppercase;letter-spacing:0.05em;font-weight:600;">Message</span><br>
+              <p style="font-size:15px;color:#121216;line-height:1.6;margin:8px 0 0;white-space:pre-wrap;">{message}</p>
+            </td></tr>
+          </table>
+        </td></tr>
+        <!-- Footer -->
+        <tr><td style="background:#F9F7F2;padding:20px 32px;text-align:center;border-top:1px solid #E2DFD8;">
+          <span style="font-size:12px;color:#6B6B70;">Sent via salafimasjid.app contact form</span>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>"""
+
+
 # ── Helpers ──────────────────────────────────────────────────────────
 
 
