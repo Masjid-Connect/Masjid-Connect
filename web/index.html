@@ -71,6 +71,50 @@
         <a href="contact.html" class="navbar__link">Contact</a>
         <a href="donate.html" class="navbar__link navbar__link--donate">Donate</a>
         <a href="download.html" class="navbar__link navbar__link--cta">Download</a>
+        <!-- Mobile menu (iOS Settings sheet) -->
+        <div class="mobile-menu">
+          <div class="mobile-menu__group">
+            <div class="mobile-menu__label">Navigation</div>
+            <div class="mobile-menu__list">
+              <a href="features.html" class="mobile-menu__item">
+                <span class="mobile-menu__item-text">Features</span>
+                <svg class="mobile-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+              <a href="about.html" class="mobile-menu__item">
+                <span class="mobile-menu__item-text">About</span>
+                <svg class="mobile-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+              <a href="contact.html" class="mobile-menu__item">
+                <span class="mobile-menu__item-text">Contact</span>
+                <svg class="mobile-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+              <a href="donate.html" class="mobile-menu__item mobile-menu__item--donate">
+                <span class="mobile-menu__item-text">Donate</span>
+                <svg class="mobile-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+            </div>
+          </div>
+          <div class="mobile-menu__group">
+            <div class="mobile-menu__label">Preferences</div>
+            <div class="mobile-menu__list">
+              <div class="mobile-menu__item">
+                <span class="mobile-menu__item-text">Dark Mode</span>
+                <label class="mobile-menu__toggle">
+                  <input type="checkbox" id="dark-mode-toggle">
+                  <span class="mobile-menu__toggle-track"></span>
+                </label>
+              </div>
+              <div class="mobile-menu__item">
+                <span class="mobile-menu__item-text">Language</span>
+                <div class="mobile-menu__segmented" id="lang-toggle">
+                  <button class="mobile-menu__seg-btn mobile-menu__seg-btn--active" data-lang="en" type="button">EN</button>
+                  <button class="mobile-menu__seg-btn" data-lang="ar" type="button">عربي</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <a href="download.html" class="mobile-menu__cta">Download the App</a>
+        </div>
       </nav>
     </div>
   </header>
