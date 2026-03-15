@@ -1530,6 +1530,18 @@ ul {
   line-height: 1.5;
 }
 
+/* ─── Map Embed ──────────────────────────────────────────────── */
+.contact-map {
+  margin-top: var(--sp-2xl);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.contact-map iframe {
+  display: block;
+  width: 100%;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    DOWNLOAD PAGE
    ═══════════════════════════════════════════════════════════════ */
