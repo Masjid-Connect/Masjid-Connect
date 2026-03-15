@@ -7,17 +7,17 @@
   'use strict';
 
   // ─── Scroll Reveal (Intersection Observer) ──────────────────
-  var revealElements = document.querySelectorAll('.reveal');
+  const revealElements = document.querySelectorAll('.reveal');
 
   if ('IntersectionObserver' in window) {
-    var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     if (prefersReducedMotion) {
       revealElements.forEach(function (el) {
         el.classList.add('is-visible');
       });
     } else {
-      var revealObserver = new IntersectionObserver(
+      const revealObserver = new IntersectionObserver(
         function (entries) {
           entries.forEach(function (entry) {
             if (entry.isIntersecting) {
@@ -40,12 +40,12 @@
   }
 
   // ─── Navbar scroll state ───────────────────────────────────
-  var navbar = document.getElementById('navbar');
-  var scrollThreshold = 50;
+  const navbar = document.getElementById('navbar');
+  const scrollThreshold = 50;
 
   // Only apply scroll-based styling on pages without navbar--solid
   // (i.e., the home page with the transparent hero)
-  var isSolidNav = navbar && navbar.classList.contains('navbar--solid');
+  const isSolidNav = navbar && navbar.classList.contains('navbar--solid');
 
   function updateNavbar() {
     if (isSolidNav) return; // Always solid on inner pages
@@ -62,12 +62,12 @@
   }
 
   // ─── Mobile nav toggle ─────────────────────────────────────
-  var toggle = document.getElementById('nav-toggle');
-  var navMenu = document.getElementById('nav-menu');
+  const toggle = document.getElementById('nav-toggle');
+  const navMenu = document.getElementById('nav-menu');
 
   if (toggle && navMenu) {
     toggle.addEventListener('click', function () {
-      var isOpen = navMenu.classList.toggle('is-open');
+      const isOpen = navMenu.classList.toggle('is-open');
       toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     });
 
