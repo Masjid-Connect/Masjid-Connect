@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Salafi Masjid — Your Masjid. Always With You.</title>
+  <meta name="description" content="Stay connected to prayer times, community announcements, and events from The Salafi Masjid. Download the app for iOS and Android.">
+  <meta name="theme-color" content="#0F2D52">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://salafimasjid.app/">
+  <meta property="og:title" content="The Salafi Masjid — Your Masjid. Always With You.">
+  <meta property="og:description" content="Stay connected to prayer times, community announcements, and events from The Salafi Masjid.">
+  <meta property="og:image" content="https://salafimasjid.app/og-image.png">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="The Salafi Masjid — Your Masjid. Always With You.">
+  <meta name="twitter:description" content="Stay connected to prayer times, community announcements, and events from The Salafi Masjid.">
+
+  <!-- Apple Smart Banner -->
+  <meta name="apple-itunes-app" content="app-id=XXXXXXXXX">
+
+  <!-- Favicon -->
+  <link rel="icon" href="/favicon.png" type="image/png">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "MobileApplication",
+    "name": "The Salafi Masjid",
+    "operatingSystem": "iOS, Android",
+    "applicationCategory": "LifestyleApplication",
+    "description": "Stay connected to prayer times, community announcements, and events from The Salafi Masjid.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- NAVBAR                                      -->
+  <!-- ═══════════════════════════════════════════ -->
+  <header class="navbar" id="navbar">
+    <div class="container navbar__inner">
+      <a href="/" class="navbar__logo" aria-label="The Salafi Masjid — Home">
+        <img src="../assets/images/Masjid_Logo.png" alt="The Salafi Masjid" class="navbar__logo-img">
+      </a>
+
+      <button class="navbar__toggle" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span class="navbar__toggle-bar"></span>
+        <span class="navbar__toggle-bar"></span>
+        <span class="navbar__toggle-bar"></span>
+      </button>
+
+      <nav class="navbar__nav" id="nav-menu" role="navigation" aria-label="Main navigation">
+        <a href="#features" class="navbar__link">Features</a>
+        <a href="#showcase" class="navbar__link">Showcase</a>
+        <a href="#about" class="navbar__link">About</a>
+        <a href="#download" class="navbar__link navbar__link--cta">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- HERO                                        -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="hero" id="hero">
+      <!-- Islamic geometric pattern overlay -->
+      <div class="hero__pattern" aria-hidden="true">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="islamic-geo" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+              <!-- 8-pointed star tessellation -->
+              <path d="M40 0 L48 16 L64 8 L56 24 L80 24 L64 32 L72 48 L56 40 L56 56 L48 40 L40 48 L32 40 L24 56 L24 40 L8 48 L16 32 L0 24 L24 24 L16 8 L32 16 Z" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+              <circle cx="40" cy="24" r="2" fill="rgba(255,255,255,0.03)"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#islamic-geo)"/>
+        </svg>
+      </div>
+
+      <!-- Radial glow -->
+      <div class="hero__glow" aria-hidden="true"></div>
+
+      <div class="container hero__content">
+        <div class="hero__text reveal">
+          <img
+            src="../assets/images/Masjid_Logo.png"
+            alt="The Salafi Masjid Logo"
+            class="hero__logo"
+          >
+          <h1 class="hero__title">Your Masjid.<br>Always With You.</h1>
+          <p class="hero__subtitle">
+            Stay connected to accurate prayer times, community announcements,
+            and events from The Salafi Masjid, Birmingham.
+          </p>
+          <div class="hero__badges">
+            <a href="#" class="store-badge" aria-label="Download on the App Store">
+              <svg viewBox="0 0 120 40" class="store-badge__svg" role="img" aria-hidden="true">
+                <rect width="120" height="40" rx="6" fill="#000"/>
+                <text x="60" y="15" text-anchor="middle" fill="#fff" font-size="7" font-family="system-ui">Download on the</text>
+                <text x="60" y="28" text-anchor="middle" fill="#fff" font-size="13" font-weight="600" font-family="system-ui">App Store</text>
+              </svg>
+            </a>
+            <a href="#" class="store-badge" aria-label="Get it on Google Play">
+              <svg viewBox="0 0 135 40" class="store-badge__svg" role="img" aria-hidden="true">
+                <rect width="135" height="40" rx="6" fill="#000"/>
+                <text x="67" y="15" text-anchor="middle" fill="#fff" font-size="7" font-family="system-ui">GET IT ON</text>
+                <text x="67" y="28" text-anchor="middle" fill="#fff" font-size="13" font-weight="600" font-family="system-ui">Google Play</text>
+              </svg>
+            </a>
+          </div>
+        </div>
+
+        <div class="hero__phones reveal reveal--delay-1">
+          <div class="phone phone--hero phone--left">
+            <div class="phone__screen phone__screen--prayer">
+              <div class="phone__status-bar">
+                <span>9:41</span>
+                <span class="phone__status-icons">&#9679; &#9679; &#9679;</span>
+              </div>
+              <div class="phone__prayer-content">
+                <div class="phone__prayer-name">Dhuhr</div>
+                <div class="phone__prayer-countdown">2:14:32</div>
+                <div class="phone__prayer-time">12:15 PM</div>
+                <div class="phone__prayer-list">
+                  <div class="phone__prayer-row">
+                    <span>Fajr</span><span>5:48 AM</span>
+                  </div>
+                  <div class="phone__prayer-row phone__prayer-row--active">
+                    <span>Dhuhr</span><span>12:15 PM</span>
+                  </div>
+                  <div class="phone__prayer-row">
+                    <span>'Asr</span><span>3:32 PM</span>
+                  </div>
+                  <div class="phone__prayer-row">
+                    <span>Maghrib</span><span>6:18 PM</span>
+                  </div>
+                  <div class="phone__prayer-row">
+                    <span>'Isha</span><span>7:45 PM</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="phone phone--hero phone--right">
+            <div class="phone__screen phone__screen--community">
+              <div class="phone__status-bar phone__status-bar--light">
+                <span>9:41</span>
+                <span class="phone__status-icons">&#9679; &#9679; &#9679;</span>
+              </div>
+              <div class="phone__community-content">
+                <div class="phone__section-title">Community</div>
+                <div class="phone__announcement phone__announcement--urgent">
+                  <div class="phone__announcement-badge">URGENT</div>
+                  <div class="phone__announcement-title">Janazah Prayer</div>
+                  <div class="phone__announcement-body">Today after Dhuhr salah</div>
+                </div>
+                <div class="phone__announcement">
+                  <div class="phone__announcement-title">Weekend Seminar</div>
+                  <div class="phone__announcement-body">Kitab al-Tawheed — Sat 7pm</div>
+                </div>
+                <div class="phone__announcement">
+                  <div class="phone__announcement-title">Quran Circle</div>
+                  <div class="phone__announcement-body">Every Sunday after Fajr</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Curved bottom -->
+      <div class="hero__curve" aria-hidden="true">
+        <svg viewBox="0 0 1440 80" preserveAspectRatio="none">
+          <path d="M0 80 Q720 0 1440 80 L1440 80 L0 80 Z" fill="var(--stone-100)"/>
+        </svg>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- FEATURES GRID                               -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="features" id="features">
+      <div class="container">
+        <h2 class="section-label reveal">Everything you need</h2>
+        <p class="section-heading reveal">A sacred companion for your daily salah</p>
+
+        <div class="features__grid">
+          <div class="feature-card reveal">
+            <div class="feature-card__icon feature-card__icon--sapphire">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <h3 class="feature-card__title">Prayer Times</h3>
+            <p class="feature-card__desc">
+              Accurate times calculated for your location using Umm Al-Qura method.
+              Beautiful atmospheric gradients that shift with each prayer.
+            </p>
+          </div>
+
+          <div class="feature-card reveal reveal--delay-1">
+            <div class="feature-card__icon feature-card__icon--gold">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <h3 class="feature-card__title">Community</h3>
+            <p class="feature-card__desc">
+              Announcements, events, and lessons directly from your masjid.
+              Never miss a Janazah prayer or community gathering.
+            </p>
+          </div>
+
+          <div class="feature-card reveal reveal--delay-2">
+            <div class="feature-card__icon feature-card__icon--sage">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>
+              </svg>
+            </div>
+            <h3 class="feature-card__title">Qibla Compass</h3>
+            <p class="feature-card__desc">
+              Real-time compass using your device's magnetometer.
+              Find the direction of the Qibla from anywhere, even offline.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- APP SHOWCASE                                -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="showcase" id="showcase">
+      <div class="container">
+
+        <!-- Showcase A: Prayer Times -->
+        <div class="showcase__row">
+          <div class="showcase__phone reveal">
+            <div class="phone">
+              <div class="phone__screen phone__screen--prayer-detail">
+                <div class="phone__status-bar">
+                  <span>9:41</span>
+                  <span class="phone__status-icons">&#9679; &#9679; &#9679;</span>
+                </div>
+                <div class="phone__prayer-content">
+                  <div class="phone__prayer-label">Next Prayer</div>
+                  <div class="phone__prayer-name" style="font-size: 28px;">'Asr</div>
+                  <div class="phone__prayer-countdown" style="font-size: 36px;">1:47:23</div>
+                  <div class="phone__hijri">15 Ramadan 1447 AH</div>
+                  <div class="phone__prayer-list">
+                    <div class="phone__prayer-row phone__prayer-row--done">
+                      <span>Fajr</span><span>5:48 AM</span>
+                    </div>
+                    <div class="phone__prayer-row phone__prayer-row--done">
+                      <span>Dhuhr</span><span>12:15 PM</span>
+                    </div>
+                    <div class="phone__prayer-row phone__prayer-row--active">
+                      <span>'Asr</span><span>3:32 PM</span>
+                    </div>
+                    <div class="phone__prayer-row">
+                      <span>Maghrib</span><span>6:18 PM</span>
+                    </div>
+                    <div class="phone__prayer-row">
+                      <span>'Isha</span><span>7:45 PM</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="showcase__text reveal reveal--delay-1">
+            <h3 class="showcase__title">Prayer times that feel alive</h3>
+            <p class="showcase__desc">
+              The sky on your screen shifts with each prayer — from the deep blues
+              of Fajr to the warm ambers of Maghrib. Not just a clock, but a
+              connection to the rhythm of your day.
+            </p>
+            <ul class="showcase__list">
+              <li>Atmospheric sky gradients for every prayer window</li>
+              <li>Umm Al-Qura calculation method</li>
+              <li>Customizable reminders — 5, 10, 15, or 30 minutes before</li>
+              <li>Hijri calendar with date navigation</li>
+              <li>Works offline with local calculation fallback</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Showcase B: Community -->
+        <div class="showcase__row showcase__row--reverse">
+          <div class="showcase__phone reveal">
+            <div class="phone">
+              <div class="phone__screen phone__screen--community-detail">
+                <div class="phone__status-bar phone__status-bar--light">
+                  <span>9:41</span>
+                  <span class="phone__status-icons">&#9679; &#9679; &#9679;</span>
+                </div>
+                <div class="phone__community-content">
+                  <div class="phone__section-title">Announcements</div>
+                  <div class="phone__announcement phone__announcement--urgent">
+                    <div class="phone__announcement-badge">URGENT</div>
+                    <div class="phone__announcement-title">Janazah Prayer</div>
+                    <div class="phone__announcement-body">Brother Ahmad ibn Yusuf — today after Dhuhr</div>
+                  </div>
+                  <div class="phone__divider"></div>
+                  <div class="phone__section-title" style="margin-top: 12px;">Upcoming Events</div>
+                  <div class="phone__event">
+                    <div class="phone__event-cat">LESSON</div>
+                    <div class="phone__announcement-title">Kitab al-Tawheed</div>
+                    <div class="phone__announcement-body">Sh. Abu Khadijah — Sat 7:00 PM</div>
+                  </div>
+                  <div class="phone__event">
+                    <div class="phone__event-cat phone__event-cat--quran">QURAN</div>
+                    <div class="phone__announcement-title">Quran Circle</div>
+                    <div class="phone__announcement-body">Every Sunday after Fajr</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="showcase__text reveal reveal--delay-1">
+            <h3 class="showcase__title">Your masjid's heartbeat</h3>
+            <p class="showcase__desc">
+              Announcements, events, and lessons posted directly by your masjid.
+              Urgent notifications for Janazah prayers reach you instantly —
+              because community matters demand immediacy.
+            </p>
+            <ul class="showcase__list">
+              <li>Announcements with urgent priority for time-sensitive news</li>
+              <li>Events calendar with lessons, lectures, and Quran circles</li>
+              <li>Subscribe to notifications that matter to you</li>
+              <li>Pull-to-refresh for the latest updates</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Showcase C: Qibla -->
+        <div class="showcase__row">
+          <div class="showcase__phone reveal">
+            <div class="phone">
+              <div class="phone__screen phone__screen--qibla">
+                <div class="phone__status-bar">
+                  <span>9:41</span>
+                  <span class="phone__status-icons">&#9679; &#9679; &#9679;</span>
+                </div>
+                <div class="phone__qibla-content">
+                  <div class="phone__qibla-label">Qibla Direction</div>
+                  <div class="phone__qibla-compass">
+                    <svg viewBox="0 0 200 200" class="phone__compass-svg">
+                      <circle cx="100" cy="100" r="85" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+                      <circle cx="100" cy="100" r="60" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+                      <!-- Cardinal directions -->
+                      <text x="100" y="28" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="12" font-weight="600">N</text>
+                      <text x="180" y="104" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="11">E</text>
+                      <text x="100" y="184" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="11">S</text>
+                      <text x="22" y="104" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="11">W</text>
+                      <!-- Qibla needle -->
+                      <line x1="100" y1="100" x2="130" y2="45" stroke="#D4AF37" stroke-width="2.5" stroke-linecap="round"/>
+                      <circle cx="130" cy="45" r="5" fill="#D4AF37"/>
+                      <circle cx="100" cy="100" r="4" fill="rgba(255,255,255,0.9)"/>
+                    </svg>
+                  </div>
+                  <div class="phone__qibla-degrees">119.4&deg; SE</div>
+                  <div class="phone__qibla-kaaba">Direction to the Ka'bah</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="showcase__text reveal reveal--delay-1">
+            <h3 class="showcase__title">Find the Qibla, anywhere</h3>
+            <p class="showcase__desc">
+              A precise, beautifully crafted compass that uses your device's
+              magnetometer to point towards the Ka'bah. Whether you're
+              travelling or at home — always know your direction.
+            </p>
+            <ul class="showcase__list">
+              <li>Real-time magnetometer compass with smooth animation</li>
+              <li>Calibration guidance for accurate readings</li>
+              <li>Works completely offline — no internet needed</li>
+              <li>Cardinal direction indicators and degree precision</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- TRUST / ABOUT                               -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="trust" id="about">
+      <div class="container">
+        <h2 class="section-heading reveal" style="text-align: center;">
+          Built for the community,<br>by the community.
+        </h2>
+        <p class="trust__subtitle reveal">
+          No ads. No tracking. No data selling. Just a sincere effort to keep
+          our community connected.
+        </p>
+
+        <div class="trust__grid">
+          <div class="trust__card reveal">
+            <div class="trust__icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
+            <h3 class="trust__card-title">Privacy-first</h3>
+            <p class="trust__card-desc">
+              Your data stays on your device. We don't track, profile,
+              or sell your information. Ever.
+            </p>
+          </div>
+          <div class="trust__card reveal reveal--delay-1">
+            <div class="trust__icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+            </div>
+            <h3 class="trust__card-title">Made with ihsan</h3>
+            <p class="trust__card-desc">
+              Crafted with excellence and sincerity. Every detail has been
+              considered, from accessible fonts to serene colour choices.
+            </p>
+          </div>
+          <div class="trust__card reveal reveal--delay-2">
+            <div class="trust__icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
+            <h3 class="trust__card-title">Completely free</h3>
+            <p class="trust__card-desc">
+              No subscriptions, no in-app purchases, no ads.
+              This app is a sadaqah jaariyah for the ummah.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════ -->
+    <!-- DOWNLOAD CTA                                -->
+    <!-- ═══════════════════════════════════════════ -->
+    <section class="download" id="download">
+      <div class="download__pattern" aria-hidden="true">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="islamic-geo-2" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+              <path d="M40 0 L48 16 L64 8 L56 24 L80 24 L64 32 L72 48 L56 40 L56 56 L48 40 L40 48 L32 40 L24 56 L24 40 L8 48 L16 32 L0 24 L24 24 L16 8 L32 16 Z" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#islamic-geo-2)"/>
+        </svg>
+      </div>
+      <div class="container download__content reveal">
+        <h2 class="download__title">Download The Salafi Masjid</h2>
+        <p class="download__subtitle">Available on iOS and Android. Free, forever.</p>
+        <div class="hero__badges">
+          <a href="#" class="store-badge" aria-label="Download on the App Store">
+            <svg viewBox="0 0 120 40" class="store-badge__svg" role="img" aria-hidden="true">
+              <rect width="120" height="40" rx="6" fill="#000"/>
+              <text x="60" y="15" text-anchor="middle" fill="#fff" font-size="7" font-family="system-ui">Download on the</text>
+              <text x="60" y="28" text-anchor="middle" fill="#fff" font-size="13" font-weight="600" font-family="system-ui">App Store</text>
+            </svg>
+          </a>
+          <a href="#" class="store-badge" aria-label="Get it on Google Play">
+            <svg viewBox="0 0 135 40" class="store-badge__svg" role="img" aria-hidden="true">
+              <rect width="135" height="40" rx="6" fill="#000"/>
+              <text x="67" y="15" text-anchor="middle" fill="#fff" font-size="7" font-family="system-ui">GET IT ON</text>
+              <text x="67" y="28" text-anchor="middle" fill="#fff" font-size="13" font-weight="600" font-family="system-ui">Google Play</text>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════════ -->
+  <!-- FOOTER                                      -->
+  <!-- ═══════════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div class="footer__brand">
+        <img src="../assets/images/Masjid_Logo.png" alt="The Salafi Masjid" class="footer__logo">
+        <p class="footer__tagline">Serving the community of The Salafi Masjid, Birmingham.</p>
+      </div>
+      <div class="footer__links">
+        <a href="/privacy" class="footer__link">Privacy Policy</a>
+        <a href="/terms" class="footer__link">Terms of Service</a>
+        <a href="mailto:info@salafimasjid.app" class="footer__link">Contact</a>
+      </div>
+      <p class="footer__copy">&copy; 2026 The Salafi Masjid. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
