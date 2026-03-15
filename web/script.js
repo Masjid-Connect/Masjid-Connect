@@ -79,4 +79,51 @@
       });
     });
   }
+  // ─── Contact form handling ──────────────────────────────────
+  var contactForm = document.getElementById('contact-form');
+
+  if (contactForm) {
+    contactForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var submitBtn = document.getElementById('contact-submit');
+      var successEl = document.getElementById('form-success');
+      var errorEl = document.getElementById('form-error');
+      var submitText = submitBtn.querySelector('.contact-form__submit-text');
+
+      // Hide previous status
+      successEl.hidden = true;
+      errorEl.hidden = true;
+
+      // Disable and show loading
+      submitBtn.disabled = true;
+      submitText.textContent = 'Sending...';
+
+      var formData = new FormData(contactForm);
+      var data = {
+        name: formData.get('name'),
+        email: formData.get('email'),
+        subject: formData.get('subject'),
+        message: formData.get('message')
+      };
+
+      fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+        .then(function (res) {
+          if (!res.ok) throw new Error('Failed');
+          successEl.hidden = false;
+          contactForm.reset();
+        })
+        .catch(function () {
+          errorEl.hidden = false;
+        })
+        .finally(function () {
+          submitBtn.disabled = false;
+          submitText.textContent = 'Send Message';
+        });
+    });
+  }
 })();
