@@ -109,7 +109,6 @@ Build a premium mobile app called **Mosque Connect** using React Native with Exp
 - **Spring physics** — never linear easing. Damping 15-20, stiffness 150-180
 - **Meaningful motion** — prayer card lifts and glows as time approaches
 - **Haptic vocabulary** — light tap for navigation, medium for prayer alert, heavy for urgent
-- **Acoustic design** — oud string pluck for prayer, ney breath for transitions (optional, not synthetic)
 
 ### Brand Identity
 The app uses The Salafi Masjid logo (PNG with transparent background) as the primary brand mark. It appears on the welcome screen, auth screens, and splash screen.

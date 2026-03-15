@@ -52,10 +52,9 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
 /constants              # App constants, enums
   /locales/en.json      # English translations (100+ keys)
   /locales/ar.json      # Arabic translations (100+ keys)
-/assets                 # Fonts, images, patterns, sounds
+/assets                 # Fonts, images, patterns
   /fonts                # SpaceMono (system fonts used for all other text)
   /patterns             # Islamic geometric SVG patterns
-  /sounds               # Oud, ney, riq notification sounds
 ```
 
 ## Brand Identity
