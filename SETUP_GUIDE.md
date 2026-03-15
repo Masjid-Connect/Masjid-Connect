@@ -188,7 +188,7 @@ Masjid-Connect/
 ├── lib/            # Helper code (talking to the server, prayer time math)
 ├── hooks/          # Custom React shortcuts
 ├── constants/      # Fixed values (colors, sizes)
-├── assets/         # Fonts, images, sounds
+├── assets/         # Fonts, images, patterns
 ├── backend/        # The server (Python/Django) — stores all the data
 │   ├── core/       # Database models (what data looks like)
 │   ├── api/        # The endpoints the app talks to

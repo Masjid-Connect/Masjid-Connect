@@ -471,7 +471,6 @@ id (UUID), mosque FK, user FK, role (admin|super_admin)
 **Next:**
 - [ ] Custom Arabic/serif font loading (Reem Kufi, Playfair Display)
 - [ ] EAS Build for TestFlight & Play Store
-- [ ] Notification sound customization (oud, ney, riq)
 - [ ] Admin panel for mosque managers (non-technical-admin-first: guided flows, zero jargon, 60s to first post)
 - [ ] Django deployment on Coolify
 
