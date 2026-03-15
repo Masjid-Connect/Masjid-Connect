@@ -1,6 +1,6 @@
 /**
- * The Salafi Masjid — Landing Page Interactions
- * Minimal JS: scroll reveal, navbar state, mobile nav toggle.
+ * The Salafi Masjid — Site Interactions
+ * Scroll reveal, navbar state, mobile nav toggle.
  */
 
 (function () {
@@ -13,12 +13,11 @@
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     if (prefersReducedMotion) {
-      // Skip animations — show everything immediately
       revealElements.forEach(function (el) {
         el.classList.add('is-visible');
       });
     } else {
-      var revealObserver = new IntersectionObserver(
+      const revealObserver = new IntersectionObserver(
         function (entries) {
           entries.forEach(function (entry) {
             if (entry.isIntersecting) {
@@ -35,17 +34,21 @@
       });
     }
   } else {
-    // Fallback: show everything
     revealElements.forEach(function (el) {
       el.classList.add('is-visible');
     });
   }
 
   // ─── Navbar scroll state ───────────────────────────────────
-  var navbar = document.getElementById('navbar');
-  var scrollThreshold = 50;
+  const navbar = document.getElementById('navbar');
+  const scrollThreshold = 50;
+
+  // Only apply scroll-based styling on pages without navbar--solid
+  // (i.e., the home page with the transparent hero)
+  const isSolidNav = navbar && navbar.classList.contains('navbar--solid');
 
   function updateNavbar() {
+    if (isSolidNav) return; // Always solid on inner pages
     if (window.scrollY > scrollThreshold) {
       navbar.classList.add('is-scrolled');
     } else {
@@ -53,16 +56,18 @@
     }
   }
 
-  window.addEventListener('scroll', updateNavbar, { passive: true });
-  updateNavbar();
+  if (navbar) {
+    window.addEventListener('scroll', updateNavbar, { passive: true });
+    updateNavbar();
+  }
 
   // ─── Mobile nav toggle ─────────────────────────────────────
-  var toggle = document.getElementById('nav-toggle');
-  var navMenu = document.getElementById('nav-menu');
+  const toggle = document.getElementById('nav-toggle');
+  const navMenu = document.getElementById('nav-menu');
 
   if (toggle && navMenu) {
     toggle.addEventListener('click', function () {
-      var isOpen = navMenu.classList.toggle('is-open');
+      const isOpen = navMenu.classList.toggle('is-open');
       toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     });
 
@@ -74,19 +79,4 @@
       });
     });
   }
-
-  // ─── Smooth scroll for anchor links ─────────────────────────
-  document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
-    anchor.addEventListener('click', function (e) {
-      var targetId = this.getAttribute('href');
-      if (targetId === '#') return;
-      var target = document.querySelector(targetId);
-      if (target) {
-        e.preventDefault();
-        var navHeight = navbar.offsetHeight;
-        var targetPosition = target.getBoundingClientRect().top + window.scrollY - navHeight;
-        window.scrollTo({ top: targetPosition, behavior: 'smooth' });
-      }
-    });
-  });
 })();
