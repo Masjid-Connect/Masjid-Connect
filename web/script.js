@@ -84,21 +84,88 @@
     updateNavbar();
   }
 
-  // ─── Mobile nav toggle ─────────────────────────────────────
-  const toggle = document.getElementById('nav-toggle');
-  const navMenu = document.getElementById('nav-menu');
+  // ─── Mobile nav toggle (iOS sheet) ─────────────────────────
+  var toggle = document.getElementById('nav-toggle');
+  var navMenu = document.getElementById('nav-menu');
+
+  function closeMenu() {
+    navMenu.classList.remove('is-open');
+    toggle.classList.remove('is-open');
+    toggle.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  }
+
+  function openMenu() {
+    navMenu.classList.add('is-open');
+    toggle.classList.add('is-open');
+    toggle.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+  }
 
   if (toggle && navMenu) {
     toggle.addEventListener('click', function () {
-      const isOpen = navMenu.classList.toggle('is-open');
-      toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      if (navMenu.classList.contains('is-open')) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
     });
 
-    // Close mobile nav on link click
-    navMenu.querySelectorAll('.navbar__link').forEach(function (link) {
-      link.addEventListener('click', function () {
-        navMenu.classList.remove('is-open');
-        toggle.setAttribute('aria-expanded', 'false');
+    // Close on link/CTA click
+    navMenu.querySelectorAll('.mobile-menu__item, .mobile-menu__cta, .navbar__link').forEach(function (link) {
+      if (link.tagName === 'A') {
+        link.addEventListener('click', closeMenu);
+      }
+    });
+
+    // Close on Escape
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && navMenu.classList.contains('is-open')) {
+        closeMenu();
+      }
+    });
+  }
+
+  // ─── Dark mode toggle ─────────────────────────────────────
+  var darkToggle = document.getElementById('dark-mode-toggle');
+
+  if (darkToggle) {
+    // Restore saved preference
+    var savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      darkToggle.checked = true;
+    }
+
+    darkToggle.addEventListener('change', function () {
+      if (darkToggle.checked) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+      }
+    });
+  }
+
+  // ─── Language segmented control ────────────────────────────
+  var langToggle = document.getElementById('lang-toggle');
+
+  if (langToggle) {
+    var savedLang = localStorage.getItem('lang') || 'en';
+    var langBtns = langToggle.querySelectorAll('.mobile-menu__seg-btn');
+
+    // Restore saved lang
+    langBtns.forEach(function (btn) {
+      btn.classList.toggle('mobile-menu__seg-btn--active', btn.dataset.lang === savedLang);
+    });
+
+    langBtns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        langBtns.forEach(function (b) { b.classList.remove('mobile-menu__seg-btn--active'); });
+        btn.classList.add('mobile-menu__seg-btn--active');
+        localStorage.setItem('lang', btn.dataset.lang);
+        // Language swap can be wired to i18n later
       });
     });
   }
