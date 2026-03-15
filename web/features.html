@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Features — The Salafi Masjid App</title>
+  <meta name="description" content="Explore the features of The Salafi Masjid app — accurate prayer times, community announcements, events calendar, Qibla compass, and more.">
+  <meta name="theme-color" content="#0F2D52">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Features — The Salafi Masjid App">
+  <meta property="og:description" content="Accurate prayer times, community announcements, events, Qibla compass, and more.">
+  <meta property="og:image" content="https://salafimasjid.app/images/og-image.png">
+
+  <link rel="icon" href="images/favicon.ico" sizes="any">
+  <link rel="icon" href="images/favicon.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="images/favicon-180.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar navbar--solid" id="navbar">
+    <div class="container navbar__inner">
+      <a href="/" class="navbar__logo" aria-label="The Salafi Masjid — Home">
+        <img src="images/Masjid_Logo.png" alt="The Salafi Masjid" class="navbar__logo-img">
+      </a>
+      <button class="navbar__toggle" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span class="navbar__toggle-bar"></span>
+        <span class="navbar__toggle-bar"></span>
+        <span class="navbar__toggle-bar"></span>
+      </button>
+      <nav class="navbar__nav" id="nav-menu" role="navigation" aria-label="Main navigation">
+        <a href="features.html" class="navbar__link navbar__link--active">Features</a>
+        <a href="about.html" class="navbar__link">About</a>
+        <a href="download.html" class="navbar__link navbar__link--cta">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- PAGE HERO -->
+    <section class="page-hero">
+      <div class="container">
+        <h1 class="page-hero__title reveal">Everything your community needs</h1>
+        <p class="page-hero__subtitle reveal reveal--delay-1">
+          Designed for The Salafi Masjid, Birmingham — every feature serves a
+          purpose, rooted in real community needs.
+        </p>
+      </div>
+    </section>
+
+    <!-- FEATURE: PRAYER TIMES -->
+    <section class="page-section" id="prayer-times">
+      <div class="container">
+        <div class="feature-detail reveal">
+          <div class="feature-detail__content">
+            <div class="feature-detail__label">Core Feature</div>
+            <h2 class="feature-detail__title">Accurate Prayer Times</h2>
+            <p class="feature-detail__desc">
+              Prayer times are the heartbeat of the app. We use the
+              <strong>Aladhan API</strong> with the <strong>Umm Al-Qura</strong>
+              calculation method — the same standard used by Masjid al-Haram — to
+              deliver precise times for Fajr, Dhuhr, 'Asr, Maghrib, and 'Isha.
+            </p>
+            <ul class="feature-detail__list">
+              <li>
+                <strong>Atmospheric sky gradients</strong> — the screen shifts from
+                deep Fajr blues through midday light to warm Maghrib ambers,
+                reflecting the prayer window you're in.
+              </li>
+              <li>
+                <strong>Live countdown</strong> — an ultralight 54px countdown
+                timer shows exactly how long until the next adhan, using
+                tabular-nums for rock-steady digits.
+              </li>
+              <li>
+                <strong>Hijri calendar</strong> — the Islamic date is always visible
+                alongside the Gregorian date. Navigate forward and back to view
+                times for any date.
+              </li>
+              <li>
+                <strong>Customisable reminders</strong> — set notifications for
+                5, 10, 15, or 30 minutes before each prayer. Reminders are
+                scheduled locally on your device, not pushed from a server.
+              </li>
+              <li>
+                <strong>Offline fallback</strong> — when you have no internet,
+                the app calculates times locally using <code>adhan-js</code> from
+                your coordinates. You always know when to pray.
+              </li>
+            </ul>
+          </div>
+          <div class="feature-detail__visual">
+            <div class="phone">
+              <div class="phone__screen phone__screen--prayer">
+                <div class="phone__status-bar">
+                  <span>9:41</span>
+                  <span class="phone__status-icons">&#9679; &#9679; &#9679;</span>
+                </div>
+                <div class="phone__prayer-content">
+                  <div class="phone__prayer-label">Next Prayer</div>
+                  <div class="phone__prayer-name">Dhuhr</div>
+                  <div class="phone__prayer-countdown">2:14:32</div>
+                  <div class="phone__prayer-time">12:15 PM</div>
+                  <div class="phone__hijri">15 Ramadan 1447 AH</div>
+                  <div class="phone__prayer-list">
+                    <div class="phone__prayer-row phone__prayer-row--done"><span>Fajr</span><span>5:48 AM</span></div>
+                    <div class="phone__prayer-row phone__prayer-row--active"><span>Dhuhr</span><span>12:15 PM</span></div>
+                    <div class="phone__prayer-row"><span>'Asr</span><span>3:32 PM</span></div>
+                    <div class="phone__prayer-row"><span>Maghrib</span><span>6:18 PM</span></div>
+                    <div class="phone__prayer-row"><span>'Isha</span><span>7:45 PM</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURE: COMMUNITY -->
+    <section class="page-section page-section--alt" id="community">
+      <div class="container">
+        <div class="feature-detail feature-detail--reverse reveal">
+          <div class="feature-detail__content">
+            <div class="feature-detail__label">Stay Connected</div>
+            <h2 class="feature-detail__title">Community Announcements</h2>
+            <p class="feature-detail__desc">
+              When the masjid has something to say, you hear it immediately.
+              Announcements are posted directly by masjid administrators — no
+              middlemen, no algorithms, no social media noise.
+            </p>
+            <ul class="feature-detail__list">
+              <li>
+                <strong>Urgent priority</strong> — Janazah prayers, emergency
+                closures, and time-sensitive news are flagged with crimson urgency
+                and trigger an immediate push notification.
+              </li>
+              <li>
+                <strong>Normal announcements</strong> — weekly reminders, parking
+                notices, fundraising updates, and community news arrive in a clean,
+                scrollable feed.
+              </li>
+              <li>
+                <strong>Expiry dates</strong> — announcements automatically
+                disappear after their relevance window, keeping the feed fresh
+                and clutter-free.
+              </li>
+              <li>
+                <strong>Pull-to-refresh</strong> — a single gesture fetches the
+                latest from the masjid. No realtime subscriptions draining your
+                battery.
+              </li>
+            </ul>
+          </div>
+          <div class="feature-detail__visual">
+            <div class="phone">
+              <div class="phone__screen phone__screen--community">
+                <div class="phone__status-bar phone__status-bar--light">
+                  <span>9:41</span>
+                  <span class="phone__status-icons">&#9679; &#9679; &#9679;</span>
+                </div>
+                <div class="phone__community-content">
+                  <div class="phone__section-title">Announcements</div>
+                  <div class="phone__announcement phone__announcement--urgent">
+                    <div class="phone__announcement-badge">URGENT</div>
+                    <div class="phone__announcement-title">Janazah Prayer</div>
+                    <div class="phone__announcement-body">Brother Ahmad ibn Yusuf — today after Dhuhr salah</div>
+                  </div>
+                  <div class="phone__announcement">
+                    <div class="phone__announcement-title">Car Park Closure</div>
+                    <div class="phone__announcement-body">Rear car park closed Friday for resurfacing</div>
+                  </div>
+                  <div class="phone__announcement">
+                    <div class="phone__announcement-title">Ramadan Timetable</div>
+                    <div class="phone__announcement-body">Updated iftar and taraweeh times now available</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURE: EVENTS -->
+    <section class="page-section" id="events">
+      <div class="container">
+        <div class="feature-detail reveal">
+          <div class="feature-detail__content">
+            <div class="feature-detail__label">Never Miss a Lesson</div>
+            <h2 class="feature-detail__title">Events & Lessons Calendar</h2>
+            <p class="feature-detail__desc">
+              The masjid runs regular lessons, lectures, Quran circles, and
+              community events. The app puts them all in one place with the
+              details you need — who, when, where.
+            </p>
+            <ul class="feature-detail__list">
+              <li>
+                <strong>Six event categories</strong> — lessons, lectures, Quran
+                circles, youth programmes, sisters' events, and community
+                gatherings. Each is colour-coded for quick scanning.
+              </li>
+              <li>
+                <strong>Recurring events</strong> — weekly and monthly lessons
+                appear automatically. Set it once, and the community always
+                knows when the next session is.
+              </li>
+              <li>
+                <strong>Speaker information</strong> — every event lists the
+                speaker or teacher, so you know exactly what to expect.
+              </li>
+              <li>
+                <strong>Date filtering</strong> — view events from a specific
+                date range. Planning your week has never been easier.
+              </li>
+              <li>
+                <strong>Notification opt-in</strong> — choose which categories
+                you want to be reminded about. Only get notified for the events
+                that matter to you.
+              </li>
+            </ul>
+          </div>
+          <div class="feature-detail__visual">
+            <div class="phone">
+              <div class="phone__screen phone__screen--community">
+                <div class="phone__status-bar phone__status-bar--light">
+                  <span>9:41</span>
+                  <span class="phone__status-icons">&#9679; &#9679; &#9679;</span>
+                </div>
+                <div class="phone__community-content">
+                  <div class="phone__section-title">This Week</div>
+                  <div class="phone__event">
+                    <div class="phone__event-cat">LESSON</div>
+                    <div class="phone__announcement-title">Kitab al-Tawheed</div>
+                    <div class="phone__announcement-body">Sh. Abu Khadijah — Sat 7:00 PM</div>
+                  </div>
+                  <div class="phone__event">
+                    <div class="phone__event-cat phone__event-cat--quran">QURAN CIRCLE</div>
+                    <div class="phone__announcement-title">Surah al-Baqarah Tafseer</div>
+                    <div class="phone__announcement-body">Sh. Abu Idrees — Sun after Fajr</div>
+                  </div>
+                  <div class="phone__event">
+                    <div class="phone__event-cat">LECTURE</div>
+                    <div class="phone__announcement-title">The Rights of the Muslim</div>
+                    <div class="phone__announcement-body">Sh. Abu Hakeem — Wed 7:30 PM</div>
+                  </div>
+                  <div class="phone__event">
+                    <div class="phone__event-cat phone__event-cat--quran">YOUTH</div>
+                    <div class="phone__announcement-title">Youth Halaqa</div>
+                    <div class="phone__announcement-body">Fridays after Maghrib</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURE: QIBLA -->
+    <section class="page-section page-section--alt" id="qibla">
+      <div class="container">
+        <div class="feature-detail feature-detail--reverse reveal">
+          <div class="feature-detail__content">
+            <div class="feature-detail__label">Direction</div>
+            <h2 class="feature-detail__title">Qibla Compass</h2>
+            <p class="feature-detail__desc">
+              A precise, beautifully crafted compass that uses your device's
+              magnetometer to point towards the Ka'bah. Whether you're travelling,
+              visiting family, or praying in an unfamiliar location — you always
+              know your direction.
+            </p>
+            <ul class="feature-detail__list">
+              <li>
+                <strong>Real-time magnetometer</strong> — smooth, spring-animated
+                needle movement powered by your device's hardware compass.
+              </li>
+              <li>
+                <strong>Calibration guidance</strong> — if your compass needs
+                calibrating, the app walks you through the figure-eight motion
+                with clear, friendly instructions.
+              </li>
+              <li>
+                <strong>Degree precision</strong> — see the exact bearing to
+                the Ka'bah in degrees, along with the cardinal direction
+                (e.g., 119.4° SE from Birmingham).
+              </li>
+              <li>
+                <strong>Completely offline</strong> — the Qibla direction is
+                calculated from your coordinates using the great-circle formula.
+                No internet required.
+              </li>
+            </ul>
+          </div>
+          <div class="feature-detail__visual">
+            <div class="phone">
+              <div class="phone__screen phone__screen--qibla">
+                <div class="phone__status-bar">
+                  <span>9:41</span>
+                  <span class="phone__status-icons">&#9679; &#9679; &#9679;</span>
+                </div>
+                <div class="phone__qibla-content">
+                  <div class="phone__qibla-label">Qibla Direction</div>
+                  <div class="phone__qibla-compass">
+                    <svg viewBox="0 0 200 200" class="phone__compass-svg">
+                      <circle cx="100" cy="100" r="85" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+                      <circle cx="100" cy="100" r="60" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="0.5"/>
+                      <text x="100" y="28" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="12" font-weight="600">N</text>
+                      <text x="180" y="104" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="11">E</text>
+                      <text x="100" y="184" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="11">S</text>
+                      <text x="22" y="104" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="11">W</text>
+                      <line x1="100" y1="100" x2="130" y2="45" stroke="#D4AF37" stroke-width="2.5" stroke-linecap="round"/>
+                      <circle cx="130" cy="45" r="5" fill="#D4AF37"/>
+                      <circle cx="100" cy="100" r="4" fill="rgba(255,255,255,0.9)"/>
+                    </svg>
+                  </div>
+                  <div class="phone__qibla-degrees">119.4&deg; SE</div>
+                  <div class="phone__qibla-kaaba">Direction to the Ka'bah</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURE: NOTIFICATIONS -->
+    <section class="page-section" id="notifications">
+      <div class="container">
+        <div class="feature-detail reveal">
+          <div class="feature-detail__content">
+            <div class="feature-detail__label">Gentle Reminders</div>
+            <h2 class="feature-detail__title">Notifications That Respect You</h2>
+            <p class="feature-detail__desc">
+              Most apps fight for your attention. This one respects it.
+              Notifications are minimal, meaningful, and entirely under your
+              control. The badge is Divine Gold — a gentle glint, not an
+              angry red dot.
+            </p>
+            <ul class="feature-detail__list">
+              <li>
+                <strong>Prayer reminders</strong> — locally scheduled on your
+                device. Choose your lead time (5, 10, 15, or 30 minutes).
+                No server push, no battery drain.
+              </li>
+              <li>
+                <strong>Janazah alerts</strong> — urgent announcements trigger
+                an immediate notification. These are the moments that truly
+                cannot wait.
+              </li>
+              <li>
+                <strong>Event reminders</strong> — opt in to the categories
+                you care about. Youth programmes, sisters' events, Quran
+                circles — your choice.
+              </li>
+              <li>
+                <strong>Oud, ney, and riq sounds</strong> — notification tones
+                inspired by traditional instruments. Dignified, not disruptive.
+              </li>
+              <li>
+                <strong>Haptic feedback</strong> — subtle vibration on prayer
+                transitions and meaningful interactions. Felt, not heard.
+              </li>
+            </ul>
+          </div>
+          <div class="feature-detail__visual">
+            <div class="feature-notif-demo">
+              <div class="feature-notif">
+                <div class="feature-notif__icon feature-notif__icon--gold">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                </div>
+                <div class="feature-notif__body">
+                  <div class="feature-notif__title">Dhuhr in 15 minutes</div>
+                  <div class="feature-notif__text">12:15 PM — The Salafi Masjid</div>
+                </div>
+                <div class="feature-notif__time">now</div>
+              </div>
+              <div class="feature-notif feature-notif--urgent">
+                <div class="feature-notif__icon feature-notif__icon--crimson">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <div class="feature-notif__body">
+                  <div class="feature-notif__title">Janazah Prayer</div>
+                  <div class="feature-notif__text">Today after Dhuhr — The Salafi Masjid</div>
+                </div>
+                <div class="feature-notif__time">2m</div>
+              </div>
+              <div class="feature-notif">
+                <div class="feature-notif__icon feature-notif__icon--sapphire">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                </div>
+                <div class="feature-notif__body">
+                  <div class="feature-notif__title">Kitab al-Tawheed tonight</div>
+                  <div class="feature-notif__text">7:00 PM — Sh. Abu Khadijah</div>
+                </div>
+                <div class="feature-notif__time">1h</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURE: OFFLINE & PRIVACY -->
+    <section class="page-section page-section--alt" id="offline">
+      <div class="container">
+        <div class="feature-grid reveal">
+          <div class="feature-grid__card">
+            <div class="feature-card__icon feature-card__icon--sapphire">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+                <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+                <line x1="12" y1="20" x2="12.01" y2="20"/>
+              </svg>
+            </div>
+            <h3 class="feature-card__title">Offline-First</h3>
+            <p class="feature-card__desc">
+              The app caches prayer times, announcements, and events locally.
+              When you lose signal — on the tube, in the countryside, or
+              abroad — everything still works. Prayer times calculate locally
+              from your coordinates. Data syncs when you're back online.
+            </p>
+          </div>
+          <div class="feature-grid__card">
+            <div class="feature-card__icon feature-card__icon--sage">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+            </div>
+            <h3 class="feature-card__title">Privacy-First</h3>
+            <p class="feature-card__desc">
+              No analytics. No trackers. No ad networks. Your location is used
+              only to calculate prayer times and Qibla direction — it's never
+              sent to third parties. Your data stays on your device.
+              We don't even have a database of user behaviour.
+            </p>
+          </div>
+          <div class="feature-grid__card">
+            <div class="feature-card__icon feature-card__icon--gold">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+              </svg>
+            </div>
+            <h3 class="feature-card__title">English & Arabic</h3>
+            <p class="feature-card__desc">
+              Full internationalisation with English and Arabic support.
+              The entire interface mirrors for RTL languages — layouts, icons,
+              and navigation all flip seamlessly. Every string is translatable.
+            </p>
+          </div>
+          <div class="feature-grid__card">
+            <div class="feature-card__icon feature-card__icon--sapphire">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+            </div>
+            <h3 class="feature-card__title">Free Forever</h3>
+            <p class="feature-card__desc">
+              No subscriptions. No in-app purchases. No premium tiers.
+              This app is a sadaqah jaariyah — an ongoing charity for the
+              community. It will always be free.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="download" id="download">
+      <div class="download__pattern" aria-hidden="true">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="islamic-geo-f" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+              <path d="M40 0 L48 16 L64 8 L56 24 L80 24 L64 32 L72 48 L56 40 L56 56 L48 40 L40 48 L32 40 L24 56 L24 40 L8 48 L16 32 L0 24 L24 24 L16 8 L32 16 Z" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#islamic-geo-f)"/>
+        </svg>
+      </div>
+      <div class="container download__content reveal">
+        <h2 class="download__title">Ready to get started?</h2>
+        <p class="download__subtitle">Download The Salafi Masjid app — free on iOS and Android.</p>
+        <div class="hero__badges" style="justify-content: center;">
+          <a href="https://apps.apple.com/app/the-salafi-masjid/id6740000000" class="store-badge" aria-label="Download on the App Store" target="_blank" rel="noopener">
+            <svg viewBox="0 0 120 40" class="store-badge__svg" role="img" aria-hidden="true">
+              <rect width="120" height="40" rx="6" fill="#000"/>
+              <rect x="0.5" y="0.5" width="119" height="39" rx="5.5" fill="none" stroke="#A6A6A6" stroke-width="1"/>
+              <g transform="translate(10, 7)" fill="#fff">
+                <path d="M18.9 10.2c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2.1-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.3-.9-1.7 0-3.3 1-4.1 2.5-1.8 3.1-.5 7.6 1.3 10.1.8 1.2 1.9 2.6 3.2 2.5 1.3-.1 1.8-.8 3.3-.8 1.5 0 2 .8 3.3.8 1.4 0 2.3-1.2 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.7-1-2.8-4.1zM16.3 2.8c.7-.9 1.2-2.1 1.1-3.3-1 0-2.3.7-3 1.6-.6.7-1.2 2-1 3.1 1.2.1 2.3-.6 2.9-1.4z" transform="scale(0.85)"/>
+              </g>
+              <text x="44" y="14" fill="#fff" font-size="6.5" font-family="system-ui, -apple-system, sans-serif">Download on the</text>
+              <text x="44" y="27" fill="#fff" font-size="14" font-weight="600" font-family="system-ui, -apple-system, sans-serif">App Store</text>
+            </svg>
+          </a>
+          <a href="https://play.google.com/store/apps/details?id=com.salafimasjid.app" class="store-badge" aria-label="Get it on Google Play" target="_blank" rel="noopener">
+            <svg viewBox="0 0 135 40" class="store-badge__svg" role="img" aria-hidden="true">
+              <rect width="135" height="40" rx="6" fill="#000"/>
+              <rect x="0.5" y="0.5" width="134" height="39" rx="5.5" fill="none" stroke="#A6A6A6" stroke-width="1"/>
+              <g transform="translate(10, 7)">
+                <path d="M3 1.5L3 24.5L18 13L3 1.5Z" fill="#4285F4"/>
+                <path d="M3 1.5L13 10L18 5L3 1.5Z" fill="#EA4335"/>
+                <path d="M3 24.5L13 16L18 21L3 24.5Z" fill="#34A853"/>
+                <path d="M13 10L18 5L18 21L13 16L13 10Z" fill="#FBBC04"/>
+              </g>
+              <text x="36" y="14" fill="#fff" font-size="6.5" font-family="system-ui, -apple-system, sans-serif">GET IT ON</text>
+              <text x="36" y="27" fill="#fff" font-size="14" font-weight="600" font-family="system-ui, -apple-system, sans-serif">Google Play</text>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <div class="footer__brand">
+        <img src="images/Masjid_Logo.png" alt="The Salafi Masjid" class="footer__logo">
+        <p class="footer__tagline">Serving the community of The Salafi Masjid, Birmingham.</p>
+      </div>
+      <div class="footer__links">
+        <a href="/privacy" class="footer__link">Privacy Policy</a>
+        <a href="/terms" class="footer__link">Terms of Service</a>
+        <a href="mailto:info@salafimasjid.app" class="footer__link">Contact</a>
+      </div>
+      <p class="footer__copy">&copy; 2026 The Salafi Masjid. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
