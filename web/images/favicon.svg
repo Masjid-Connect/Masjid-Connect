@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Background -->
+  <rect width="32" height="32" rx="7" fill="#0F2D52"/>
+
+  <!-- Geometric Kufic-inspired design based on Flux output -->
+  <!-- Outer frame -->
+  <rect x="3" y="3" width="26" height="26" rx="1" fill="none" stroke="#fff" stroke-width="1.5"/>
+
+  <!-- Inner geometric structure - angular Kufic م and س -->
+  <g fill="#fff">
+    <!-- Top-left vertical (part of Meem) -->
+    <rect x="6" y="6" width="3.5" height="12"/>
+
+    <!-- Meem bowl - horizontal top -->
+    <rect x="6" y="6" width="10" height="3.5"/>
+
+    <!-- Meem bowl - right descender -->
+    <rect x="12.5" y="6" width="3.5" height="8"/>
+
+    <!-- Meem interior (cutout) -->
+    <rect x="9.5" y="9.5" width="3" height="4.5" fill="#0F2D52"/>
+
+    <!-- Dome/arch shape (connecting element) -->
+    <path d="M14 18 Q16 12 18 18" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- Seen - three vertical teeth -->
+    <rect x="18" y="10" width="3" height="8"/>
+    <rect x="22" y="12" width="3" height="6"/>
+    <rect x="26" y="10" width="3" height="8" rx="0"/>
+
+    <!-- Baseline for Seen -->
+    <rect x="18" y="17" width="11" height="3"/>
+
+    <!-- Bottom connecting line -->
+    <rect x="6" y="23" width="20" height="3" rx="1"/>
+  </g>
+
+  <!-- Gold accent -->
+  <rect x="6" y="23" width="20" height="0.8" fill="#D4AF37"/>
+</svg>
