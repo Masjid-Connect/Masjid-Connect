@@ -217,6 +217,10 @@ if not DEBUG and not TESTING:
     SECURE_HSTS_PRELOAD = True
     SECURE_SSL_REDIRECT = True
     SECURE_REDIRECT_EXEMPT = [r"^health/$"]  # allow internal HTTP health checks
+    # Trust X-Forwarded-Proto from Cloudflare/Traefik so Django knows the
+    # original request was HTTPS and doesn't 301-redirect (which breaks CORS
+    # preflight OPTIONS requests because the redirect lacks CORS headers).
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
