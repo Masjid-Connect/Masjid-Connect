@@ -31,9 +31,10 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 # ----- Stage 2: Production image -----
 FROM python:3.12-slim
 
-# Install only the runtime library for PostgreSQL (not the build tools)
+# Install runtime libraries (PostgreSQL driver + curl for health checks)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy installed Python packages from builder stage
@@ -53,9 +54,9 @@ RUN SECRET_KEY=build-placeholder python manage.py collectstatic --noinput
 # Expose the port Gunicorn listens on
 EXPOSE 8000
 
-# Health check — Docker will restart the container if this fails
+# Health check — curl follows redirects and Coolify requires curl/wget
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/')" || exit 1
+    CMD curl -fsS http://localhost:8000/health/ || exit 1
 
 # Start Gunicorn using our config file
 CMD ["gunicorn", "config.wsgi", "--config", "gunicorn.conf.py"]

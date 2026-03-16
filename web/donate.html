@@ -17,7 +17,6 @@
   <link rel="apple-touch-icon" href="images/favicon-180.png">
   <link rel="manifest" href="site.webmanifest">
   <link rel="stylesheet" href="styles.css">
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 
@@ -113,82 +112,94 @@
                 <input type="text" id="donate-company" name="company" autocomplete="off" tabindex="-1">
               </div>
 
-              <!-- Frequency toggle -->
-              <div class="donate__frequency">
-                <button class="donate__freq-btn donate__freq-btn--active" data-freq="one-time" type="button">One-time</button>
-                <button class="donate__freq-btn" data-freq="monthly" type="button">Monthly</button>
-              </div>
-
-              <!-- Preset amounts -->
-              <div class="donate__amounts">
-                <button class="donate__amount" data-amount="10" type="button">£10</button>
-                <button class="donate__amount" data-amount="25" type="button">£25</button>
-                <button class="donate__amount donate__amount--active" data-amount="50" type="button">£50</button>
-                <button class="donate__amount" data-amount="100" type="button">£100</button>
-              </div>
-
-              <!-- Custom amount -->
-              <div class="donate__custom">
-                <label class="donate__custom-label" for="custom-amount">Or enter a custom amount</label>
-                <div class="donate__custom-input-wrap">
-                  <span class="donate__currency">£</span>
-                  <input class="donate__custom-input" type="number" id="custom-amount" min="1" max="10000" step="1" placeholder="0.00" inputmode="decimal">
+              <!-- Step 1: Choose how often -->
+              <div class="donate__step">
+                <span class="donate__step-label">How often?</span>
+                <div class="donate__frequency">
+                  <button class="donate__freq-btn donate__freq-btn--active" data-freq="one-time" type="button">One-time</button>
+                  <button class="donate__freq-btn" data-freq="monthly" type="button">Monthly</button>
                 </div>
               </div>
 
-              <!-- Stripe Card Element -->
-              <div class="donate__card-section">
-                <label class="donate__card-label">Card details</label>
-                <div class="donate__card-element" id="card-element">
-                  <!-- Stripe Elements will mount here -->
+              <!-- Step 2: Choose amount -->
+              <div class="donate__step">
+                <span class="donate__step-label">How much?</span>
+                <div class="donate__amounts">
+                  <button class="donate__amount" data-amount="10" type="button">£10</button>
+                  <button class="donate__amount" data-amount="25" type="button">£25</button>
+                  <button class="donate__amount donate__amount--active" data-amount="50" type="button">£50</button>
+                  <button class="donate__amount" data-amount="100" type="button">£100</button>
                 </div>
-                <div class="donate__card-errors" id="card-errors" role="alert"></div>
+                <div class="donate__custom">
+                  <div class="donate__custom-input-wrap">
+                    <span class="donate__currency">£</span>
+                    <input class="donate__custom-input" type="number" id="custom-amount" min="1" max="10000" step="1" placeholder="Custom amount" inputmode="decimal" aria-label="Custom donation amount">
+                  </div>
+                </div>
               </div>
 
-              <!-- Email for receipt -->
-              <div class="donate__email-field">
-                <label class="contact-form__label" for="donor-email">Email <span style="font-weight:400;color:var(--onyx-600);">(for receipt)</span></label>
-                <input class="contact-form__input" type="email" id="donor-email" placeholder="you@example.com" autocomplete="email">
+              <!-- Step 3: Choose payment method -->
+              <div class="donate__step">
+                <span class="donate__step-label">Payment method</span>
+
+                <div class="donate__methods">
+                  <!-- Card / Apple Pay / Google Pay via Stripe Checkout -->
+                  <button class="donate__method-btn donate__method-btn--card" type="button" id="pay-card">
+                    <div class="donate__method-icons">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    </div>
+                    <div class="donate__method-info">
+                      <span class="donate__method-label">Card, Apple Pay, Google Pay</span>
+                      <span class="donate__method-desc">Secure checkout powered by Stripe</span>
+                    </div>
+                    <svg class="donate__method-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+
+                  <!-- PayPal -->
+                  <a href="https://www.paypal.com/donate/?hosted_button_id=SLB87MM3Q3JJW" class="donate__method-btn donate__method-btn--paypal" target="_blank" rel="noopener" id="pay-paypal">
+                    <div class="donate__method-icons">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 2.096A.859.859 0 0 1 5.79 1.4h6.644c2.2 0 3.818.563 4.81 1.673.463.518.78 1.09.944 1.7.17.63.198 1.383.082 2.24l-.013.082v.734l.573.325c.484.258.87.56 1.164.908.39.46.642 1.03.751 1.69.113.68.084 1.49-.084 2.41-.194 1.06-.51 1.98-.94 2.73a5.54 5.54 0 0 1-1.49 1.73c-.596.456-1.305.79-2.11.993-.782.198-1.673.298-2.65.298h-.63a1.9 1.9 0 0 0-1.878 1.6l-.032.18-.64 4.06-.025.128a.228.228 0 0 1-.225.193H7.076z"/>
+                      </svg>
+                    </div>
+                    <div class="donate__method-info">
+                      <span class="donate__method-label">PayPal</span>
+                      <span class="donate__method-desc">Donate via your PayPal account</span>
+                    </div>
+                    <svg class="donate__method-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </a>
+
+                  <!-- Bank Transfer -->
+                  <button class="donate__method-btn donate__method-btn--bank" type="button" id="pay-bank">
+                    <div class="donate__method-icons">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/><path d="M4 10v11"/><path d="M20 10v11"/><path d="M8 14v3"/><path d="M12 14v3"/><path d="M16 14v3"/></svg>
+                    </div>
+                    <div class="donate__method-info">
+                      <span class="donate__method-label">Bank Transfer</span>
+                      <span class="donate__method-desc">Direct transfer to the masjid account</span>
+                    </div>
+                    <svg class="donate__method-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+                </div>
               </div>
-
-              <!-- Cloudflare Turnstile -->
-              <div class="cf-turnstile" data-sitekey="0x4AAAAAACrlNkhNMYsyI9E8" data-theme="auto" data-size="normal" data-callback="onDonateTurnstile"></div>
-
-              <!-- Submit -->
-              <button class="donate__submit" type="button" id="donate-submit">
-                <span class="donate__submit-text" id="donate-submit-text">Donate £50</span>
-              </button>
 
               <p class="donate__secure">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                Secure payment powered by Stripe. We never store your card details.
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                All payments are secure and encrypted. We never store your payment details.
               </p>
-
-              <!-- PayPal alternative -->
-              <div class="donate__paypal-divider">
-                <span>or</span>
-              </div>
-
-              <p class="donate__paypal-text">If you prefer to donate using PayPal:</p>
-              <a href="https://www.paypal.com/donate/?hosted_button_id=SLB87MM3Q3JJW" class="donate__paypal-btn" target="_blank" rel="noopener">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 2.096A.859.859 0 0 1 5.79 1.4h6.644c2.2 0 3.818.563 4.81 1.673.463.518.78 1.09.944 1.7.17.63.198 1.383.082 2.24l-.013.082v.734l.573.325c.484.258.87.56 1.164.908.39.46.642 1.03.751 1.69.113.68.084 1.49-.084 2.41-.194 1.06-.51 1.98-.94 2.73a5.54 5.54 0 0 1-1.49 1.73c-.596.456-1.305.79-2.11.993-.782.198-1.673.298-2.65.298h-.63a1.9 1.9 0 0 0-1.878 1.6l-.032.18-.64 4.06-.025.128a.228.228 0 0 1-.225.193H7.076z"/>
-                </svg>
-                Donate with PayPal
-              </a>
 
               <!-- Success state -->
               <div class="donate__status donate__status--success" id="donate-success" hidden>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                <div>
-                  <strong>JazakAllahu khairan!</strong>
-                  <p>Your donation has been processed successfully. May Allah reward you abundantly.</p>
+                <div class="donate__status-icon">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                 </div>
+                <strong>JazakAllahu khairan!</strong>
+                <p>Your donation has been processed successfully. May Allah reward you abundantly.</p>
               </div>
 
               <!-- Error state -->
               <div class="donate__status donate__status--error" id="donate-error" hidden>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                 <span id="donate-error-text">Something went wrong. Please try again.</span>
               </div>
             </div>
@@ -196,43 +207,45 @@
 
           <!-- Right: Impact info -->
           <div class="donate__info">
-            <h2 class="donate__info-title">Where your donation goes</h2>
-            <p class="donate__info-desc">All donations go directly to The Salafi Masjid, Birmingham.</p>
+            <div class="donate__info-card">
+              <h2 class="donate__info-title">Where your donation goes</h2>
+              <p class="donate__info-desc">All donations go directly to The Salafi Masjid, Birmingham.</p>
 
-            <div class="donate__impact-list">
-              <div class="donate__impact reveal-scale">
-                <div class="donate__impact-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
-                  </svg>
+              <div class="donate__impact-list">
+                <div class="donate__impact">
+                  <div class="donate__impact-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 class="donate__impact-title">Masjid Maintenance</h3>
+                    <p class="donate__impact-desc">Utilities, repairs, cleaning, and keeping the masjid open for all five daily prayers.</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 class="donate__impact-title">Masjid Maintenance</h3>
-                  <p class="donate__impact-desc">Utilities, repairs, cleaning, and keeping the masjid open for all five daily prayers.</p>
-                </div>
-              </div>
 
-              <div class="donate__impact reveal-scale">
-                <div class="donate__impact-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                  </svg>
+                <div class="donate__impact">
+                  <div class="donate__impact-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 class="donate__impact-title">Education & Da'wah</h3>
+                    <p class="donate__impact-desc">Weekly lessons, Quran circles, youth programmes, and dawah materials.</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 class="donate__impact-title">Education & Da'wah</h3>
-                  <p class="donate__impact-desc">Weekly lessons, Quran circles, youth programmes, and dawah materials.</p>
-                </div>
-              </div>
 
-              <div class="donate__impact reveal-scale">
-                <div class="donate__impact-icon">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 class="donate__impact-title">Community Services</h3>
-                  <p class="donate__impact-desc">Supporting families, Ramadan iftars, Eid celebrations, and community welfare.</p>
+                <div class="donate__impact">
+                  <div class="donate__impact-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 class="donate__impact-title">Community Services</h3>
+                    <p class="donate__impact-desc">Supporting families, Ramadan iftars, Eid celebrations, and community welfare.</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -312,6 +325,43 @@
       </div>
     </div>
   </footer>
+
+  <!-- Bank Transfer Bottom Sheet -->
+  <div class="bank-sheet" id="bank-sheet" hidden>
+    <div class="bank-sheet__backdrop" id="bank-sheet-backdrop"></div>
+    <div class="bank-sheet__panel">
+      <div class="bank-sheet__handle"></div>
+      <h3 class="bank-sheet__title">Bank Transfer Details</h3>
+      <p class="bank-sheet__desc">Transfer directly to the masjid account. Please use your name as the payment reference.</p>
+
+      <div class="bank-sheet__details">
+        <div class="bank-sheet__row">
+          <span class="bank-sheet__label">Account Name</span>
+          <span class="bank-sheet__value">Salafi Bookstore &amp; Islamic Centre</span>
+        </div>
+        <div class="bank-sheet__row">
+          <span class="bank-sheet__label">Bank</span>
+          <span class="bank-sheet__value">Lloyds</span>
+        </div>
+        <div class="bank-sheet__row">
+          <span class="bank-sheet__label">Sort Code</span>
+          <span class="bank-sheet__value">30-93-09</span>
+        </div>
+        <div class="bank-sheet__row">
+          <span class="bank-sheet__label">Account Number</span>
+          <span class="bank-sheet__value">00231260</span>
+        </div>
+        <div class="bank-sheet__row">
+          <span class="bank-sheet__label">Reference</span>
+          <span class="bank-sheet__value">Donation</span>
+        </div>
+      </div>
+
+      <p class="bank-sheet__note">Contact <a href="mailto:info@salafimasjid.app">info@salafimasjid.app</a> for bank details or to confirm your transfer.</p>
+
+      <button class="bank-sheet__close" type="button" id="bank-sheet-close">Close</button>
+    </div>
+  </div>
 
   <script src="https://js.stripe.com/v3/"></script>
   <script src="script.js"></script>

@@ -32,6 +32,7 @@ urlpatterns = [
     path("contact/", views.contact_submit, name="contact"),
     # Donations
     path("donate/", views.create_donation, name="donate"),
-    # Stripe webhook
+    # Stripe
+    path("donate/checkout/", views.create_checkout_session, name="donate-checkout"),
     path("stripe/webhook/", views.stripe_webhook, name="stripe-webhook"),
 ]
