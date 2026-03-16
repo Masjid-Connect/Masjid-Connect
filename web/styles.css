@@ -616,11 +616,13 @@ ul {
   height: 100%;
 }
 
-/* backdrop-filter on __inner (not .navbar) to avoid creating
-   a containing block that traps the position:fixed mobile menu */
-.navbar.is-scrolled .navbar__inner {
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+/* backdrop-filter only on desktop — on mobile it creates a containing
+   block that traps the position:fixed mobile menu inside the navbar */
+@media (min-width: 769px) {
+  .navbar.is-scrolled .navbar__inner {
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
 }
 
 .navbar__logo {
@@ -2507,23 +2509,6 @@ a.contact__info-value:hover {
     padding: 0 var(--sp-xl);
   }
 
-  /* ─── Navbar fix: remove backdrop-filter on mobile so it
-     doesn't create a containing block that traps the fixed menu.
-     Use a solid background instead. ──────────────────────────── */
-  .navbar.is-scrolled .navbar__inner,
-  .navbar--solid .navbar__inner {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
-
-  .navbar.is-scrolled {
-    background: var(--stone-100);
-  }
-
-  .navbar--solid {
-    background: var(--stone-100);
-  }
-
   /* ─── Mobile Menu — Full-screen premium nav ─────────────── */
   .navbar__nav {
     position: fixed;
@@ -3222,9 +3207,13 @@ a.contact__info-value:hover {
   box-shadow: 0 1px 0 var(--separator);
 }
 
-.navbar--solid .navbar__inner {
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+/* backdrop-filter only on desktop — on mobile it creates a containing
+   block that traps the position:fixed mobile menu inside the navbar */
+@media (min-width: 769px) {
+  .navbar--solid .navbar__inner {
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
 }
 
 .navbar--solid .navbar__logo-img {
