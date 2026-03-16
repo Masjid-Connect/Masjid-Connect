@@ -186,6 +186,27 @@
     if (e.key === 'Escape' && bankSheet && !bankSheet.hidden) closeBankSheet();
   });
 
+  // ─── Tap-to-copy bank details ────────────────────────────
+  var copyableValues = bankSheet ? bankSheet.querySelectorAll('.bank-sheet__value[data-copy]') : [];
+
+  copyableValues.forEach(function (el) {
+    el.addEventListener('click', function () {
+      var text = el.getAttribute('data-copy');
+      if (!text || !navigator.clipboard) return;
+
+      navigator.clipboard.writeText(text).then(function () {
+        var original = el.textContent;
+        el.textContent = 'Copied';
+        el.classList.add('bank-sheet__value--copied');
+
+        setTimeout(function () {
+          el.textContent = original;
+          el.classList.remove('bank-sheet__value--copied');
+        }, 1500);
+      });
+    });
+  });
+
   // ─── Check for Stripe redirect return ──────────────────────
   var params = new URLSearchParams(window.location.search);
 

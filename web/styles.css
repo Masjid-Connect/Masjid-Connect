@@ -379,6 +379,15 @@
   color: var(--snow, #F5F5F7);
 }
 
+[data-theme="dark"] .bank-sheet__value[data-copy]:active {
+  background: rgba(91, 155, 213, 0.15);
+}
+
+[data-theme="dark"] .bank-sheet__value--copied {
+  color: var(--sapphire-400, #5B9BD5) !important;
+  background: rgba(91, 155, 213, 0.1);
+}
+
 [data-theme="dark"] .bank-sheet__note {
   color: rgba(245, 245, 247, 0.5);
 }
@@ -1677,6 +1686,24 @@ ul {
   word-break: break-word;
 }
 
+.bank-sheet__value[data-copy] {
+  cursor: pointer;
+  padding: 4px 8px;
+  margin: -4px -8px;
+  border-radius: 6px;
+  transition: background 0.15s ease, color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bank-sheet__value[data-copy]:active {
+  background: rgba(15, 45, 82, 0.08);
+}
+
+.bank-sheet__value--copied {
+  color: var(--sapphire-700) !important;
+  background: rgba(15, 45, 82, 0.06);
+}
+
 .bank-sheet__note {
   font-size: 13px;
   color: var(--onyx-600);
@@ -2478,6 +2505,23 @@ a.contact__info-value:hover {
 @media (max-width: 768px) {
   .container {
     padding: 0 var(--sp-xl);
+  }
+
+  /* ─── Navbar fix: remove backdrop-filter on mobile so it
+     doesn't create a containing block that traps the fixed menu.
+     Use a solid background instead. ──────────────────────────── */
+  .navbar.is-scrolled .navbar__inner,
+  .navbar--solid .navbar__inner {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .navbar.is-scrolled {
+    background: var(--stone-100);
+  }
+
+  .navbar--solid {
+    background: var(--stone-100);
   }
 
   /* ─── Mobile Menu — Full-screen premium nav ─────────────── */
