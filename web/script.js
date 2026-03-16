@@ -173,6 +173,30 @@
     }
   });
 
+  // ─── Spam Protection Helpers ────────────────────────────────
+
+  // Track when page loaded — submissions within 3s are likely bots
+  var pageLoadTime = Date.now();
+  var MIN_SUBMIT_DELAY = 3000; // 3 seconds
+
+  // Turnstile token storage
+  var turnstileTokens = { contact: null, donate: null };
+
+  // Global callbacks for Turnstile
+  window.onContactTurnstile = function (token) { turnstileTokens.contact = token; };
+  window.onDonateTurnstile = function (token) { turnstileTokens.donate = token; };
+
+  // Honeypot check — returns true if bot detected
+  function isHoneypotFilled(formEl) {
+    var hp = formEl.querySelector('.form-hp input');
+    return hp && hp.value.length > 0;
+  }
+
+  // Time-based check — returns true if submitted too fast
+  function isSubmittedTooFast() {
+    return (Date.now() - pageLoadTime) < MIN_SUBMIT_DELAY;
+  }
+
   // ─── Contact form handling ──────────────────────────────────
   var contactForm = document.getElementById('contact-form');
 
@@ -183,11 +207,35 @@
       var submitBtn = document.getElementById('contact-submit');
       var successEl = document.getElementById('form-success');
       var errorEl = document.getElementById('form-error');
+      var errorText = errorEl.querySelector('span');
       var submitText = submitBtn.querySelector('.contact-form__submit-text');
 
       // Hide previous status
       successEl.hidden = true;
       errorEl.hidden = true;
+
+      // ── Spam checks ──
+      // 1. Honeypot
+      if (isHoneypotFilled(contactForm)) {
+        // Silently "succeed" — don't reveal the bot was caught
+        successEl.hidden = false;
+        contactForm.reset();
+        return;
+      }
+
+      // 2. Time-based (too fast = bot)
+      if (isSubmittedTooFast()) {
+        errorText.textContent = 'Please wait a moment before submitting.';
+        errorEl.hidden = false;
+        return;
+      }
+
+      // 3. Turnstile token
+      if (!turnstileTokens.contact) {
+        errorText.textContent = 'Please complete the security check.';
+        errorEl.hidden = false;
+        return;
+      }
 
       // Disable and show loading
       submitBtn.disabled = true;
@@ -198,7 +246,8 @@
         name: formData.get('name'),
         email: formData.get('email'),
         subject: formData.get('subject'),
-        message: formData.get('message')
+        message: formData.get('message'),
+        'cf-turnstile-response': turnstileTokens.contact
       };
 
       fetch('https://api.salafimasjid.app/api/v1/contact/', {
@@ -210,8 +259,12 @@
           if (!res.ok) throw new Error('Failed');
           successEl.hidden = false;
           contactForm.reset();
+          turnstileTokens.contact = null;
+          // Reset Turnstile widget
+          if (window.turnstile) window.turnstile.reset();
         })
         .catch(function () {
+          errorText.innerHTML = 'Something went wrong. Please email us directly at <a href="mailto:info@salafimasjid.app">info@salafimasjid.app</a>';
           errorEl.hidden = false;
         })
         .finally(function () {
@@ -219,5 +272,46 @@
           submitText.textContent = 'Send Message';
         });
     });
+  }
+
+  // ─── Donate form spam protection ──────────────────────────────
+  var donateSubmit = document.getElementById('donate-submit');
+
+  if (donateSubmit) {
+    var originalClick = donateSubmit.onclick;
+
+    donateSubmit.addEventListener('click', function (e) {
+      var formCard = donateSubmit.closest('.donate__form-card');
+      var errorEl = document.getElementById('donate-error');
+      var errorText = document.getElementById('donate-error-text');
+
+      // 1. Honeypot
+      if (formCard && isHoneypotFilled(formCard)) {
+        // Silently "succeed"
+        var successEl = document.getElementById('donate-success');
+        if (successEl) successEl.hidden = false;
+        return;
+      }
+
+      // 2. Time-based
+      if (isSubmittedTooFast()) {
+        if (errorEl && errorText) {
+          errorText.textContent = 'Please wait a moment before submitting.';
+          errorEl.hidden = false;
+        }
+        e.stopImmediatePropagation();
+        return;
+      }
+
+      // 3. Turnstile token
+      if (!turnstileTokens.donate) {
+        if (errorEl && errorText) {
+          errorText.textContent = 'Please complete the security check.';
+          errorEl.hidden = false;
+        }
+        e.stopImmediatePropagation();
+        return;
+      }
+    }, true); // capture phase — runs before any Stripe handler
   }
 })();

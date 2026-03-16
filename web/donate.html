@@ -17,6 +17,7 @@
   <link rel="apple-touch-icon" href="images/favicon-180.png">
   <link rel="manifest" href="site.webmanifest">
   <link rel="stylesheet" href="styles.css">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 
@@ -106,6 +107,11 @@
           <!-- Left: Payment form -->
           <div class="donate__form-wrap">
             <div class="donate__form-card">
+              <!-- Honeypot — hidden from humans, bots fill it -->
+              <div class="form-hp" aria-hidden="true" tabindex="-1">
+                <label for="donate-company">Company</label>
+                <input type="text" id="donate-company" name="company" autocomplete="off" tabindex="-1">
+              </div>
 
               <!-- Frequency toggle -->
               <div class="donate__frequency">
@@ -145,6 +151,9 @@
                 <input class="contact-form__input" type="email" id="donor-email" placeholder="you@example.com" autocomplete="email">
               </div>
 
+              <!-- Cloudflare Turnstile -->
+              <div class="cf-turnstile" data-sitekey="0x4AAAAAACrlNkhNMYsyI9E8" data-theme="auto" data-size="normal" data-callback="onDonateTurnstile"></div>
+
               <!-- Submit -->
               <button class="donate__submit" type="button" id="donate-submit">
                 <span class="donate__submit-text" id="donate-submit-text">Donate £50</span>
@@ -161,7 +170,7 @@
               </div>
 
               <p class="donate__paypal-text">If you prefer to donate using PayPal:</p>
-              <a href="https://www.paypal.com/donate/?hosted_button_id=PLACEHOLDER" class="donate__paypal-btn" target="_blank" rel="noopener">
+              <a href="https://www.paypal.com/donate/?hosted_button_id=SLB87MM3Q3JJW" class="donate__paypal-btn" target="_blank" rel="noopener">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 2.096A.859.859 0 0 1 5.79 1.4h6.644c2.2 0 3.818.563 4.81 1.673.463.518.78 1.09.944 1.7.17.63.198 1.383.082 2.24l-.013.082v.734l.573.325c.484.258.87.56 1.164.908.39.46.642 1.03.751 1.69.113.68.084 1.49-.084 2.41-.194 1.06-.51 1.98-.94 2.73a5.54 5.54 0 0 1-1.49 1.73c-.596.456-1.305.79-2.11.993-.782.198-1.673.298-2.65.298h-.63a1.9 1.9 0 0 0-1.878 1.6l-.032.18-.64 4.06-.025.128a.228.228 0 0 1-.225.193H7.076z"/>
                 </svg>
