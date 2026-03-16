@@ -771,6 +771,99 @@ def create_donation(request):
         )
 
 
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+@throttle_classes([DonationRateThrottle])
+def create_checkout_session(request):
+    """Create a Stripe Checkout Session for card / Apple Pay / Google Pay donations."""
+    import stripe as stripe_lib
+
+    secret_key = getattr(settings, "STRIPE_SECRET_KEY", "")
+    if not secret_key:
+        return Response(
+            {"detail": "Payment service not configured."},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+    stripe_lib.api_key = secret_key
+
+    amount = request.data.get("amount")  # in pence
+    currency = request.data.get("currency", "gbp")
+    frequency = request.data.get("frequency", "one-time")
+    success_url = request.data.get("success_url", "")
+    cancel_url = request.data.get("cancel_url", "")
+
+    if not success_url or not cancel_url:
+        return Response(
+            {"detail": "success_url and cancel_url are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        amount = int(amount)
+    except (TypeError, ValueError):
+        return Response(
+            {"detail": "Invalid amount."}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if amount < 100 or amount > 1000000:
+        return Response(
+            {"detail": "Amount must be between £1 and £10,000."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        session_params = {
+            "payment_method_types": ["card"],
+            "mode": "subscription" if frequency == "monthly" else "payment",
+            "success_url": success_url,
+            "cancel_url": cancel_url,
+            "metadata": {"frequency": frequency, "source": "website"},
+        }
+
+        if frequency == "monthly":
+            session_params["line_items"] = [
+                {
+                    "price_data": {
+                        "currency": currency,
+                        "product_data": {
+                            "name": "Monthly Donation to The Salafi Masjid",
+                        },
+                        "unit_amount": amount,
+                        "recurring": {"interval": "month"},
+                    },
+                    "quantity": 1,
+                }
+            ]
+        else:
+            session_params["line_items"] = [
+                {
+                    "price_data": {
+                        "currency": currency,
+                        "product_data": {
+                            "name": "Donation to The Salafi Masjid",
+                        },
+                        "unit_amount": amount,
+                    },
+                    "quantity": 1,
+                }
+            ]
+            session_params["submit_type"] = "donate"
+
+        session = stripe_lib.checkout.Session.create(**session_params)
+
+        return Response(
+            {"id": session.id, "url": session.url},
+            status=status.HTTP_200_OK,
+        )
+    except Exception:
+        logger.exception("Stripe Checkout Session creation failed")
+        return Response(
+            {"detail": "Failed to start checkout. Please try again."},
+            status=status.HTTP_502_BAD_GATEWAY,
+        )
+
+
 # ── Stripe Webhook ───────────────────────────────────────────────────
 
 
