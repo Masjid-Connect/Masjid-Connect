@@ -1505,6 +1505,10 @@ ul {
 }
 
 /* Bank Transfer Bottom Sheet */
+.bank-sheet[hidden] {
+  display: none;
+}
+
 .bank-sheet {
   position: fixed;
   inset: 0;
