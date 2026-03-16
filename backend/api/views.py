@@ -775,7 +775,7 @@ def create_donation(request):
 @permission_classes([permissions.AllowAny])
 @throttle_classes([DonationRateThrottle])
 def create_checkout_session(request):
-    """Create a Stripe Checkout Session for card / Apple Pay / Google Pay donations."""
+    """Create a Stripe Checkout Session for card / Apple Pay / Google Pay / Pay by Bank donations."""
     import stripe as stripe_lib
 
     secret_key = getattr(settings, "STRIPE_SECRET_KEY", "")
@@ -813,15 +813,19 @@ def create_checkout_session(request):
         )
 
     try:
+        is_recurring = frequency == "monthly"
+        # Pay by Bank (open banking) only supports one-time payments, not subscriptions
+        payment_methods = ["card"] if is_recurring else ["card", "pay_by_bank"]
+
         session_params = {
-            "payment_method_types": ["card"],
-            "mode": "subscription" if frequency == "monthly" else "payment",
+            "payment_method_types": payment_methods,
+            "mode": "subscription" if is_recurring else "payment",
             "success_url": success_url,
             "cancel_url": cancel_url,
             "metadata": {"frequency": frequency, "source": "website"},
         }
 
-        if frequency == "monthly":
+        if is_recurring:
             session_params["line_items"] = [
                 {
                     "price_data": {
