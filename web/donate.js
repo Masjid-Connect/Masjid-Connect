@@ -6,7 +6,7 @@
 
   // ─── Config ──────────────────────────────────────────────────
   // Replace with your live publishable key in production
-  var STRIPE_PK = 'pk_test_REPLACE_WITH_YOUR_KEY';
+  var STRIPE_PK = 'pk_live_jhdJimpenQpkL3cvCMC8wSa700y5o67fj1';
   var API_URL = 'https://api.salafimasjid.app/api/v1/donate/';
 
   // ─── State ───────────────────────────────────────────────────
@@ -29,7 +29,7 @@
   if (!submitBtn) return;
 
   // ─── Init Stripe ─────────────────────────────────────────────
-  if (typeof Stripe !== 'undefined' && STRIPE_PK !== 'pk_test_REPLACE_WITH_YOUR_KEY') {
+  if (typeof Stripe !== 'undefined' && STRIPE_PK !== 'pk_live_jhdJimpenQpkL3cvCMC8wSa700y5o67fj1') {
     stripe = Stripe(STRIPE_PK);
     var elements = stripe.elements({
       fonts: [{ cssSrc: '' }]
