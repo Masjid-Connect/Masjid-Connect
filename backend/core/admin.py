@@ -12,6 +12,7 @@ from .models import (
     MosqueAdmin,
     MosquePrayerTime,
     PushToken,
+    StripeEvent,
     User,
     UserSubscription,
 )
@@ -83,6 +84,16 @@ class FeedbackAdmin(ModelAdmin):
         ("Submission", {"fields": ("description", "device_info", "created", "updated")}),
         ("Admin", {"fields": ("admin_notes", "resolved_at")}),
     )
+
+
+@admin.register(StripeEvent)
+class StripeEventAdmin(ModelAdmin):
+    list_display = ["stripe_event_id", "event_type", "processed", "created"]
+    list_filter = ["event_type", "processed"]
+    search_fields = ["stripe_event_id", "event_type"]
+    date_hierarchy = "created"
+    ordering = ["-created"]
+    readonly_fields = ["id", "stripe_event_id", "event_type", "processed", "payload", "created"]
 
 
 @admin.register(MosquePrayerTime)
