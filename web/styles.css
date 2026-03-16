@@ -68,15 +68,16 @@
 }
 
 /* ─── Dark Mode — "Midnight in the Masjid" ─────────────────── */
+/* Deep sapphire navy, not black — the brand lives in every pixel */
 [data-theme="dark"] {
-  --stone-100: #0A0A0C;
-  --stone-200: #1A1A1E;
-  --stone-300: #262628;
+  --stone-100: #0B1120;
+  --stone-200: #111D33;
+  --stone-300: #182844;
   --onyx-900: #F5F5F7;
-  --onyx-850: #1A1A1E;
-  --onyx-800: #262628;
-  --onyx-600: #9E9EA3;
-  --onyx-400: #6B6B70;
+  --onyx-850: #111D33;
+  --onyx-800: #182844;
+  --onyx-600: #8BA3C4;
+  --onyx-400: #5A7599;
   --sapphire-700: #5B9BD5;
   --sapphire-600: #7AB4E4;
   --sapphire-400: #5B9BD5;
@@ -85,20 +86,20 @@
   --divine-gold-glow: rgba(229, 193, 75, 0.12);
   --sage-600: #4DA87A;
   --crimson-600: #EF4444;
-  --separator: rgba(255,255,255,0.1);
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
-  --shadow-md: 0 2px 8px rgba(0,0,0,0.3);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
-  --shadow-xl: 0 16px 48px rgba(0,0,0,0.5);
+  --separator: rgba(255,255,255,0.08);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  --shadow-xl: 0 16px 48px rgba(0,0,0,0.6);
 }
 
 /* Dark: Navbar */
 [data-theme="dark"] .navbar.is-scrolled {
-  background: rgba(10, 10, 12, 0.92);
+  background: rgba(11, 17, 32, 0.94);
 }
 
 [data-theme="dark"] .navbar.is-scrolled .navbar__link {
-  color: #9E9EA3;
+  color: #8BA3C4;
 }
 
 [data-theme="dark"] .navbar.is-scrolled .navbar__link:hover {
@@ -114,7 +115,7 @@
 }
 
 [data-theme="dark"] .navbar--solid {
-  background: rgba(10, 10, 12, 0.97);
+  background: rgba(11, 17, 32, 0.97);
 }
 
 [data-theme="dark"] .navbar--solid .navbar__logo-img {
@@ -122,7 +123,7 @@
 }
 
 [data-theme="dark"] .navbar--solid .navbar__link {
-  color: #9E9EA3;
+  color: #8BA3C4;
 }
 
 [data-theme="dark"] .navbar--solid .navbar__link:hover {
@@ -139,13 +140,13 @@
 }
 
 [data-theme="dark"] .section-subtitle {
-  color: #9E9EA3;
+  color: #8BA3C4;
 }
 
 /* Dark: Feature cards */
 [data-theme="dark"] .feature__card {
-  background: #1A1A1E;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 0 0 0.5px rgba(255,255,255,0.05);
+  background: #111D33;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 0 0 0.5px rgba(91,155,213,0.08);
 }
 
 [data-theme="dark"] .feature__icon {
@@ -157,25 +158,25 @@
 }
 
 [data-theme="dark"] .feature__desc {
-  color: #9E9EA3;
+  color: #8BA3C4;
 }
 
 /* Dark: Showcase */
 [data-theme="dark"] .showcase {
-  background: #0A0A0C;
+  background: #0B1120;
 }
 
 [data-theme="dark"] .showcase__item {
-  border-color: rgba(255,255,255,0.06);
+  border-color: rgba(91,155,213,0.1);
 }
 
 /* Dark: Trust / About */
 [data-theme="dark"] .trust {
-  background: #111114;
+  background: #0E1728;
 }
 
 [data-theme="dark"] .trust__card {
-  background: #1A1A1E;
+  background: #111D33;
 }
 
 /* Dark: Download CTA */
@@ -186,21 +187,21 @@
 /* Dark: Phone mockup */
 [data-theme="dark"] .phone--hero,
 [data-theme="dark"] .phone {
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.08);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(91,155,213,0.1);
 }
 
 /* Dark: Mobile menu */
 [data-theme="dark"] .mobile-menu__list {
-  background: #1A1A1E;
-  box-shadow: 0 0 0 0.5px rgba(255,255,255,0.06), var(--shadow-sm);
+  background: #111D33;
+  box-shadow: 0 0 0 0.5px rgba(91,155,213,0.1), var(--shadow-sm);
 }
 
 [data-theme="dark"] .mobile-menu__item:active {
-  background: #262628;
+  background: #182844;
 }
 
 [data-theme="dark"] .mobile-menu__toggle-track {
-  background: #3A3A3E;
+  background: #1E3455;
 }
 
 [data-theme="dark"] .mobile-menu__toggle-track::after {
@@ -208,11 +209,11 @@
 }
 
 [data-theme="dark"] .mobile-menu__segmented {
-  background: #262628;
+  background: #182844;
 }
 
 [data-theme="dark"] .mobile-menu__seg-btn--active {
-  background: #3A3A3E;
+  background: #1E3455;
   color: #F5F5F7;
 }
 
@@ -220,8 +221,8 @@
 [data-theme="dark"] .contact-form__input,
 [data-theme="dark"] .contact-form__select,
 [data-theme="dark"] .contact-form__textarea {
-  background: #1A1A1E;
-  border-color: rgba(255,255,255,0.1);
+  background: #111D33;
+  border-color: rgba(91,155,213,0.15);
   color: #F5F5F7;
 }
 
@@ -232,32 +233,32 @@
 }
 
 [data-theme="dark"] .contact-form__label {
-  color: #9E9EA3;
+  color: #8BA3C4;
 }
 
 /* Dark: Contact info */
 [data-theme="dark"] .contact__info {
-  background: #1A1A1E;
+  background: #111D33;
 }
 
 /* Dark: Donate */
 [data-theme="dark"] .donate__form-card {
-  background: #1A1A1E;
+  background: #111D33;
 }
 
 [data-theme="dark"] .donate__freq-btn {
-  background: #262628;
-  color: #9E9EA3;
+  background: #182844;
+  color: #8BA3C4;
 }
 
 [data-theme="dark"] .donate__freq-btn--active {
   background: var(--sapphire-400);
-  color: #0A0A0C;
+  color: #0B1120;
 }
 
 [data-theme="dark"] .donate__amount {
-  background: #262628;
-  border-color: rgba(255,255,255,0.08);
+  background: #182844;
+  border-color: rgba(91,155,213,0.12);
   color: #F5F5F7;
 }
 
@@ -266,18 +267,18 @@
 }
 
 [data-theme="dark"] .donate__custom-input {
-  background: #1A1A1E;
-  border-color: rgba(255,255,255,0.1);
+  background: #111D33;
+  border-color: rgba(91,155,213,0.15);
   color: #F5F5F7;
 }
 
 [data-theme="dark"] .donate__card-element {
-  background: #1A1A1E;
-  border-color: rgba(255,255,255,0.1);
+  background: #111D33;
+  border-color: rgba(91,155,213,0.15);
 }
 
 [data-theme="dark"] .donate__impact {
-  background: #1A1A1E;
+  background: #111D33;
 }
 
 [data-theme="dark"] .donate__impact-icon {
@@ -286,12 +287,12 @@
 
 /* Dark: Page sections */
 [data-theme="dark"] .page-section {
-  background: #0A0A0C;
+  background: #0B1120;
 }
 
 /* Dark: Privacy / Terms content */
 [data-theme="dark"] .legal__body {
-  color: #C8C8CC;
+  color: #A8BDD6;
 }
 
 [data-theme="dark"] .legal__body h2,
@@ -301,7 +302,12 @@
 
 /* Dark: Footer accordion chevron */
 [data-theme="dark"] .footer__heading::after {
-  border-color: rgba(255,255,255,0.3);
+  border-color: rgba(139,163,196,0.4);
+}
+
+/* Dark: Footer */
+[data-theme="dark"] .footer {
+  background: #070D1A;
 }
 
 /* Dark: Selection */
