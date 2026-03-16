@@ -33,34 +33,6 @@
     });
   }
 
-  // ─── Parallax (subtle Y-shift on scroll) ──────────────────
-  var parallaxEls = document.querySelectorAll('.parallax');
-
-  if (parallaxEls.length && !prefersReducedMotion) {
-    var ticking = false;
-
-    function updateParallax() {
-      var scrollY = window.scrollY;
-
-      parallaxEls.forEach(function (el) {
-        var rect = el.getBoundingClientRect();
-        var speed = parseFloat(el.dataset.speed) || 0.08;
-        var center = rect.top + rect.height / 2;
-        var viewCenter = window.innerHeight / 2;
-        var offset = (center - viewCenter) * speed;
-        el.style.transform = 'translateY(' + offset + 'px)';
-      });
-
-      ticking = false;
-    }
-
-    window.addEventListener('scroll', function () {
-      if (!ticking) {
-        requestAnimationFrame(updateParallax);
-        ticking = true;
-      }
-    }, { passive: true });
-  }
 
   // ─── Navbar scroll state ───────────────────────────────────
   const navbar = document.getElementById('navbar');
