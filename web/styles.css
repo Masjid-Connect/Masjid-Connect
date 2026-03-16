@@ -193,7 +193,7 @@
 /* Dark: Mobile menu */
 /* Dark: Mobile menu — sapphire frosted glass */
 [data-theme="dark"] .navbar__nav {
-  background: rgba(10, 10, 12, 0.88);
+  background: var(--onyx-950, #0A0A0C);
 }
 
 [data-theme="dark"] .mobile-menu__item {
@@ -2510,17 +2510,19 @@ a.contact__info-value:hover {
   }
 
   /* ─── Mobile Menu — Full-screen premium nav ─────────────── */
+  /* Use position: absolute relative to the fixed .navbar parent.
+     This avoids the containing-block trap that position: fixed
+     causes when ancestors have backdrop-filter/transform/filter. */
   .navbar__nav {
-    position: fixed;
-    top: var(--nav-height);
+    position: absolute;
+    top: 100%;
     left: 0;
     right: 0;
-    bottom: 0;
+    height: calc(100vh - var(--nav-height));
+    height: calc(100dvh - var(--nav-height));
     flex-direction: column;
     justify-content: space-between;
-    background: rgba(249, 247, 242, 0.92);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    background: var(--stone-100);
     padding: 48px 32px 40px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
