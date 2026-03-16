@@ -688,20 +688,16 @@ ul {
 
 .hero__content {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  text-align: center;
-  gap: var(--sp-4xl);
-  padding: var(--sp-4xl) 0 var(--sp-5xl);
+  gap: var(--sp-5xl);
+  padding: var(--sp-5xl) 0;
   position: relative;
   z-index: 1;
 }
 
 .hero__text {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  max-width: 600px;
+  flex: 1;
+  min-width: 0;
 }
 
 .hero__logo {
@@ -732,7 +728,6 @@ ul {
   display: flex;
   gap: var(--sp-md);
   flex-wrap: wrap;
-  justify-content: center;
 }
 
 .store-badge {
@@ -751,15 +746,11 @@ ul {
 }
 
 .hero__phones {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-
-.hero__phones-stage {
+  flex: 1;
   display: flex;
   justify-content: center;
   gap: var(--sp-2xl);
+  min-width: 0;
   perspective: 1200px;
 }
 
@@ -2380,8 +2371,27 @@ a.contact__info-value:hover {
 /* Tablet */
 @media (max-width: 1024px) {
   .hero__content {
-    padding: var(--sp-3xl) 0;
-    gap: var(--sp-3xl);
+    flex-direction: column;
+    text-align: center;
+    padding: var(--sp-4xl) 0;
+  }
+
+  .hero__text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero__subtitle {
+    max-width: 480px;
+  }
+
+  .hero__badges {
+    justify-content: center;
+  }
+
+  .hero__phones {
+    margin-top: var(--sp-3xl);
   }
 
   .showcase__row,
@@ -2677,7 +2687,7 @@ a.contact__info-value:hover {
     font-size: 16px;
   }
 
-  .hero__phones-stage {
+  .hero__phones {
     gap: var(--sp-md);
   }
 
@@ -2930,7 +2940,7 @@ a.contact__info-value:hover {
 
 /* Small phones */
 @media (max-width: 480px) {
-  .hero__phones-stage {
+  .hero__phones {
     gap: var(--sp-md);
   }
 
@@ -2980,7 +2990,7 @@ a.contact__info-value:hover {
     font-size: 28px;
   }
 
-  .hero__phones-stage {
+  .hero__phones {
     gap: var(--sp-sm);
   }
 
