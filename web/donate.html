@@ -318,8 +318,15 @@
     <div class="bank-sheet__panel">
       <div class="bank-sheet__handle"></div>
       <h3 class="bank-sheet__title">Bank Transfer Details</h3>
-      <p class="bank-sheet__desc">Transfer directly to the masjid account. Please use your name as the payment reference.</p>
+      <p class="bank-sheet__desc">Transfer directly to the masjid account using your banking app or online banking.</p>
 
+      <ol class="bank-sheet__steps">
+        <li>Open your banking app or log in to online banking</li>
+        <li>Set up a new payment using the details below</li>
+        <li>Use <strong>your name</strong> as the payment reference</li>
+      </ol>
+
+      <h4 class="bank-sheet__section-title">UK Bank Transfer</h4>
       <div class="bank-sheet__details">
         <div class="bank-sheet__row">
           <span class="bank-sheet__label">Account Name</span>
@@ -343,7 +350,23 @@
         </div>
       </div>
 
-      <p class="bank-sheet__note">Contact <a href="mailto:info@salafimasjid.app">info@salafimasjid.app</a> for bank details or to confirm your transfer.</p>
+      <h4 class="bank-sheet__section-title">International Transfer</h4>
+      <div class="bank-sheet__details">
+        <div class="bank-sheet__row">
+          <span class="bank-sheet__label">IBAN</span>
+          <span class="bank-sheet__value">GB14 LOYD 3093 0900 2312 60</span>
+        </div>
+        <div class="bank-sheet__row">
+          <span class="bank-sheet__label">BIC / SWIFT</span>
+          <span class="bank-sheet__value">LOYDGB21282</span>
+        </div>
+        <div class="bank-sheet__row">
+          <span class="bank-sheet__label">Branch</span>
+          <span class="bank-sheet__value">Erdington, Birmingham, UK</span>
+        </div>
+      </div>
+
+      <p class="bank-sheet__note">Contact <a href="mailto:info@salafimasjid.app">info@salafimasjid.app</a> to confirm your transfer or if you need any help.</p>
 
       <button class="bank-sheet__close" type="button" id="bank-sheet-close">Close</button>
     </div>
