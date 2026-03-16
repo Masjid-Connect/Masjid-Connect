@@ -241,8 +241,6 @@ ul {
 
 .navbar.is-scrolled {
   background: rgba(249, 247, 242, 0.92);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
   box-shadow: 0 1px 0 var(--separator);
 }
 
@@ -251,6 +249,13 @@ ul {
   align-items: center;
   justify-content: space-between;
   height: 100%;
+}
+
+/* backdrop-filter on __inner (not .navbar) to avoid creating
+   a containing block that traps the position:fixed mobile menu */
+.navbar.is-scrolled .navbar__inner {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
 }
 
 .navbar__logo {
@@ -1165,6 +1170,55 @@ ul {
   flex-shrink: 0;
 }
 
+/* PayPal alternative */
+.donate__paypal-divider {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 24px 0 16px;
+  color: var(--onyx-600);
+  font-size: 13px;
+}
+
+.donate__paypal-divider::before,
+.donate__paypal-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--separator);
+}
+
+.donate__paypal-text {
+  font-size: 14px;
+  color: var(--onyx-600);
+  margin-bottom: 12px;
+}
+
+.donate__paypal-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background: #0070ba;
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.donate__paypal-btn:hover {
+  background: #005ea6;
+}
+
+.donate__paypal-btn:active {
+  transform: scale(0.98);
+}
+
 /* Status messages */
 .donate__status {
   display: flex;
@@ -1954,7 +2008,7 @@ a.contact__info-value:hover {
     transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
                 transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
                 visibility 0s linear 0.3s;
-    z-index: 99;
+    z-index: 200;
   }
 
   .navbar__nav.is-open {
@@ -2398,6 +2452,58 @@ a.contact__info-value:hover {
   .footer__store-badges {
     flex-direction: row;
   }
+
+  /* ─── Footer accordion toggles on mobile ──────────────── */
+  .footer__col:not(.footer__col--brand) {
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding-bottom: 0;
+  }
+
+  .footer__col:not(.footer__col--brand) .footer__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    padding: 14px 0;
+    margin-bottom: 0;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+
+  .footer__heading::after {
+    content: "";
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-right: 2px solid rgba(255,255,255,0.4);
+    border-bottom: 2px solid rgba(255,255,255,0.4);
+    transform: rotate(45deg);
+    transition: transform 0.25s ease;
+    flex-shrink: 0;
+  }
+
+  .footer__col--brand .footer__heading::after {
+    display: none;
+  }
+
+  .footer__heading.is-open::after {
+    transform: rotate(-135deg);
+  }
+
+  .footer__col:not(.footer__col--brand) .footer__list,
+  .footer__col:not(.footer__col--brand) .footer__store-badges {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+  }
+
+  .footer__col:not(.footer__col--brand) .footer__list.is-open,
+  .footer__col:not(.footer__col--brand) .footer__store-badges.is-open {
+    max-height: 300px;
+    opacity: 1;
+    padding-bottom: 14px;
+  }
 }
 
 /* Small phones */
@@ -2486,9 +2592,12 @@ a.contact__info-value:hover {
    ═══════════════════════════════════════════════════════════════ */
 .navbar--solid {
   background: rgba(249, 247, 242, 0.97);
+  box-shadow: 0 1px 0 var(--separator);
+}
+
+.navbar--solid .navbar__inner {
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  box-shadow: 0 1px 0 var(--separator);
 }
 
 .navbar--solid .navbar__logo-img {
