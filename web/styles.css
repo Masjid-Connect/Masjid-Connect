@@ -1447,11 +1447,6 @@ ul {
   color: #fff;
 }
 
-.donate__method-btn--paypal .donate__method-icons {
-  background: #FFC439;
-  color: #003087;
-}
-
 .donate__method-btn--bank .donate__method-icons {
   background: var(--stone-200);
   color: var(--onyx-900);
