@@ -665,7 +665,7 @@ ul {
   display: flex;
   align-items: center;
   background: linear-gradient(165deg, #0a1628 0%, var(--sapphire-700) 35%, #183d6e 60%, #1a4a7a 100%);
-  overflow: hidden;
+  overflow-x: clip;
   padding-top: var(--nav-height);
 }
 
@@ -688,16 +688,20 @@ ul {
 
 .hero__content {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--sp-5xl);
-  padding: var(--sp-5xl) 0;
+  text-align: center;
+  gap: var(--sp-4xl);
+  padding: var(--sp-4xl) 0 var(--sp-5xl);
   position: relative;
   z-index: 1;
 }
 
 .hero__text {
-  flex: 1;
-  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 600px;
 }
 
 .hero__logo {
@@ -721,13 +725,14 @@ ul {
   line-height: 1.6;
   color: rgba(255,255,255,0.7);
   margin-bottom: var(--sp-3xl);
-  max-width: 440px;
+  max-width: 480px;
 }
 
 .hero__badges {
   display: flex;
   gap: var(--sp-md);
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .store-badge {
@@ -746,12 +751,16 @@ ul {
 }
 
 .hero__phones {
-  flex: 1;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.hero__phones-stage {
   display: flex;
   justify-content: center;
   gap: var(--sp-2xl);
-  min-width: 0;
-  overflow: hidden;
+  perspective: 1200px;
 }
 
 .hero__curve {
@@ -786,11 +795,11 @@ ul {
 }
 
 .phone--hero.phone--left {
-  transform: rotate(-4deg) translateY(20px);
+  transform: rotateY(8deg) rotateX(2deg) rotateZ(-2deg) translateY(12px);
 }
 
 .phone--hero.phone--right {
-  transform: rotate(4deg) translateY(-10px);
+  transform: rotateY(-8deg) rotateX(2deg) rotateZ(2deg) translateY(-8px);
 }
 
 .phone__screen {
@@ -2371,27 +2380,8 @@ a.contact__info-value:hover {
 /* Tablet */
 @media (max-width: 1024px) {
   .hero__content {
-    flex-direction: column;
-    text-align: center;
-    padding: var(--sp-4xl) 0;
-  }
-
-  .hero__text {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .hero__subtitle {
-    max-width: 480px;
-  }
-
-  .hero__badges {
-    justify-content: center;
-  }
-
-  .hero__phones {
-    margin-top: var(--sp-4xl);
+    padding: var(--sp-3xl) 0;
+    gap: var(--sp-3xl);
   }
 
   .showcase__row,
@@ -2669,6 +2659,11 @@ a.contact__info-value:hover {
     padding-bottom: 80px;
   }
 
+  .hero__content {
+    padding: var(--sp-2xl) 0;
+    gap: var(--sp-2xl);
+  }
+
   .hero__logo {
     height: 36px;
   }
@@ -2682,7 +2677,7 @@ a.contact__info-value:hover {
     font-size: 16px;
   }
 
-  .hero__phones {
+  .hero__phones-stage {
     gap: var(--sp-md);
   }
 
@@ -2935,15 +2930,12 @@ a.contact__info-value:hover {
 
 /* Small phones */
 @media (max-width: 480px) {
-  .hero__phones {
+  .hero__phones-stage {
     gap: var(--sp-md);
   }
 
   .phone--hero {
     width: 155px;
-  }
-
-  .phone--hero {
     border-radius: 24px;
     padding: 5px;
   }
@@ -2958,10 +2950,6 @@ a.contact__info-value:hover {
 
   .store-badge__svg {
     height: 40px;
-  }
-
-  .hero__badges {
-    justify-content: center;
   }
 
   .showcase__title {
@@ -2992,7 +2980,7 @@ a.contact__info-value:hover {
     font-size: 28px;
   }
 
-  .hero__phones {
+  .hero__phones-stage {
     gap: var(--sp-sm);
   }
 
