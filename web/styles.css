@@ -326,7 +326,7 @@ html {
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .reveal, .reveal-scale, .reveal-left, .reveal-right, .reveal-stagger > *, .parallax {
+  .reveal, .reveal-scale, .reveal-left, .reveal-right, .reveal-stagger > * {
     opacity: 1 !important; transform: none !important; transition: none !important;
   }
 }
@@ -464,10 +464,6 @@ ul {
 }
 
 /* Parallax float — subtle Y-axis shift driven by JS */
-.parallax {
-  transition: transform 0.1s linear;
-  will-change: transform;
-}
 
 /* ═══════════════════════════════════════════════════════════════
    NAVBAR
