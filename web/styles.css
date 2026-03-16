@@ -2368,30 +2368,14 @@ a.contact__info-value:hover {
    RESPONSIVE
    ═══════════════════════════════════════════════════════════════ */
 
-/* Tablet */
+/* Tablet — hero stays side-by-side, phones scale down */
 @media (max-width: 1024px) {
   .hero__content {
-    flex-direction: column;
-    text-align: center;
-    padding: var(--sp-4xl) 0;
+    gap: var(--sp-3xl);
   }
 
-  .hero__text {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .hero__subtitle {
-    max-width: 480px;
-  }
-
-  .hero__badges {
-    justify-content: center;
-  }
-
-  .hero__phones {
-    margin-top: var(--sp-3xl);
+  .phone--hero {
+    width: 180px;
   }
 
   .showcase__row,
@@ -2663,15 +2647,35 @@ a.contact__info-value:hover {
     transform: scale(0.98);
   }
 
-  /* Hero mobile */
+  /* Hero mobile — stack vertically on small screens */
   .hero {
     min-height: auto;
     padding-bottom: 80px;
   }
 
   .hero__content {
+    flex-direction: column;
+    text-align: center;
     padding: var(--sp-2xl) 0;
     gap: var(--sp-2xl);
+  }
+
+  .hero__text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero__subtitle {
+    max-width: 480px;
+  }
+
+  .hero__badges {
+    justify-content: center;
+  }
+
+  .hero__phones {
+    margin-top: var(--sp-xl);
   }
 
   .hero__logo {
