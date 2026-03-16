@@ -187,23 +187,43 @@
   });
 
   // ─── Tap-to-copy bank details ────────────────────────────
-  var copyableValues = bankSheet ? bankSheet.querySelectorAll('.bank-sheet__value[data-copy]') : [];
+  function copyToClipboard(text, btn) {
+    if (!text || !navigator.clipboard) return;
 
-  copyableValues.forEach(function (el) {
-    el.addEventListener('click', function () {
-      var text = el.getAttribute('data-copy');
-      if (!text || !navigator.clipboard) return;
-
-      navigator.clipboard.writeText(text).then(function () {
-        var original = el.textContent;
-        el.textContent = 'Copied';
-        el.classList.add('bank-sheet__value--copied');
+    navigator.clipboard.writeText(text).then(function () {
+      var label = btn.querySelector('.bank-sheet__copy-label');
+      var svg = btn.querySelector('svg');
+      if (label) {
+        label.textContent = 'Copied!';
+        btn.classList.add('bank-sheet__copy-btn--copied');
+        if (svg) svg.style.display = 'none';
 
         setTimeout(function () {
-          el.textContent = original;
-          el.classList.remove('bank-sheet__value--copied');
+          label.textContent = 'Copy';
+          btn.classList.remove('bank-sheet__copy-btn--copied');
+          if (svg) svg.style.display = '';
         }, 1500);
-      });
+      }
+    });
+  }
+
+  // Copy buttons
+  var copyBtns = bankSheet ? bankSheet.querySelectorAll('.bank-sheet__copy-btn[data-copy]') : [];
+  copyBtns.forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      copyToClipboard(btn.getAttribute('data-copy'), btn);
+    });
+  });
+
+  // Also allow clicking the value itself
+  var copyableValues = bankSheet ? bankSheet.querySelectorAll('.bank-sheet__value[data-copy]') : [];
+  copyableValues.forEach(function (el) {
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', function () {
+      var row = el.closest('.bank-sheet__copyable');
+      var btn = row ? row.querySelector('.bank-sheet__copy-btn') : null;
+      if (btn) copyToClipboard(el.getAttribute('data-copy'), btn);
     });
   });
 

@@ -193,7 +193,7 @@
 /* Dark: Mobile menu */
 /* Dark: Mobile menu — sapphire frosted glass */
 [data-theme="dark"] .navbar__nav {
-  background: var(--onyx-950, #0A0A0C);
+  background: #0B1120;
 }
 
 [data-theme="dark"] .mobile-menu__item {
@@ -334,11 +334,11 @@
 
 /* Dark: Bank transfer sheet — Sapphire palette */
 [data-theme="dark"] .bank-sheet__backdrop {
-  background: rgba(10, 10, 12, 0.6);
+  background: rgba(7, 13, 26, 0.7);
 }
 
 [data-theme="dark"] .bank-sheet__panel {
-  background: var(--onyx-850, #1A1A1E);
+  background: #111D33;
 }
 
 [data-theme="dark"] .bank-sheet__handle {
@@ -363,7 +363,7 @@
 }
 
 [data-theme="dark"] .bank-sheet__details {
-  background: var(--onyx-800, #262628);
+  background: #0E1829;
   border-color: rgba(91, 155, 213, 0.12);
 }
 
@@ -379,13 +379,20 @@
   color: var(--snow, #F5F5F7);
 }
 
-[data-theme="dark"] .bank-sheet__value[data-copy]:active {
-  background: rgba(91, 155, 213, 0.15);
+[data-theme="dark"] .bank-sheet__copy-btn {
+  color: var(--sapphire-400, #5B9BD5);
+  background: rgba(91, 155, 213, 0.1);
+  border-color: rgba(91, 155, 213, 0.2);
 }
 
-[data-theme="dark"] .bank-sheet__value--copied {
-  color: var(--sapphire-400, #5B9BD5) !important;
-  background: rgba(91, 155, 213, 0.1);
+[data-theme="dark"] .bank-sheet__copy-btn:hover {
+  background: rgba(91, 155, 213, 0.18);
+}
+
+[data-theme="dark"] .bank-sheet__copy-btn--copied {
+  color: var(--sage-600);
+  background: rgba(45, 106, 79, 0.15);
+  border-color: rgba(45, 106, 79, 0.25);
 }
 
 [data-theme="dark"] .bank-sheet__note {
@@ -397,7 +404,7 @@
 }
 
 [data-theme="dark"] .bank-sheet__close {
-  background: var(--onyx-800, #262628);
+  background: #0E1829;
   color: var(--sapphire-400, #5B9BD5);
 }
 
@@ -1688,22 +1695,49 @@ ul {
   word-break: break-word;
 }
 
-.bank-sheet__value[data-copy] {
-  cursor: pointer;
-  padding: 4px 8px;
-  margin: -4px -8px;
-  border-radius: 6px;
-  transition: background 0.15s ease, color 0.2s ease;
-  -webkit-tap-highlight-color: transparent;
+.bank-sheet__copyable {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
-.bank-sheet__value[data-copy]:active {
-  background: rgba(15, 45, 82, 0.08);
-}
-
-.bank-sheet__value--copied {
-  color: var(--sapphire-700) !important;
+.bank-sheet__copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--sapphire-700);
   background: rgba(15, 45, 82, 0.06);
+  border: 1px solid rgba(15, 45, 82, 0.1);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.bank-sheet__copy-btn svg {
+  flex-shrink: 0;
+}
+
+.bank-sheet__copy-btn:hover {
+  background: rgba(15, 45, 82, 0.1);
+}
+
+.bank-sheet__copy-btn:active {
+  background: rgba(15, 45, 82, 0.15);
+  transform: scale(0.96);
+}
+
+.bank-sheet__copy-btn--copied {
+  color: var(--sage-600);
+  background: rgba(45, 106, 79, 0.08);
+  border-color: rgba(45, 106, 79, 0.15);
 }
 
 .bank-sheet__note {
@@ -2993,6 +3027,10 @@ a.contact__info-value:hover {
 
   .bank-sheet__label {
     font-size: 12px;
+  }
+
+  .bank-sheet__copyable {
+    justify-content: flex-start;
   }
 
   /* Contact form mobile */
