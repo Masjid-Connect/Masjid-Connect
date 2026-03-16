@@ -3405,6 +3405,23 @@ a.contact__info-value:hover {
   }
 }
 
+/* ─── Honeypot (spam trap — invisible to humans) ─────────────── */
+.form-hp {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ─── Cloudflare Turnstile ───────────────────────────────────── */
+.cf-turnstile {
+  margin-bottom: var(--sp-lg);
+}
+
 /* ─── Focus Indicators (Accessibility) ───────────────────────── */
 a:focus-visible,
 button:focus-visible {

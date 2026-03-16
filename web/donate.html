@@ -17,6 +17,7 @@
   <link rel="apple-touch-icon" href="images/favicon-180.png">
   <link rel="manifest" href="site.webmanifest">
   <link rel="stylesheet" href="styles.css">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 
@@ -106,6 +107,11 @@
           <!-- Left: Payment form -->
           <div class="donate__form-wrap">
             <div class="donate__form-card">
+              <!-- Honeypot — hidden from humans, bots fill it -->
+              <div class="form-hp" aria-hidden="true" tabindex="-1">
+                <label for="donate-company">Company</label>
+                <input type="text" id="donate-company" name="company" autocomplete="off" tabindex="-1">
+              </div>
 
               <!-- Frequency toggle -->
               <div class="donate__frequency">
@@ -144,6 +150,9 @@
                 <label class="contact-form__label" for="donor-email">Email <span style="font-weight:400;color:var(--onyx-600);">(for receipt)</span></label>
                 <input class="contact-form__input" type="email" id="donor-email" placeholder="you@example.com" autocomplete="email">
               </div>
+
+              <!-- Cloudflare Turnstile -->
+              <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITE_KEY" data-theme="auto" data-size="normal" data-callback="onDonateTurnstile"></div>
 
               <!-- Submit -->
               <button class="donate__submit" type="button" id="donate-submit">
