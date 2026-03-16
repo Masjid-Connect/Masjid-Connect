@@ -330,6 +330,11 @@
   border-color: rgba(91,155,213,0.1);
 }
 
+[data-theme="dark"] .bank-sheet__section-title {
+  color: var(--snow);
+  opacity: 0.6;
+}
+
 [data-theme="dark"] .bank-sheet__close {
   background: #0E1829;
   color: var(--sapphire-400);
@@ -1559,7 +1564,32 @@ ul {
   font-size: 14px;
   color: var(--onyx-600);
   line-height: 1.5;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
+}
+
+.bank-sheet__steps {
+  font-size: 14px;
+  color: var(--onyx-600);
+  line-height: 1.6;
+  margin: 0 0 24px;
+  padding-left: 20px;
+}
+
+.bank-sheet__steps li {
+  margin-bottom: 4px;
+}
+
+.bank-sheet__section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--onyx-600);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.bank-sheet__details + .bank-sheet__section-title {
+  margin-top: 20px;
 }
 
 .bank-sheet__details {
