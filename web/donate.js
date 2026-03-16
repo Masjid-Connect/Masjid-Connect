@@ -99,8 +99,7 @@
     var originalText = label.textContent;
     label.textContent = 'Redirecting to checkout...';
 
-    var origin = window.location.origin;
-    var donatePageUrl = origin + '/donate.html';
+    var donatePageUrl = window.location.origin + window.location.pathname;
 
     fetch(CHECKOUT_URL, {
       method: 'POST',
@@ -115,9 +114,13 @@
     })
       .then(function (res) {
         if (!res.ok) {
-          return res.json().then(function (body) {
-            throw new Error(body.detail || 'Failed to start checkout');
-          });
+          var contentType = res.headers.get('content-type') || '';
+          if (contentType.indexOf('application/json') !== -1) {
+            return res.json().then(function (body) {
+              throw new Error(body.detail || 'Failed to start checkout');
+            });
+          }
+          throw new Error('Payment service is temporarily unavailable. Please try again later.');
         }
         return res.json();
       })
