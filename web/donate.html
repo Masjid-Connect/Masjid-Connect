@@ -143,33 +143,19 @@
                 <span class="donate__step-label">Payment method</span>
 
                 <div class="donate__methods">
-                  <!-- Card / Apple Pay / Google Pay via Stripe Checkout -->
+                  <!-- Stripe Checkout — all methods (Card, PayPal, Apple Pay, Google Pay, Pay by Bank) managed via Stripe Dashboard -->
                   <button class="donate__method-btn donate__method-btn--card" type="button" id="pay-card">
                     <div class="donate__method-icons">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                     </div>
                     <div class="donate__method-info">
-                      <span class="donate__method-label">Card, Apple Pay, Google Pay</span>
-                      <span class="donate__method-desc">Secure checkout powered by Stripe</span>
+                      <span class="donate__method-label">Continue to Payment</span>
+                      <span class="donate__method-desc">Card, PayPal, Apple Pay, Google Pay or Bank</span>
                     </div>
                     <svg class="donate__method-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                   </button>
 
-                  <!-- PayPal -->
-                  <a href="https://www.paypal.com/donate/?hosted_button_id=SLB87MM3Q3JJW" class="donate__method-btn donate__method-btn--paypal" target="_blank" rel="noopener" id="pay-paypal">
-                    <div class="donate__method-icons">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 2.096A.859.859 0 0 1 5.79 1.4h6.644c2.2 0 3.818.563 4.81 1.673.463.518.78 1.09.944 1.7.17.63.198 1.383.082 2.24l-.013.082v.734l.573.325c.484.258.87.56 1.164.908.39.46.642 1.03.751 1.69.113.68.084 1.49-.084 2.41-.194 1.06-.51 1.98-.94 2.73a5.54 5.54 0 0 1-1.49 1.73c-.596.456-1.305.79-2.11.993-.782.198-1.673.298-2.65.298h-.63a1.9 1.9 0 0 0-1.878 1.6l-.032.18-.64 4.06-.025.128a.228.228 0 0 1-.225.193H7.076z"/>
-                      </svg>
-                    </div>
-                    <div class="donate__method-info">
-                      <span class="donate__method-label">PayPal</span>
-                      <span class="donate__method-desc">Donate via your PayPal account</span>
-                    </div>
-                    <svg class="donate__method-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                  </a>
-
-                  <!-- Bank Transfer -->
+                  <!-- Manual Bank Transfer (shows bank details for direct transfer) -->
                   <button class="donate__method-btn donate__method-btn--bank" type="button" id="pay-bank">
                     <div class="donate__method-icons">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/><path d="M4 10v11"/><path d="M20 10v11"/><path d="M8 14v3"/><path d="M12 14v3"/><path d="M16 14v3"/></svg>
@@ -353,7 +339,7 @@
         </div>
         <div class="bank-sheet__row">
           <span class="bank-sheet__label">Reference</span>
-          <span class="bank-sheet__value">Donation</span>
+          <span class="bank-sheet__value">Masjid Donation</span>
         </div>
       </div>
 

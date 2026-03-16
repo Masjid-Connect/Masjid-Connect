@@ -775,7 +775,7 @@ def create_donation(request):
 @permission_classes([permissions.AllowAny])
 @throttle_classes([DonationRateThrottle])
 def create_checkout_session(request):
-    """Create a Stripe Checkout Session for card / Apple Pay / Google Pay donations."""
+    """Create a Stripe Checkout Session — payment methods managed via Stripe Dashboard."""
     import stripe as stripe_lib
 
     secret_key = getattr(settings, "STRIPE_SECRET_KEY", "")
@@ -813,15 +813,19 @@ def create_checkout_session(request):
         )
 
     try:
+        is_recurring = frequency == "monthly"
+
+        # Let Stripe Dashboard control which payment methods are shown
+        # (card, PayPal, Pay by Bank, Apple Pay, Google Pay — all managed
+        # from Settings → Payment Methods without code changes).
         session_params = {
-            "payment_method_types": ["card"],
-            "mode": "subscription" if frequency == "monthly" else "payment",
+            "mode": "subscription" if is_recurring else "payment",
             "success_url": success_url,
             "cancel_url": cancel_url,
             "metadata": {"frequency": frequency, "source": "website"},
         }
 
-        if frequency == "monthly":
+        if is_recurring:
             session_params["line_items"] = [
                 {
                     "price_data": {

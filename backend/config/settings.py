@@ -200,6 +200,10 @@ SPECTACULAR_SETTINGS = {
 
 # CORS
 CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS")
+# Allow Cloudflare Pages preview deployments (unique subdomains per deploy)
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://[a-z0-9]+\.masjid-connect\.pages\.dev$",
+]
 if DEBUG and not CORS_ALLOWED_ORIGINS:
     CORS_ALLOW_ALL_ORIGINS = True
 
