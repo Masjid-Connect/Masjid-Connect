@@ -21,7 +21,7 @@
           }
         });
       },
-      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+      { threshold: 0.6, rootMargin: '0px 0px -60px 0px' }
     );
 
     revealElements.forEach(function (el) {
@@ -169,6 +169,38 @@
       });
     });
   }
+  // ─── Footer accordion toggles (mobile) ────────────────────
+  var footerCols = document.querySelectorAll('.footer__col:not(.footer__col--brand)');
+
+  footerCols.forEach(function (col) {
+    var heading = col.querySelector('.footer__heading');
+    var list = col.querySelector('.footer__list');
+    var badges = col.querySelector('.footer__store-badges');
+
+    if (heading && list) {
+      heading.addEventListener('click', function () {
+        var isOpen = heading.classList.contains('is-open');
+
+        // Close all other sections first
+        footerCols.forEach(function (otherCol) {
+          var otherHeading = otherCol.querySelector('.footer__heading');
+          var otherList = otherCol.querySelector('.footer__list');
+          var otherBadges = otherCol.querySelector('.footer__store-badges');
+          if (otherHeading) otherHeading.classList.remove('is-open');
+          if (otherList) otherList.classList.remove('is-open');
+          if (otherBadges) otherBadges.classList.remove('is-open');
+        });
+
+        // Toggle current section
+        if (!isOpen) {
+          heading.classList.add('is-open');
+          list.classList.add('is-open');
+          if (badges) badges.classList.add('is-open');
+        }
+      });
+    }
+  });
+
   // ─── Contact form handling ──────────────────────────────────
   var contactForm = document.getElementById('contact-form');
 
