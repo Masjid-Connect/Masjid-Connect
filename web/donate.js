@@ -100,7 +100,28 @@
   // Try once now, and retry on click if needed
   initStripe();
 
+  // ─── API health pre-check (diagnostic only) ────────────────
+  var API_BASE = 'https://api.salafimasjid.app';
+  fetch(API_BASE + '/health/', { method: 'GET', mode: 'cors' })
+    .then(function (res) {
+      console.log('[donate] API health check:', res.status, res.ok ? 'OK' : 'FAIL');
+      if (!res.ok) {
+        console.warn('[donate] API server returned', res.status, '— payments may not work');
+      }
+    })
+    .catch(function (err) {
+      console.error('[donate] API UNREACHABLE:', err.message,
+        '— this means fetch() to', API_BASE, 'failed at the network level.',
+        'Likely causes: CORS not allowing this origin (' + window.location.origin + '),',
+        'DNS not resolving, or server is down.');
+    });
+
   // ─── Card / Apple Pay / Google Pay (Stripe Checkout) ────────
+  function resetCardBtn(label, originalText) {
+    cardBtn.classList.remove('donate__method-btn--loading');
+    if (label) label.textContent = originalText;
+  }
+
   cardBtn.addEventListener('click', function () {
     if (!validateAmount()) return;
 
@@ -108,7 +129,8 @@
     initStripe();
 
     if (!stripe) {
-      showError('Payment is loading. Please wait a moment and try again.');
+      showError('Payment is loading — Stripe.js has not initialised. Please wait a moment and try again.');
+      console.error('[donate] Stripe.js not loaded. typeof Stripe:', typeof Stripe, '| PK set:', !!STRIPE_PK);
       return;
     }
 
@@ -119,42 +141,93 @@
     if (label) label.textContent = 'Redirecting to checkout...';
 
     var donatePageUrl = window.location.origin + window.location.pathname;
+    var payload = {
+      amount: Math.round(selectedAmount * 100),
+      currency: 'gbp',
+      frequency: frequency,
+      success_url: donatePageUrl + '?success=1',
+      cancel_url: donatePageUrl + '?cancelled=1'
+    };
+
+    console.log('[donate] POST', CHECKOUT_URL, JSON.stringify(payload));
 
     fetch(CHECKOUT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        amount: Math.round(selectedAmount * 100),
-        currency: 'gbp',
-        frequency: frequency,
-        success_url: donatePageUrl + '?success=1',
-        cancel_url: donatePageUrl + '?cancelled=1'
-      })
+      body: JSON.stringify(payload)
     })
       .then(function (res) {
+        console.log('[donate] Response:', res.status, res.statusText, '| CORS ok:', res.type !== 'opaque');
+
         if (!res.ok) {
           var contentType = res.headers.get('content-type') || '';
+
+          // Server returned an error — try to extract detail
           if (contentType.indexOf('application/json') !== -1) {
             return res.json().then(function (body) {
-              throw new Error(body.detail || 'Failed to start checkout');
+              console.error('[donate] Server error JSON:', JSON.stringify(body));
+              var detail = body.detail || JSON.stringify(body);
+
+              if (res.status === 503) {
+                throw new Error('Payment service not configured on the server. Please contact the masjid. (503)');
+              }
+              if (res.status === 502) {
+                throw new Error('Stripe rejected the request — ' + detail + ' (502)');
+              }
+              if (res.status === 400) {
+                throw new Error(detail + ' (400)');
+              }
+              if (res.status === 429) {
+                throw new Error('Too many attempts. Please wait a few minutes and try again. (429)');
+              }
+              throw new Error(detail + ' (' + res.status + ')');
             });
           }
-          throw new Error('Payment service is temporarily unavailable. Please try again later.');
+
+          // Non-JSON error (e.g., HTML error page from proxy/Nginx)
+          return res.text().then(function (text) {
+            console.error('[donate] Server error (non-JSON):', res.status, text.substring(0, 500));
+            if (res.status === 502 || res.status === 504) {
+              throw new Error('The payment server is not responding. It may be restarting — please try again in a minute. (' + res.status + ')');
+            }
+            if (res.status === 403) {
+              throw new Error('Request blocked by the server. This may be a CSRF or permission issue. (' + res.status + ')');
+            }
+            throw new Error('Server error (' + res.status + '). Please try again later.');
+          });
         }
+
         return res.json();
       })
       .then(function (data) {
+        if (!data || !data.id) {
+          console.error('[donate] Missing session ID in response:', JSON.stringify(data));
+          throw new Error('Server returned an unexpected response — no checkout session ID.');
+        }
+        console.log('[donate] Redirecting to Stripe checkout, session:', data.id);
         return stripe.redirectToCheckout({ sessionId: data.id });
       })
       .then(function (result) {
         if (result && result.error) {
-          throw new Error(result.error.message);
+          console.error('[donate] Stripe redirect error:', result.error.message);
+          throw new Error('Stripe: ' + result.error.message);
         }
       })
       .catch(function (err) {
-        showError(err.message || 'Something went wrong. Please try again.');
-        cardBtn.classList.remove('donate__method-btn--loading');
-        if (label) label.textContent = originalText;
+        // Distinguish network/CORS failure from server errors
+        var msg = err.message || 'Unknown error';
+
+        if (err.name === 'TypeError' && (msg === 'Failed to fetch' || msg.indexOf('NetworkError') !== -1 || msg.indexOf('fetch') !== -1)) {
+          // This is a network-level failure — could be CORS, DNS, or server unreachable
+          console.error('[donate] Network/CORS failure:', msg);
+          msg = 'Cannot reach the payment server (api.salafimasjid.app). '
+              + 'This is usually a CORS, DNS, or connectivity issue. '
+              + 'Check the browser console (F12 → Console) for details.';
+        }
+
+        console.error('[donate] Checkout failed:', err);
+        showError(msg);
+        resetCardBtn(label, originalText);
       });
   });
 
