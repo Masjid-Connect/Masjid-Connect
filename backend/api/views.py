@@ -771,6 +771,151 @@ def create_donation(request):
         )
 
 
+# ── Stripe Webhook ───────────────────────────────────────────────────
+
+
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+def stripe_webhook(request):
+    """
+    Handle Stripe webhook events.
+
+    Verifies the webhook signature using STRIPE_WEBHOOK_SECRET, then
+    processes the event. Duplicate events are skipped (idempotent).
+    """
+    import stripe as stripe_lib
+
+    from core.models import StripeEvent
+
+    webhook_secret = getattr(settings, "STRIPE_WEBHOOK_SECRET", "")
+    if not webhook_secret:
+        logger.error("STRIPE_WEBHOOK_SECRET not configured")
+        return Response(
+            {"detail": "Webhook not configured."},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+    payload = request.body
+    sig_header = request.META.get("HTTP_STRIPE_SIGNATURE", "")
+
+    try:
+        event = stripe_lib.Webhook.construct_event(payload, sig_header, webhook_secret)
+    except ValueError:
+        logger.warning("Stripe webhook: invalid payload")
+        return Response(
+            {"detail": "Invalid payload."}, status=status.HTTP_400_BAD_REQUEST
+        )
+    except stripe_lib.error.SignatureVerificationError:
+        logger.warning("Stripe webhook: invalid signature")
+        return Response(
+            {"detail": "Invalid signature."}, status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # Idempotency: skip already-processed events
+    if StripeEvent.objects.filter(stripe_event_id=event["id"]).exists():
+        logger.info("Stripe webhook: duplicate event %s, skipping", event["id"])
+        return Response({"detail": "Already processed."}, status=status.HTTP_200_OK)
+
+    event_type = event["type"]
+    data_object = event["data"]["object"]
+
+    logger.info("Stripe webhook received: %s (%s)", event_type, event["id"])
+
+    # ── Handle specific event types ──
+    if event_type == "checkout.session.completed":
+        _handle_checkout_completed(data_object)
+    elif event_type == "invoice.payment_succeeded":
+        _handle_invoice_payment_succeeded(data_object)
+    elif event_type == "invoice.payment_failed":
+        _handle_invoice_payment_failed(data_object)
+    elif event_type == "customer.subscription.created":
+        _handle_subscription_created(data_object)
+    elif event_type == "customer.subscription.deleted":
+        _handle_subscription_deleted(data_object)
+    elif event_type == "payment_intent.succeeded":
+        _handle_payment_intent_succeeded(data_object)
+    else:
+        logger.info("Stripe webhook: unhandled event type %s", event_type)
+
+    # Record the event
+    StripeEvent.objects.create(
+        stripe_event_id=event["id"],
+        event_type=event_type,
+        processed=True,
+        payload=event["data"],
+    )
+
+    return Response({"detail": "Webhook processed."}, status=status.HTTP_200_OK)
+
+
+def _handle_checkout_completed(session):
+    """Handle checkout.session.completed — a checkout session was successful."""
+    customer_email = session.get("customer_email") or session.get("customer_details", {}).get("email", "")
+    amount_total = session.get("amount_total", 0)
+    currency = session.get("currency", "gbp")
+    logger.info(
+        "Checkout completed: %s %s %s (email: %s)",
+        amount_total,
+        currency,
+        session.get("id"),
+        customer_email,
+    )
+
+
+def _handle_invoice_payment_succeeded(invoice):
+    """Handle invoice.payment_succeeded — a recurring payment went through."""
+    customer_email = invoice.get("customer_email", "")
+    amount_paid = invoice.get("amount_paid", 0)
+    logger.info(
+        "Invoice payment succeeded: %s pence (email: %s, invoice: %s)",
+        amount_paid,
+        customer_email,
+        invoice.get("id"),
+    )
+
+
+def _handle_invoice_payment_failed(invoice):
+    """Handle invoice.payment_failed — a recurring payment failed."""
+    customer_email = invoice.get("customer_email", "")
+    logger.warning(
+        "Invoice payment failed: email=%s, invoice=%s, attempt=%s",
+        customer_email,
+        invoice.get("id"),
+        invoice.get("attempt_count"),
+    )
+
+
+def _handle_subscription_created(subscription):
+    """Handle customer.subscription.created — a new subscription started."""
+    logger.info(
+        "Subscription created: %s (customer: %s, status: %s)",
+        subscription.get("id"),
+        subscription.get("customer"),
+        subscription.get("status"),
+    )
+
+
+def _handle_subscription_deleted(subscription):
+    """Handle customer.subscription.deleted — a subscription was cancelled."""
+    logger.info(
+        "Subscription deleted: %s (customer: %s)",
+        subscription.get("id"),
+        subscription.get("customer"),
+    )
+
+
+def _handle_payment_intent_succeeded(payment_intent):
+    """Handle payment_intent.succeeded — a one-time payment completed."""
+    metadata = payment_intent.get("metadata", {})
+    logger.info(
+        "PaymentIntent succeeded: %s %s (frequency: %s, email: %s)",
+        payment_intent.get("amount"),
+        payment_intent.get("currency"),
+        metadata.get("frequency", "unknown"),
+        metadata.get("donor_email", "unknown"),
+    )
+
+
 # ── Helpers ──────────────────────────────────────────────────────────
 
 
