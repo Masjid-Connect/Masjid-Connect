@@ -30,30 +30,27 @@
 
   if (!cardBtn) return;
 
-  // ─── Init Stripe ─────────────────────────────────────────────
-  if (typeof Stripe !== 'undefined' && STRIPE_PK) {
-    stripe = Stripe(STRIPE_PK);
-  }
-
   // ─── Amount selection ────────────────────────────────────────
   amountBtns.forEach(function (btn) {
     btn.addEventListener('click', function () {
       amountBtns.forEach(function (b) { b.classList.remove('donate__amount--active'); });
       btn.classList.add('donate__amount--active');
       selectedAmount = parseInt(btn.dataset.amount, 10);
-      customInput.value = '';
+      if (customInput) customInput.value = '';
     });
   });
 
-  customInput.addEventListener('input', function () {
-    var val = parseFloat(customInput.value);
-    if (val && val > 0) {
-      amountBtns.forEach(function (b) { b.classList.remove('donate__amount--active'); });
-      selectedAmount = val;
-    } else {
-      selectedAmount = 50;
-    }
-  });
+  if (customInput) {
+    customInput.addEventListener('input', function () {
+      var val = parseFloat(customInput.value);
+      if (val && val > 0) {
+        amountBtns.forEach(function (b) { b.classList.remove('donate__amount--active'); });
+        selectedAmount = val;
+      } else {
+        selectedAmount = 50;
+      }
+    });
+  }
 
   // ─── Frequency toggle ───────────────────────────────────────
   freqBtns.forEach(function (btn) {
@@ -66,38 +63,60 @@
 
   // ─── Validation ─────────────────────────────────────────────
   function validateAmount() {
-    errorEl.hidden = true;
+    if (errorEl) errorEl.hidden = true;
 
     if (!selectedAmount || selectedAmount < 1) {
-      errorText.textContent = 'Please select or enter a donation amount.';
-      errorEl.hidden = false;
+      if (errorText) errorText.textContent = 'Please select or enter a donation amount.';
+      if (errorEl) errorEl.hidden = false;
       return false;
     }
 
     if (selectedAmount > 10000) {
-      errorText.textContent = 'For donations over £10,000, please contact the masjid directly.';
-      errorEl.hidden = false;
+      if (errorText) errorText.textContent = 'For donations over £10,000, please contact the masjid directly.';
+      if (errorEl) errorEl.hidden = false;
       return false;
     }
 
     return true;
   }
 
+  function showError(msg) {
+    if (errorText) errorText.textContent = msg;
+    if (errorEl) errorEl.hidden = false;
+  }
+
+  // ─── Init Stripe (deferred, never blocks other listeners) ──
+  function initStripe() {
+    if (stripe) return;
+    try {
+      if (typeof Stripe !== 'undefined' && STRIPE_PK) {
+        stripe = Stripe(STRIPE_PK);
+      }
+    } catch (e) {
+      stripe = null;
+    }
+  }
+
+  // Try once now, and retry on click if needed
+  initStripe();
+
   // ─── Card / Apple Pay / Google Pay (Stripe Checkout) ────────
   cardBtn.addEventListener('click', function () {
     if (!validateAmount()) return;
 
+    // Lazy-init Stripe in case it wasn't ready at page load
+    initStripe();
+
     if (!stripe) {
-      errorText.textContent = 'Payment is loading. Please wait a moment and try again.';
-      errorEl.hidden = false;
+      showError('Payment is loading. Please wait a moment and try again.');
       return;
     }
 
     // Disable button to prevent double-clicks
     cardBtn.classList.add('donate__method-btn--loading');
     var label = cardBtn.querySelector('.donate__method-label');
-    var originalText = label.textContent;
-    label.textContent = 'Redirecting to checkout...';
+    var originalText = label ? label.textContent : '';
+    if (label) label.textContent = 'Redirecting to checkout...';
 
     var donatePageUrl = window.location.origin + window.location.pathname;
 
@@ -125,7 +144,6 @@
         return res.json();
       })
       .then(function (data) {
-        // Redirect to Stripe Checkout
         return stripe.redirectToCheckout({ sessionId: data.id });
       })
       .then(function (result) {
@@ -134,10 +152,9 @@
         }
       })
       .catch(function (err) {
-        errorText.textContent = err.message || 'Something went wrong. Please try again.';
-        errorEl.hidden = false;
+        showError(err.message || 'Something went wrong. Please try again.');
         cardBtn.classList.remove('donate__method-btn--loading');
-        label.textContent = originalText;
+        if (label) label.textContent = originalText;
       });
   });
 
@@ -147,49 +164,42 @@
   var bankClose = document.getElementById('bank-sheet-close');
 
   function openBankSheet() {
+    if (!bankSheet) return;
     bankSheet.hidden = false;
-    // Trigger reflow for animation
-    bankSheet.offsetHeight;
+    bankSheet.offsetHeight; // trigger reflow for animation
     bankSheet.classList.add('bank-sheet--open');
     document.body.style.overflow = 'hidden';
   }
 
   function closeBankSheet() {
+    if (!bankSheet) return;
     bankSheet.classList.remove('bank-sheet--open');
     document.body.style.overflow = '';
     setTimeout(function () { bankSheet.hidden = true; }, 300);
   }
 
-  bankBtn.addEventListener('click', openBankSheet);
-  bankClose.addEventListener('click', closeBankSheet);
-  bankBackdrop.addEventListener('click', closeBankSheet);
+  if (bankBtn) bankBtn.addEventListener('click', openBankSheet);
+  if (bankClose) bankClose.addEventListener('click', closeBankSheet);
+  if (bankBackdrop) bankBackdrop.addEventListener('click', closeBankSheet);
 
-  // Close on Escape
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && !bankSheet.hidden) closeBankSheet();
+    if (e.key === 'Escape' && bankSheet && !bankSheet.hidden) closeBankSheet();
   });
 
   // ─── Check for Stripe redirect return ──────────────────────
-  function checkReturnStatus() {
-    var params = new URLSearchParams(window.location.search);
+  var params = new URLSearchParams(window.location.search);
 
-    if (params.get('success') === '1') {
+  if (params.get('success') === '1') {
+    if (successEl) {
       successEl.hidden = false;
       successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-      // Hide the form steps
-      var steps = document.querySelectorAll('.donate__step, .donate__secure, .form-hp');
-      steps.forEach(function (el) { el.style.display = 'none'; });
-
-      // Clean URL
-      window.history.replaceState({}, '', window.location.pathname);
     }
-
-    if (params.get('cancelled') === '1') {
-      // Clean URL silently — user just came back
-      window.history.replaceState({}, '', window.location.pathname);
-    }
+    var steps = document.querySelectorAll('.donate__step, .donate__secure, .form-hp');
+    steps.forEach(function (el) { el.style.display = 'none'; });
+    window.history.replaceState({}, '', window.location.pathname);
   }
 
-  checkReturnStatus();
+  if (params.get('cancelled') === '1') {
+    window.history.replaceState({}, '', window.location.pathname);
+  }
 })();
