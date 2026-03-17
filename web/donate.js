@@ -226,7 +226,7 @@
           throw new Error('Server returned an unexpected response.');
         }
 
-        console.log('[donate] Mounting embedded checkout');
+        console.log('[donate] Got client_secret, initialising embedded checkout');
 
         // Destroy any previous instance
         destroyCheckout();
@@ -234,23 +234,26 @@
         // Mount the Stripe Embedded Checkout
         return stripe.initEmbeddedCheckout({
           clientSecret: data.client_secret
+        }).then(function (checkout) {
+          embeddedCheckout = checkout;
+          resetCardBtn(label, originalText);
+          showCheckout();
+          checkout.mount('#checkout-mount');
+          console.log('[donate] Embedded checkout mounted successfully');
         });
-      })
-      .then(function (checkout) {
-        embeddedCheckout = checkout;
-        resetCardBtn(label, originalText);
-        showCheckout();
-        checkout.mount('#checkout-mount');
       })
       .catch(function (err) {
         var msg = err.message || 'Unknown error';
 
+        console.error('[donate] Checkout failed:', err.name, ':', msg, err);
+
         if (err.name === 'TypeError' && (msg === 'Failed to fetch' || msg.indexOf('NetworkError') !== -1 || msg.indexOf('fetch') !== -1)) {
-          console.error('[donate] Network/CORS failure:', msg);
           msg = 'Cannot reach the payment server. Please check your connection and try again.';
+        } else if (err.name === 'IntegrationError') {
+          console.error('[donate] Stripe IntegrationError — check Stripe Dashboard config');
+          msg = 'Payment form could not load. Please try again or use bank transfer. (' + msg + ')';
         }
 
-        console.error('[donate] Checkout failed:', err);
         showError(msg);
         resetCardBtn(label, originalText);
       });
