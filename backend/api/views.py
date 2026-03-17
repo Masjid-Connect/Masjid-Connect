@@ -714,79 +714,16 @@ class DonationRateThrottle(AnonRateThrottle):
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
 @throttle_classes([DonationRateThrottle])
-def create_donation(request):
-    """Create a Stripe PaymentIntent for a donation."""
-    import stripe as stripe_lib
-
-    secret_key = getattr(settings, "STRIPE_SECRET_KEY", "")
-    if not secret_key:
-        return Response(
-            {"detail": "Payment service not configured."},
-            status=status.HTTP_503_SERVICE_UNAVAILABLE,
-        )
-
-    stripe_lib.api_key = secret_key
-
-    amount = request.data.get("amount")  # in pence
-    currency = request.data.get("currency", "gbp")
-    frequency = request.data.get("frequency", "one-time")
-    email = request.data.get("email", "")
-
-    # Validate amount (100p = £1 minimum, £10000 max)
-    try:
-        amount = int(amount)
-    except (TypeError, ValueError):
-        return Response(
-            {"detail": "Invalid amount."}, status=status.HTTP_400_BAD_REQUEST
-        )
-
-    if amount < 100 or amount > 1000000:
-        return Response(
-            {"detail": "Amount must be between £1 and £10,000."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    try:
-        metadata = {"frequency": frequency, "source": "website"}
-        if email:
-            metadata["donor_email"] = email
-
-        intent = stripe_lib.PaymentIntent.create(
-            amount=amount,
-            currency=currency,
-            metadata=metadata,
-            description=f"Donation to The Salafi Masjid ({frequency})",
-            receipt_email=email if email else None,
-        )
-
-        return Response(
-            {"client_secret": intent.client_secret},
-            status=status.HTTP_200_OK,
-        )
-    except Exception:
-        logger.exception("Stripe PaymentIntent creation failed")
-        return Response(
-            {"detail": "Failed to process donation. Please try again."},
-            status=status.HTTP_502_BAD_GATEWAY,
-        )
-
-
-@api_view(["POST"])
-@permission_classes([permissions.AllowAny])
-@throttle_classes([DonationRateThrottle])
 def create_checkout_session(request):
-    """
-    Create a Stripe Checkout Session in embedded UI mode.
+    """Create a Stripe Hosted Checkout Session and redirect to it.
 
-    Expects JSON:
-      - amount (int, pence) between 100 and 1_000_000
-      - currency (str, default \"gbp\")
-      - frequency: \"one-time\" | \"monthly\"
-      - return_url (str): where Stripe should send the user back with ?session_id=
-
-    Returns:
-      { \"client_secret\": \"cs_test_...\" }
+    Accepts form POST (no CORS needed) or JSON.  Creates a Stripe-hosted
+    checkout page and returns a 303 redirect so the browser navigates
+    straight to Stripe.  Payment methods (Card, PayPal, Apple Pay, Google
+    Pay, Pay by Bank) are managed via the Stripe Dashboard.
     """
+    from django.shortcuts import redirect as django_redirect
+
     import stripe as stripe_lib
 
     secret_key = getattr(settings, "STRIPE_SECRET_KEY", "")
@@ -803,6 +740,16 @@ def create_checkout_session(request):
     frequency = request.data.get("frequency", "one-time")
     return_url = request.data.get("return_url", "")
 
+    # Validation — redirect back with error on failure (no JSON for form POSTs)
+    def _error_redirect(msg):
+        if return_url:
+            sep = "&" if "?" in return_url else "?"
+            from urllib.parse import quote
+
+            return django_redirect(return_url + sep + "donation=error&msg=" + quote(msg))
+        return Response({"detail": msg}, status=status.HTTP_400_BAD_REQUEST)
+
+
     if not return_url:
         return Response(
             {"detail": "return_url is required."},
@@ -812,24 +759,22 @@ def create_checkout_session(request):
     try:
         amount = int(amount)
     except (TypeError, ValueError):
-        return Response(
-            {"detail": "Invalid amount."}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return _error_redirect("Invalid amount.")
 
-    if amount < 100 or amount > 1_000_000:
-        return Response(
-            {"detail": "Amount must be between £1 and £10,000."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+    if amount < 100 or amount > 1000000:
+        return _error_redirect("Amount must be between £1 and £10,000.")
 
     try:
         is_recurring = frequency == "monthly"
         base_metadata = {"frequency": frequency, "source": "website"}
 
+        success_url = return_url + "?donation=success&session_id={CHECKOUT_SESSION_ID}"
+        cancel_url = return_url + "?donation=cancelled"
+
         session_params = {
             "mode": "subscription" if is_recurring else "payment",
-            "ui_mode": "embedded",
-            "return_url": return_url + "?session_id={CHECKOUT_SESSION_ID}",
+            "success_url": success_url,
+            "cancel_url": cancel_url,
             "metadata": base_metadata,
         }
 
@@ -860,28 +805,14 @@ def create_checkout_session(request):
                     "quantity": 1,
                 }
             ]
-            session_params["submit_type"] = "donate"
 
         session = stripe_lib.checkout.Session.create(**session_params)
 
-        client_secret = getattr(session, "client_secret", None)
-        if not client_secret:
-            logger.error("Stripe checkout session missing client_secret: id=%s", session.id)
-            return Response(
-                {"detail": "Failed to start checkout. Please try again."},
-                status=status.HTTP_502_BAD_GATEWAY,
-            )
-
-        return Response(
-            {"client_secret": client_secret},
-            status=status.HTTP_200_OK,
-        )
+        # Redirect — browser follows with GET to Stripe's hosted page
+        return django_redirect(session.url)
     except Exception:
-        logger.exception("Stripe Checkout Session (embedded) creation failed")
-        return Response(
-            {"detail": "Failed to start checkout. Please try again."},
-            status=status.HTTP_502_BAD_GATEWAY,
-        )
+        logger.exception("Stripe Checkout Session creation failed")
+        return _error_redirect("Something went wrong. Please try again.")
 
 
 @api_view(["GET"])
@@ -1078,9 +1009,6 @@ def _handle_payment_intent_succeeded(payment_intent):
         metadata.get("frequency", "unknown"),
         metadata.get("donor_email", "unknown"),
     )
-
-
-# ── Helpers ──────────────────────────────────────────────────────────
 
 
 # ── Prayer Times ─────────────────────────────────────────────────────

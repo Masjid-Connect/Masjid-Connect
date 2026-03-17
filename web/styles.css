@@ -1570,6 +1570,7 @@ ul {
   opacity: 0.5;
 }
 
+/* Embedded Checkout */
 /* Bank Transfer Bottom Sheet */
 .bank-sheet[hidden] {
   display: none;
