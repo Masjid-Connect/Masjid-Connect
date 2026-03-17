@@ -1571,31 +1571,6 @@ ul {
 }
 
 /* Embedded Checkout */
-.donate__back-btn {
-  align-items: center;
-  gap: 6px;
-  padding: 8px 0;
-  margin-bottom: 8px;
-  background: none;
-  border: none;
-  color: var(--sapphire-700, #0F2D52);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-.donate__back-btn:not([hidden]) {
-  display: flex;
-}
-.donate__back-btn:hover { opacity: 0.7; }
-[data-theme="dark"] .donate__back-btn { color: var(--sapphire-400, #5B9BD5); }
-
-.donate__checkout-container {
-  min-height: 400px;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
 /* Bank Transfer Bottom Sheet */
 .bank-sheet[hidden] {
   display: none;
