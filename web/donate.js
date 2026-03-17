@@ -13,6 +13,26 @@
   var STRIPE_PK = 'pk_live_jhdJimpenQpkL3cvCMC8wSa700y5o67fj1';
   var CHECKOUT_URL = 'https://api.salafimasjid.app/api/v1/donate/checkout/';
 
+  // #region agent log
+  function __dbg(location, message, data, runId, hypothesisId) {
+    try {
+      fetch('http://127.0.0.1:7551/ingest/0ca1ab2e-c8cb-40bf-9c19-943686625e3a', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '06e802' },
+        body: JSON.stringify({
+          sessionId: '06e802',
+          runId: runId || 'pre-fix',
+          hypothesisId: hypothesisId || 'A',
+          location: location,
+          message: message,
+          data: data || {},
+          timestamp: Date.now()
+        })
+      }).catch(function () {});
+    } catch (e) {}
+  }
+  // #endregion agent log
+
   // ─── State ───────────────────────────────────────────────────
   var selectedAmount = 50;
   var frequency = 'one-time';
@@ -29,6 +49,15 @@
   var errorText = document.getElementById('donate-error-text');
 
   if (!cardBtn) return;
+
+  // #region agent log
+  __dbg('web/donate.js:bootstrap', 'Donate page boot', {
+    origin: String(window.location && window.location.origin),
+    href: String(window.location && window.location.href),
+    checkoutUrlHost: (function () { try { return new URL(CHECKOUT_URL).host; } catch (e) { return 'invalid'; } })(),
+    userAgent: String(navigator && navigator.userAgent)
+  }, 'pre-fix', 'A');
+  // #endregion agent log
 
   // ─── Amount selection ────────────────────────────────────────
   amountBtns.forEach(function (btn) {
@@ -105,6 +134,13 @@
   fetch(API_BASE + '/health/', { method: 'GET', mode: 'cors' })
     .then(function (res) {
       console.log('[donate] API health check:', res.status, res.ok ? 'OK' : 'FAIL');
+      // #region agent log
+      __dbg('web/donate.js:health', 'API health response', {
+        status: res.status,
+        ok: res.ok,
+        type: res.type
+      }, 'pre-fix', 'B');
+      // #endregion agent log
       if (!res.ok) {
         console.warn('[donate] API server returned', res.status, '— payments may not work');
       }
@@ -114,6 +150,39 @@
         '— this means fetch() to', API_BASE, 'failed at the network level.',
         'Likely causes: CORS not allowing this origin (' + window.location.origin + '),',
         'DNS not resolving, or server is down.');
+      // #region agent log
+      __dbg('web/donate.js:health', 'API health fetch failed', {
+        name: String(err && err.name),
+        message: String(err && err.message)
+      }, 'pre-fix', 'B');
+      // #endregion agent log
+    });
+
+  // ─── CORS diagnostic endpoint (should always be readable) ────
+  fetch(API_BASE + '/debug/cors/', { method: 'GET', mode: 'cors' })
+    .then(function (res) {
+      return res.json().then(function (body) {
+        // #region agent log
+        __dbg('web/donate.js:cors_debug', 'CORS debug JSON', {
+          status: res.status,
+          ok: res.ok,
+          cors_all: !!(body && body.CORS_ALLOW_ALL_ORIGINS),
+          cors_allowed_origins_len: Array.isArray(body && body.CORS_ALLOWED_ORIGINS) ? body.CORS_ALLOWED_ORIGINS.length : -1,
+          secure_ssl_redirect: !!(body && body.SECURE_SSL_REDIRECT),
+          request_origin: String(body && body.request_origin),
+          request_host: String(body && body.request_host),
+          env_CORS_ALLOWED_ORIGINS: String(body && body.env_CORS_ALLOWED_ORIGINS)
+        }, 'pre-fix', 'C');
+        // #endregion agent log
+      });
+    })
+    .catch(function (err) {
+      // #region agent log
+      __dbg('web/donate.js:cors_debug', 'CORS debug fetch failed', {
+        name: String(err && err.name),
+        message: String(err && err.message)
+      }, 'pre-fix', 'C');
+      // #endregion agent log
     });
 
   // ─── Card / Apple Pay / Google Pay (Stripe Checkout) ────────
@@ -150,6 +219,15 @@
     };
 
     console.log('[donate] POST', CHECKOUT_URL, JSON.stringify(payload));
+    // #region agent log
+    __dbg('web/donate.js:checkout', 'Checkout request start', {
+      amount: payload.amount,
+      currency: payload.currency,
+      frequency: payload.frequency,
+      successUrlHost: (function () { try { return new URL(payload.success_url).host; } catch (e) { return 'invalid'; } })(),
+      cancelUrlHost: (function () { try { return new URL(payload.cancel_url).host; } catch (e) { return 'invalid'; } })()
+    }, 'pre-fix', 'D');
+    // #endregion agent log
 
     fetch(CHECKOUT_URL, {
       method: 'POST',
@@ -158,6 +236,14 @@
     })
       .then(function (res) {
         console.log('[donate] Response:', res.status, res.statusText, '| CORS ok:', res.type !== 'opaque');
+        // #region agent log
+        __dbg('web/donate.js:checkout', 'Checkout fetch resolved', {
+          status: res.status,
+          ok: res.ok,
+          type: res.type,
+          redirected: !!res.redirected
+        }, 'pre-fix', 'D');
+        // #endregion agent log
 
         if (!res.ok) {
           var contentType = res.headers.get('content-type') || '';
@@ -226,6 +312,12 @@
         }
 
         console.error('[donate] Checkout failed:', err);
+        // #region agent log
+        __dbg('web/donate.js:checkout', 'Checkout fetch failed', {
+          name: String(err && err.name),
+          message: String(err && err.message)
+        }, 'pre-fix', 'D');
+        // #endregion agent log
         showError(msg);
         resetCardBtn(label, originalText);
       });

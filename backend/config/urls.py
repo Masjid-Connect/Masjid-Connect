@@ -8,6 +8,46 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 
 def health(request):
+    # region agent log
+    try:
+        import json, time
+        from pathlib import Path
+        from django.conf import settings
+
+        base_dir = Path(getattr(settings, "BASE_DIR", Path.cwd()))
+        log_dir = base_dir / ".cursor"
+        log_path = log_dir / "debug-06e802.log"
+        try:
+            log_dir.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            log_path = Path("/tmp/debug-06e802.log")
+
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(
+                json.dumps(
+                    {
+                        "sessionId": "06e802",
+                        "runId": "pre-fix",
+                        "hypothesisId": "S1",
+                        "location": "backend/config/urls.py:health",
+                        "message": "health_called",
+                        "data": {
+                            "method": request.method,
+                            "path": request.path,
+                            "origin": request.META.get("HTTP_ORIGIN", ""),
+                            "host": request.META.get("HTTP_HOST", ""),
+                            "xff": request.META.get("HTTP_X_FORWARDED_FOR", ""),
+                            "xfp": request.META.get("HTTP_X_FORWARDED_PROTO", ""),
+                            "ua": request.META.get("HTTP_USER_AGENT", "")[:120],
+                        },
+                        "timestamp": int(time.time() * 1000),
+                    }
+                )
+                + "\n"
+            )
+    except Exception:
+        pass
+    # endregion agent log
     return JsonResponse({"status": "ok"})
 
 

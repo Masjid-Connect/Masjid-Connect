@@ -777,9 +777,82 @@ def create_donation(request):
 def create_checkout_session(request):
     """Create a Stripe Checkout Session — payment methods managed via Stripe Dashboard."""
     import stripe as stripe_lib
+    # region agent log
+    try:
+        import json, time
+        from pathlib import Path
+        from django.conf import settings
+
+        base_dir = Path(getattr(settings, "BASE_DIR", Path.cwd()))
+        log_dir = base_dir / ".cursor"
+        log_path = log_dir / "debug-06e802.log"
+        try:
+            log_dir.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            log_path = Path("/tmp/debug-06e802.log")
+
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(
+                json.dumps(
+                    {
+                        "sessionId": "06e802",
+                        "runId": "pre-fix",
+                        "hypothesisId": "S2",
+                        "location": "backend/api/views.py:create_checkout_session:entry",
+                        "message": "checkout_called",
+                        "data": {
+                            "method": request.method,
+                            "path": request.path,
+                            "origin": request.META.get("HTTP_ORIGIN", ""),
+                            "host": request.META.get("HTTP_HOST", ""),
+                            "xfp": request.META.get("HTTP_X_FORWARDED_PROTO", ""),
+                            "content_type": request.META.get("CONTENT_TYPE", ""),
+                            "amount": request.data.get("amount"),
+                            "currency": request.data.get("currency"),
+                            "frequency": request.data.get("frequency"),
+                            "success_url_host": (request.data.get("success_url", "") or "").split("/")[2:3],
+                            "cancel_url_host": (request.data.get("cancel_url", "") or "").split("/")[2:3],
+                        },
+                        "timestamp": int(time.time() * 1000),
+                    }
+                )
+                + "\n"
+            )
+    except Exception:
+        pass
+    # endregion agent log
 
     secret_key = getattr(settings, "STRIPE_SECRET_KEY", "")
     if not secret_key:
+        # region agent log
+        try:
+            import json, time
+            from pathlib import Path
+            from django.conf import settings
+
+            base_dir = Path(getattr(settings, "BASE_DIR", Path.cwd()))
+            log_path = base_dir / ".cursor" / "debug-06e802.log"
+            if not log_path.parent.exists():
+                log_path = Path("/tmp/debug-06e802.log")
+
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(
+                    json.dumps(
+                        {
+                            "sessionId": "06e802",
+                            "runId": "pre-fix",
+                            "hypothesisId": "S2",
+                            "location": "backend/api/views.py:create_checkout_session:secret_missing",
+                            "message": "stripe_secret_missing",
+                            "data": {},
+                            "timestamp": int(time.time() * 1000),
+                        }
+                    )
+                    + "\n"
+                )
+        except Exception:
+            pass
+        # endregion agent log
         return Response(
             {"detail": "Payment service not configured."},
             status=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -856,12 +929,71 @@ def create_checkout_session(request):
 
         session = stripe_lib.checkout.Session.create(**session_params)
 
+        # region agent log
+        try:
+            import json, time
+            from pathlib import Path
+            from django.conf import settings
+
+            base_dir = Path(getattr(settings, "BASE_DIR", Path.cwd()))
+            log_path = base_dir / ".cursor" / "debug-06e802.log"
+            if not log_path.parent.exists():
+                log_path = Path("/tmp/debug-06e802.log")
+
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(
+                    json.dumps(
+                        {
+                            "sessionId": "06e802",
+                            "runId": "pre-fix",
+                            "hypothesisId": "S2",
+                            "location": "backend/api/views.py:create_checkout_session:success",
+                            "message": "stripe_checkout_created",
+                            "data": {"id": session.id},
+                            "timestamp": int(time.time() * 1000),
+                        }
+                    )
+                    + "\n"
+                )
+        except Exception:
+            pass
+        # endregion agent log
+
         return Response(
             {"id": session.id, "url": session.url},
             status=status.HTTP_200_OK,
         )
     except Exception:
         logger.exception("Stripe Checkout Session creation failed")
+        # region agent log
+        try:
+            import json, time
+            from pathlib import Path
+            from django.conf import settings
+
+            base_dir = Path(getattr(settings, "BASE_DIR", Path.cwd()))
+            log_path = base_dir / ".cursor" / "debug-06e802.log"
+            if not log_path.parent.exists():
+                log_path = Path("/tmp/debug-06e802.log")
+
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(
+                    json.dumps(
+                        {
+                            "sessionId": "06e802",
+                            "runId": "pre-fix",
+                            "hypothesisId": "S2",
+                            "location": "backend/api/views.py:create_checkout_session:exception",
+                            "message": "stripe_checkout_exception",
+                            "data": {},
+                            "timestamp": int(time.time() * 1000),
+                        }
+                    )
+                    + "\n"
+                )
+        except Exception:
+            pass
+        # endregion agent log
         return Response(
             {"detail": "Failed to start checkout. Please try again."},
             status=status.HTTP_502_BAD_GATEWAY,
