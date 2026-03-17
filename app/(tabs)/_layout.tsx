@@ -34,12 +34,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="qibla"
+        name="community"
         options={{
-          title: t('tabs.qibla'),
+          title: t('tabs.community'),
           tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
             <Ionicons
-              name={focused ? 'compass' : 'compass-outline'}
+              name={focused ? 'people' : 'people-outline'}
               size={24}
               color={color}
             />
@@ -47,12 +47,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="community"
+        name="support"
         options={{
-          title: t('tabs.community'),
+          title: t('tabs.support'),
           tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
             <Ionicons
-              name={focused ? 'people' : 'people-outline'}
+              name={focused ? 'heart' : 'heart-outline'}
               size={24}
               color={color}
             />
@@ -75,6 +75,7 @@ export default function TabLayout() {
       {/* Hide old standalone tabs — kept as files for now but not in tab bar */}
       <Tabs.Screen name="announcements" options={{ href: null, tabBarItemStyle: { display: 'none' } }} />
       <Tabs.Screen name="events" options={{ href: null, tabBarItemStyle: { display: 'none' } }} />
+      <Tabs.Screen name="qibla" options={{ href: null, tabBarItemStyle: { display: 'none' } }} />
     </Tabs>
   );
 }
