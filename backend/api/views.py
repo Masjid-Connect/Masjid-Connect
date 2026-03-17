@@ -749,6 +749,7 @@ def create_checkout_session(request):
             return django_redirect(return_url + sep + "donation=error&msg=" + quote(msg))
         return Response({"detail": msg}, status=status.HTTP_400_BAD_REQUEST)
 
+
     if not return_url:
         return Response(
             {"detail": "return_url is required."},
@@ -765,6 +766,7 @@ def create_checkout_session(request):
 
     try:
         is_recurring = frequency == "monthly"
+        base_metadata = {"frequency": frequency, "source": "website"}
 
         success_url = return_url + "?donation=success&session_id={CHECKOUT_SESSION_ID}"
         cancel_url = return_url + "?donation=cancelled"
@@ -773,7 +775,7 @@ def create_checkout_session(request):
             "mode": "subscription" if is_recurring else "payment",
             "success_url": success_url,
             "cancel_url": cancel_url,
-            "metadata": {"frequency": frequency, "source": "website"},
+            "metadata": base_metadata,
         }
 
         if is_recurring:
@@ -811,6 +813,57 @@ def create_checkout_session(request):
     except Exception:
         logger.exception("Stripe Checkout Session creation failed")
         return _error_redirect("Something went wrong. Please try again.")
+
+
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])
+@throttle_classes([DonationRateThrottle])
+def checkout_session_status(request):
+    """
+    Return the status of a Stripe Checkout Session created for embedded checkout.
+
+    Query params:
+      - session_id: Stripe checkout session ID.
+
+    Returns minimal, non-sensitive status information for the web donate page.
+    """
+    import stripe as stripe_lib
+
+    session_id = request.query_params.get("session_id")
+    if not session_id:
+        return Response(
+            {"detail": "session_id is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    secret_key = getattr(settings, "STRIPE_SECRET_KEY", "")
+    if not secret_key:
+        return Response(
+            {"detail": "Payment service not configured."},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+    stripe_lib.api_key = secret_key
+
+    try:
+        session = stripe_lib.checkout.Session.retrieve(session_id)
+    except Exception:
+        logger.exception("Failed to retrieve Stripe Checkout Session status")
+        return Response(
+            {"detail": "Could not look up payment status."},
+            status=status.HTTP_502_BAD_GATEWAY,
+        )
+
+    return Response(
+        {
+            "id": session.id,
+            "status": session.status,
+            "mode": session.mode,
+            "amount_total": session.amount_total,
+            "currency": session.currency,
+        },
+        status=status.HTTP_200_OK,
+    )
 
 
 # ── Stripe Webhook ───────────────────────────────────────────────────
@@ -890,46 +943,6 @@ def stripe_webhook(request):
     return Response({"detail": "Webhook processed."}, status=status.HTTP_200_OK)
 
 
-@api_view(["GET"])
-@permission_classes([permissions.AllowAny])
-def checkout_session_status(request):
-    """Return the status of a Stripe Checkout Session.
-
-    Called by the frontend after the user completes embedded checkout
-    to confirm the payment succeeded and show the appropriate message.
-    """
-    import stripe as stripe_lib
-
-    secret_key = getattr(settings, "STRIPE_SECRET_KEY", "")
-    if not secret_key:
-        return Response(
-            {"detail": "Payment service not configured."},
-            status=status.HTTP_503_SERVICE_UNAVAILABLE,
-        )
-
-    stripe_lib.api_key = secret_key
-
-    session_id = request.query_params.get("session_id", "")
-    if not session_id:
-        return Response(
-            {"detail": "session_id is required."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    try:
-        session = stripe_lib.checkout.Session.retrieve(session_id)
-        return Response(
-            {"status": session.status, "payment_status": session.payment_status},
-            status=status.HTTP_200_OK,
-        )
-    except Exception:
-        logger.exception("Stripe session status retrieval failed")
-        return Response(
-            {"detail": "Could not retrieve session status."},
-            status=status.HTTP_502_BAD_GATEWAY,
-        )
-
-
 def _handle_checkout_completed(session):
     """Handle checkout.session.completed — a checkout session was successful."""
     customer_email = session.get("customer_email") or session.get("customer_details", {}).get("email", "")
@@ -996,9 +1009,6 @@ def _handle_payment_intent_succeeded(payment_intent):
         metadata.get("frequency", "unknown"),
         metadata.get("donor_email", "unknown"),
     )
-
-
-# ── Helpers ──────────────────────────────────────────────────────────
 
 
 # ── Prayer Times ─────────────────────────────────────────────────────
