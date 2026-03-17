@@ -775,84 +775,22 @@ def create_donation(request):
 @permission_classes([permissions.AllowAny])
 @throttle_classes([DonationRateThrottle])
 def create_checkout_session(request):
-    """Create a Stripe Checkout Session — payment methods managed via Stripe Dashboard."""
+    """
+    Create a Stripe Checkout Session in embedded UI mode.
+
+    Expects JSON:
+      - amount (int, pence) between 100 and 1_000_000
+      - currency (str, default \"gbp\")
+      - frequency: \"one-time\" | \"monthly\"
+      - return_url (str): where Stripe should send the user back with ?session_id=
+
+    Returns:
+      { \"client_secret\": \"cs_test_...\" }
+    """
     import stripe as stripe_lib
-    # region agent log
-    try:
-        import json, time
-        from pathlib import Path
-        from django.conf import settings
-
-        base_dir = Path(getattr(settings, "BASE_DIR", Path.cwd()))
-        log_dir = base_dir / ".cursor"
-        log_path = log_dir / "debug-06e802.log"
-        try:
-            log_dir.mkdir(parents=True, exist_ok=True)
-        except Exception:
-            log_path = Path("/tmp/debug-06e802.log")
-
-        with open(log_path, "a", encoding="utf-8") as f:
-            f.write(
-                json.dumps(
-                    {
-                        "sessionId": "06e802",
-                        "runId": "pre-fix",
-                        "hypothesisId": "S2",
-                        "location": "backend/api/views.py:create_checkout_session:entry",
-                        "message": "checkout_called",
-                        "data": {
-                            "method": request.method,
-                            "path": request.path,
-                            "origin": request.META.get("HTTP_ORIGIN", ""),
-                            "host": request.META.get("HTTP_HOST", ""),
-                            "xfp": request.META.get("HTTP_X_FORWARDED_PROTO", ""),
-                            "content_type": request.META.get("CONTENT_TYPE", ""),
-                            "amount": request.data.get("amount"),
-                            "currency": request.data.get("currency"),
-                            "frequency": request.data.get("frequency"),
-                            "success_url_host": (request.data.get("success_url", "") or "").split("/")[2:3],
-                            "cancel_url_host": (request.data.get("cancel_url", "") or "").split("/")[2:3],
-                        },
-                        "timestamp": int(time.time() * 1000),
-                    }
-                )
-                + "\n"
-            )
-    except Exception:
-        pass
-    # endregion agent log
 
     secret_key = getattr(settings, "STRIPE_SECRET_KEY", "")
     if not secret_key:
-        # region agent log
-        try:
-            import json, time
-            from pathlib import Path
-            from django.conf import settings
-
-            base_dir = Path(getattr(settings, "BASE_DIR", Path.cwd()))
-            log_path = base_dir / ".cursor" / "debug-06e802.log"
-            if not log_path.parent.exists():
-                log_path = Path("/tmp/debug-06e802.log")
-
-            with open(log_path, "a", encoding="utf-8") as f:
-                f.write(
-                    json.dumps(
-                        {
-                            "sessionId": "06e802",
-                            "runId": "pre-fix",
-                            "hypothesisId": "S2",
-                            "location": "backend/api/views.py:create_checkout_session:secret_missing",
-                            "message": "stripe_secret_missing",
-                            "data": {},
-                            "timestamp": int(time.time() * 1000),
-                        }
-                    )
-                    + "\n"
-                )
-        except Exception:
-            pass
-        # endregion agent log
         return Response(
             {"detail": "Payment service not configured."},
             status=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -863,12 +801,11 @@ def create_checkout_session(request):
     amount = request.data.get("amount")  # in pence
     currency = request.data.get("currency", "gbp")
     frequency = request.data.get("frequency", "one-time")
-    success_url = request.data.get("success_url", "")
-    cancel_url = request.data.get("cancel_url", "")
+    return_url = request.data.get("return_url", "")
 
-    if not success_url or not cancel_url:
+    if not return_url:
         return Response(
-            {"detail": "success_url and cancel_url are required."},
+            {"detail": "return_url is required."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -879,7 +816,7 @@ def create_checkout_session(request):
             {"detail": "Invalid amount."}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    if amount < 100 or amount > 1000000:
+    if amount < 100 or amount > 1_000_000:
         return Response(
             {"detail": "Amount must be between £1 and £10,000."},
             status=status.HTTP_400_BAD_REQUEST,
@@ -887,15 +824,13 @@ def create_checkout_session(request):
 
     try:
         is_recurring = frequency == "monthly"
+        base_metadata = {"frequency": frequency, "source": "website"}
 
-        # Let Stripe Dashboard control which payment methods are shown
-        # (card, PayPal, Pay by Bank, Apple Pay, Google Pay — all managed
-        # from Settings → Payment Methods without code changes).
         session_params = {
             "mode": "subscription" if is_recurring else "payment",
-            "success_url": success_url,
-            "cancel_url": cancel_url,
-            "metadata": {"frequency": frequency, "source": "website"},
+            "ui_mode": "embedded",
+            "return_url": return_url + "?session_id={CHECKOUT_SESSION_ID}",
+            "metadata": base_metadata,
         }
 
         if is_recurring:
@@ -929,75 +864,75 @@ def create_checkout_session(request):
 
         session = stripe_lib.checkout.Session.create(**session_params)
 
-        # region agent log
-        try:
-            import json, time
-            from pathlib import Path
-            from django.conf import settings
-
-            base_dir = Path(getattr(settings, "BASE_DIR", Path.cwd()))
-            log_path = base_dir / ".cursor" / "debug-06e802.log"
-            if not log_path.parent.exists():
-                log_path = Path("/tmp/debug-06e802.log")
-
-            with open(log_path, "a", encoding="utf-8") as f:
-                f.write(
-                    json.dumps(
-                        {
-                            "sessionId": "06e802",
-                            "runId": "pre-fix",
-                            "hypothesisId": "S2",
-                            "location": "backend/api/views.py:create_checkout_session:success",
-                            "message": "stripe_checkout_created",
-                            "data": {"id": session.id},
-                            "timestamp": int(time.time() * 1000),
-                        }
-                    )
-                    + "\n"
-                )
-        except Exception:
-            pass
-        # endregion agent log
+        client_secret = getattr(session, "client_secret", None)
+        if not client_secret:
+            logger.error("Stripe checkout session missing client_secret: id=%s", session.id)
+            return Response(
+                {"detail": "Failed to start checkout. Please try again."},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
 
         return Response(
-            {"id": session.id, "url": session.url},
+            {"client_secret": client_secret},
             status=status.HTTP_200_OK,
         )
     except Exception:
-        logger.exception("Stripe Checkout Session creation failed")
-        # region agent log
-        try:
-            import json, time
-            from pathlib import Path
-            from django.conf import settings
-
-            base_dir = Path(getattr(settings, "BASE_DIR", Path.cwd()))
-            log_path = base_dir / ".cursor" / "debug-06e802.log"
-            if not log_path.parent.exists():
-                log_path = Path("/tmp/debug-06e802.log")
-
-            with open(log_path, "a", encoding="utf-8") as f:
-                f.write(
-                    json.dumps(
-                        {
-                            "sessionId": "06e802",
-                            "runId": "pre-fix",
-                            "hypothesisId": "S2",
-                            "location": "backend/api/views.py:create_checkout_session:exception",
-                            "message": "stripe_checkout_exception",
-                            "data": {},
-                            "timestamp": int(time.time() * 1000),
-                        }
-                    )
-                    + "\n"
-                )
-        except Exception:
-            pass
-        # endregion agent log
+        logger.exception("Stripe Checkout Session (embedded) creation failed")
         return Response(
             {"detail": "Failed to start checkout. Please try again."},
             status=status.HTTP_502_BAD_GATEWAY,
         )
+
+
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])
+@throttle_classes([DonationRateThrottle])
+def checkout_session_status(request):
+    """
+    Return the status of a Stripe Checkout Session created for embedded checkout.
+
+    Query params:
+      - session_id: Stripe checkout session ID.
+
+    Returns minimal, non-sensitive status information for the web donate page.
+    """
+    import stripe as stripe_lib
+
+    session_id = request.query_params.get("session_id")
+    if not session_id:
+        return Response(
+            {"detail": "session_id is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    secret_key = getattr(settings, "STRIPE_SECRET_KEY", "")
+    if not secret_key:
+        return Response(
+            {"detail": "Payment service not configured."},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+    stripe_lib.api_key = secret_key
+
+    try:
+        session = stripe_lib.checkout.Session.retrieve(session_id)
+    except Exception:
+        logger.exception("Failed to retrieve Stripe Checkout Session status")
+        return Response(
+            {"detail": "Could not look up payment status."},
+            status=status.HTTP_502_BAD_GATEWAY,
+        )
+
+    return Response(
+        {
+            "id": session.id,
+            "status": session.status,
+            "mode": session.mode,
+            "amount_total": session.amount_total,
+            "currency": session.currency,
+        },
+        status=status.HTTP_200_OK,
+    )
 
 
 # ── Stripe Webhook ───────────────────────────────────────────────────
