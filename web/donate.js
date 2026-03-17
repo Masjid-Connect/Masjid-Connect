@@ -2,9 +2,8 @@
  * The Salafi Masjid — Donation Page
  *
  * Architecture:
- *   Card / Apple Pay / Google Pay  →  Stripe Checkout (redirect)
- *   PayPal                         →  PayPal hosted donation page
- *   Bank Transfer                  →  Bottom sheet with bank details
+ *   Card / Apple Pay / Google Pay / PayPal / Pay by Bank  →  Stripe Embedded Checkout (inline)
+ *   Bank Transfer                                          →  Bottom sheet with bank details
  */
 (function () {
   'use strict';
@@ -12,11 +11,13 @@
   // ─── Config ──────────────────────────────────────────────────
   var STRIPE_PK = 'pk_live_jhdJimpenQpkL3cvCMC8wSa700y5o67fj1';
   var CHECKOUT_URL = 'https://api.salafimasjid.app/api/v1/donate/checkout/';
+  var SESSION_STATUS_URL = 'https://api.salafimasjid.app/api/v1/donate/session-status/';
 
   // ─── State ───────────────────────────────────────────────────
   var selectedAmount = 50;
   var frequency = 'one-time';
   var stripe = null;
+  var embeddedCheckout = null;
 
   // ─── DOM refs ────────────────────────────────────────────────
   var amountBtns = document.querySelectorAll('.donate__amount');
@@ -27,6 +28,9 @@
   var successEl = document.getElementById('donate-success');
   var errorEl = document.getElementById('donate-error');
   var errorText = document.getElementById('donate-error-text');
+  var formSteps = document.querySelectorAll('.donate__step, .donate__secure, .form-hp');
+  var checkoutContainer = document.getElementById('checkout-container');
+  var checkoutBack = document.getElementById('checkout-back');
 
   if (!cardBtn) return;
 
@@ -66,14 +70,12 @@
     if (errorEl) errorEl.hidden = true;
 
     if (!selectedAmount || selectedAmount < 1) {
-      if (errorText) errorText.textContent = 'Please select or enter a donation amount.';
-      if (errorEl) errorEl.hidden = false;
+      showError('Please select or enter a donation amount.');
       return false;
     }
 
     if (selectedAmount > 10000) {
-      if (errorText) errorText.textContent = 'For donations over £10,000, please contact the masjid directly.';
-      if (errorEl) errorEl.hidden = false;
+      showError('For donations over £10,000, please contact the masjid directly.');
       return false;
     }
 
@@ -85,7 +87,7 @@
     if (errorEl) errorEl.hidden = false;
   }
 
-  // ─── Init Stripe (deferred, never blocks other listeners) ──
+  // ─── Init Stripe (deferred) ─────────────────────────────────
   function initStripe() {
     if (stripe) return;
     try {
@@ -97,7 +99,6 @@
     }
   }
 
-  // Try once now, and retry on click if needed
   initStripe();
 
   // ─── API health pre-check (diagnostic only) ────────────────
@@ -105,18 +106,42 @@
   fetch(API_BASE + '/health/', { method: 'GET', mode: 'cors' })
     .then(function (res) {
       console.log('[donate] API health check:', res.status, res.ok ? 'OK' : 'FAIL');
-      if (!res.ok) {
-        console.warn('[donate] API server returned', res.status, '— payments may not work');
-      }
     })
     .catch(function (err) {
-      console.error('[donate] API UNREACHABLE:', err.message,
-        '— this means fetch() to', API_BASE, 'failed at the network level.',
-        'Likely causes: CORS not allowing this origin (' + window.location.origin + '),',
-        'DNS not resolving, or server is down.');
+      console.error('[donate] API UNREACHABLE:', err.message);
     });
 
-  // ─── Card / Apple Pay / Google Pay (Stripe Checkout) ────────
+  // ─── Show / hide checkout vs form steps ─────────────────────
+  function showCheckout() {
+    formSteps.forEach(function (el) { el.style.display = 'none'; });
+    if (checkoutContainer) checkoutContainer.hidden = false;
+    if (checkoutBack) checkoutBack.hidden = false;
+  }
+
+  function showForm() {
+    formSteps.forEach(function (el) { el.style.display = ''; });
+    if (checkoutContainer) checkoutContainer.hidden = true;
+    if (checkoutBack) checkoutBack.hidden = true;
+    if (errorEl) errorEl.hidden = true;
+  }
+
+  // ─── Destroy any existing embedded checkout ─────────────────
+  function destroyCheckout() {
+    if (embeddedCheckout) {
+      embeddedCheckout.destroy();
+      embeddedCheckout = null;
+    }
+  }
+
+  // ─── Back button ────────────────────────────────────────────
+  if (checkoutBack) {
+    checkoutBack.addEventListener('click', function () {
+      destroyCheckout();
+      showForm();
+    });
+  }
+
+  // ─── Card / Apple Pay / Google Pay / PayPal (Embedded Checkout) ──
   function resetCardBtn(label, originalText) {
     cardBtn.classList.remove('donate__method-btn--loading');
     if (label) label.textContent = originalText;
@@ -125,28 +150,26 @@
   cardBtn.addEventListener('click', function () {
     if (!validateAmount()) return;
 
-    // Lazy-init Stripe in case it wasn't ready at page load
     initStripe();
 
     if (!stripe) {
-      showError('Payment is loading — Stripe.js has not initialised. Please wait a moment and try again.');
-      console.error('[donate] Stripe.js not loaded. typeof Stripe:', typeof Stripe, '| PK set:', !!STRIPE_PK);
+      showError('Payment is loading — please wait a moment and try again.');
+      console.error('[donate] Stripe.js not loaded. typeof Stripe:', typeof Stripe);
       return;
     }
 
-    // Disable button to prevent double-clicks
+    // Disable button
     cardBtn.classList.add('donate__method-btn--loading');
     var label = cardBtn.querySelector('.donate__method-label');
     var originalText = label ? label.textContent : '';
-    if (label) label.textContent = 'Redirecting to checkout...';
+    if (label) label.textContent = 'Loading checkout...';
 
-    var donatePageUrl = window.location.origin + window.location.pathname;
+    var returnUrl = window.location.origin + window.location.pathname;
     var payload = {
       amount: Math.round(selectedAmount * 100),
       currency: 'gbp',
       frequency: frequency,
-      success_url: donatePageUrl + '?success=1',
-      cancel_url: donatePageUrl + '?cancelled=1'
+      return_url: returnUrl
     };
 
     console.log('[donate] POST', CHECKOUT_URL, JSON.stringify(payload));
@@ -157,12 +180,11 @@
       body: JSON.stringify(payload)
     })
       .then(function (res) {
-        console.log('[donate] Response:', res.status, res.statusText, '| CORS ok:', res.type !== 'opaque');
+        console.log('[donate] Response:', res.status, res.statusText);
 
         if (!res.ok) {
           var contentType = res.headers.get('content-type') || '';
 
-          // Server returned an error — try to extract detail
           if (contentType.indexOf('application/json') !== -1) {
             return res.json().then(function (body) {
               console.error('[donate] Server error JSON:', JSON.stringify(body));
@@ -184,14 +206,13 @@
             });
           }
 
-          // Non-JSON error (e.g., HTML error page from proxy/Nginx)
           return res.text().then(function (text) {
             console.error('[donate] Server error (non-JSON):', res.status, text.substring(0, 500));
             if (res.status === 502 || res.status === 504) {
-              throw new Error('The payment server is not responding. It may be restarting — please try again in a minute. (' + res.status + ')');
+              throw new Error('The payment server is not responding. Please try again in a minute. (' + res.status + ')');
             }
             if (res.status === 403) {
-              throw new Error('Request blocked by the server. This may be a CSRF or permission issue. (' + res.status + ')');
+              throw new Error('Request blocked by the server. (' + res.status + ')');
             }
             throw new Error('Server error (' + res.status + '). Please try again later.');
           });
@@ -200,29 +221,33 @@
         return res.json();
       })
       .then(function (data) {
-        if (!data || !data.id) {
-          console.error('[donate] Missing session ID in response:', JSON.stringify(data));
-          throw new Error('Server returned an unexpected response — no checkout session ID.');
+        if (!data || !data.client_secret) {
+          console.error('[donate] Missing client_secret in response:', JSON.stringify(data));
+          throw new Error('Server returned an unexpected response.');
         }
-        console.log('[donate] Redirecting to Stripe checkout, session:', data.id);
-        return stripe.redirectToCheckout({ sessionId: data.id });
+
+        console.log('[donate] Mounting embedded checkout');
+
+        // Destroy any previous instance
+        destroyCheckout();
+
+        // Mount the Stripe Embedded Checkout
+        return stripe.initEmbeddedCheckout({
+          clientSecret: data.client_secret
+        });
       })
-      .then(function (result) {
-        if (result && result.error) {
-          console.error('[donate] Stripe redirect error:', result.error.message);
-          throw new Error('Stripe: ' + result.error.message);
-        }
+      .then(function (checkout) {
+        embeddedCheckout = checkout;
+        resetCardBtn(label, originalText);
+        showCheckout();
+        checkout.mount('#checkout-mount');
       })
       .catch(function (err) {
-        // Distinguish network/CORS failure from server errors
         var msg = err.message || 'Unknown error';
 
         if (err.name === 'TypeError' && (msg === 'Failed to fetch' || msg.indexOf('NetworkError') !== -1 || msg.indexOf('fetch') !== -1)) {
-          // This is a network-level failure — could be CORS, DNS, or server unreachable
           console.error('[donate] Network/CORS failure:', msg);
-          msg = 'Cannot reach the payment server (api.salafimasjid.app). '
-              + 'This is usually a CORS, DNS, or connectivity issue. '
-              + 'Check the browser console (F12 → Console) for details.';
+          msg = 'Cannot reach the payment server. Please check your connection and try again.';
         }
 
         console.error('[donate] Checkout failed:', err);
@@ -264,15 +289,15 @@
     if (!text || !navigator.clipboard) return;
 
     navigator.clipboard.writeText(text).then(function () {
-      var label = btn.querySelector('.bank-sheet__copy-label');
+      var copyLabel = btn.querySelector('.bank-sheet__copy-label');
       var svg = btn.querySelector('svg');
-      if (label) {
-        label.textContent = 'Copied!';
+      if (copyLabel) {
+        copyLabel.textContent = 'Copied!';
         btn.classList.add('bank-sheet__copy-btn--copied');
         if (svg) svg.style.display = 'none';
 
         setTimeout(function () {
-          label.textContent = 'Copy';
+          copyLabel.textContent = 'Copy';
           btn.classList.remove('bank-sheet__copy-btn--copied');
           if (svg) svg.style.display = '';
         }, 1500);
@@ -280,7 +305,6 @@
     });
   }
 
-  // Copy buttons
   var copyBtns = bankSheet ? bankSheet.querySelectorAll('.bank-sheet__copy-btn[data-copy]') : [];
   copyBtns.forEach(function (btn) {
     btn.addEventListener('click', function (e) {
@@ -289,7 +313,6 @@
     });
   });
 
-  // Also allow clicking the value itself
   var copyableValues = bankSheet ? bankSheet.querySelectorAll('.bank-sheet__value[data-copy]') : [];
   copyableValues.forEach(function (el) {
     el.style.cursor = 'pointer';
@@ -300,20 +323,35 @@
     });
   });
 
-  // ─── Check for Stripe redirect return ──────────────────────
+  // ─── Check for return from embedded checkout ──────────────
   var params = new URLSearchParams(window.location.search);
+  var sessionId = params.get('session_id');
 
-  if (params.get('success') === '1') {
-    if (successEl) {
-      successEl.hidden = false;
-      successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    var steps = document.querySelectorAll('.donate__step, .donate__secure, .form-hp');
-    steps.forEach(function (el) { el.style.display = 'none'; });
-    window.history.replaceState({}, '', window.location.pathname);
-  }
+  if (sessionId) {
+    // User has returned from embedded checkout — check the session status
+    formSteps.forEach(function (el) { el.style.display = 'none'; });
 
-  if (params.get('cancelled') === '1') {
+    fetch(SESSION_STATUS_URL + '?session_id=' + encodeURIComponent(sessionId))
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.status === 'complete') {
+          if (successEl) {
+            successEl.hidden = false;
+            successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        } else {
+          showError('Payment was not completed. Please try again.');
+          formSteps.forEach(function (el) { el.style.display = ''; });
+        }
+      })
+      .catch(function () {
+        // If we can't check status, still show success (webhook will confirm)
+        if (successEl) {
+          successEl.hidden = false;
+          successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+
     window.history.replaceState({}, '', window.location.pathname);
   }
 })();
