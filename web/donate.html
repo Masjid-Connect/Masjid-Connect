@@ -143,13 +143,13 @@
                 <span class="donate__step-label">Payment method</span>
 
                 <div class="donate__methods">
-                  <!-- Stripe Checkout — all methods (Card, PayPal, Apple Pay, Google Pay, Pay by Bank) managed via Stripe Dashboard -->
+                  <!-- Stripe Embedded Checkout — all methods (Card, PayPal, Apple Pay, Google Pay, Pay by Bank) managed via Stripe Dashboard -->
                   <button class="donate__method-btn donate__method-btn--card" type="button" id="pay-card">
                     <div class="donate__method-icons">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                     </div>
                     <div class="donate__method-info">
-                      <span class="donate__method-label">Continue to Payment</span>
+                      <span class="donate__method-label">Donate Now</span>
                       <span class="donate__method-desc">Card, PayPal, Apple Pay, Google Pay or Bank</span>
                     </div>
                     <svg class="donate__method-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -167,6 +167,15 @@
                     <svg class="donate__method-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                   </button>
                 </div>
+              </div>
+
+              <!-- Embedded Checkout Container (shown after clicking Donate Now) -->
+              <button class="donate__back-btn" type="button" id="checkout-back" hidden>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                Change amount
+              </button>
+              <div class="donate__checkout-container" id="checkout-container" hidden>
+                <div id="checkout-mount"></div>
               </div>
 
               <p class="donate__secure">
@@ -404,16 +413,6 @@
 
   <script src="https://js.stripe.com/v3/" data-cfasync="false"></script>
   <script src="script.js?v=2" data-cfasync="false"></script>
-  <script src="donate.js?v=2" data-cfasync="false"></script>
-  <script data-cfasync="false">
-    // Diagnostic — verify donate.js loaded and buttons are wired
-    (function () {
-      var card = document.getElementById('pay-card');
-      var bank = document.getElementById('pay-bank');
-      if (!card || !bank) {
-        console.error('[donate] Missing DOM elements: pay-card=' + !!card + ', pay-bank=' + !!bank);
-      }
-    })();
-  </script>
+  <script src="donate.js?v=3" data-cfasync="false"></script>
 </body>
 </html>

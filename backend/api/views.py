@@ -714,68 +714,13 @@ class DonationRateThrottle(AnonRateThrottle):
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
 @throttle_classes([DonationRateThrottle])
-def create_donation(request):
-    """Create a Stripe PaymentIntent for a donation."""
-    import stripe as stripe_lib
-
-    secret_key = getattr(settings, "STRIPE_SECRET_KEY", "")
-    if not secret_key:
-        return Response(
-            {"detail": "Payment service not configured."},
-            status=status.HTTP_503_SERVICE_UNAVAILABLE,
-        )
-
-    stripe_lib.api_key = secret_key
-
-    amount = request.data.get("amount")  # in pence
-    currency = request.data.get("currency", "gbp")
-    frequency = request.data.get("frequency", "one-time")
-    email = request.data.get("email", "")
-
-    # Validate amount (100p = £1 minimum, £10000 max)
-    try:
-        amount = int(amount)
-    except (TypeError, ValueError):
-        return Response(
-            {"detail": "Invalid amount."}, status=status.HTTP_400_BAD_REQUEST
-        )
-
-    if amount < 100 or amount > 1000000:
-        return Response(
-            {"detail": "Amount must be between £1 and £10,000."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    try:
-        metadata = {"frequency": frequency, "source": "website"}
-        if email:
-            metadata["donor_email"] = email
-
-        intent = stripe_lib.PaymentIntent.create(
-            amount=amount,
-            currency=currency,
-            metadata=metadata,
-            description=f"Donation to The Salafi Masjid ({frequency})",
-            receipt_email=email if email else None,
-        )
-
-        return Response(
-            {"client_secret": intent.client_secret},
-            status=status.HTTP_200_OK,
-        )
-    except Exception:
-        logger.exception("Stripe PaymentIntent creation failed")
-        return Response(
-            {"detail": "Failed to process donation. Please try again."},
-            status=status.HTTP_502_BAD_GATEWAY,
-        )
-
-
-@api_view(["POST"])
-@permission_classes([permissions.AllowAny])
-@throttle_classes([DonationRateThrottle])
 def create_checkout_session(request):
-    """Create a Stripe Checkout Session — payment methods managed via Stripe Dashboard."""
+    """Create a Stripe Embedded Checkout Session.
+
+    Returns a client_secret for stripe.initEmbeddedCheckout() on the frontend.
+    Payment methods (Card, PayPal, Apple Pay, Google Pay, Pay by Bank) are
+    managed entirely via the Stripe Dashboard — no code changes needed.
+    """
     import stripe as stripe_lib
 
     secret_key = getattr(settings, "STRIPE_SECRET_KEY", "")
@@ -790,12 +735,11 @@ def create_checkout_session(request):
     amount = request.data.get("amount")  # in pence
     currency = request.data.get("currency", "gbp")
     frequency = request.data.get("frequency", "one-time")
-    success_url = request.data.get("success_url", "")
-    cancel_url = request.data.get("cancel_url", "")
+    return_url = request.data.get("return_url", "")
 
-    if not success_url or not cancel_url:
+    if not return_url:
         return Response(
-            {"detail": "success_url and cancel_url are required."},
+            {"detail": "return_url is required."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -815,13 +759,10 @@ def create_checkout_session(request):
     try:
         is_recurring = frequency == "monthly"
 
-        # Let Stripe Dashboard control which payment methods are shown
-        # (card, PayPal, Pay by Bank, Apple Pay, Google Pay — all managed
-        # from Settings → Payment Methods without code changes).
         session_params = {
+            "ui_mode": "embedded",
             "mode": "subscription" if is_recurring else "payment",
-            "success_url": success_url,
-            "cancel_url": cancel_url,
+            "return_url": return_url + "?session_id={CHECKOUT_SESSION_ID}",
             "metadata": {"frequency": frequency, "source": "website"},
         }
 
@@ -852,12 +793,11 @@ def create_checkout_session(request):
                     "quantity": 1,
                 }
             ]
-            session_params["submit_type"] = "donate"
 
         session = stripe_lib.checkout.Session.create(**session_params)
 
         return Response(
-            {"id": session.id, "url": session.url},
+            {"client_secret": session.client_secret},
             status=status.HTTP_200_OK,
         )
     except Exception:
@@ -943,6 +883,46 @@ def stripe_webhook(request):
     )
 
     return Response({"detail": "Webhook processed."}, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])
+def checkout_session_status(request):
+    """Return the status of a Stripe Checkout Session.
+
+    Called by the frontend after the user completes embedded checkout
+    to confirm the payment succeeded and show the appropriate message.
+    """
+    import stripe as stripe_lib
+
+    secret_key = getattr(settings, "STRIPE_SECRET_KEY", "")
+    if not secret_key:
+        return Response(
+            {"detail": "Payment service not configured."},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
+
+    stripe_lib.api_key = secret_key
+
+    session_id = request.query_params.get("session_id", "")
+    if not session_id:
+        return Response(
+            {"detail": "session_id is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        session = stripe_lib.checkout.Session.retrieve(session_id)
+        return Response(
+            {"status": session.status, "payment_status": session.payment_status},
+            status=status.HTTP_200_OK,
+        )
+    except Exception:
+        logger.exception("Stripe session status retrieval failed")
+        return Response(
+            {"detail": "Could not retrieve session status."},
+            status=status.HTTP_502_BAD_GATEWAY,
+        )
 
 
 def _handle_checkout_completed(session):
