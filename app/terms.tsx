@@ -1,185 +1,339 @@
 import React from 'react';
-import { StyleSheet, ScrollView, Text, View, TouchableOpacity, Linking } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, Stack } from 'expo-router';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { StyleSheet, ScrollView, Text, View, Pressable, Linking } from 'react-native';
+import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius } from '@/constants/Theme';
+import { spacing, typography, borderRadius, getElevation } from '@/constants/Theme';
 
 const CONTACT_EMAIL = 'support@salafimasjid.app';
-const LAST_UPDATED = 'March 2026';
+
+interface TermsSectionProps {
+  number: string;
+  title: string;
+  children: React.ReactNode;
+  accentColor: string;
+  textColor: string;
+  bodyColor: string;
+  dividerColor: string;
+  isLast?: boolean;
+}
+
+const TermsSection = ({
+  number,
+  title,
+  children,
+  accentColor,
+  textColor,
+  bodyColor,
+  dividerColor,
+  isLast,
+}: TermsSectionProps) => (
+  <View style={styles.policySection}>
+    <View style={styles.sectionRow}>
+      <View style={styles.numberColumn}>
+        <Text style={[styles.sectionNumber, { color: accentColor }]}>{number}</Text>
+      </View>
+      <View style={styles.sectionContent}>
+        <Text style={[typography.headline, { color: textColor, marginBottom: spacing.sm }]}>
+          {title}
+        </Text>
+        <View>{children}</View>
+      </View>
+    </View>
+    {!isLast && <View style={[styles.sectionSeparator, { backgroundColor: dividerColor }]} />}
+  </View>
+);
 
 export default function TermsScreen() {
-  const router = useRouter();
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
+  const isDark = effectiveScheme === 'dark';
   const { t } = useTranslation();
 
-  const headingStyle = [styles.heading, { color: colors.text }];
-  const bodyStyle = [styles.bodyText, { color: colors.text }];
-  const bulletStyle = [styles.bullet, { color: colors.text }];
+  const bodyStyle = [typography.callout, { color: colors.textSecondary, lineHeight: 24 }];
+  const bulletStyle = [typography.callout, { color: colors.textSecondary, lineHeight: 24, paddingLeft: spacing.lg }];
 
   return (
     <>
       <Stack.Screen
         options={{
-          title: t('legal.termsOfService'),
-          headerStyle: { backgroundColor: colors.background },
+          headerTitle: '',
           headerTintColor: colors.tint,
-          headerTitleStyle: { color: colors.text },
+          headerStyle: { backgroundColor: colors.backgroundSecondary },
+          headerShadowVisible: false,
         }}
       />
       <ScrollView
-        style={[styles.container, { backgroundColor: colors.background }]}
+        style={[styles.container, { backgroundColor: colors.backgroundSecondary }]}
         contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
       >
-        <Text style={[styles.title, { color: colors.text }]}>{t('legal.termsOfService')}</Text>
-        <Text style={[styles.lastUpdated, { color: colors.textSecondary }]}>
-          {t('legal.lastUpdated', { date: LAST_UPDATED })}
-        </Text>
+        {/* Hero header */}
+        <View style={styles.header}>
+          <Text style={[styles.headerLabel, { color: colors.accent }]}>
+            {t('legal.lastUpdated').toUpperCase()}
+          </Text>
+          <Text style={[typography.largeTitle, { color: colors.text }]}>
+            {t('legal.termsOfService')}
+          </Text>
+          <View style={[styles.goldRule, { backgroundColor: colors.accent }]} />
+        </View>
 
-        <Text style={bodyStyle}>
-          {'Welcome to Mosque Connect. These Terms of Service (\u201cTerms\u201d) govern your use of the Mosque Connect mobile application (the \u201cApp\u201d) operated by Mosque Connect (\u201cwe,\u201d \u201cour,\u201d or \u201cus\u201d). By downloading, installing, or using the App, you agree to be bound by these Terms. If you do not agree to these Terms, do not use the App.'}
-        </Text>
+        {/* Introduction */}
+        <View style={styles.introSection}>
+          <Text style={[typography.callout, styles.introText, { color: colors.textSecondary }]}>
+            Welcome to Mosque Connect. These Terms of Service govern your use of the Mosque Connect
+            mobile application. By downloading, installing, or using the App, you agree to be bound
+            by these Terms.
+          </Text>
+        </View>
 
-        {/* Use of the App */}
-        <Text style={headingStyle}>1. Use of the App</Text>
-        <Text style={bodyStyle}>
-          Mosque Connect provides a community platform for local mosques, offering prayer time
-          calculations, announcements, event listings, and community notifications. You may use the
-          App for personal, non-commercial purposes in accordance with these Terms.
-        </Text>
+        {/* Terms sections in a single card */}
+        <View style={[styles.sectionsCard, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
 
-        {/* Account Registration */}
-        <Text style={headingStyle}>2. Account Registration</Text>
-        <Text style={bodyStyle}>
-          Some features of the App require you to create an account. When you create an account,
-          {'you agree to:'}
-        </Text>
-        <Text style={bulletStyle}>
-          {'\u2022'} Provide accurate and complete information{'\n'}
-          {'\u2022'} Maintain and update your information as needed{'\n'}
-          {'\u2022'} Keep your account credentials secure{'\n'}
-          {'\u2022'} Accept responsibility for all activity under your account{'\n'}
-          {'\u2022'} Notify us immediately of any unauthorized use
-        </Text>
-        <Text style={bodyStyle}>
-          You may also use the App in a limited capacity as a guest without creating an account.
-          Guest users will not have access to push notifications or cross-device syncing.
-        </Text>
+          <TermsSection
+            number="01"
+            title="Use of the App"
+            accentColor={colors.accent}
+            textColor={colors.text}
+            bodyColor={colors.textSecondary}
+            dividerColor={colors.separator}
+          >
+            <Text style={bodyStyle}>
+              Mosque Connect provides a community platform for local mosques, offering prayer time
+              calculations, announcements, event listings, and community notifications. You may use the
+              App for personal, non-commercial purposes in accordance with these Terms.
+            </Text>
+          </TermsSection>
 
-        {/* Prayer Times */}
-        <Text style={headingStyle}>3. Prayer Times</Text>
-        <Text style={bodyStyle}>
-          Prayer times displayed in the App are calculated using the Aladhan API and, when offline,
-          the adhan-js library. While we strive for accuracy, prayer times are provided as a
-          convenience and should not be considered a definitive religious ruling. We recommend
-          consulting your local mosque or scholar for confirmation of prayer times, especially
-          during edge cases such as high-latitude locations.
-        </Text>
+          <TermsSection
+            number="02"
+            title="Account Registration"
+            accentColor={colors.accent}
+            textColor={colors.text}
+            bodyColor={colors.textSecondary}
+            dividerColor={colors.separator}
+          >
+            <Text style={bodyStyle}>
+              Some features require you to create an account. When you do, you agree to:
+            </Text>
+            <Text style={bulletStyle}>
+              {'\u2022 Provide accurate and complete information\n'}
+              {'\u2022 Maintain and update your information as needed\n'}
+              {'\u2022 Keep your account credentials secure\n'}
+              {'\u2022 Accept responsibility for all activity under your account\n'}
+              {'\u2022 Notify us immediately of any unauthorized use'}
+            </Text>
+            <Text style={bodyStyle}>
+              You may also use the App in a limited capacity as a guest without creating an account.
+            </Text>
+          </TermsSection>
 
-        {/* User Conduct */}
-        <Text style={headingStyle}>4. User Conduct</Text>
-        <Text style={bodyStyle}>You agree not to:</Text>
-        <Text style={bulletStyle}>
-          {'\u2022'} Use the App for any unlawful purpose{'\n'}
-          {'\u2022'} Attempt to gain unauthorized access to the App or its systems{'\n'}
-          {'\u2022'} Interfere with or disrupt the App{'\u2019'}s functionality{'\n'}
-          {'\u2022'} Upload or transmit malicious code or content{'\n'}
-          {'\u2022'} Impersonate any person or entity{'\n'}
-          {'\u2022'} Scrape, harvest, or collect data from the App without permission{'\n'}
-          {'\u2022'} Use the App to send spam or unsolicited communications
-        </Text>
+          <TermsSection
+            number="03"
+            title="Prayer Times"
+            accentColor={colors.accent}
+            textColor={colors.text}
+            bodyColor={colors.textSecondary}
+            dividerColor={colors.separator}
+          >
+            <Text style={bodyStyle}>
+              Prayer times are calculated using the Aladhan API and, when offline, the adhan-js library.
+              While we strive for accuracy, prayer times are provided as a convenience and should not be
+              considered a definitive religious ruling. We recommend consulting your local mosque or
+              scholar for confirmation.
+            </Text>
+          </TermsSection>
 
-        {/* Mosque Content */}
-        <Text style={headingStyle}>5. Mosque Content</Text>
-        <Text style={bodyStyle}>
-          Mosques are responsible for the accuracy and appropriateness of their announcements,
-          events, and other content posted through the App. We do not endorse or guarantee the
-          accuracy of mosque-published content. If you believe any content is inappropriate or
-          inaccurate, please report it to us at {CONTACT_EMAIL}.
-        </Text>
+          <TermsSection
+            number="04"
+            title="User Conduct"
+            accentColor={colors.accent}
+            textColor={colors.text}
+            bodyColor={colors.textSecondary}
+            dividerColor={colors.separator}
+          >
+            <Text style={bodyStyle}>You agree not to:</Text>
+            <Text style={bulletStyle}>
+              {'\u2022 Use the App for any unlawful purpose\n'}
+              {'\u2022 Attempt to gain unauthorized access to the App or its systems\n'}
+              {'\u2022 Interfere with or disrupt the App\u2019s functionality\n'}
+              {'\u2022 Upload or transmit malicious code or content\n'}
+              {'\u2022 Impersonate any person or entity\n'}
+              {'\u2022 Scrape, harvest, or collect data without permission\n'}
+              {'\u2022 Use the App to send spam or unsolicited communications'}
+            </Text>
+          </TermsSection>
 
-        {/* Intellectual Property */}
-        <Text style={headingStyle}>6. Intellectual Property</Text>
-        <Text style={bodyStyle}>
-          The App and its original content, features, and functionality are owned by Mosque Connect
-          and are protected by international copyright, trademark, and other intellectual property
-          laws. The Convergent Arch brand mark, design system, and all visual assets are proprietary.
-          You may not copy, modify, distribute, or create derivative works from any part of the App
-          without our express written consent.
-        </Text>
+          <TermsSection
+            number="05"
+            title="Mosque Content"
+            accentColor={colors.accent}
+            textColor={colors.text}
+            bodyColor={colors.textSecondary}
+            dividerColor={colors.separator}
+          >
+            <Text style={bodyStyle}>
+              Mosques are responsible for the accuracy and appropriateness of their announcements,
+              events, and other content. We do not endorse or guarantee the accuracy of mosque-published
+              content. If you believe any content is inappropriate, please report it to us.
+            </Text>
+          </TermsSection>
 
-        {/* Third-Party Services */}
-        <Text style={headingStyle}>7. Third-Party Services</Text>
-        <Text style={bodyStyle}>
-          The App integrates with third-party services including the Aladhan API for prayer times,
-          Apple and Google for authentication, and the Expo Push Notification Service. Your use of
-          these services is subject to their respective terms and privacy policies. We are not
-          responsible for the practices or content of third-party services.
-        </Text>
+          <TermsSection
+            number="06"
+            title="Intellectual Property"
+            accentColor={colors.accent}
+            textColor={colors.text}
+            bodyColor={colors.textSecondary}
+            dividerColor={colors.separator}
+          >
+            <Text style={bodyStyle}>
+              The App and its original content, features, and functionality are owned by Mosque Connect
+              and are protected by international copyright, trademark, and other intellectual property
+              laws. You may not copy, modify, distribute, or create derivative works without our express
+              written consent.
+            </Text>
+          </TermsSection>
 
-        {/* Notifications */}
-        <Text style={headingStyle}>8. Notifications</Text>
-        <Text style={bodyStyle}>
-          By enabling push notifications, you consent to receiving prayer reminders, mosque
-          announcements, and event notifications. You can customize which notifications you
-          receive through the App settings or your device settings. We will not send marketing
-          or promotional notifications without your explicit consent.
-        </Text>
+          <TermsSection
+            number="07"
+            title="Third-Party Services"
+            accentColor={colors.accent}
+            textColor={colors.text}
+            bodyColor={colors.textSecondary}
+            dividerColor={colors.separator}
+          >
+            <Text style={bodyStyle}>
+              The App integrates with third-party services including the Aladhan API, Apple and Google
+              for authentication, and the Expo Push Notification Service. Your use of these services is
+              subject to their respective terms and privacy policies.
+            </Text>
+          </TermsSection>
 
-        {/* Disclaimer of Warranties */}
-        <Text style={headingStyle}>9. Disclaimer of Warranties</Text>
-        <Text style={bodyStyle}>
-          {'THE APP IS PROVIDED \u201cAS IS\u201d AND \u201cAS AVAILABLE\u201d WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. WE DO NOT WARRANT THAT THE APP WILL BE UNINTERRUPTED, ERROR-FREE, OR SECURE. PRAYER TIMES ARE PROVIDED FOR INFORMATIONAL PURPOSES ONLY.'}
-        </Text>
+          <TermsSection
+            number="08"
+            title="Notifications"
+            accentColor={colors.accent}
+            textColor={colors.text}
+            bodyColor={colors.textSecondary}
+            dividerColor={colors.separator}
+          >
+            <Text style={bodyStyle}>
+              By enabling push notifications, you consent to receiving prayer reminders, mosque
+              announcements, and event notifications. You can customise which notifications you receive
+              through the App settings or your device settings.
+            </Text>
+          </TermsSection>
 
-        {/* Limitation of Liability */}
-        <Text style={headingStyle}>10. Limitation of Liability</Text>
-        <Text style={bodyStyle}>
-          TO THE MAXIMUM EXTENT PERMITTED BY LAW, MOSQUE CONNECT SHALL NOT BE LIABLE FOR ANY
-          INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT
-          LIMITED TO LOSS OF DATA, LOSS OF PROFITS, OR MISSED PRAYER TIMES, ARISING OUT OF YOUR
-          USE OF THE APP. OUR TOTAL LIABILITY SHALL NOT EXCEED THE AMOUNT YOU PAID US IN THE
-          TWELVE MONTHS PRECEDING THE CLAIM, OR $50, WHICHEVER IS GREATER.
-        </Text>
+          <TermsSection
+            number="09"
+            title="Disclaimer of Warranties"
+            accentColor={colors.accent}
+            textColor={colors.text}
+            bodyColor={colors.textSecondary}
+            dividerColor={colors.separator}
+          >
+            <Text style={bodyStyle}>
+              The App is provided &ldquo;as is&rdquo; and &ldquo;as available&rdquo; without warranties
+              of any kind, either express or implied. We do not warrant that the App will be
+              uninterrupted, error-free, or secure. Prayer times are provided for informational purposes
+              only.
+            </Text>
+          </TermsSection>
 
-        {/* Account Termination */}
-        <Text style={headingStyle}>11. Account Termination</Text>
-        <Text style={bodyStyle}>
-          You may delete your account at any time through the App settings. Upon deletion, all
-          your personal data, subscriptions, and notification preferences will be permanently
-          removed. We reserve the right to suspend or terminate accounts that violate these Terms.
-        </Text>
+          <TermsSection
+            number="10"
+            title="Limitation of Liability"
+            accentColor={colors.accent}
+            textColor={colors.text}
+            bodyColor={colors.textSecondary}
+            dividerColor={colors.separator}
+          >
+            <Text style={bodyStyle}>
+              To the maximum extent permitted by law, Mosque Connect shall not be liable for any
+              indirect, incidental, special, consequential, or punitive damages arising out of your use
+              of the App. Our total liability shall not exceed the amount you paid us in the twelve
+              months preceding the claim, or £50, whichever is greater.
+            </Text>
+          </TermsSection>
 
-        {/* Changes to Terms */}
-        <Text style={headingStyle}>12. Changes to Terms</Text>
-        <Text style={bodyStyle}>
-          {'We may update these Terms from time to time. We will notify you of significant changes by posting the updated Terms within the App and updating the \u201cLast Updated\u201d date. Continued use of the App after changes are posted constitutes acceptance of the revised Terms.'}
-        </Text>
+          <TermsSection
+            number="11"
+            title="Account Termination"
+            accentColor={colors.accent}
+            textColor={colors.text}
+            bodyColor={colors.textSecondary}
+            dividerColor={colors.separator}
+          >
+            <Text style={bodyStyle}>
+              You may delete your account at any time through the App settings. Upon deletion, all your
+              personal data, subscriptions, and notification preferences will be permanently removed. We
+              reserve the right to suspend or terminate accounts that violate these Terms.
+            </Text>
+          </TermsSection>
 
-        {/* Governing Law */}
-        <Text style={headingStyle}>13. Governing Law</Text>
-        <Text style={bodyStyle}>
-          These Terms are governed by and construed in accordance with the laws of the United
-          States, without regard to conflict of law principles. Any disputes arising from these
-          Terms or the App shall be resolved through binding arbitration in accordance with
-          applicable rules.
-        </Text>
+          <TermsSection
+            number="12"
+            title="Changes to Terms"
+            accentColor={colors.accent}
+            textColor={colors.text}
+            bodyColor={colors.textSecondary}
+            dividerColor={colors.separator}
+          >
+            <Text style={bodyStyle}>
+              We may update these Terms from time to time. We will notify you of significant changes by
+              posting the updated Terms within the App. Continued use after changes are posted
+              constitutes acceptance of the revised Terms.
+            </Text>
+          </TermsSection>
 
-        {/* Contact */}
-        <Text style={headingStyle}>14. Contact Us</Text>
-        <Text style={bodyStyle}>
-          If you have questions or concerns about these Terms, please contact us at:
-        </Text>
-        <TouchableOpacity onPress={() => Linking.openURL(`mailto:${CONTACT_EMAIL}`)}>
-          <Text style={[styles.link, { color: colors.tint }]}>{CONTACT_EMAIL}</Text>
-        </TouchableOpacity>
+          <TermsSection
+            number="13"
+            title="Governing Law"
+            accentColor={colors.accent}
+            textColor={colors.text}
+            bodyColor={colors.textSecondary}
+            dividerColor={colors.separator}
+          >
+            <Text style={bodyStyle}>
+              These Terms are governed by and construed in accordance with the laws of England and Wales.
+              Any disputes arising from these Terms shall be subject to the exclusive jurisdiction of
+              the courts of England and Wales.
+            </Text>
+          </TermsSection>
 
-        <View style={styles.spacer} />
+          <TermsSection
+            number="14"
+            title="Contact Us"
+            accentColor={colors.accent}
+            textColor={colors.text}
+            bodyColor={colors.textSecondary}
+            dividerColor={colors.separator}
+            isLast
+          >
+            <Text style={bodyStyle}>
+              If you have questions or concerns about these Terms, please contact us at:
+            </Text>
+            <Pressable onPress={() => Linking.openURL(`mailto:${CONTACT_EMAIL}`)}>
+              <Text style={[typography.callout, styles.link, { color: colors.tint }]}>
+                {CONTACT_EMAIL}
+              </Text>
+            </Pressable>
+          </TermsSection>
+
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Ionicons name="document-text" size={16} color={colors.accent} style={{ marginBottom: spacing.sm }} />
+          <Text style={[typography.caption1, styles.footerText, { color: colors.textTertiary }]}>
+            {t('about.appName')}
+          </Text>
+        </View>
       </ScrollView>
     </>
   );
@@ -190,38 +344,78 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: spacing['3xl'],
-    paddingTop: spacing.xl,
     paddingBottom: spacing['5xl'],
   },
-  title: {
-    ...typography.title1,
-    marginBottom: spacing.xs,
+  // Header
+  header: {
+    paddingHorizontal: spacing['3xl'],
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xl,
   },
-  lastUpdated: {
-    ...typography.footnote,
-    marginBottom: spacing['2xl'],
+  headerLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 1.5,
+    marginBottom: spacing.sm,
   },
-  heading: {
-    ...typography.title3,
-    marginTop: spacing['2xl'],
-    marginBottom: spacing.md,
+  goldRule: {
+    height: 2,
+    width: 40,
+    marginTop: spacing.lg,
+    borderRadius: 1,
   },
-  bodyText: {
-    ...typography.body,
-    marginBottom: spacing.md,
+  // Intro
+  introSection: {
+    paddingHorizontal: spacing['3xl'],
+    paddingBottom: spacing['2xl'],
   },
-  bullet: {
-    ...typography.body,
-    marginBottom: spacing.md,
-    paddingLeft: spacing.lg,
+  introText: {
+    lineHeight: 24,
+  },
+  // Sections card
+  sectionsCard: {
+    marginHorizontal: spacing.xl,
+    borderRadius: borderRadius.md,
+    overflow: 'hidden',
+  },
+  policySection: {
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.xl,
+  },
+  sectionRow: {
+    flexDirection: 'row',
+    gap: spacing.lg,
+  },
+  numberColumn: {
+    width: 28,
+    paddingTop: 2,
+  },
+  sectionNumber: {
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    fontFamily: 'SpaceMono',
+  },
+  sectionContent: {
+    flex: 1,
+    paddingBottom: spacing.xl,
+  },
+  sectionSeparator: {
+    height: StyleSheet.hairlineWidth,
+    marginLeft: 44,
   },
   link: {
-    ...typography.body,
     fontWeight: '600',
     marginTop: spacing.sm,
   },
-  spacer: {
-    height: spacing['3xl'],
+  // Footer
+  footer: {
+    alignItems: 'center',
+    paddingTop: spacing['3xl'],
+    paddingHorizontal: spacing['3xl'],
+  },
+  footerText: {
+    fontWeight: '500',
+    letterSpacing: 0.5,
   },
 });
