@@ -8,7 +8,12 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 
 def health(request):
-    return JsonResponse({"status": "ok"})
+    response = JsonResponse({"status": "ok"})
+    # Ensure CORS works even if middleware is bypassed by proxy/CDN
+    origin = request.META.get("HTTP_ORIGIN", "")
+    if origin:
+        response["Access-Control-Allow-Origin"] = origin
+    return response
 
 
 def cors_debug(request):

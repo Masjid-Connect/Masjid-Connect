@@ -1572,7 +1572,6 @@ ul {
 
 /* Embedded Checkout */
 .donate__back-btn {
-  display: flex;
   align-items: center;
   gap: 6px;
   padding: 8px 0;
@@ -1584,6 +1583,9 @@ ul {
   font-weight: 500;
   cursor: pointer;
   transition: opacity 0.15s;
+}
+.donate__back-btn:not([hidden]) {
+  display: flex;
 }
 .donate__back-btn:hover { opacity: 0.7; }
 [data-theme="dark"] .donate__back-btn { color: var(--sapphire-400, #5B9BD5); }
