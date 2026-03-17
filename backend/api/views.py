@@ -715,12 +715,15 @@ class DonationRateThrottle(AnonRateThrottle):
 @permission_classes([permissions.AllowAny])
 @throttle_classes([DonationRateThrottle])
 def create_checkout_session(request):
-    """Create a Stripe Embedded Checkout Session.
+    """Create a Stripe Hosted Checkout Session and redirect to it.
 
-    Returns a client_secret for stripe.initEmbeddedCheckout() on the frontend.
-    Payment methods (Card, PayPal, Apple Pay, Google Pay, Pay by Bank) are
-    managed entirely via the Stripe Dashboard — no code changes needed.
+    Accepts form POST (no CORS needed) or JSON.  Creates a Stripe-hosted
+    checkout page and returns a 303 redirect so the browser navigates
+    straight to Stripe.  Payment methods (Card, PayPal, Apple Pay, Google
+    Pay, Pay by Bank) are managed via the Stripe Dashboard.
     """
+    from django.shortcuts import redirect as django_redirect
+
     import stripe as stripe_lib
 
     secret_key = getattr(settings, "STRIPE_SECRET_KEY", "")
@@ -737,6 +740,15 @@ def create_checkout_session(request):
     frequency = request.data.get("frequency", "one-time")
     return_url = request.data.get("return_url", "")
 
+    # Validation — redirect back with error on failure (no JSON for form POSTs)
+    def _error_redirect(msg):
+        if return_url:
+            sep = "&" if "?" in return_url else "?"
+            from urllib.parse import quote
+
+            return django_redirect(return_url + sep + "donation=error&msg=" + quote(msg))
+        return Response({"detail": msg}, status=status.HTTP_400_BAD_REQUEST)
+
     if not return_url:
         return Response(
             {"detail": "return_url is required."},
@@ -746,23 +758,21 @@ def create_checkout_session(request):
     try:
         amount = int(amount)
     except (TypeError, ValueError):
-        return Response(
-            {"detail": "Invalid amount."}, status=status.HTTP_400_BAD_REQUEST
-        )
+        return _error_redirect("Invalid amount.")
 
     if amount < 100 or amount > 1000000:
-        return Response(
-            {"detail": "Amount must be between £1 and £10,000."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return _error_redirect("Amount must be between £1 and £10,000.")
 
     try:
         is_recurring = frequency == "monthly"
 
+        success_url = return_url + "?donation=success&session_id={CHECKOUT_SESSION_ID}"
+        cancel_url = return_url + "?donation=cancelled"
+
         session_params = {
-            "ui_mode": "embedded",
             "mode": "subscription" if is_recurring else "payment",
-            "return_url": return_url + "?session_id={CHECKOUT_SESSION_ID}",
+            "success_url": success_url,
+            "cancel_url": cancel_url,
             "metadata": {"frequency": frequency, "source": "website"},
         }
 
@@ -796,16 +806,11 @@ def create_checkout_session(request):
 
         session = stripe_lib.checkout.Session.create(**session_params)
 
-        return Response(
-            {"client_secret": session.client_secret},
-            status=status.HTTP_200_OK,
-        )
+        # Redirect — browser follows with GET to Stripe's hosted page
+        return django_redirect(session.url)
     except Exception:
         logger.exception("Stripe Checkout Session creation failed")
-        return Response(
-            {"detail": "Failed to start checkout. Please try again."},
-            status=status.HTTP_502_BAD_GATEWAY,
-        )
+        return _error_redirect("Something went wrong. Please try again.")
 
 
 # ── Stripe Webhook ───────────────────────────────────────────────────
