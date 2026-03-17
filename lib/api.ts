@@ -423,6 +423,71 @@ export const feedback = {
 
 // ── Push Tokens ──────────────────────────────────────────────────────
 
+// ── Donations ──────────────────────────────────────────────────────
+
+export const donations = {
+  /**
+   * Create a Stripe Checkout Session and return the hosted checkout URL.
+   *
+   * The backend responds with a 303 redirect to Stripe's hosted page.
+   * We fetch with redirect: 'manual' to capture the Location header,
+   * then return the URL for the caller to open in a browser.
+   */
+  async createCheckoutUrl(
+    amountPence: number,
+    currency: string,
+    frequency: 'one-time' | 'monthly',
+  ): Promise<string | null> {
+    const returnUrl = 'https://salafimasjid.app/donate';
+    const url = `${API_URL}/donate/checkout/`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: amountPence,
+        currency,
+        frequency,
+        return_url: returnUrl,
+      }),
+      redirect: 'manual',
+    });
+
+    // Backend returns 303 with Location header pointing to Stripe
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get('Location');
+      if (location) return location;
+    }
+
+    // If the server returned an error JSON instead of a redirect
+    if (!response.ok) {
+      let detail = '';
+      try {
+        const body = await response.json();
+        detail = body.detail || '';
+      } catch {
+        // Not JSON
+      }
+      throw new Error(detail || 'Payment request failed');
+    }
+
+    return null;
+  },
+
+  /** Check the status of a completed Stripe checkout session. */
+  async getSessionStatus(sessionId: string) {
+    return request<{
+      id: string;
+      status: string;
+      mode: string;
+      amount_total: number;
+      currency: string;
+    }>(`/donate/session-status/?session_id=${encodeURIComponent(sessionId)}`);
+  },
+};
+
+// ── Push Tokens ──────────────────────────────────────────────────────
+
 export const pushTokens = {
   async register(token: string, platform: 'ios' | 'android') {
     if (!auth.isLoggedIn) return;
