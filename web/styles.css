@@ -1560,7 +1560,50 @@ ul {
   opacity: 0.5;
 }
 
-/* Embedded Checkout */
+/* Embedded Checkout container */
+#checkout-container {
+  min-height: 320px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+#checkout-container[hidden] {
+  display: none;
+}
+
+.donate__back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 10px;
+  background: var(--stone-200);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.donate__back-btn:hover {
+  background: var(--stone-300);
+}
+
+.donate__back-btn[hidden] {
+  display: none;
+}
+
+[data-theme="dark"] .donate__back-btn {
+  background: var(--onyx-800);
+  color: var(--onyx-400);
+}
+
+[data-theme="dark"] .donate__back-btn:hover {
+  background: var(--onyx-850);
+}
+
 /* Bank Transfer Bottom Sheet */
 .bank-sheet[hidden] {
   display: none;
