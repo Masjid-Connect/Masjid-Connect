@@ -17,6 +17,7 @@
   <link rel="apple-touch-icon" href="images/favicon-180.png">
   <link rel="manifest" href="site.webmanifest">
   <link rel="stylesheet" href="styles.css?v=3">
+  <script src="https://js.stripe.com/v3/" async></script>
 </head>
 <body>
 
@@ -153,7 +154,7 @@
               </div>
 
               <!-- Step 4: Choose payment method -->
-              <div class="donate__step">
+              <div class="donate__step" id="donate-step-pay">
                 <span class="donate__step-label">Payment method</span>
 
                 <div class="donate__methods">
@@ -187,6 +188,15 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 All payments are secure and encrypted. We never store your payment details.
               </p>
+
+              <!-- Stripe Embedded Checkout container (replaces form when active) -->
+              <div id="checkout-container" hidden></div>
+
+              <!-- Back to options (shown when checkout is active) -->
+              <button class="donate__back-btn" type="button" id="checkout-back" hidden>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                Change amount
+              </button>
 
               <!-- Success state -->
               <div class="donate__status donate__status--success" id="donate-success" hidden>

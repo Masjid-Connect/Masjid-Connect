@@ -7,12 +7,12 @@
   'use strict';
 
   // ─── Scroll Reveal (Intersection Observer) ──────────────────
-  var revealSelectors = '.reveal, .reveal-scale, .reveal-left, .reveal-right, .reveal-stagger';
-  var revealElements = document.querySelectorAll(revealSelectors);
-  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const revealSelectors = '.reveal, .reveal-scale, .reveal-left, .reveal-right, .reveal-stagger';
+  const revealElements = document.querySelectorAll(revealSelectors);
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   if ('IntersectionObserver' in window && !prefersReducedMotion) {
-    var revealObserver = new IntersectionObserver(
+    const revealObserver = new IntersectionObserver(
       function (entries) {
         entries.forEach(function (entry) {
           if (entry.isIntersecting) {
@@ -57,8 +57,8 @@
   }
 
   // ─── Mobile nav toggle (iOS sheet) ─────────────────────────
-  var toggle = document.getElementById('nav-toggle');
-  var navMenu = document.getElementById('nav-menu');
+  const toggle = document.getElementById('nav-toggle');
+  const navMenu = document.getElementById('nav-menu');
 
   function closeMenu() {
     navMenu.classList.remove('is-open');
@@ -99,11 +99,11 @@
   }
 
   // ─── Dark mode toggle ─────────────────────────────────────
-  var darkToggle = document.getElementById('dark-mode-toggle');
+  const darkToggle = document.getElementById('dark-mode-toggle');
 
   if (darkToggle) {
     // Restore saved preference
-    var savedTheme = localStorage.getItem('theme');
+    const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       document.documentElement.setAttribute('data-theme', 'dark');
       darkToggle.checked = true;
@@ -121,11 +121,11 @@
   }
 
   // ─── Language segmented control ────────────────────────────
-  var langToggle = document.getElementById('lang-toggle');
+  const langToggle = document.getElementById('lang-toggle');
 
   if (langToggle) {
-    var savedLang = localStorage.getItem('lang') || 'en';
-    var langBtns = langToggle.querySelectorAll('.mobile-menu__seg-btn');
+    const savedLang = localStorage.getItem('lang') || 'en';
+    const langBtns = langToggle.querySelectorAll('.mobile-menu__seg-btn');
 
     // Restore saved lang
     langBtns.forEach(function (btn) {
@@ -142,22 +142,22 @@
     });
   }
   // ─── Footer accordion toggles (mobile) ────────────────────
-  var footerCols = document.querySelectorAll('.footer__col:not(.footer__col--brand)');
+  const footerCols = document.querySelectorAll('.footer__col:not(.footer__col--brand)');
 
   footerCols.forEach(function (col) {
-    var heading = col.querySelector('.footer__heading');
-    var list = col.querySelector('.footer__list');
-    var badges = col.querySelector('.footer__store-badges');
+    const heading = col.querySelector('.footer__heading');
+    const list = col.querySelector('.footer__list');
+    const badges = col.querySelector('.footer__store-badges');
 
     if (heading && list) {
       heading.addEventListener('click', function () {
-        var isOpen = heading.classList.contains('is-open');
+        const isOpen = heading.classList.contains('is-open');
 
         // Close all other sections first
         footerCols.forEach(function (otherCol) {
-          var otherHeading = otherCol.querySelector('.footer__heading');
-          var otherList = otherCol.querySelector('.footer__list');
-          var otherBadges = otherCol.querySelector('.footer__store-badges');
+          const otherHeading = otherCol.querySelector('.footer__heading');
+          const otherList = otherCol.querySelector('.footer__list');
+          const otherBadges = otherCol.querySelector('.footer__store-badges');
           if (otherHeading) otherHeading.classList.remove('is-open');
           if (otherList) otherList.classList.remove('is-open');
           if (otherBadges) otherBadges.classList.remove('is-open');
@@ -176,17 +176,17 @@
   // ─── Speculative prefetch on hover (instant page loads) ────
   // Prefetch same-origin pages when the user hovers a link,
   // so by the time they click the page is already cached.
-  var prefetched = {};
+  const prefetched = {};
 
   function prefetchOnHover(e) {
-    var link = e.target.closest('a[href]');
+    const link = e.target.closest('a[href]');
     if (!link) return;
-    var href = link.getAttribute('href');
+    const href = link.getAttribute('href');
     // Only same-origin relative links, skip anchors/external/js
     if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('http')) return;
     if (prefetched[href]) return;
     prefetched[href] = true;
-    var tag = document.createElement('link');
+    const tag = document.createElement('link');
     tag.rel = 'prefetch';
     tag.href = href;
     document.head.appendChild(tag);
@@ -197,11 +197,11 @@
   // ─── Spam Protection Helpers ────────────────────────────────
 
   // Track when page loaded — submissions within 3s are likely bots
-  var pageLoadTime = Date.now();
-  var MIN_SUBMIT_DELAY = 3000; // 3 seconds
+  const pageLoadTime = Date.now();
+  const MIN_SUBMIT_DELAY = 3000; // 3 seconds
 
   // Turnstile token storage
-  var turnstileTokens = { contact: null, donate: null };
+  const turnstileTokens = { contact: null, donate: null };
 
   // Global callbacks for Turnstile
   window.onContactTurnstile = function (token) { turnstileTokens.contact = token; };
@@ -209,7 +209,7 @@
 
   // Honeypot check — returns true if bot detected
   function isHoneypotFilled(formEl) {
-    var hp = formEl.querySelector('.form-hp input');
+    const hp = formEl.querySelector('.form-hp input');
     return hp && hp.value.length > 0;
   }
 
@@ -219,42 +219,42 @@
   }
 
   // ─── Contact form handling ──────────────────────────────────
-  var contactForm = document.getElementById('contact-form');
+  const contactForm = document.getElementById('contact-form');
 
   if (contactForm) {
     contactForm.addEventListener('submit', function (e) {
       e.preventDefault();
 
-      var submitBtn = document.getElementById('contact-submit');
-      var successEl = document.getElementById('form-success');
-      var errorEl = document.getElementById('form-error');
-      var errorText = errorEl.querySelector('span');
-      var submitText = submitBtn.querySelector('.contact-form__submit-text');
+      const submitBtn = document.getElementById('contact-submit');
+      const formSuccessEl = document.getElementById('form-success');
+      const formErrorEl = document.getElementById('form-error');
+      const formErrorText = formErrorEl.querySelector('span');
+      const submitText = submitBtn.querySelector('.contact-form__submit-text');
 
       // Hide previous status
-      successEl.hidden = true;
-      errorEl.hidden = true;
+      formSuccessEl.hidden = true;
+      formErrorEl.hidden = true;
 
       // ── Spam checks ──
       // 1. Honeypot
       if (isHoneypotFilled(contactForm)) {
         // Silently "succeed" — don't reveal the bot was caught
-        successEl.hidden = false;
+        formSuccessEl.hidden = false;
         contactForm.reset();
         return;
       }
 
       // 2. Time-based (too fast = bot)
       if (isSubmittedTooFast()) {
-        errorText.textContent = 'Please wait a moment before submitting.';
-        errorEl.hidden = false;
+        formErrorText.textContent = 'Please wait a moment before submitting.';
+        formErrorEl.hidden = false;
         return;
       }
 
       // 3. Turnstile token
       if (!turnstileTokens.contact) {
-        errorText.textContent = 'Please complete the security check.';
-        errorEl.hidden = false;
+        formErrorText.textContent = 'Please complete the security check.';
+        formErrorEl.hidden = false;
         return;
       }
 
@@ -262,8 +262,8 @@
       submitBtn.disabled = true;
       submitText.textContent = 'Sending...';
 
-      var formData = new FormData(contactForm);
-      var data = {
+      const formData = new FormData(contactForm);
+      const data = {
         name: formData.get('name'),
         email: formData.get('email'),
         subject: formData.get('subject'),
@@ -278,15 +278,15 @@
       })
         .then(function (res) {
           if (!res.ok) throw new Error('Failed');
-          successEl.hidden = false;
+          formSuccessEl.hidden = false;
           contactForm.reset();
           turnstileTokens.contact = null;
           // Reset Turnstile widget
           if (window.turnstile) window.turnstile.reset();
         })
         .catch(function () {
-          errorText.innerHTML = 'Something went wrong. Please email us directly at <a href="mailto:info@salafimasjid.app">info@salafimasjid.app</a>';
-          errorEl.hidden = false;
+          formErrorText.innerHTML = 'Something went wrong. Please email us directly at <a href="mailto:info@salafimasjid.app">info@salafimasjid.app</a>';
+          formErrorEl.hidden = false;
         })
         .finally(function () {
           submitBtn.disabled = false;
@@ -296,29 +296,27 @@
   }
 
   // ─── Donate form spam protection ──────────────────────────────
-  var donateSubmit = document.getElementById('donate-submit');
+  const donateSubmit = document.getElementById('donate-submit');
 
   if (donateSubmit) {
-    var originalClick = donateSubmit.onclick;
-
     donateSubmit.addEventListener('click', function (e) {
-      var formCard = donateSubmit.closest('.donate__form-card');
-      var errorEl = document.getElementById('donate-error');
-      var errorText = document.getElementById('donate-error-text');
+      const formCard = donateSubmit.closest('.donate__form-card');
+      const donateErrorEl = document.getElementById('donate-error');
+      const donateErrorText = document.getElementById('donate-error-text');
 
       // 1. Honeypot
       if (formCard && isHoneypotFilled(formCard)) {
         // Silently "succeed"
-        var successEl = document.getElementById('donate-success');
-        if (successEl) successEl.hidden = false;
+        const donateSuccessEl = document.getElementById('donate-success');
+        if (donateSuccessEl) donateSuccessEl.hidden = false;
         return;
       }
 
       // 2. Time-based
       if (isSubmittedTooFast()) {
-        if (errorEl && errorText) {
-          errorText.textContent = 'Please wait a moment before submitting.';
-          errorEl.hidden = false;
+        if (donateErrorEl && donateErrorText) {
+          donateErrorText.textContent = 'Please wait a moment before submitting.';
+          donateErrorEl.hidden = false;
         }
         e.stopImmediatePropagation();
         return;
@@ -326,9 +324,9 @@
 
       // 3. Turnstile token
       if (!turnstileTokens.donate) {
-        if (errorEl && errorText) {
-          errorText.textContent = 'Please complete the security check.';
-          errorEl.hidden = false;
+        if (donateErrorEl && donateErrorText) {
+          donateErrorText.textContent = 'Please complete the security check.';
+          donateErrorEl.hidden = false;
         }
         e.stopImmediatePropagation();
         return;
