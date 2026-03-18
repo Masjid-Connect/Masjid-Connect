@@ -729,6 +729,13 @@ def create_checkout_session(request):
     managed via the Stripe Dashboard — no code changes needed.
     """
     import stripe as stripe_lib
+    from django.http import HttpResponseRedirect
+
+    def _redirect_303(url):
+        """Return a 303 See Other redirect (correct for POST-to-GET)."""
+        response = HttpResponseRedirect(url)
+        response.status_code = 303
+        return response
 
     secret_key = getattr(settings, "STRIPE_SECRET_KEY", "")
     if not secret_key:
@@ -750,10 +757,9 @@ def create_checkout_session(request):
     def _error(msg, for_redirect=False):
         """Return an error — JSON for embedded, redirect for legacy."""
         if for_redirect and return_url:
-            from django.shortcuts import redirect as django_redirect
             from urllib.parse import quote
             sep = "&" if "?" in return_url else "?"
-            return django_redirect(return_url + sep + "donation=error&msg=" + quote(msg))
+            return _redirect_303(return_url + sep + "donation=error&msg=" + quote(msg))
         return Response({"detail": msg}, status=status.HTTP_400_BAD_REQUEST)
 
     is_embedded = ui_mode == "embedded"
@@ -833,8 +839,7 @@ def create_checkout_session(request):
                 status=status.HTTP_200_OK,
             )
         else:
-            from django.shortcuts import redirect as django_redirect
-            return django_redirect(session.url)
+            return _redirect_303(session.url)
 
     except Exception:
         logger.exception("Stripe Checkout Session creation failed")

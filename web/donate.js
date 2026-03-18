@@ -18,8 +18,7 @@
   'use strict';
 
   // ─── Config ──────────────────────────────────────────────────
-  var API_BASE = 'https://api.salafimasjid.app/api/v1';
-  var CHECKOUT_URL = API_BASE + '/donate/checkout/';
+  var CHECKOUT_URL = '/api/v1/donate/checkout/';
 
   // ─── State ───────────────────────────────────────────────────
   var selectedAmount = 50;
@@ -35,6 +34,7 @@
   var successEl = document.getElementById('donate-success');
   var errorEl = document.getElementById('donate-error');
   var errorText = document.getElementById('donate-error-text');
+  var giftAidCheckbox = document.getElementById('gift-aid');
   var formSteps = document.querySelectorAll('.donate__step, .form-hp');
   var checkoutContainer = document.getElementById('checkout-container');
   var checkoutBack = document.getElementById('checkout-back');
@@ -151,6 +151,7 @@
         currency: 'gbp',
         frequency: frequency,
         return_url: returnUrl,
+        gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no',
         ui_mode: uiMode,
       }),
     }).then(function (res) {
@@ -215,6 +216,7 @@
       currency: 'gbp',
       frequency: frequency,
       return_url: returnUrl,
+      gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no',
     };
 
     Object.keys(fields).forEach(function (name) {
