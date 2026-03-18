@@ -231,6 +231,7 @@ if not DEBUG and not TESTING:
 UNFOLD = {
     "SITE_TITLE": "The Salafi Masjid",
     "SITE_HEADER": "The Salafi Masjid Admin",
+    "DASHBOARD_CALLBACK": "core.dashboard.dashboard_callback",
     "COLORS": {
         "font": {
             "subtle-light": "107 114 128",
@@ -274,10 +275,11 @@ UNFOLD = {
             {
                 "title": "Donations & Gift Aid",
                 "items": [
-                    {"title": "Donations", "link": "/admin/core/donation/", "icon": "volunteer_activism"},
-                    {"title": "Gift Aid Declarations", "link": "/admin/core/giftaiddeclaration/", "icon": "description"},
-                    {"title": "Gift Aid Claims", "link": "/admin/core/giftaidclaim/", "icon": "request_quote"},
-                    {"title": "Charity Settings", "link": "/admin/core/charitygiftaidsettings/", "icon": "settings"},
+                    {"title": "Dashboard", "link": "/admin/donations/dashboard/", "icon": "dashboard", "permission": "core.dashboard.can_view_donation_summary"},
+                    {"title": "Donations", "link": "/admin/core/donation/", "icon": "volunteer_activism", "permission": "core.dashboard.can_view_donation_details"},
+                    {"title": "Gift Aid Declarations", "link": "/admin/core/giftaiddeclaration/", "icon": "description", "permission": "core.dashboard.can_view_donation_details"},
+                    {"title": "Gift Aid Claims", "link": "/admin/core/giftaidclaim/", "icon": "request_quote", "permission": "core.dashboard.can_view_donation_details"},
+                    {"title": "Charity Settings", "link": "/admin/core/charitygiftaidsettings/", "icon": "settings", "permission": "core.dashboard.can_view_donation_details"},
                 ],
             },
             {

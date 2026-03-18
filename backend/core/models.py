@@ -425,6 +425,9 @@ class Donation(models.Model):
 
     class Meta:
         ordering = ["-donation_date", "-created"]
+        permissions = [
+            ("view_donation_details", "Can view individual donation details and donor information"),
+        ]
 
     def __str__(self):
         pounds = self.amount_pence / 100

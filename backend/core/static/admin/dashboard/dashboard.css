@@ -1,0 +1,395 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Masjid Connect — Donation Dashboard Styles
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  --dash-sapphire: #0F2D52;
+  --dash-sapphire-light: #5B9BD5;
+  --dash-gold: #D4AF37;
+  --dash-gold-bright: #E5C14B;
+  --dash-sage: #2D6A4F;
+  --dash-crimson: #B91C1C;
+  --dash-stone-100: #F9F7F2;
+  --dash-stone-200: #F0EDE6;
+  --dash-stone-300: #E5E0D3;
+  --dash-onyx-900: #121216;
+  --dash-onyx-600: #6B6B70;
+  --dash-white: #FFFFFF;
+  --dash-separator: #E2DFD8;
+}
+
+/* ── Dashboard header ────────────────────────────────────────────── */
+
+.dash-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.dash-header img {
+  width: 48px;
+  height: auto;
+}
+
+.dash-header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--dash-sapphire);
+  margin: 0;
+}
+
+.dash-header p {
+  font-size: 14px;
+  color: var(--dash-onyx-600);
+  margin: 2px 0 0;
+}
+
+/* ── Stat cards row ──────────────────────────────────────────────── */
+
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.dash-stat-card {
+  background: var(--dash-white);
+  border: 1px solid var(--dash-separator);
+  border-left: 4px solid var(--dash-sapphire);
+  border-radius: 10px;
+  padding: 20px;
+  transition: box-shadow 0.2s ease;
+}
+
+.dash-stat-card:hover {
+  box-shadow: 0 4px 16px rgba(15, 45, 82, 0.08);
+}
+
+.dash-stat-card.gold {
+  border-left-color: var(--dash-gold);
+}
+
+.dash-stat-card.sage {
+  border-left-color: var(--dash-sage);
+}
+
+.dash-stat-card.crimson {
+  border-left-color: var(--dash-crimson);
+}
+
+.dash-stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dash-onyx-600);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 6px;
+}
+
+.dash-stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--dash-sapphire);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.dash-stat-card.gold .dash-stat-value {
+  color: var(--dash-gold);
+}
+
+.dash-stat-sub {
+  font-size: 13px;
+  color: var(--dash-onyx-600);
+  margin: 4px 0 0;
+}
+
+/* ── Chart containers ────────────────────────────────────────────── */
+
+.dash-charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.dash-charts.full-width {
+  grid-template-columns: 1fr;
+}
+
+.dash-chart-card {
+  background: var(--dash-white);
+  border: 1px solid var(--dash-separator);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.dash-chart-card h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--dash-sapphire);
+  margin: 0 0 16px;
+}
+
+.dash-chart-card canvas {
+  max-height: 280px;
+}
+
+/* ── Gift Aid tracker ────────────────────────────────────────────── */
+
+.dash-gift-aid {
+  background: var(--dash-white);
+  border: 1px solid var(--dash-separator);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 28px;
+}
+
+.dash-gift-aid h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--dash-sapphire);
+  margin: 0 0 16px;
+}
+
+.dash-gift-aid-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.dash-ga-item {
+  text-align: center;
+  padding: 12px;
+  background: var(--dash-stone-100);
+  border-radius: 8px;
+}
+
+.dash-ga-item .ga-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--dash-gold);
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-ga-item .ga-label {
+  font-size: 12px;
+  color: var(--dash-onyx-600);
+  margin-top: 4px;
+}
+
+.dash-progress-bar {
+  width: 100%;
+  height: 12px;
+  background: var(--dash-stone-300);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 16px 0 8px;
+}
+
+.dash-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--dash-gold), var(--dash-gold-bright));
+  border-radius: 6px;
+  transition: width 0.6s ease;
+}
+
+.dash-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--dash-onyx-600);
+}
+
+/* ── Recent donations table ──────────────────────────────────────── */
+
+.dash-recent {
+  background: var(--dash-white);
+  border: 1px solid var(--dash-separator);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 28px;
+}
+
+.dash-recent h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--dash-sapphire);
+  margin: 0 0 16px;
+}
+
+.dash-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.dash-table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--dash-onyx-600);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 12px;
+  border-bottom: 2px solid var(--dash-separator);
+}
+
+.dash-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--dash-separator);
+  color: var(--dash-onyx-900);
+}
+
+.dash-table tr:last-child td {
+  border-bottom: none;
+}
+
+.dash-table .amount {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--dash-sapphire);
+}
+
+.dash-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.dash-badge.gift-aid {
+  background: #FBF8EB;
+  color: var(--dash-gold);
+}
+
+.dash-badge.source {
+  background: var(--dash-stone-100);
+  color: var(--dash-onyx-600);
+}
+
+/* ── Top donors table ────────────────────────────────────────────── */
+
+.dash-top-donors {
+  background: var(--dash-white);
+  border: 1px solid var(--dash-separator);
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 28px;
+}
+
+.dash-top-donors h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--dash-sapphire);
+  margin: 0 0 16px;
+}
+
+/* ── Restricted access card ──────────────────────────────────────── */
+
+.dash-restricted {
+  background: var(--dash-stone-200);
+  border: 1px solid var(--dash-separator);
+  border-radius: 10px;
+  padding: 40px 20px;
+  text-align: center;
+  margin: 28px 0;
+}
+
+.dash-restricted .lock-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+  opacity: 0.4;
+}
+
+.dash-restricted p {
+  font-size: 14px;
+  color: var(--dash-onyx-600);
+  margin: 0;
+}
+
+/* ── Section divider ─────────────────────────────────────────────── */
+
+.dash-divider {
+  border: none;
+  border-top: 1px solid var(--dash-separator);
+  margin: 28px 0;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+  .dash-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dash-charts {
+    grid-template-columns: 1fr;
+  }
+
+  .dash-stat-value {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dash-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Dark mode ───────────────────────────────────────────────────── */
+
+.dark .dash-stat-card,
+.dark .dash-chart-card,
+.dark .dash-gift-aid,
+.dark .dash-recent,
+.dark .dash-top-donors {
+  background: #1A1A1E;
+  border-color: #333;
+}
+
+.dark .dash-header h1 {
+  color: var(--dash-sapphire-light);
+}
+
+.dark .dash-stat-value {
+  color: var(--dash-sapphire-light);
+}
+
+.dark .dash-chart-card h3,
+.dark .dash-gift-aid h3,
+.dark .dash-recent h3,
+.dark .dash-top-donors h3 {
+  color: var(--dash-sapphire-light);
+}
+
+.dark .dash-table td {
+  color: #D1D5DB;
+  border-color: #333;
+}
+
+.dark .dash-table th {
+  border-color: #444;
+}
+
+.dark .dash-table .amount {
+  color: var(--dash-sapphire-light);
+}
+
+.dark .dash-ga-item {
+  background: #262628;
+}
+
+.dark .dash-progress-bar {
+  background: #333;
+}
+
+.dark .dash-restricted {
+  background: #1A1A1E;
+  border-color: #333;
+}
