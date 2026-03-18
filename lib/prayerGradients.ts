@@ -5,7 +5,7 @@
  * Each triple goes top → bottom to mimic looking upward.
  *
  * Light mode: warm, perceptible atmospheric shifts ending in stone.
- * Dark mode: barely-there tints on near-OLED black (onyx950).
+ * Dark mode: barely-there tints on midnight sapphire (sapphire950).
  */
 
 import type { PrayerName } from '@/types';

@@ -10,7 +10,7 @@ import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { getColors, palette } from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, borderRadius, typography, getElevation } from '@/constants/Theme';
 
@@ -60,8 +60,8 @@ export const AmountSelector = ({ selectedAmount, onAmountChange }: AmountSelecto
               style={[
                 styles.amountButton,
                 {
-                  backgroundColor: isSelected ? palette.sapphire700 : colors.card,
-                  borderColor: isSelected ? palette.sapphire700 : colors.separator,
+                  backgroundColor: isSelected ? colors.tint : colors.card,
+                  borderColor: isSelected ? colors.tint : colors.separator,
                   ...(!isSelected ? getElevation('sm', isDark) : {}),
                 },
               ]}
@@ -73,7 +73,7 @@ export const AmountSelector = ({ selectedAmount, onAmountChange }: AmountSelecto
               <Text
                 style={[
                   typography.headline,
-                  { color: isSelected ? palette.white : colors.text },
+                  { color: isSelected ? colors.onPrimary : colors.text },
                 ]}
               >
                 £{amount}
@@ -82,7 +82,7 @@ export const AmountSelector = ({ selectedAmount, onAmountChange }: AmountSelecto
                 <Ionicons
                   name="checkmark-circle"
                   size={16}
-                  color={palette.white}
+                  color={colors.onPrimary}
                   style={styles.checkmark}
                 />
               )}
@@ -95,8 +95,8 @@ export const AmountSelector = ({ selectedAmount, onAmountChange }: AmountSelecto
           style={[
             styles.amountButton,
             {
-              backgroundColor: isCustom ? palette.sapphire700 : colors.card,
-              borderColor: isCustom ? palette.sapphire700 : colors.separator,
+              backgroundColor: isCustom ? colors.tint : colors.card,
+              borderColor: isCustom ? colors.tint : colors.separator,
               ...(!isCustom ? getElevation('sm', isDark) : {}),
             },
           ]}
@@ -108,7 +108,7 @@ export const AmountSelector = ({ selectedAmount, onAmountChange }: AmountSelecto
           <Text
             style={[
               typography.headline,
-              { color: isCustom ? palette.white : colors.text },
+              { color: isCustom ? colors.onPrimary : colors.text },
             ]}
           >
             {t('support.custom')}

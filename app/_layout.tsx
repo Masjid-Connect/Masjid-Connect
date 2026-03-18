@@ -41,8 +41,8 @@ const MosqueDark = {
   colors: {
     ...DarkTheme.colors,
     primary: palette.divineGoldBright,
-    background: palette.onyx950,
-    card: palette.onyx850,
+    background: palette.sapphire950,
+    card: palette.sapphire850,
     text: palette.snow,
     border: palette.separatorDark,
     notification: palette.divineGoldBright,
