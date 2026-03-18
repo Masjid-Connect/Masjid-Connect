@@ -1,0 +1,97 @@
+{% extends "admin/guide/base_guide.html" %}
+{% load static %}
+
+{% block guide_content %}
+<div class="guide-logo-header">
+  <img src="{% static 'admin/img/Masjid_Logo.png' %}" alt="The Salafi Masjid">
+  <h1>Managing Announcements</h1>
+  <p>Keep your community informed with timely updates and notices.</p>
+</div>
+
+<h2>How to Add an Announcement</h2>
+<ol class="guide-steps">
+  <li>Click <strong>Announcements</strong> in the left sidebar under "Content".</li>
+  <li>Click the <strong>"Add Announcement"</strong> button in the top-right corner.</li>
+  <li>Select your <strong>Mosque</strong> from the dropdown list.</li>
+  <li>Type a clear, short <strong>Title</strong> — this is what people see first (e.g., "Jumu'ah Khutbah Topic This Week").</li>
+  <li>Write the full <strong>Body</strong> of your announcement. Keep it concise — a few sentences is ideal.</li>
+  <li>Choose a <strong>Priority</strong>:
+    <ul style="margin-top: 6px; padding-left: 20px;">
+      <li><span class="guide-badge sapphire">Normal</span> — for regular updates (weekly reminders, general news)</li>
+      <li><span class="guide-badge crimson">Urgent</span> — for time-sensitive notices (Janazah prayers, emergency closures)</li>
+    </ul>
+  </li>
+  <li>Set an <strong>Expiry Date</strong> if the announcement should automatically disappear (optional). Leave it blank if it should stay until you remove it.</li>
+  <li>Click <strong>"Save"</strong> at the bottom of the page.</li>
+</ol>
+
+<div class="guide-tip">
+  Keep titles short and specific. "Mosque Closed on Monday" is better than "Important Notice Regarding Closure".
+</div>
+
+<div class="guide-warning">
+  Only use <strong>Urgent</strong> priority for genuinely time-sensitive matters. If everything is marked urgent, community members will start ignoring notifications.
+</div>
+
+<h2>Editing an Existing Announcement</h2>
+<ol class="guide-steps">
+  <li>Click <strong>Announcements</strong> in the left sidebar.</li>
+  <li>Find the announcement you want to edit — use the search box or scroll through the list.</li>
+  <li>Click on the <strong>title</strong> of the announcement to open it.</li>
+  <li>Make your changes and click <strong>"Save"</strong>.</li>
+</ol>
+
+<h2>Deleting an Announcement</h2>
+<ol class="guide-steps">
+  <li>Open the announcement you want to delete.</li>
+  <li>Scroll to the bottom and click <strong>"Delete"</strong>.</li>
+  <li>You'll be asked to confirm — click <strong>"Yes, I'm sure"</strong>.</li>
+</ol>
+
+<div class="guide-warning">
+  Deleted announcements cannot be recovered. If you're unsure, set an expiry date instead of deleting.
+</div>
+
+<h2>Quick Reference</h2>
+<table class="guide-table">
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>Required?</th>
+      <th>What to Enter</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Mosque</td>
+      <td>Yes</td>
+      <td>Select your mosque from the list</td>
+    </tr>
+    <tr>
+      <td>Title</td>
+      <td>Yes</td>
+      <td>A short, clear heading (e.g., "Weekend Class Cancelled")</td>
+    </tr>
+    <tr>
+      <td>Body</td>
+      <td>Yes</td>
+      <td>The full announcement text — keep it brief and clear</td>
+    </tr>
+    <tr>
+      <td>Priority</td>
+      <td>Yes</td>
+      <td>Normal (default) or Urgent (for emergencies only)</td>
+    </tr>
+    <tr>
+      <td>Expires At</td>
+      <td>No</td>
+      <td>Date/time when the announcement should disappear automatically</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="guide-nav">
+  <a href="{% url 'admin:guide_index' %}" class="secondary">&larr; Back to Guide</a>
+  <a href="{% url 'admin:guide_events' %}">Events &amp; Lessons &rarr;</a>
+</div>
+{% endblock %}

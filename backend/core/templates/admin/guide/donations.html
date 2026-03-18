@@ -1,0 +1,126 @@
+{% extends "admin/guide/base_guide.html" %}
+{% load static %}
+
+{% block guide_content %}
+<div class="guide-logo-header">
+  <img src="{% static 'admin/img/Masjid_Logo.png' %}" alt="The Salafi Masjid">
+  <h1>Donations &amp; Gift Aid</h1>
+  <p>View donations, manage Gift Aid declarations, and submit HMRC claims.</p>
+</div>
+
+<h2>Viewing Donations</h2>
+<ol class="guide-steps">
+  <li>Click <strong>Donations</strong> in the left sidebar under "Donations &amp; Gift Aid".</li>
+  <li>You'll see a list of all donations, showing the date, donor name, amount, and whether Gift Aid applies.</li>
+  <li>Click on any donation to see the full details.</li>
+  <li>Use the <strong>filters</strong> on the right to narrow by Gift Aid status, frequency (one-time/monthly), or payment source.</li>
+</ol>
+
+<div class="guide-info">
+  Donations from the website are recorded <strong>automatically</strong> when someone donates via the online donation page. You don't need to add them manually.
+</div>
+
+<h2>Understanding Gift Aid</h2>
+<p>
+  Gift Aid allows the mosque to claim an <strong>extra 25%</strong> from HMRC on eligible donations
+  at no cost to the donor. For example, a £100 donation means the mosque can claim £25 extra from HMRC.
+</p>
+
+<h3>How It Works</h3>
+<table class="guide-table">
+  <thead>
+    <tr>
+      <th>Step</th>
+      <th>Who Does It</th>
+      <th>What Happens</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>Donor</td>
+      <td>Ticks "Gift Aid" when donating and provides their address</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>System</td>
+      <td>Creates a Gift Aid Declaration automatically, linking the donor to their donations</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><strong>You</strong></td>
+      <td>Create a Gift Aid Claim, add eligible donations, and submit to HMRC</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>HMRC</td>
+      <td>Pays the 25% Gift Aid amount to the mosque</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Gift Aid Declarations</h2>
+<p>
+  A declaration is the donor's confirmation that they are a UK taxpayer and want Gift Aid
+  to apply to their donations. These are created automatically when a donor opts in.
+</p>
+<ol class="guide-steps">
+  <li>Click <strong>Gift Aid Declarations</strong> in the sidebar to see all declarations.</li>
+  <li>Each declaration shows the donor's name, reference number (e.g., GA-000001), and status.</li>
+  <li><span class="guide-badge sage">Active</span> declarations are currently valid.</li>
+  <li><span class="guide-badge crimson">Cancelled</span> declarations are no longer in effect.</li>
+</ol>
+
+<h2>Creating a Gift Aid Claim (for HMRC)</h2>
+<p>
+  You'll typically submit a Gift Aid claim to HMRC once a year (or quarterly). Here's how:
+</p>
+<ol class="guide-steps">
+  <li>Click <strong>Gift Aid Claims</strong> in the sidebar.</li>
+  <li>Click <strong>"Add Gift Aid Claim"</strong>.</li>
+  <li>Enter a <strong>Reference</strong> (e.g., "GACLAIM-2026-001") and the <strong>claim period</strong> dates.</li>
+  <li>In the <strong>Donations</strong> section, select all eligible donations for this period. Use the arrows to move donations between the "Available" and "Chosen" boxes.</li>
+  <li>Click <strong>"Save"</strong>. The totals will be calculated automatically.</li>
+  <li>To export for HMRC, select the claim from the list, then use the <strong>Actions</strong> dropdown at the top:
+    <ul style="margin-top: 6px; padding-left: 20px;">
+      <li><strong>Export as HMRC Gift Aid CSV</strong> — spreadsheet format for manual upload</li>
+      <li><strong>Export as HMRC R68 XML</strong> — XML file for Charities Online portal</li>
+    </ul>
+  </li>
+  <li>Upload the exported file on the <a href="https://www.gov.uk/claim-gift-aid-online" target="_blank">HMRC Charities Online portal</a>.</li>
+  <li>After submitting, update the claim <strong>Status</strong> to "Submitted" and record the <strong>Submitted Date</strong>.</li>
+</ol>
+
+<div class="guide-tip">
+  The CSV format is easier if you're new to Gift Aid claims. The XML format is for the official HMRC Charities Online system.
+</div>
+
+<h2>Charity Gift Aid Settings</h2>
+<p>
+  Before submitting your first claim, make sure your charity details are filled in:
+</p>
+<ol class="guide-steps">
+  <li>Click <strong>Charity Gift Aid Settings</strong> in the sidebar.</li>
+  <li>Fill in your <strong>Charity Name</strong> and <strong>HMRC Reference</strong> (from your HMRC recognition letter).</li>
+  <li>Add the <strong>Regulator</strong> details (Charity Commission number).</li>
+  <li>Enter the <strong>Authorised Official</strong> — the person authorised to sign Gift Aid claims on behalf of the charity.</li>
+  <li>Click <strong>"Save"</strong>.</li>
+</ol>
+
+<div class="guide-warning">
+  You can only have one set of Charity Gift Aid Settings. This is by design — they apply to the whole charity.
+</div>
+
+<h2>Generating Donation Receipts</h2>
+<ol class="guide-steps">
+  <li>Go to the <strong>Donations</strong> list in the sidebar.</li>
+  <li>Select the donation(s) you want to generate receipts for by ticking the checkbox on the left.</li>
+  <li>From the <strong>Actions</strong> dropdown at the top, select <strong>"Generate donation receipt"</strong>.</li>
+  <li>Click <strong>"Go"</strong>. The receipt will open in a new tab — you can print it or download it as a PDF.</li>
+</ol>
+
+<div class="guide-nav">
+  <a href="{% url 'admin:guide_prayer_times' %}" class="secondary">&larr; Prayer Times</a>
+  <a href="{% url 'admin:guide_users' %}">Users &amp; Subscribers &rarr;</a>
+</div>
+{% endblock %}

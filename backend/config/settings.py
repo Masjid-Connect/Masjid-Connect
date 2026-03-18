@@ -231,6 +231,7 @@ if not DEBUG and not TESTING:
 UNFOLD = {
     "SITE_TITLE": "The Salafi Masjid",
     "SITE_HEADER": "The Salafi Masjid Admin",
+    "DASHBOARD_CALLBACK": "core.dashboard.dashboard_callback",
     "COLORS": {
         "font": {
             "subtle-light": "107 114 128",
@@ -261,6 +262,7 @@ UNFOLD = {
                 "items": [
                     {"title": "Mosques", "link": "/admin/core/mosque/", "icon": "mosque"},
                     {"title": "Mosque Admins", "link": "/admin/core/mosqueadmin/", "icon": "admin_panel_settings"},
+                    {"title": "Prayer Times", "link": "/admin/core/mosqueprayertime/", "icon": "schedule"},
                 ],
             },
             {
@@ -268,6 +270,16 @@ UNFOLD = {
                 "items": [
                     {"title": "Announcements", "link": "/admin/core/announcement/", "icon": "campaign"},
                     {"title": "Events", "link": "/admin/core/event/", "icon": "event"},
+                ],
+            },
+            {
+                "title": "Donations & Gift Aid",
+                "items": [
+                    {"title": "Dashboard", "link": "/admin/donations/dashboard/", "icon": "dashboard", "permission": "core.dashboard.can_view_donation_summary"},
+                    {"title": "Donations", "link": "/admin/core/donation/", "icon": "volunteer_activism", "permission": "core.dashboard.can_view_donation_details"},
+                    {"title": "Gift Aid Declarations", "link": "/admin/core/giftaiddeclaration/", "icon": "description", "permission": "core.dashboard.can_view_donation_details"},
+                    {"title": "Gift Aid Claims", "link": "/admin/core/giftaidclaim/", "icon": "request_quote", "permission": "core.dashboard.can_view_donation_details"},
+                    {"title": "Charity Settings", "link": "/admin/core/charitygiftaidsettings/", "icon": "settings", "permission": "core.dashboard.can_view_donation_details"},
                 ],
             },
             {
@@ -282,6 +294,15 @@ UNFOLD = {
                     {"title": "Users", "link": "/admin/core/user/", "icon": "person"},
                     {"title": "Subscriptions", "link": "/admin/core/usersubscription/", "icon": "notifications"},
                     {"title": "Push Tokens", "link": "/admin/core/pushtoken/", "icon": "phone_android"},
+                ],
+            },
+            {
+                "title": "Help & Guides",
+                "separator": True,
+                "items": [
+                    {"title": "User Guide", "link": "/admin/guide/", "icon": "menu_book"},
+                    {"title": "FAQs", "link": "/admin/guide/faqs/", "icon": "help"},
+                    {"title": "Troubleshooting", "link": "/admin/guide/troubleshooting/", "icon": "build"},
                 ],
             },
         ],

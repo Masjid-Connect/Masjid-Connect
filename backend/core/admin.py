@@ -5,6 +5,7 @@ import csv
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.http import HttpResponse
+from django.urls import path, reverse
 from unfold.admin import ModelAdmin
 
 from .models import (
@@ -122,8 +123,49 @@ class MosquePrayerTimeAdmin(ModelAdmin):
 # ── Donations & Gift Aid ────────────────────────────────────────────
 
 
+def _generate_donation_receipt(modeladmin, request, queryset):
+    """Generate donation receipt — opens receipt for the first selected donation."""
+    if queryset.count() != 1:
+        modeladmin.message_user(
+            request,
+            "Please select exactly one donation to generate a receipt.",
+            level="warning",
+        )
+        return
+    donation = queryset.first()
+    from django.shortcuts import redirect
+    return redirect(reverse("admin:donation_receipt_html", args=[donation.pk]))
+
+
+_generate_donation_receipt.short_description = "Generate donation receipt"
+
+
+class _DonationPermissionMixin:
+    """Restrict donation-related admin views to users with view_donation_details access."""
+
+    def has_module_permission(self, request):
+        from .dashboard import can_view_donation_details
+        return can_view_donation_details(request.user)
+
+    def has_view_permission(self, request, obj=None):
+        from .dashboard import can_view_donation_details
+        return can_view_donation_details(request.user)
+
+    def has_add_permission(self, request):
+        from .dashboard import can_view_donation_details
+        return can_view_donation_details(request.user)
+
+    def has_change_permission(self, request, obj=None):
+        from .dashboard import can_view_donation_details
+        return can_view_donation_details(request.user)
+
+    def has_delete_permission(self, request, obj=None):
+        from .dashboard import can_view_donation_details
+        return can_view_donation_details(request.user)
+
+
 @admin.register(Donation)
-class DonationAdmin(ModelAdmin):
+class DonationAdmin(_DonationPermissionMixin, ModelAdmin):
     list_display = [
         "donation_date",
         "donor_name",
@@ -138,6 +180,7 @@ class DonationAdmin(ModelAdmin):
     search_fields = ["donor_name", "donor_email", "stripe_payment_intent_id", "stripe_checkout_session_id"]
     date_hierarchy = "donation_date"
     ordering = ["-donation_date"]
+    actions = [_generate_donation_receipt]
     readonly_fields = [
         "id", "stripe_payment_intent_id", "stripe_customer_id",
         "stripe_checkout_session_id", "gift_aid_amount_pence", "created", "updated",
@@ -183,7 +226,7 @@ class DonationAdmin(ModelAdmin):
 
 
 @admin.register(GiftAidDeclaration)
-class GiftAidDeclarationAdmin(ModelAdmin):
+class GiftAidDeclarationAdmin(_DonationPermissionMixin, ModelAdmin):
     list_display = [
         "charity_reference",
         "donor_name",
@@ -340,7 +383,7 @@ _export_gift_aid_xml_envelope.short_description = "Export as GovTalkMessage XML 
 
 
 @admin.register(GiftAidClaim)
-class GiftAidClaimAdmin(ModelAdmin):
+class GiftAidClaimAdmin(_DonationPermissionMixin, ModelAdmin):
     list_display = [
         "reference",
         "period_start",
@@ -393,7 +436,7 @@ class GiftAidClaimAdmin(ModelAdmin):
 
 
 @admin.register(CharityGiftAidSettings)
-class CharityGiftAidSettingsAdmin(ModelAdmin):
+class CharityGiftAidSettingsAdmin(_DonationPermissionMixin, ModelAdmin):
     list_display = ["charity_name", "hmrc_reference", "regulator_number", "official_surname"]
     fieldsets = (
         ("Charity Identity", {
@@ -422,10 +465,76 @@ class CharityGiftAidSettingsAdmin(ModelAdmin):
     )
 
     def has_add_permission(self, request):
+        if not super().has_add_permission(request):
+            return False
         # Only allow one settings row
         if CharityGiftAidSettings.objects.exists():
             return False
-        return super().has_add_permission(request)
+        return True
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+# ── Custom admin URLs for guide, receipts, and dashboard ─────────────
+
+from .guide_views import (
+    guide_index, guide_announcements, guide_events, guide_prayer_times,
+    guide_donations, guide_users, guide_faqs, guide_troubleshooting,
+    donation_receipt_html, donation_receipt_pdf,
+)
+
+
+def _donation_dashboard_view(request):
+    """Dedicated donation dashboard page with tiered access."""
+    from django.shortcuts import render
+    from .dashboard import (
+        can_view_donation_details, can_view_donation_summary,
+        get_full_dashboard_data, get_summary_dashboard_data,
+    )
+
+    if can_view_donation_details(request.user):
+        level = "full"
+        data = get_full_dashboard_data()
+    elif can_view_donation_summary(request.user):
+        level = "summary"
+        data = get_summary_dashboard_data()
+    else:
+        level = "none"
+        data = {}
+
+    context = {
+        "title": "Donation Dashboard",
+        "level": level,
+        "data": data,
+        "is_nav_sidebar_enabled": True,
+        "available_apps": [],
+        "is_popup": False,
+    }
+    return render(request, "admin/dashboard/donations.html", context)
+
+
+_original_get_urls = admin.AdminSite.get_urls
+
+
+def _custom_get_urls(self):
+    custom_urls = [
+        # Guide pages
+        path("guide/", self.admin_view(guide_index), name="guide_index"),
+        path("guide/announcements/", self.admin_view(guide_announcements), name="guide_announcements"),
+        path("guide/events/", self.admin_view(guide_events), name="guide_events"),
+        path("guide/prayer-times/", self.admin_view(guide_prayer_times), name="guide_prayer_times"),
+        path("guide/donations/", self.admin_view(guide_donations), name="guide_donations"),
+        path("guide/users/", self.admin_view(guide_users), name="guide_users"),
+        path("guide/faqs/", self.admin_view(guide_faqs), name="guide_faqs"),
+        path("guide/troubleshooting/", self.admin_view(guide_troubleshooting), name="guide_troubleshooting"),
+        # Donation dashboard
+        path("donations/dashboard/", self.admin_view(_donation_dashboard_view), name="donation_dashboard"),
+        # Donation receipts
+        path("receipts/donation/<uuid:pk>/", self.admin_view(donation_receipt_html), name="donation_receipt_html"),
+        path("receipts/donation/<uuid:pk>/pdf/", self.admin_view(donation_receipt_pdf), name="donation_receipt_pdf"),
+    ]
+    return custom_urls + _original_get_urls(self)
+
+
+admin.AdminSite.get_urls = _custom_get_urls

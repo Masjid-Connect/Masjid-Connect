@@ -1,0 +1,230 @@
+{% extends 'admin/base.html' %}
+{% load i18n static %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+{% block branding %}{% include "unfold/helpers/site_branding.html" %}{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'admin/dashboard/dashboard.css' %}">
+{% endblock %}
+
+{% block content %}
+{% if dashboard_level == "full" %}
+  {# ── Super Admin: Full Dashboard ──────────────────────────────── #}
+  <div class="dash-header">
+    <img src="{% static 'admin/img/Masjid_Logo.png' %}" alt="The Salafi Masjid">
+    <div>
+      <h1>Dashboard</h1>
+      <p>Donation overview and community insights</p>
+    </div>
+  </div>
+
+  {# Key metrics #}
+  <div class="dash-stats">
+    <div class="dash-stat-card">
+      <p class="dash-stat-label">Today</p>
+      <p class="dash-stat-value">&pound;{{ dashboard.today_stats.total_pounds|floatformat:2 }}</p>
+      <p class="dash-stat-sub">{{ dashboard.today_stats.count }} donation{{ dashboard.today_stats.count|pluralize }}</p>
+    </div>
+    <div class="dash-stat-card">
+      <p class="dash-stat-label">This Month</p>
+      <p class="dash-stat-value">&pound;{{ dashboard.month_stats.total_pounds|floatformat:2 }}</p>
+      <p class="dash-stat-sub">{{ dashboard.month_stats.count }} donation{{ dashboard.month_stats.count|pluralize }}</p>
+    </div>
+    <div class="dash-stat-card">
+      <p class="dash-stat-label">This Year</p>
+      <p class="dash-stat-value">&pound;{{ dashboard.year_stats.total_pounds|floatformat:2 }}</p>
+      <p class="dash-stat-sub">{{ dashboard.year_stats.count }} donation{{ dashboard.year_stats.count|pluralize }}</p>
+    </div>
+    <div class="dash-stat-card gold">
+      <p class="dash-stat-label">Gift Aid Reclaimable</p>
+      <p class="dash-stat-value">&pound;{{ dashboard.unclaimed_gift_aid_pounds|floatformat:2 }}</p>
+      <p class="dash-stat-sub">{{ dashboard.unclaimed_gift_aid_count }} unclaimed donation{{ dashboard.unclaimed_gift_aid_count|pluralize }}</p>
+    </div>
+  </div>
+
+  {# Trend chart #}
+  <div class="dash-charts full-width">
+    <div class="dash-chart-card">
+      <h3>Donation Trends (12 Months)</h3>
+      <canvas id="chart-monthly-trend" data-trend="{{ dashboard.monthly_trend_json }}"></canvas>
+    </div>
+  </div>
+
+  {# Breakdown charts #}
+  <div class="dash-charts">
+    <div class="dash-chart-card">
+      <h3>By Frequency</h3>
+      <canvas id="chart-frequency" data-frequency="{{ dashboard.frequency_data_json }}"></canvas>
+    </div>
+    <div class="dash-chart-card">
+      <h3>By Source</h3>
+      <canvas id="chart-source" data-source="{{ dashboard.source_data_json }}"></canvas>
+    </div>
+  </div>
+
+  {# Gift Aid tracker #}
+  <div class="dash-gift-aid">
+    <h3>Gift Aid Tracker</h3>
+    <div class="dash-gift-aid-grid">
+      <div class="dash-ga-item">
+        <div class="ga-value">&pound;{{ dashboard.unclaimed_gift_aid_pounds|floatformat:2 }}</div>
+        <div class="ga-label">Unclaimed Gift Aid</div>
+      </div>
+      <div class="dash-ga-item">
+        <div class="ga-value">{{ dashboard.active_declarations }}</div>
+        <div class="ga-label">Active Declarations</div>
+      </div>
+      <div class="dash-ga-item">
+        <div class="ga-value">{{ dashboard.draft_claims }}</div>
+        <div class="ga-label">Draft Claims</div>
+      </div>
+      <div class="dash-ga-item">
+        {% if dashboard.last_claim.reference %}
+          <div class="ga-value" style="font-size: 16px;">{{ dashboard.last_claim.reference }}</div>
+          <div class="ga-label">Last Submission: {{ dashboard.last_claim.submitted_date|default:"Pending" }} — {{ dashboard.last_claim.status }}</div>
+        {% else %}
+          <div class="ga-value" style="font-size: 16px;">None</div>
+          <div class="ga-label">No claims submitted yet</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {# Recent donations #}
+  <div class="dash-recent">
+    <h3>Recent Donations</h3>
+    {% if dashboard.recent_donations %}
+      <table class="dash-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Donor</th>
+            <th>Amount</th>
+            <th>Source</th>
+            <th>Gift Aid</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in dashboard.recent_donations %}
+            <tr>
+              <td>{{ d.donation_date }}</td>
+              <td>{{ d.donor_name|default:d.donor_email|default:"Anonymous" }}</td>
+              <td class="amount">&pound;{{ d.amount_pounds }}</td>
+              <td><span class="dash-badge source">{{ d.source }}</span></td>
+              <td>
+                {% if d.gift_aid_eligible %}
+                  <span class="dash-badge gift-aid">Gift Aid</span>
+                {% else %}
+                  —
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p style="color: var(--dash-onyx-600); font-size: 14px;">No donations recorded yet.</p>
+    {% endif %}
+  </div>
+
+  {# Top donors #}
+  {% if dashboard.top_donors %}
+    <div class="dash-top-donors">
+      <h3>Top Donors (All Time)</h3>
+      <table class="dash-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Donor</th>
+            <th>Total Donated</th>
+            <th>Donations</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in dashboard.top_donors %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>{{ d.donor_name|default:d.donor_email|default:"Anonymous" }}</td>
+              <td class="amount">&pound;{{ d.total_pounds }}</td>
+              <td>{{ d.donation_count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+
+  <hr class="dash-divider">
+
+  {# Standard app list below dashboard #}
+  <div class="flex flex-col lg:flex-row lg:gap-8">
+    <div class="grow">
+      {% include "unfold/helpers/app_list_default.html" %}
+    </div>
+    {% include "unfold/helpers/history.html" %}
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script src="{% static 'admin/dashboard/dashboard.js' %}"></script>
+
+{% elif dashboard_level == "summary" %}
+  {# ── Regular Admin: Summary Only ──────────────────────────────── #}
+  <div class="dash-header">
+    <img src="{% static 'admin/img/Masjid_Logo.png' %}" alt="The Salafi Masjid">
+    <div>
+      <h1>Dashboard</h1>
+      <p>Community overview</p>
+    </div>
+  </div>
+
+  <div class="dash-stats">
+    <div class="dash-stat-card">
+      <p class="dash-stat-label">Donations This Month</p>
+      <p class="dash-stat-value">{{ dashboard.month_count }}</p>
+      <p class="dash-stat-sub">{{ dashboard.year_count }} this year</p>
+    </div>
+    <div class="dash-stat-card sage">
+      <p class="dash-stat-label">Subscribers</p>
+      <p class="dash-stat-value">{{ dashboard.total_subscribers }}</p>
+      <p class="dash-stat-sub">{{ dashboard.new_subscribers }} new this month</p>
+    </div>
+  </div>
+
+  {# Donation count trend chart (no amounts) #}
+  <div class="dash-charts full-width">
+    <div class="dash-chart-card">
+      <h3>Donation Activity (12 Months)</h3>
+      <canvas id="chart-monthly-counts" data-counts="{{ dashboard.monthly_counts_json }}"></canvas>
+    </div>
+  </div>
+
+  <div class="dash-restricted">
+    <div class="lock-icon">&#128274;</div>
+    <p>Detailed donation amounts and donor information are only available to Super Admins.<br>
+    Contact a Super Admin if you need access.</p>
+  </div>
+
+  <hr class="dash-divider">
+
+  <div class="flex flex-col lg:flex-row lg:gap-8">
+    <div class="grow">
+      {% include "unfold/helpers/app_list_default.html" %}
+    </div>
+    {% include "unfold/helpers/history.html" %}
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script src="{% static 'admin/dashboard/dashboard.js' %}"></script>
+
+{% else %}
+  {# ── No access: Standard admin homepage ───────────────────────── #}
+  <div class="flex flex-col lg:flex-row lg:gap-8">
+    <div class="grow">
+      {% include "unfold/helpers/app_list_default.html" %}
+    </div>
+    {% include "unfold/helpers/history.html" %}
+  </div>
+{% endif %}
+{% endblock %}

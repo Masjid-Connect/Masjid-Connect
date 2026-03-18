@@ -1,0 +1,128 @@
+{% extends "admin/guide/base_guide.html" %}
+{% load static %}
+
+{% block guide_content %}
+<div class="guide-logo-header">
+  <img src="{% static 'admin/img/Masjid_Logo.png' %}" alt="The Salafi Masjid">
+  <h1>Managing Prayer Times</h1>
+  <p>Keep jama'ah times accurate so your community never misses a prayer.</p>
+</div>
+
+<h2>Understanding Prayer Times</h2>
+<p>
+  The app shows two types of prayer times to your community:
+</p>
+<table class="guide-table">
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Where It Comes From</th>
+      <th>What You Need to Do</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Prayer Start Times</strong></td>
+      <td>Calculated automatically based on your mosque's location and calculation method</td>
+      <td>Nothing — these update on their own</td>
+    </tr>
+    <tr>
+      <td><strong>Jama'ah Times</strong></td>
+      <td>Set by your mosque — when the congregation actually prays</td>
+      <td><strong>You update these</strong> when they change</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="guide-info">
+  Prayer start times (when a prayer begins according to the sun's position) are calculated automatically.
+  <strong>Jama'ah times</strong> (when your mosque actually holds the congregation prayer) are what you manage here.
+</div>
+
+<h2>How to Update Jama'ah Times</h2>
+<ol class="guide-steps">
+  <li>Click <strong>Mosque Prayer Times</strong> in the left sidebar under "Mosques".</li>
+  <li>You'll see a list of dates with jama'ah times. Find the date you want to update, or click <strong>"Add Mosque Prayer Time"</strong> for a new date.</li>
+  <li>Select your <strong>Mosque</strong> and set the <strong>Date</strong>.</li>
+  <li>Enter the jama'ah times for each prayer:
+    <ul style="margin-top: 6px; padding-left: 20px;">
+      <li><strong>Fajr Jama'ah</strong> — e.g., 06:00</li>
+      <li><strong>Dhuhr Jama'ah</strong> — e.g., 13:30</li>
+      <li><strong>Asr Jama'ah</strong> — e.g., 16:45</li>
+      <li><strong>Maghrib Jama'ah</strong> — usually shortly after sunset, e.g., 18:15</li>
+      <li><strong>Isha Jama'ah</strong> — e.g., 20:00</li>
+    </ul>
+  </li>
+  <li>Click <strong>"Save"</strong>.</li>
+</ol>
+
+<div class="guide-tip">
+  Use 24-hour format for times (e.g., 13:30 instead of 1:30 PM). The app will display it in whichever format the user's phone prefers.
+</div>
+
+<h2>When to Update Times</h2>
+<p>Jama'ah times typically change:</p>
+<ul style="padding-left: 20px; margin: 12px 0;">
+  <li><strong>Seasonally</strong> — as days get longer or shorter</li>
+  <li><strong>During Ramadan</strong> — special Taraweeh times, adjusted Fajr</li>
+  <li><strong>For Eid prayers</strong> — special one-off times</li>
+  <li><strong>Clock changes</strong> — when daylight saving time starts or ends</li>
+</ul>
+
+<div class="guide-warning">
+  If you don't update jama'ah times, the app will show the last times you entered. Community members rely on these being accurate — please update them whenever they change.
+</div>
+
+<h2>Quick Reference</h2>
+<table class="guide-table">
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>Required?</th>
+      <th>What to Enter</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Mosque</td>
+      <td>Yes</td>
+      <td>Your mosque</td>
+    </tr>
+    <tr>
+      <td>Date</td>
+      <td>Yes</td>
+      <td>The date these times apply to (YYYY-MM-DD)</td>
+    </tr>
+    <tr>
+      <td>Fajr Jama'ah</td>
+      <td>Yes</td>
+      <td>Congregation time for Fajr (24-hour, e.g., 06:00)</td>
+    </tr>
+    <tr>
+      <td>Dhuhr Jama'ah</td>
+      <td>Yes</td>
+      <td>Congregation time for Dhuhr</td>
+    </tr>
+    <tr>
+      <td>Asr Jama'ah</td>
+      <td>Yes</td>
+      <td>Congregation time for Asr</td>
+    </tr>
+    <tr>
+      <td>Maghrib Jama'ah</td>
+      <td>Yes</td>
+      <td>Congregation time for Maghrib</td>
+    </tr>
+    <tr>
+      <td>Isha Jama'ah</td>
+      <td>Yes</td>
+      <td>Congregation time for Isha</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="guide-nav">
+  <a href="{% url 'admin:guide_events' %}" class="secondary">&larr; Events &amp; Lessons</a>
+  <a href="{% url 'admin:guide_donations' %}">Donations &amp; Gift Aid &rarr;</a>
+</div>
+{% endblock %}

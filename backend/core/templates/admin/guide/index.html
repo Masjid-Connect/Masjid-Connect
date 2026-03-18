@@ -1,0 +1,96 @@
+{% extends "admin/guide/base_guide.html" %}
+{% load static %}
+
+{% block guide_breadcrumb %}{% endblock %}
+
+{% block guide_content %}
+<div class="guide-logo-header">
+  <img src="{% static 'admin/img/Masjid_Logo.png' %}" alt="The Salafi Masjid">
+  <h1>Admin User Guide</h1>
+  <p>Everything you need to manage your mosque — simply and confidently.</p>
+</div>
+
+<h2>Welcome!</h2>
+<p>
+  This guide is designed for <strong>mosque administrators</strong> — imams, board members,
+  and volunteers who manage announcements, events, prayer times, and donations through this
+  admin panel. No technical knowledge is required.
+</p>
+
+<div class="guide-tip">
+  You can return to this guide at any time from the <strong>Help &amp; Guides</strong>
+  section in the left sidebar.
+</div>
+
+<h2>What Can You Do Here?</h2>
+
+<div class="guide-grid">
+  <a href="{% url 'admin:guide_announcements' %}" class="guide-card">
+    <span class="card-icon">&#128227;</span>
+    <div class="card-title">Announcements</div>
+    <div class="card-desc">Post community announcements — from weekly updates to urgent Janazah notices.</div>
+  </a>
+
+  <a href="{% url 'admin:guide_events' %}" class="guide-card">
+    <span class="card-icon">&#128197;</span>
+    <div class="card-title">Events &amp; Lessons</div>
+    <div class="card-desc">Add lessons, lectures, youth programs, sisters' circles, and community events.</div>
+  </a>
+
+  <a href="{% url 'admin:guide_prayer_times' %}" class="guide-card">
+    <span class="card-icon">&#128336;</span>
+    <div class="card-title">Prayer Times</div>
+    <div class="card-desc">View and update daily jama'ah (congregation) times for your mosque.</div>
+  </a>
+
+  <a href="{% url 'admin:guide_donations' %}" class="guide-card">
+    <span class="card-icon">&#128176;</span>
+    <div class="card-title">Donations &amp; Gift Aid</div>
+    <div class="card-desc">View donation records, manage Gift Aid declarations, and generate HMRC claims.</div>
+  </a>
+
+  <a href="{% url 'admin:guide_users' %}" class="guide-card">
+    <span class="card-icon">&#128101;</span>
+    <div class="card-title">Users &amp; Subscribers</div>
+    <div class="card-desc">See who is subscribed to your mosque and their notification preferences.</div>
+  </a>
+
+  <a href="{% url 'admin:guide_faqs' %}" class="guide-card">
+    <span class="card-icon">&#10067;</span>
+    <div class="card-title">FAQs</div>
+    <div class="card-desc">Quick answers to the most common questions about using this admin panel.</div>
+  </a>
+
+  <a href="{% url 'admin:guide_troubleshooting' %}" class="guide-card">
+    <span class="card-icon">&#128295;</span>
+    <div class="card-title">Troubleshooting</div>
+    <div class="card-desc">Something not working? Find solutions to common issues here.</div>
+  </a>
+</div>
+
+<h2>Your Role</h2>
+<p>As a mosque administrator, you have the ability to:</p>
+<table class="guide-table">
+  <thead>
+    <tr>
+      <th>Role</th>
+      <th>What You Can Do</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="guide-badge sapphire">Admin</span></td>
+      <td>Create and edit announcements, events, and prayer times for your mosque</td>
+    </tr>
+    <tr>
+      <td><span class="guide-badge gold">Super Admin</span></td>
+      <td>Everything above, plus manage other admins, view donations, and generate Gift Aid claims</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="guide-info">
+  If you're not sure which role you have, ask the person who set up your account.
+  Your role is shown in the <strong>Mosque Admins</strong> section.
+</div>
+{% endblock %}

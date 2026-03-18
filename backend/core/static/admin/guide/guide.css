@@ -1,0 +1,675 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Masjid Connect — Admin User Guide Styles
+   Color scheme: Sapphire Blue / Divine Gold / Stone
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  --guide-stone-100: #F9F7F2;
+  --guide-stone-200: #F0EDE6;
+  --guide-stone-300: #E5E0D3;
+  --guide-onyx-900: #121216;
+  --guide-onyx-600: #6B6B70;
+  --guide-sapphire-700: #0F2D52;
+  --guide-sapphire-600: #163C53;
+  --guide-sapphire-400: #5B9BD5;
+  --guide-gold: #D4AF37;
+  --guide-gold-bright: #E5C14B;
+  --guide-sage-600: #2D6A4F;
+  --guide-crimson-600: #B91C1C;
+  --guide-white: #FFFFFF;
+  --guide-separator: #E2DFD8;
+}
+
+/* ── Page container ──────────────────────────────────────────────── */
+
+.guide-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 24px 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--guide-onyx-900);
+  line-height: 1.65;
+}
+
+/* ── Logo header ─────────────────────────────────────────────────── */
+
+.guide-logo-header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 2px solid var(--guide-gold);
+}
+
+.guide-logo-header img {
+  width: 80px;
+  height: auto;
+  margin-bottom: 12px;
+}
+
+.guide-logo-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--guide-sapphire-700);
+  margin: 0 0 4px;
+  letter-spacing: -0.3px;
+}
+
+.guide-logo-header p {
+  font-size: 15px;
+  color: var(--guide-onyx-600);
+  margin: 0;
+}
+
+/* ── Section headings ────────────────────────────────────────────── */
+
+.guide-page h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--guide-sapphire-700);
+  margin: 36px 0 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--guide-separator);
+}
+
+.guide-page h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--guide-sapphire-700);
+  margin: 28px 0 12px;
+}
+
+.guide-page h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--guide-onyx-900);
+  margin: 20px 0 8px;
+}
+
+/* ── Body text ───────────────────────────────────────────────────── */
+
+.guide-page p {
+  font-size: 15px;
+  margin: 0 0 14px;
+  color: var(--guide-onyx-900);
+}
+
+.guide-page .text-muted {
+  color: var(--guide-onyx-600);
+}
+
+/* ── Quick-links grid (Welcome page) ─────────────────────────────── */
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.guide-card {
+  background: var(--guide-white);
+  border: 1px solid var(--guide-separator);
+  border-radius: 12px;
+  padding: 20px;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.guide-card:hover {
+  border-color: var(--guide-gold);
+  box-shadow: 0 4px 16px rgba(15, 45, 82, 0.08);
+}
+
+.guide-card .card-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.guide-card .card-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--guide-sapphire-700);
+  margin-bottom: 4px;
+}
+
+.guide-card .card-desc {
+  font-size: 13px;
+  color: var(--guide-onyx-600);
+  line-height: 1.5;
+}
+
+/* ── Step-by-step instructions ───────────────────────────────────── */
+
+.guide-steps {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 24px;
+  counter-reset: step;
+}
+
+.guide-steps li {
+  counter-increment: step;
+  position: relative;
+  padding: 14px 16px 14px 56px;
+  margin-bottom: 8px;
+  background: var(--guide-white);
+  border: 1px solid var(--guide-separator);
+  border-radius: 10px;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.guide-steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 14px;
+  top: 12px;
+  width: 30px;
+  height: 30px;
+  background: var(--guide-sapphire-700);
+  color: var(--guide-white);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.guide-steps li strong {
+  color: var(--guide-sapphire-700);
+}
+
+/* ── Callout boxes ───────────────────────────────────────────────── */
+
+.guide-tip,
+.guide-warning,
+.guide-info {
+  padding: 16px 20px;
+  border-radius: 10px;
+  margin: 16px 0;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.guide-tip {
+  background: #FBF8EB;
+  border-left: 4px solid var(--guide-gold);
+}
+
+.guide-tip::before {
+  content: "Tip: ";
+  font-weight: 700;
+  color: var(--guide-gold);
+}
+
+.guide-warning {
+  background: #FEF2F2;
+  border-left: 4px solid var(--guide-crimson-600);
+}
+
+.guide-warning::before {
+  content: "Important: ";
+  font-weight: 700;
+  color: var(--guide-crimson-600);
+}
+
+.guide-info {
+  background: #EFF6FF;
+  border-left: 4px solid var(--guide-sapphire-400);
+}
+
+.guide-info::before {
+  content: "Note: ";
+  font-weight: 700;
+  color: var(--guide-sapphire-700);
+}
+
+/* ── FAQ accordion ───────────────────────────────────────────────── */
+
+.faq-list {
+  margin: 16px 0;
+}
+
+.faq-item {
+  border: 1px solid var(--guide-separator);
+  border-radius: 10px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  background: var(--guide-white);
+}
+
+.faq-item summary {
+  padding: 16px 20px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--guide-sapphire-700);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item summary::after {
+  content: "+";
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--guide-gold);
+  transition: transform 0.2s ease;
+}
+
+.faq-item[open] summary::after {
+  content: "−";
+}
+
+.faq-item .faq-answer {
+  padding: 0 20px 16px;
+  font-size: 14px;
+  color: var(--guide-onyx-600);
+  line-height: 1.6;
+}
+
+/* ── Tables ──────────────────────────────────────────────────────── */
+
+.guide-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+}
+
+.guide-table th {
+  background: var(--guide-sapphire-700);
+  color: var(--guide-white);
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.guide-table th:first-child {
+  border-radius: 8px 0 0 0;
+}
+
+.guide-table th:last-child {
+  border-radius: 0 8px 0 0;
+}
+
+.guide-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--guide-separator);
+}
+
+.guide-table tr:nth-child(even) {
+  background: var(--guide-stone-100);
+}
+
+/* ── Breadcrumb nav ──────────────────────────────────────────────── */
+
+.guide-breadcrumb {
+  font-size: 13px;
+  color: var(--guide-onyx-600);
+  margin-bottom: 20px;
+}
+
+.guide-breadcrumb a {
+  color: var(--guide-sapphire-700);
+  text-decoration: none;
+}
+
+.guide-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.guide-breadcrumb .sep {
+  margin: 0 6px;
+  color: var(--guide-separator);
+}
+
+/* ── Back/nav links ──────────────────────────────────────────────── */
+
+.guide-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--guide-separator);
+}
+
+.guide-nav a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  background: var(--guide-sapphire-700);
+  color: var(--guide-white);
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s ease;
+}
+
+.guide-nav a:hover {
+  background: var(--guide-sapphire-600);
+}
+
+.guide-nav a.secondary {
+  background: transparent;
+  color: var(--guide-sapphire-700);
+  border: 1px solid var(--guide-separator);
+}
+
+.guide-nav a.secondary:hover {
+  border-color: var(--guide-sapphire-700);
+}
+
+/* ── Inline code ─────────────────────────────────────────────────── */
+
+.guide-page code {
+  background: var(--guide-stone-200);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+}
+
+/* ── Badge ───────────────────────────────────────────────────────── */
+
+.guide-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.guide-badge.gold {
+  background: var(--guide-gold);
+  color: var(--guide-white);
+}
+
+.guide-badge.sapphire {
+  background: var(--guide-sapphire-700);
+  color: var(--guide-white);
+}
+
+.guide-badge.sage {
+  background: var(--guide-sage-600);
+  color: var(--guide-white);
+}
+
+.guide-badge.crimson {
+  background: var(--guide-crimson-600);
+  color: var(--guide-white);
+}
+
+/* ── Receipt styles ──────────────────────────────────────────────── */
+
+.receipt-page {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 40px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: var(--guide-onyx-900);
+  background: var(--guide-white);
+}
+
+.receipt-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 24px;
+  border-bottom: 3px solid var(--guide-sapphire-700);
+  margin-bottom: 24px;
+}
+
+.receipt-header .receipt-logo img {
+  width: 64px;
+  height: auto;
+}
+
+.receipt-header .receipt-charity {
+  text-align: right;
+}
+
+.receipt-header .receipt-charity h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--guide-sapphire-700);
+  margin: 0 0 4px;
+}
+
+.receipt-header .receipt-charity p {
+  font-size: 13px;
+  color: var(--guide-onyx-600);
+  margin: 0;
+}
+
+.receipt-title {
+  text-align: center;
+  margin: 24px 0;
+}
+
+.receipt-title h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--guide-sapphire-700);
+  margin: 0 0 4px;
+  border: none;
+  padding: 0;
+}
+
+.receipt-title .receipt-number {
+  font-size: 14px;
+  color: var(--guide-onyx-600);
+}
+
+.receipt-section {
+  margin: 20px 0;
+}
+
+.receipt-section h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--guide-sapphire-700);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--guide-separator);
+}
+
+.receipt-detail-grid {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 6px 16px;
+  font-size: 14px;
+}
+
+.receipt-detail-grid dt {
+  color: var(--guide-onyx-600);
+  font-weight: 500;
+}
+
+.receipt-detail-grid dd {
+  color: var(--guide-onyx-900);
+  margin: 0;
+}
+
+.receipt-amount-box {
+  background: var(--guide-stone-100);
+  border: 2px solid var(--guide-sapphire-700);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  margin: 24px 0;
+}
+
+.receipt-amount-box .amount-label {
+  font-size: 13px;
+  color: var(--guide-onyx-600);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.receipt-amount-box .amount-value {
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--guide-sapphire-700);
+  font-variant-numeric: tabular-nums;
+}
+
+.receipt-gift-aid {
+  background: #FBF8EB;
+  border: 1px solid var(--guide-gold);
+  border-radius: 10px;
+  padding: 20px;
+  margin: 24px 0;
+}
+
+.receipt-gift-aid h3 {
+  color: var(--guide-gold);
+  border: none;
+  padding: 0;
+  margin: 0 0 10px;
+}
+
+.receipt-gift-aid .declaration-text {
+  font-size: 12px;
+  color: var(--guide-onyx-600);
+  line-height: 1.5;
+  margin: 12px 0 0;
+  font-style: italic;
+}
+
+.receipt-gift-aid .gift-aid-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--guide-gold);
+  margin: 8px 0;
+}
+
+.receipt-footer {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 2px solid var(--guide-sapphire-700);
+  text-align: center;
+  font-size: 12px;
+  color: var(--guide-onyx-600);
+  line-height: 1.6;
+}
+
+.receipt-footer .charity-details {
+  margin-bottom: 8px;
+}
+
+/* ── Print styles ────────────────────────────────────────────────── */
+
+@media print {
+  .guide-nav,
+  .guide-breadcrumb,
+  #nav-sidebar,
+  #header,
+  #main > .px-4:first-child {
+    display: none !important;
+  }
+
+  .receipt-page {
+    padding: 0;
+    margin: 0;
+  }
+
+  .receipt-amount-box {
+    border-color: #000;
+  }
+}
+
+/* ── Dark mode support ───────────────────────────────────────────── */
+
+.dark .guide-page {
+  color: #F5F5F7;
+}
+
+.dark .guide-page h2,
+.dark .guide-page h3,
+.dark .guide-logo-header h1 {
+  color: var(--guide-sapphire-400);
+}
+
+.dark .guide-page p {
+  color: #D1D5DB;
+}
+
+.dark .guide-card {
+  background: #1A1A1E;
+  border-color: #333;
+}
+
+.dark .guide-card:hover {
+  border-color: var(--guide-gold-bright);
+}
+
+.dark .guide-card .card-title {
+  color: var(--guide-sapphire-400);
+}
+
+.dark .guide-card .card-desc {
+  color: #9CA3AF;
+}
+
+.dark .guide-steps li {
+  background: #1A1A1E;
+  border-color: #333;
+  color: #D1D5DB;
+}
+
+.dark .guide-tip {
+  background: #1C1A0F;
+}
+
+.dark .guide-warning {
+  background: #1C0F0F;
+}
+
+.dark .guide-info {
+  background: #0F1520;
+}
+
+.dark .faq-item {
+  background: #1A1A1E;
+  border-color: #333;
+}
+
+.dark .faq-item summary {
+  color: var(--guide-sapphire-400);
+}
+
+.dark .faq-item .faq-answer {
+  color: #9CA3AF;
+}
+
+.dark .guide-table td {
+  border-color: #333;
+}
+
+.dark .guide-table tr:nth-child(even) {
+  background: #1A1A1E;
+}
+
+.dark .guide-nav a.secondary {
+  color: var(--guide-sapphire-400);
+  border-color: #333;
+}
