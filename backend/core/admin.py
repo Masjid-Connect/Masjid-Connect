@@ -1,13 +1,19 @@
 """Django admin configuration with Unfold theme."""
 
+import csv
+
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.http import HttpResponse
 from unfold.admin import ModelAdmin
 
 from .models import (
     Announcement,
+    Donation,
     Event,
     Feedback,
+    GiftAidClaim,
+    GiftAidDeclaration,
     Mosque,
     MosqueAdmin,
     MosquePrayerTime,
@@ -110,3 +116,220 @@ class MosquePrayerTimeAdmin(ModelAdmin):
     list_filter = ["mosque"]
     date_hierarchy = "date"
     ordering = ["-date"]
+
+
+# ── Donations & Gift Aid ────────────────────────────────────────────
+
+
+@admin.register(Donation)
+class DonationAdmin(ModelAdmin):
+    list_display = [
+        "donation_date",
+        "donor_name",
+        "donor_email",
+        "amount_display",
+        "frequency",
+        "source",
+        "gift_aid_eligible",
+        "gift_aid_amount_display",
+    ]
+    list_filter = ["gift_aid_eligible", "frequency", "source", "currency"]
+    search_fields = ["donor_name", "donor_email", "stripe_payment_intent_id", "stripe_checkout_session_id"]
+    date_hierarchy = "donation_date"
+    ordering = ["-donation_date"]
+    readonly_fields = [
+        "id", "stripe_payment_intent_id", "stripe_customer_id",
+        "stripe_checkout_session_id", "gift_aid_amount_pence", "created", "updated",
+    ]
+    fieldsets = (
+        ("Donor", {
+            "fields": (
+                "donor_name", "donor_email",
+                "donor_address_line1", "donor_address_line2",
+                "donor_city", "donor_postcode", "donor_country",
+            ),
+        }),
+        ("Payment", {
+            "fields": (
+                "amount_pence", "currency", "frequency", "source", "donation_date",
+            ),
+        }),
+        ("Gift Aid", {
+            "fields": ("gift_aid_eligible", "gift_aid_declaration", "gift_aid_amount_pence"),
+        }),
+        ("Stripe", {
+            "fields": (
+                "stripe_payment_intent_id", "stripe_customer_id",
+                "stripe_checkout_session_id",
+            ),
+            "classes": ("collapse",),
+        }),
+        ("Meta", {
+            "fields": ("id", "created", "updated"),
+            "classes": ("collapse",),
+        }),
+    )
+
+    @admin.display(description="Amount")
+    def amount_display(self, obj):
+        return f"£{obj.amount_pence / 100:.2f}"
+
+    @admin.display(description="Gift Aid")
+    def gift_aid_amount_display(self, obj):
+        if obj.gift_aid_amount_pence:
+            return f"£{obj.gift_aid_amount_pence / 100:.2f}"
+        return "—"
+
+
+@admin.register(GiftAidDeclaration)
+class GiftAidDeclarationAdmin(ModelAdmin):
+    list_display = [
+        "charity_reference",
+        "donor_name",
+        "donor_email",
+        "donor_postcode",
+        "declaration_date",
+        "status",
+        "donation_count",
+        "total_donated_display",
+        "total_gift_aid_display",
+    ]
+    list_filter = ["status"]
+    search_fields = ["donor_name", "donor_email", "charity_reference", "donor_postcode"]
+    date_hierarchy = "declaration_date"
+    ordering = ["-declaration_date"]
+    readonly_fields = ["id", "created", "updated"]
+    fieldsets = (
+        ("Donor Details (HMRC required)", {
+            "fields": (
+                "donor_name", "donor_email",
+                "donor_address_line1", "donor_address_line2",
+                "donor_city", "donor_postcode", "donor_country",
+            ),
+        }),
+        ("Declaration", {
+            "fields": (
+                "charity_reference", "declaration_date",
+                "covers_past_donations", "status", "cancelled_date",
+            ),
+        }),
+        ("Stripe", {
+            "fields": ("stripe_customer_id",),
+            "classes": ("collapse",),
+        }),
+        ("Notes", {
+            "fields": ("notes",),
+        }),
+        ("Meta", {
+            "fields": ("id", "created", "updated"),
+            "classes": ("collapse",),
+        }),
+    )
+
+    @admin.display(description="Donations")
+    def donation_count(self, obj):
+        return obj.donations.count()
+
+    @admin.display(description="Total Donated")
+    def total_donated_display(self, obj):
+        return f"£{obj.total_donated_pence / 100:.2f}"
+
+    @admin.display(description="Gift Aid Value")
+    def total_gift_aid_display(self, obj):
+        return f"£{obj.total_gift_aid_pence / 100:.2f}"
+
+
+def _export_gift_aid_csv(modeladmin, request, queryset):
+    """Export Gift Aid claim as CSV for HMRC Charities Online (R68i schedule)."""
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = 'attachment; filename="gift-aid-hmrc-schedule.csv"'
+
+    writer = csv.writer(response)
+    # HMRC R68i schedule columns
+    writer.writerow([
+        "Donor Title", "Donor First Name", "Donor Last Name",
+        "House Name/Number", "Postcode",
+        "Charity Reference", "Donation Date", "Donation Amount (£)",
+        "Gift Aid Amount (£)",
+    ])
+
+    for claim in queryset:
+        for donation in claim.donations.filter(gift_aid_eligible=True).select_related("gift_aid_declaration"):
+            decl = donation.gift_aid_declaration
+            if not decl:
+                continue
+
+            # Split name into first/last (best effort)
+            name_parts = decl.donor_name.strip().split(" ", 1)
+            first_name = name_parts[0] if name_parts else ""
+            last_name = name_parts[1] if len(name_parts) > 1 else ""
+
+            writer.writerow([
+                "",  # Title (optional)
+                first_name,
+                last_name,
+                decl.donor_address_line1,
+                decl.donor_postcode,
+                decl.charity_reference,
+                donation.donation_date.strftime("%d/%m/%Y"),
+                f"{donation.amount_pence / 100:.2f}",
+                f"{donation.gift_aid_amount_pence / 100:.2f}",
+            ])
+
+    return response
+
+
+_export_gift_aid_csv.short_description = "Export as HMRC Gift Aid CSV (R68i)"
+
+
+@admin.register(GiftAidClaim)
+class GiftAidClaimAdmin(ModelAdmin):
+    list_display = [
+        "reference",
+        "period_start",
+        "period_end",
+        "donation_count",
+        "total_donations_display",
+        "total_gift_aid_display",
+        "status",
+        "submitted_date",
+    ]
+    list_filter = ["status"]
+    search_fields = ["reference"]
+    ordering = ["-period_end"]
+    readonly_fields = [
+        "id", "total_donations_pence", "total_gift_aid_pence",
+        "donation_count", "created", "updated",
+    ]
+    filter_horizontal = ["donations"]
+    actions = [_export_gift_aid_csv]
+    fieldsets = (
+        ("Claim Period", {
+            "fields": ("reference", "period_start", "period_end"),
+        }),
+        ("Donations", {
+            "fields": ("donations",),
+            "description": "Select the Gift Aid eligible donations to include in this HMRC claim.",
+        }),
+        ("Totals (auto-calculated)", {
+            "fields": ("donation_count", "total_donations_pence", "total_gift_aid_pence"),
+        }),
+        ("HMRC Submission", {
+            "fields": ("status", "submitted_date", "hmrc_response"),
+        }),
+        ("Notes", {
+            "fields": ("notes",),
+        }),
+        ("Meta", {
+            "fields": ("id", "created", "updated"),
+            "classes": ("collapse",),
+        }),
+    )
+
+    @admin.display(description="Donations (£)")
+    def total_donations_display(self, obj):
+        return f"£{obj.total_donations_pence / 100:.2f}"
+
+    @admin.display(description="Gift Aid (£)")
+    def total_gift_aid_display(self, obj):
+        return f"£{obj.total_gift_aid_pence / 100:.2f}"

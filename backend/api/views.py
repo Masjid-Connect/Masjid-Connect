@@ -739,6 +739,7 @@ def create_checkout_session(request):
     currency = request.data.get("currency", "gbp")
     frequency = request.data.get("frequency", "one-time")
     return_url = request.data.get("return_url", "")
+    gift_aid = request.data.get("gift_aid", "")  # "yes" if donor opted in
 
     # Validation — redirect back with error on failure (no JSON for form POSTs)
     def _error_redirect(msg):
@@ -766,7 +767,12 @@ def create_checkout_session(request):
 
     try:
         is_recurring = frequency == "monthly"
-        base_metadata = {"frequency": frequency, "source": "website"}
+        wants_gift_aid = str(gift_aid).lower() in ("yes", "true", "1")
+        base_metadata = {
+            "frequency": frequency,
+            "source": "website",
+            "gift_aid": "yes" if wants_gift_aid else "no",
+        }
 
         success_url = return_url + "?donation=success&session_id={CHECKOUT_SESSION_ID}"
         cancel_url = return_url + "?donation=cancelled"
@@ -777,6 +783,15 @@ def create_checkout_session(request):
             "cancel_url": cancel_url,
             "metadata": base_metadata,
         }
+
+        # Gift Aid requires donor's full name and UK address for HMRC
+        if wants_gift_aid:
+            session_params["billing_address_collection"] = "required"
+            session_params["customer_creation"] = "always" if not is_recurring else None
+        if session_params.get("customer_creation") is None and not is_recurring:
+            pass  # don't set customer_creation unless Gift Aid
+        # Clean up None values
+        session_params = {k: v for k, v in session_params.items() if v is not None}
 
         if is_recurring:
             session_params["line_items"] = [
@@ -944,29 +959,148 @@ def stripe_webhook(request):
 
 
 def _handle_checkout_completed(session):
-    """Handle checkout.session.completed — a checkout session was successful."""
+    """Handle checkout.session.completed — create a Donation record.
+
+    If Gift Aid was opted in, also create or link a GiftAidDeclaration.
+    """
+    from datetime import date
+
+    from core.models import Donation, GiftAidDeclaration
+
     customer_email = session.get("customer_email") or session.get("customer_details", {}).get("email", "")
     amount_total = session.get("amount_total", 0)
     currency = session.get("currency", "gbp")
+    metadata = session.get("metadata") or {}
+    customer_details = session.get("customer_details") or {}
+    address = customer_details.get("address") or {}
+
     logger.info(
         "Checkout completed: %s %s %s (email: %s)",
-        amount_total,
-        currency,
-        session.get("id"),
-        customer_email,
+        amount_total, currency, session.get("id"), customer_email,
     )
+
+    frequency = metadata.get("frequency", "one-time")
+    wants_gift_aid = metadata.get("gift_aid") == "yes"
+
+    donation = Donation.objects.create(
+        stripe_checkout_session_id=session.get("id", ""),
+        stripe_payment_intent_id=session.get("payment_intent") or "",
+        stripe_customer_id=session.get("customer") or "",
+        donor_name=customer_details.get("name", ""),
+        donor_email=customer_email,
+        donor_address_line1=address.get("line1", ""),
+        donor_address_line2=address.get("line2", ""),
+        donor_city=address.get("city", ""),
+        donor_postcode=address.get("postal_code", ""),
+        donor_country=address.get("country", "GB"),
+        amount_pence=amount_total,
+        currency=currency,
+        frequency=Donation.Frequency.MONTHLY if frequency == "monthly" else Donation.Frequency.ONE_TIME,
+        source=Donation.Source.STRIPE,
+        gift_aid_eligible=wants_gift_aid,
+        donation_date=date.today(),
+    )
+
+    # Auto-create or link Gift Aid declaration
+    if wants_gift_aid and customer_email:
+        _link_gift_aid_declaration(donation)
+
+
+def _link_gift_aid_declaration(donation):
+    """Find or create a GiftAidDeclaration for this donor and link it."""
+    from datetime import date
+
+    from core.models import GiftAidDeclaration
+
+    # Try to match by Stripe customer ID first, then email
+    declaration = None
+    if donation.stripe_customer_id:
+        declaration = GiftAidDeclaration.objects.filter(
+            stripe_customer_id=donation.stripe_customer_id,
+            status=GiftAidDeclaration.Status.ACTIVE,
+        ).first()
+
+    if not declaration and donation.donor_email:
+        declaration = GiftAidDeclaration.objects.filter(
+            donor_email=donation.donor_email,
+            status=GiftAidDeclaration.Status.ACTIVE,
+        ).first()
+
+    if not declaration:
+        # Generate next charity reference
+        last = GiftAidDeclaration.objects.order_by("-charity_reference").first()
+        if last and last.charity_reference.startswith("GA-"):
+            try:
+                seq = int(last.charity_reference.split("-")[1]) + 1
+            except (ValueError, IndexError):
+                seq = 1
+        else:
+            seq = 1
+        ref = f"GA-{seq:06d}"
+
+        declaration = GiftAidDeclaration.objects.create(
+            donor_name=donation.donor_name,
+            donor_email=donation.donor_email,
+            donor_address_line1=donation.donor_address_line1,
+            donor_address_line2=donation.donor_address_line2,
+            donor_city=donation.donor_city,
+            donor_postcode=donation.donor_postcode,
+            donor_country=donation.donor_country,
+            stripe_customer_id=donation.stripe_customer_id,
+            declaration_date=date.today(),
+            charity_reference=ref,
+        )
+        logger.info("Gift Aid declaration created: %s for %s", ref, donation.donor_email)
+
+    donation.gift_aid_declaration = declaration
+    donation.save(update_fields=["gift_aid_declaration", "updated"])
 
 
 def _handle_invoice_payment_succeeded(invoice):
     """Handle invoice.payment_succeeded — a recurring payment went through."""
+    from datetime import date
+
+    from core.models import Donation
+
     customer_email = invoice.get("customer_email", "")
     amount_paid = invoice.get("amount_paid", 0)
     logger.info(
         "Invoice payment succeeded: %s pence (email: %s, invoice: %s)",
-        amount_paid,
-        customer_email,
-        invoice.get("id"),
+        amount_paid, customer_email, invoice.get("id"),
     )
+
+    # Check if a donation already exists for this invoice (avoid duplicates)
+    invoice_id = invoice.get("id", "")
+    if invoice_id and Donation.objects.filter(stripe_payment_intent_id=invoice_id).exists():
+        return
+
+    # Try to find Gift Aid status from the subscription metadata
+    subscription_id = invoice.get("subscription")
+    metadata = invoice.get("metadata") or {}
+    wants_gift_aid = metadata.get("gift_aid") == "yes"
+
+    billing_address = invoice.get("customer_address") or {}
+
+    donation = Donation.objects.create(
+        stripe_payment_intent_id=invoice_id,
+        stripe_customer_id=invoice.get("customer") or "",
+        donor_name=invoice.get("customer_name", ""),
+        donor_email=customer_email,
+        donor_address_line1=billing_address.get("line1", ""),
+        donor_address_line2=billing_address.get("line2", ""),
+        donor_city=billing_address.get("city", ""),
+        donor_postcode=billing_address.get("postal_code", ""),
+        donor_country=billing_address.get("country", "GB"),
+        amount_pence=amount_paid,
+        currency=invoice.get("currency", "gbp"),
+        frequency=Donation.Frequency.MONTHLY,
+        source=Donation.Source.STRIPE,
+        gift_aid_eligible=wants_gift_aid,
+        donation_date=date.today(),
+    )
+
+    if wants_gift_aid and customer_email:
+        _link_gift_aid_declaration(donation)
 
 
 def _handle_invoice_payment_failed(invoice):
@@ -974,9 +1108,7 @@ def _handle_invoice_payment_failed(invoice):
     customer_email = invoice.get("customer_email", "")
     logger.warning(
         "Invoice payment failed: email=%s, invoice=%s, attempt=%s",
-        customer_email,
-        invoice.get("id"),
-        invoice.get("attempt_count"),
+        customer_email, invoice.get("id"), invoice.get("attempt_count"),
     )
 
 
@@ -984,9 +1116,7 @@ def _handle_subscription_created(subscription):
     """Handle customer.subscription.created — a new subscription started."""
     logger.info(
         "Subscription created: %s (customer: %s, status: %s)",
-        subscription.get("id"),
-        subscription.get("customer"),
-        subscription.get("status"),
+        subscription.get("id"), subscription.get("customer"), subscription.get("status"),
     )
 
 
@@ -994,21 +1124,87 @@ def _handle_subscription_deleted(subscription):
     """Handle customer.subscription.deleted — a subscription was cancelled."""
     logger.info(
         "Subscription deleted: %s (customer: %s)",
-        subscription.get("id"),
-        subscription.get("customer"),
+        subscription.get("id"), subscription.get("customer"),
     )
 
 
 def _handle_payment_intent_succeeded(payment_intent):
-    """Handle payment_intent.succeeded — a one-time payment completed."""
+    """Handle payment_intent.succeeded — a one-time payment completed.
+
+    Note: For checkout-originated payments, the Donation record is already
+    created by _handle_checkout_completed. This handler catches standalone
+    PaymentIntents (e.g. from the API directly).
+    """
+    from core.models import Donation
+
+    pi_id = payment_intent.get("id", "")
+    if pi_id and Donation.objects.filter(stripe_payment_intent_id=pi_id).exists():
+        return  # Already recorded via checkout.session.completed
+
     metadata = payment_intent.get("metadata", {})
     logger.info(
         "PaymentIntent succeeded: %s %s (frequency: %s, email: %s)",
-        payment_intent.get("amount"),
-        payment_intent.get("currency"),
-        metadata.get("frequency", "unknown"),
-        metadata.get("donor_email", "unknown"),
+        payment_intent.get("amount"), payment_intent.get("currency"),
+        metadata.get("frequency", "unknown"), metadata.get("donor_email", "unknown"),
     )
+
+
+# ── Gift Aid Summary (admin-only) ────────────────────────────────────
+
+
+@api_view(["GET"])
+@permission_classes([permissions.IsAdminUser])
+def gift_aid_summary(request):
+    """Return a summary of Gift Aid declarations, donations, and reclaimable totals.
+
+    Admin-only endpoint for the dashboard/reporting.
+    """
+    from django.db.models import Count, Sum
+
+    from core.models import Donation, GiftAidClaim, GiftAidDeclaration
+
+    declarations = GiftAidDeclaration.objects.filter(status=GiftAidDeclaration.Status.ACTIVE)
+    donations_ga = Donation.objects.filter(gift_aid_eligible=True)
+    donations_all = Donation.objects.all()
+
+    agg_all = donations_all.aggregate(
+        total_pence=Sum("amount_pence"),
+        count=Count("id"),
+    )
+    agg_ga = donations_ga.aggregate(
+        total_pence=Sum("amount_pence"),
+        gift_aid_pence=Sum("gift_aid_amount_pence"),
+        count=Count("id"),
+    )
+
+    # Unclaimed = Gift Aid eligible donations NOT in any submitted/accepted claim
+    claimed_ids = GiftAidClaim.objects.filter(
+        status__in=[GiftAidClaim.Status.SUBMITTED, GiftAidClaim.Status.ACCEPTED],
+    ).values_list("donations__id", flat=True)
+    unclaimed = donations_ga.exclude(id__in=claimed_ids)
+    unclaimed_agg = unclaimed.aggregate(
+        total_pence=Sum("amount_pence"),
+        gift_aid_pence=Sum("gift_aid_amount_pence"),
+        count=Count("id"),
+    )
+
+    return Response({
+        "total_donations": {
+            "count": agg_all["count"] or 0,
+            "total_pounds": f"{(agg_all['total_pence'] or 0) / 100:.2f}",
+        },
+        "gift_aid_donations": {
+            "count": agg_ga["count"] or 0,
+            "total_pounds": f"{(agg_ga['total_pence'] or 0) / 100:.2f}",
+            "reclaimable_pounds": f"{(agg_ga['gift_aid_pence'] or 0) / 100:.2f}",
+        },
+        "unclaimed_gift_aid": {
+            "count": unclaimed_agg["count"] or 0,
+            "total_pounds": f"{(unclaimed_agg['total_pence'] or 0) / 100:.2f}",
+            "reclaimable_pounds": f"{(unclaimed_agg['gift_aid_pence'] or 0) / 100:.2f}",
+        },
+        "active_declarations": declarations.count(),
+    })
 
 
 # ── Prayer Times ─────────────────────────────────────────────────────

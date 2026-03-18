@@ -292,3 +292,210 @@ class StripeEvent(models.Model):
 
     def __str__(self):
         return f"{self.event_type} — {self.stripe_event_id}"
+
+
+# ── Donations & Gift Aid ────────────────────────────────────────────
+
+
+class Donation(models.Model):
+    """A recorded donation — created from Stripe webhook events.
+
+    Each successful payment (one-time or recurring invoice) creates one
+    Donation row so we have a local ledger independent of Stripe.
+    """
+
+    class Frequency(models.TextChoices):
+        ONE_TIME = "one_time", "One-time"
+        MONTHLY = "monthly", "Monthly"
+
+    class Source(models.TextChoices):
+        STRIPE = "stripe", "Stripe"
+        BANK_TRANSFER = "bank_transfer", "Bank Transfer"
+        CASH = "cash", "Cash"
+        OTHER = "other", "Other"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # Stripe references (nullable for manual/cash donations)
+    stripe_payment_intent_id = models.CharField(
+        max_length=255, blank=True, db_index=True,
+        help_text="Stripe PaymentIntent or Invoice ID",
+    )
+    stripe_customer_id = models.CharField(max_length=255, blank=True)
+    stripe_checkout_session_id = models.CharField(max_length=255, blank=True)
+
+    # Donor details (from Stripe billing or manual entry)
+    donor_name = models.CharField(max_length=255, blank=True)
+    donor_email = models.EmailField(blank=True)
+    donor_address_line1 = models.CharField(max_length=255, blank=True)
+    donor_address_line2 = models.CharField(max_length=255, blank=True)
+    donor_city = models.CharField(max_length=100, blank=True)
+    donor_postcode = models.CharField(max_length=20, blank=True)
+    donor_country = models.CharField(max_length=2, blank=True, default="GB")
+
+    # Payment details
+    amount_pence = models.PositiveIntegerField(help_text="Donation amount in pence")
+    currency = models.CharField(max_length=3, default="gbp")
+    frequency = models.CharField(max_length=10, choices=Frequency.choices, default=Frequency.ONE_TIME)
+    source = models.CharField(max_length=20, choices=Source.choices, default=Source.STRIPE)
+
+    # Gift Aid
+    gift_aid_eligible = models.BooleanField(
+        default=False,
+        help_text="Donor declared they are a UK taxpayer and want Gift Aid applied",
+    )
+    gift_aid_declaration = models.ForeignKey(
+        "GiftAidDeclaration",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="donations",
+        help_text="The Gift Aid declaration covering this donation",
+    )
+    gift_aid_amount_pence = models.PositiveIntegerField(
+        default=0,
+        help_text="Reclaimable Gift Aid = 25% of donation (amount × 25/100)",
+    )
+
+    donation_date = models.DateField(help_text="Date the payment was received")
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-donation_date", "-created"]
+
+    def __str__(self):
+        pounds = self.amount_pence / 100
+        ga = " (Gift Aid)" if self.gift_aid_eligible else ""
+        return f"£{pounds:.2f}{ga} — {self.donor_name or self.donor_email or 'Anonymous'}"
+
+    def save(self, *args, **kwargs):
+        if self.gift_aid_eligible and self.amount_pence:
+            self.gift_aid_amount_pence = self.amount_pence * 25 // 100
+        else:
+            self.gift_aid_amount_pence = 0
+        super().save(*args, **kwargs)
+
+
+class GiftAidDeclaration(models.Model):
+    """A donor's Gift Aid declaration — HMRC requires name, address, and postcode.
+
+    One declaration can cover multiple donations (past 4 years + all future).
+    HMRC reference: https://www.gov.uk/claim-gift-aid
+    """
+
+    class Status(models.TextChoices):
+        ACTIVE = "active", "Active"
+        CANCELLED = "cancelled", "Cancelled"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    # Donor identity — HMRC mandatory fields
+    donor_name = models.CharField(max_length=255, help_text="Full name as known to HMRC")
+    donor_email = models.EmailField(blank=True)
+    donor_address_line1 = models.CharField(max_length=255, help_text="House number/name and street")
+    donor_address_line2 = models.CharField(max_length=255, blank=True)
+    donor_city = models.CharField(max_length=100, blank=True)
+    donor_postcode = models.CharField(max_length=20, help_text="UK postcode — required by HMRC")
+    donor_country = models.CharField(max_length=2, default="GB")
+
+    # Stripe customer ID for matching future donations
+    stripe_customer_id = models.CharField(
+        max_length=255, blank=True, db_index=True,
+        help_text="Links future Stripe payments to this declaration",
+    )
+
+    # Declaration details
+    declaration_date = models.DateField(help_text="Date the donor made this declaration")
+    covers_past_donations = models.BooleanField(
+        default=True,
+        help_text="Covers donations in the past 4 years",
+    )
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.ACTIVE)
+    cancelled_date = models.DateField(null=True, blank=True)
+
+    # Charity's internal reference for this donor (HMRC requires this)
+    charity_reference = models.CharField(
+        max_length=50, unique=True,
+        help_text="Unique reference for this donor (e.g. GA-000001)",
+    )
+
+    notes = models.TextField(blank=True, help_text="Internal admin notes")
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-declaration_date"]
+
+    def __str__(self):
+        return f"{self.donor_name} — {self.charity_reference} ({self.status})"
+
+    @property
+    def total_donated_pence(self):
+        return self.donations.aggregate(total=models.Sum("amount_pence"))["total"] or 0
+
+    @property
+    def total_gift_aid_pence(self):
+        return self.donations.aggregate(total=models.Sum("gift_aid_amount_pence"))["total"] or 0
+
+
+class GiftAidClaim(models.Model):
+    """A batch Gift Aid claim for HMRC submission via Charities Online.
+
+    Groups eligible donations into a single R68i schedule submission.
+    """
+
+    class Status(models.TextChoices):
+        DRAFT = "draft", "Draft"
+        SUBMITTED = "submitted", "Submitted to HMRC"
+        ACCEPTED = "accepted", "Accepted by HMRC"
+        REJECTED = "rejected", "Rejected by HMRC"
+        PARTIALLY_ACCEPTED = "partially_accepted", "Partially Accepted"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    reference = models.CharField(
+        max_length=50, unique=True,
+        help_text="Claim reference (e.g. GACLAIM-2026-001)",
+    )
+
+    # Claim period
+    period_start = models.DateField(help_text="Start of the claim period")
+    period_end = models.DateField(help_text="End of the claim period")
+
+    # Donations included in this claim
+    donations = models.ManyToManyField(
+        Donation,
+        blank=True,
+        related_name="gift_aid_claims",
+        help_text="Donations included in this HMRC claim",
+    )
+
+    # Totals (denormalised for quick reference — recalculated on save)
+    total_donations_pence = models.PositiveIntegerField(default=0)
+    total_gift_aid_pence = models.PositiveIntegerField(default=0)
+    donation_count = models.PositiveIntegerField(default=0)
+
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
+    submitted_date = models.DateField(null=True, blank=True)
+    hmrc_response = models.TextField(blank=True, help_text="Response from HMRC after submission")
+    notes = models.TextField(blank=True, help_text="Internal admin notes")
+
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-period_end"]
+
+    def __str__(self):
+        return f"{self.reference} — {self.get_status_display()}"
+
+    def recalculate_totals(self):
+        """Recalculate totals from the linked donations."""
+        agg = self.donations.aggregate(
+            total=models.Sum("amount_pence"),
+            gift_aid=models.Sum("gift_aid_amount_pence"),
+            count=models.Count("id"),
+        )
+        self.total_donations_pence = agg["total"] or 0
+        self.total_gift_aid_pence = agg["gift_aid"] or 0
+        self.donation_count = agg["count"] or 0
+        self.save(update_fields=["total_donations_pence", "total_gift_aid_pence", "donation_count", "updated"])
