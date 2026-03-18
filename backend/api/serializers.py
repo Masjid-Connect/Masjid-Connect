@@ -5,8 +5,11 @@ from rest_framework import serializers
 
 from core.models import (
     Announcement,
+    Donation,
     Event,
     Feedback,
+    GiftAidClaim,
+    GiftAidDeclaration,
     Mosque,
     MosqueAdmin,
     MosquePrayerTime,
@@ -270,3 +273,86 @@ class MosquePrayerTimeSerializer(serializers.ModelSerializer):
             "asr_start",
             "isha_start",
         ]
+
+
+# ── Donations & Gift Aid ────────────────────────────────────────────
+
+
+class DonationSerializer(serializers.ModelSerializer):
+    """Read-only serializer for donation records."""
+
+    amount_pounds = serializers.SerializerMethodField()
+    gift_aid_amount_pounds = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Donation
+        fields = [
+            "id",
+            "donor_name",
+            "donor_email",
+            "amount_pence",
+            "amount_pounds",
+            "currency",
+            "frequency",
+            "source",
+            "gift_aid_eligible",
+            "gift_aid_amount_pence",
+            "gift_aid_amount_pounds",
+            "donation_date",
+            "created",
+        ]
+        read_only_fields = fields
+
+    def get_amount_pounds(self, obj):
+        return f"{obj.amount_pence / 100:.2f}"
+
+    def get_gift_aid_amount_pounds(self, obj):
+        return f"{obj.gift_aid_amount_pence / 100:.2f}"
+
+
+class GiftAidDeclarationSerializer(serializers.ModelSerializer):
+    """Read-only serializer for Gift Aid declarations."""
+
+    total_donated_pounds = serializers.SerializerMethodField()
+    total_gift_aid_pounds = serializers.SerializerMethodField()
+
+    class Meta:
+        model = GiftAidDeclaration
+        fields = [
+            "id",
+            "charity_reference",
+            "donor_name",
+            "donor_email",
+            "donor_postcode",
+            "declaration_date",
+            "covers_past_donations",
+            "status",
+            "total_donated_pounds",
+            "total_gift_aid_pounds",
+        ]
+        read_only_fields = fields
+
+    def get_total_donated_pounds(self, obj):
+        return f"{obj.total_donated_pence / 100:.2f}"
+
+    def get_total_gift_aid_pounds(self, obj):
+        return f"{obj.total_gift_aid_pence / 100:.2f}"
+
+
+class GiftAidClaimSerializer(serializers.ModelSerializer):
+    """Read-only serializer for Gift Aid claims."""
+
+    class Meta:
+        model = GiftAidClaim
+        fields = [
+            "id",
+            "reference",
+            "period_start",
+            "period_end",
+            "donation_count",
+            "total_donations_pence",
+            "total_gift_aid_pence",
+            "status",
+            "submitted_date",
+        ]
+        read_only_fields = fields

@@ -34,4 +34,6 @@ urlpatterns = [
     path("donate/checkout/", views.create_checkout_session, name="donate-checkout"),
     path("donate/session-status/", views.checkout_session_status, name="donate-session-status"),
     path("stripe/webhook/", views.stripe_webhook, name="stripe-webhook"),
+    # Gift Aid (admin-only)
+    path("gift-aid/summary/", views.gift_aid_summary, name="gift-aid-summary"),
 ]
