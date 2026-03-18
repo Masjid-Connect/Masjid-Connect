@@ -22,7 +22,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { getColors, palette } from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, borderRadius, typography, getElevation } from '@/constants/Theme';
 import { AmountSelector, BankDetailsSheet } from '@/components/support';
@@ -227,7 +227,7 @@ export default function SupportScreen() {
             style={[
               styles.donateButton,
               {
-                backgroundColor: isLoading ? colors.textTertiary : palette.sapphire700,
+                backgroundColor: isLoading ? colors.textTertiary : colors.tint,
               },
             ]}
             onPress={handleDonate}
@@ -236,13 +236,13 @@ export default function SupportScreen() {
             accessibilityLabel={buttonLabel}
           >
             {isLoading ? (
-              <Text style={[typography.headline, { color: palette.white }]}>
+              <Text style={[typography.headline, { color: colors.onPrimary }]}>
                 {t('support.processing')}
               </Text>
             ) : (
               <>
-                <Ionicons name="heart" size={20} color={palette.white} />
-                <Text style={[typography.headline, { color: palette.white }]}>
+                <Ionicons name="heart" size={20} color={colors.onPrimary} />
+                <Text style={[typography.headline, { color: colors.onPrimary }]}>
                   {buttonLabel}
                 </Text>
               </>
@@ -274,8 +274,8 @@ export default function SupportScreen() {
             accessibilityRole="button"
             accessibilityLabel={t('support.bankTransfer')}
           >
-            <View style={[styles.bankIcon, { backgroundColor: palette.sapphire700 }]}>
-              <Ionicons name="business-outline" size={20} color={palette.white} />
+            <View style={[styles.bankIcon, { backgroundColor: colors.tint }]}>
+              <Ionicons name="business-outline" size={20} color={colors.onPrimary} />
             </View>
             <View style={styles.bankText}>
               <Text style={[typography.headline, { color: colors.text }]}>

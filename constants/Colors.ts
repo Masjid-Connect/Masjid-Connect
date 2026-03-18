@@ -5,13 +5,13 @@
  * harsh pure whites and generic blues. High-contrast for older
  * congregants, calm for daily use.
  *
- * Light mode: "Morning Light in the Musalla"
- * Dark mode: "Midnight in the Masjid" (Obsidian Night — 2-3% sapphire undertone)
+ * Light mode: "Morning Light in the Musalla" — stone backgrounds, onyx text
+ * Dark mode: "Midnight in the Masjid" — sapphire navy surfaces, snow text
  *
  * Palette taxonomy:
- *   Stone    — warm marble backgrounds
- *   Onyx     — organic dark tones (never pure black)
- *   Sapphire — deep blue, brand primary
+ *   Stone    — warm marble backgrounds (light mode)
+ *   Onyx     — organic dark tones for text on light backgrounds
+ *   Sapphire — brand primary AND dark mode surfaces (midnight navy)
  *   Gold     — divine accent, prayer signal
  *   Crimson  — urgent/alert states
  *   Sage     — success states (muted green)
@@ -24,23 +24,23 @@ export const palette = {
   stone200: '#F0EDE6',      // Secondary surface — slightly deeper warmth
   stone300: '#E5E0D3',      // Grouped/tertiary — sand-toned
 
-  // ─── Onyx: sapphire-tinted obsidian (dark mode) ─────────────────
-  // "Ink & Night" — black that has met blue. The sapphire undertone
-  // lets atmospheric gradients emerge from the surface rather than
-  // float on flat black. ~2-3% blue shift, imperceptible in isolation,
-  // cohesive in context.
-  onyx950: '#090B11',       // Main background — obsidian with sapphire breath
-  onyx900: '#121216',       // Near-black for text on light backgrounds (unchanged)
-  onyx850: '#191B22',       // Elevated card surfaces — sapphire-tinted
-  onyx800: '#25272E',       // Grouped list backgrounds — sapphire-tinted
-  onyx600: '#6B6B70',       // Secondary text
-  onyx400: '#A8A8AD',       // Tertiary text / disabled
+  // ─── Onyx: organic dark tones for light-mode text ───────────────
+  onyx900: '#121216',       // Primary text on light backgrounds
+  onyx600: '#6B6B70',       // Secondary text on light backgrounds
+  onyx400: '#A8A8AD',       // Tertiary text / disabled on light backgrounds
 
-  // ─── Sapphire: deep blue, brand primary ─────────────────────────
+  // ─── Sapphire: deep blue — brand primary & dark mode surfaces ───
+  // Sapphire IS the dark mode. "Midnight in the Masjid" = midnight navy,
+  // not black. Every dark surface lives in the sapphire family.
+  sapphire950: '#0A1628',   // Dark mode main background — deepest midnight navy
+  sapphire900: '#0F1E34',   // Dark mode secondary surface
+  sapphire850: '#132742',   // Dark mode elevated cards
+  sapphire800: '#18304E',   // Dark mode grouped list backgrounds
   sapphire700: '#0F2D52',   // Brand primary (light mode tint, tab selection)
   sapphire600: '#1A3F6B',   // Slightly lighter for interactive states
   sapphire400: '#5B9BD5',   // Dark mode tint (lighter for dark backgrounds)
   sapphireLight: '#EBF2FA', // Tint background (light mode)
+  sapphireSeparator: '#1E3B5A', // Dark mode dividers — visible on navy
 
   // ─── Sage: success states (muted green) ───────────────────────
   sage600: '#2D6A4F',       // Success states (light mode)
@@ -63,7 +63,7 @@ export const palette = {
 
   // ─── Separators ─────────────────────────────────────────────────
   separatorLight: '#E2DFD8', // Warmer than system gray
-  separatorDark: '#32343A',  // Dark mode divider — sapphire-tinted
+  separatorDark: '#1E3B5A',  // Dark mode divider — sapphire navy
 
   // ─── Tab bar ────────────────────────────────────────────────────
   tabInactive: '#8E8E93',
@@ -77,7 +77,7 @@ export const palette = {
   white: '#FFFFFF',
   googleBlue: '#4285F4',
   backdrop: 'rgba(0,0,0,0.4)',
-  darkCardBorder: '#32343A',
+  darkCardBorder: '#1E3B5A',
 
   // ─── Legacy aliases (map old names to new values) ───────────────
   // These exist for gradual migration. Prefer canonical names above.
@@ -96,9 +96,9 @@ export const palette = {
   steelBlue: '#64748B',
   steelBlueLight: '#94A3B8',
   tintLight: '#EBF2FA',
-  black: '#090B11',
-  darkElevated: '#191B22',
-  darkGrouped: '#25272E',
+  black: '#0A1628',
+  darkElevated: '#132742',
+  darkGrouped: '#18304E',
   // Legacy emerald aliases → sapphire
   emerald700: '#0F2D52',
   emerald600: '#2D6A4F',
@@ -114,10 +114,10 @@ export const palette = {
  */
 export const semantic = {
   surface: {
-    main: { light: palette.stone100, dark: palette.onyx950 },
-    card: { light: palette.white, dark: palette.onyx850 },
-    grouped: { light: palette.stone300, dark: palette.onyx800 },
-    frosted: { light: 'rgba(249, 247, 242, 0.85)', dark: 'rgba(14, 16, 24, 0.8)' },
+    main: { light: palette.stone100, dark: palette.sapphire950 },
+    card: { light: palette.white, dark: palette.sapphire850 },
+    grouped: { light: palette.stone300, dark: palette.sapphire800 },
+    frosted: { light: 'rgba(249, 247, 242, 0.85)', dark: 'rgba(10, 22, 40, 0.85)' },
   },
   text: {
     primary: { light: palette.onyx900, dark: palette.snow },
@@ -169,13 +169,13 @@ const Colors = {
     text: palette.snow,
     textSecondary: palette.snowSecondary,
     textTertiary: palette.snowTertiary,
-    background: palette.onyx950,
-    backgroundSecondary: palette.onyx850,
-    backgroundGrouped: palette.onyx800,
-    card: palette.onyx850,
-    cardBorder: palette.darkCardBorder,
+    background: palette.sapphire950,
+    backgroundSecondary: palette.sapphire900,
+    backgroundGrouped: palette.sapphire800,
+    card: palette.sapphire850,
+    cardBorder: palette.sapphireSeparator,
     tint: palette.sapphire400,
-    tintLight: 'rgba(15, 45, 82, 0.12)',
+    tintLight: 'rgba(15, 45, 82, 0.18)',
     accent: palette.divineGoldBright,
     accentText: palette.divineGoldTextDark,
     success: palette.sage400,
@@ -183,11 +183,11 @@ const Colors = {
     info: palette.slate400,
     tabIconDefault: palette.snowSecondary,
     tabIconSelected: palette.divineGoldBright,
-    divider: palette.separatorDark,
+    divider: palette.sapphireSeparator,
     prayerActive: palette.divineGoldBright,
     prayerActiveGlow: 'rgba(229, 193, 75, 0.15)',
-    separator: palette.separatorDark,
-    inverseText: palette.onyx950,
+    separator: palette.sapphireSeparator,
+    inverseText: palette.sapphire950,
     onPrimary: palette.white,
   },
 };
@@ -216,12 +216,12 @@ export const alpha = {
   /** Frosted navigation / sheet backgrounds (tab bar, bottom zones) */
   frostedBg: {
     light: 'rgba(249, 247, 242, 0.85)',
-    dark: 'rgba(14, 16, 24, 0.8)',
+    dark: 'rgba(10, 22, 40, 0.85)',
   },
   /** Subtle frosted border on translucent surfaces */
   frostedBorder: {
     light: 'rgba(0, 0, 0, 0.04)',
-    dark: 'rgba(255, 255, 255, 0.06)',
+    dark: 'rgba(255, 255, 255, 0.08)',
   },
   /** Action button / interactive surface tint (sheets, options) */
   actionBg: {
