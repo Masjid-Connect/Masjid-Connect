@@ -10,9 +10,15 @@ export async function onRequest(context) {
     "https://api.salafimasjid.app",
   );
 
+  const headers = new Headers(request.headers);
+  // Remove Cloudflare-specific headers that shouldn't be forwarded
+  headers.delete("cf-connecting-ip");
+  headers.delete("cf-ray");
+
   const init = {
     method: request.method,
-    headers: request.headers,
+    headers: headers,
+    redirect: "manual", // Pass redirects through to the browser (critical for Stripe checkout)
   };
 
   if (request.method !== "GET" && request.method !== "HEAD") {
