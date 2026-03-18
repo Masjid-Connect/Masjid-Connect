@@ -2,21 +2,28 @@
  * The Salafi Masjid — Donation Page
  *
  * Architecture:
- *   Card / Apple Pay / Google Pay / PayPal / Pay by Bank  →  Stripe Hosted Checkout (redirect)
- *   Bank Transfer                                          →  Bottom sheet with bank details
+ *   Primary:  Stripe Embedded Checkout (inline, no redirect)
+ *   Fallback: Stripe Hosted Checkout (redirect if embedded fails)
+ *   Manual:   Bank Transfer bottom sheet
  *
- * Uses a form POST to the API which redirects to Stripe's hosted checkout.
- * No cross-origin fetch() calls — avoids CORS entirely.
+ * Flow:
+ *   1. User selects frequency + amount
+ *   2. Clicks "Donate Now"
+ *   3. fetch() creates a checkout session via the API
+ *   4. Stripe.js mounts the embedded checkout inline
+ *   5. On completion → success state
+ *   6. If embedded fails → falls back to redirect checkout
  */
 (function () {
   'use strict';
 
   // ─── Config ──────────────────────────────────────────────────
-  var CHECKOUT_URL = 'https://api.salafimasjid.app/api/v1/donate/checkout/';
+  var CHECKOUT_URL = '/api/v1/donate/checkout/';
 
   // ─── State ───────────────────────────────────────────────────
   var selectedAmount = 50;
   var frequency = 'one-time';
+  var checkoutInstance = null;
 
   // ─── DOM refs ────────────────────────────────────────────────
   var amountBtns = document.querySelectorAll('.donate__amount');
@@ -27,7 +34,10 @@
   var successEl = document.getElementById('donate-success');
   var errorEl = document.getElementById('donate-error');
   var errorText = document.getElementById('donate-error-text');
-  var formSteps = document.querySelectorAll('.donate__step, .donate__secure, .form-hp');
+  var giftAidCheckbox = document.getElementById('gift-aid');
+  var formSteps = document.querySelectorAll('.donate__step, .form-hp');
+  var checkoutContainer = document.getElementById('checkout-container');
+  var checkoutBack = document.getElementById('checkout-back');
 
   if (!cardBtn) return;
 
@@ -64,7 +74,7 @@
 
   // ─── Validation ─────────────────────────────────────────────
   function validateAmount() {
-    if (errorEl) errorEl.hidden = true;
+    hideError();
 
     if (!selectedAmount || selectedAmount < 1) {
       showError('Please select or enter a donation amount.');
@@ -84,24 +94,118 @@
     if (errorEl) errorEl.hidden = false;
   }
 
-  // ─── Card / Apple Pay / Google Pay / PayPal (Hosted Checkout) ──
-  //
-  // Submits a hidden HTML form to the API. The API creates a Stripe
-  // hosted checkout session and returns a 303 redirect to Stripe.
-  // This is a full page navigation — no CORS, no fetch().
-  //
-  cardBtn.addEventListener('click', function () {
-    if (!validateAmount()) return;
+  function hideError() {
+    if (errorEl) errorEl.hidden = true;
+  }
 
-    // Show loading state
-    cardBtn.classList.add('donate__method-btn--loading');
+  // ─── Loading state ──────────────────────────────────────────
+  function setLoading(loading) {
     var label = cardBtn.querySelector('.donate__method-label');
-    var originalText = label ? label.textContent : '';
-    if (label) label.textContent = 'Redirecting to checkout...';
+    if (loading) {
+      cardBtn.classList.add('donate__method-btn--loading');
+      cardBtn.disabled = true;
+      if (label) label.textContent = 'Loading checkout...';
+    } else {
+      cardBtn.classList.remove('donate__method-btn--loading');
+      cardBtn.disabled = false;
+      if (label) label.textContent = 'Donate Now';
+    }
+  }
 
+  // ─── Show/hide checkout vs form ─────────────────────────────
+  function showCheckout() {
+    formSteps.forEach(function (el) { el.hidden = true; });
+    if (checkoutContainer) checkoutContainer.hidden = false;
+    if (checkoutBack) checkoutBack.hidden = false;
+  }
+
+  function showForm() {
+    formSteps.forEach(function (el) { el.hidden = false; });
+    if (checkoutContainer) checkoutContainer.hidden = true;
+    if (checkoutBack) checkoutBack.hidden = true;
+    hideError();
+    destroyCheckout();
+  }
+
+  function destroyCheckout() {
+    if (checkoutInstance) {
+      checkoutInstance.destroy();
+      checkoutInstance = null;
+    }
+  }
+
+  // ─── Back button ────────────────────────────────────────────
+  if (checkoutBack) {
+    checkoutBack.addEventListener('click', showForm);
+  }
+
+  // ─── Create checkout session via API ────────────────────────
+  function createSession(uiMode) {
     var returnUrl = window.location.origin + window.location.pathname;
 
-    // Build and submit a hidden form (full page navigation, no CORS)
+    return fetch(CHECKOUT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: Math.round(selectedAmount * 100),
+        currency: 'gbp',
+        frequency: frequency,
+        return_url: returnUrl,
+        gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no',
+        ui_mode: uiMode,
+      }),
+    }).then(function (res) {
+      if (!res.ok) {
+        return res.json().then(function (data) {
+          throw new Error(data.detail || 'Something went wrong.');
+        });
+      }
+      return res.json();
+    });
+  }
+
+  // ─── Stripe Embedded Checkout ───────────────────────────────
+  function initEmbeddedCheckout() {
+    if (!validateAmount()) return;
+
+    setLoading(true);
+    hideError();
+
+    createSession('embedded')
+      .then(function (data) {
+        if (!data.client_secret || !data.publishable_key) {
+          throw new Error('Missing checkout credentials.');
+        }
+
+        // Wait for Stripe.js to load (it's loaded async)
+        return waitForStripe().then(function () {
+          return data;
+        });
+      })
+      .then(function (data) {
+        var stripe = Stripe(data.publishable_key);
+        return stripe.initEmbeddedCheckout({
+          clientSecret: data.client_secret,
+        });
+      })
+      .then(function (checkout) {
+        checkoutInstance = checkout;
+        setLoading(false);
+        showCheckout();
+        checkout.mount('#checkout-container');
+      })
+      .catch(function (err) {
+        setLoading(false);
+        // Fallback: redirect checkout via form POST
+        console.warn('Embedded checkout failed, trying redirect:', err.message);
+        formPostFallback();
+      });
+  }
+
+  // ─── Fallback: form POST redirect to Stripe Hosted Checkout ─
+  function formPostFallback() {
+    var returnUrl = window.location.origin + window.location.pathname;
+
     var form = document.createElement('form');
     form.method = 'POST';
     form.action = CHECKOUT_URL;
@@ -111,7 +215,8 @@
       amount: Math.round(selectedAmount * 100),
       currency: 'gbp',
       frequency: frequency,
-      return_url: returnUrl
+      return_url: returnUrl,
+      gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no',
     };
 
     Object.keys(fields).forEach(function (name) {
@@ -124,9 +229,35 @@
 
     document.body.appendChild(form);
     form.submit();
-  });
+  }
 
-  // ─── Bank Transfer (Bottom Sheet) ──────────────────────────
+  // ─── Wait for Stripe.js to be available ─────────────────────
+  function waitForStripe() {
+    return new Promise(function (resolve, reject) {
+      if (typeof Stripe !== 'undefined') {
+        resolve();
+        return;
+      }
+
+      var attempts = 0;
+      var maxAttempts = 50; // 5 seconds
+      var interval = setInterval(function () {
+        attempts++;
+        if (typeof Stripe !== 'undefined') {
+          clearInterval(interval);
+          resolve();
+        } else if (attempts >= maxAttempts) {
+          clearInterval(interval);
+          reject(new Error('Stripe.js failed to load.'));
+        }
+      }, 100);
+    });
+  }
+
+  // ─── Wire up the Donate Now button ──────────────────────────
+  cardBtn.addEventListener('click', initEmbeddedCheckout);
+
+  // ─── Bank Transfer (Bottom Sheet) ───────────────────────────
   var bankSheet = document.getElementById('bank-sheet');
   var bankBackdrop = document.getElementById('bank-sheet-backdrop');
   var bankClose = document.getElementById('bank-sheet-close');
@@ -154,7 +285,7 @@
     if (e.key === 'Escape' && bankSheet && !bankSheet.hidden) closeBankSheet();
   });
 
-  // ─── Tap-to-copy bank details ────────────────────────────
+  // ─── Tap-to-copy bank details ──────────────────────────────
   function copyToClipboard(text, btn) {
     if (!text || !navigator.clipboard) return;
 
@@ -193,20 +324,18 @@
     });
   });
 
-  // ─── Check for return from Stripe checkout ─────────────────
+  // ─── Check for return from checkout ─────────────────────────
   var params = new URLSearchParams(window.location.search);
   var donation = params.get('donation');
 
   if (donation === 'success') {
-    // User completed payment — show success message
-    formSteps.forEach(function (el) { el.style.display = 'none'; });
+    formSteps.forEach(function (el) { el.hidden = true; });
     if (successEl) {
       successEl.hidden = false;
       successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
     window.history.replaceState({}, '', window.location.pathname);
   } else if (donation === 'cancelled') {
-    // User cancelled — show the form again with a message
     showError('Donation was cancelled. You can try again whenever you\'re ready.');
     window.history.replaceState({}, '', window.location.pathname);
   } else if (donation === 'error') {

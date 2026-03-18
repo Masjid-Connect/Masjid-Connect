@@ -16,7 +16,8 @@
   <link rel="icon" href="images/favicon.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="images/favicon-180.png">
   <link rel="manifest" href="site.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=2">
+  <link rel="stylesheet" href="styles.css?v=3">
+  <script src="https://js.stripe.com/v3/" async></script>
 </head>
 <body>
 
@@ -138,12 +139,24 @@
                 </div>
               </div>
 
-              <!-- Step 3: Choose payment method -->
+              <!-- Step 3: Gift Aid -->
               <div class="donate__step">
-                <span class="donate__step-label">Payment method</span>
+                <label class="donate__gift-aid" id="gift-aid-label">
+                  <input type="checkbox" id="gift-aid" class="donate__gift-aid-checkbox">
+                  <span class="donate__gift-aid-check">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </span>
+                  <span class="donate__gift-aid-text">
+                    <strong>Add Gift Aid</strong> &mdash; increase your donation by 25% at no extra cost.
+                    <span class="donate__gift-aid-hint">I am a UK taxpayer and understand that if I pay less Income Tax and/or Capital Gains Tax than the amount of Gift Aid claimed on all my donations in the relevant tax year, it is my responsibility to pay any difference.</span>
+                  </span>
+                </label>
+              </div>
 
+              <!-- Step 4: Choose payment method -->
+              <div class="donate__step" id="donate-step-pay">
                 <div class="donate__methods">
-                  <!-- Stripe Embedded Checkout — all methods (Card, PayPal, Apple Pay, Google Pay, Pay by Bank) managed via Stripe Dashboard -->
+                  <!-- Stripe Embedded Checkout — card, PayPal, Apple Pay, Google Pay, Bank -->
                   <button class="donate__method-btn donate__method-btn--card" type="button" id="pay-card">
                     <div class="donate__method-icons">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
@@ -155,7 +168,7 @@
                     <svg class="donate__method-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                   </button>
 
-                  <!-- Manual Bank Transfer (shows bank details for direct transfer) -->
+                  <!-- Manual Bank Transfer -->
                   <button class="donate__method-btn donate__method-btn--bank" type="button" id="pay-bank">
                     <div class="donate__method-icons">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/><path d="M4 10v11"/><path d="M20 10v11"/><path d="M8 14v3"/><path d="M12 14v3"/><path d="M16 14v3"/></svg>
@@ -167,12 +180,21 @@
                     <svg class="donate__method-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                   </button>
                 </div>
+
+                <p class="donate__secure">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  All payments are secure and encrypted. We never store your payment details.
+                </p>
               </div>
 
-              <p class="donate__secure">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                All payments are secure and encrypted. We never store your payment details.
-              </p>
+              <!-- Stripe Embedded Checkout container (replaces form when active) -->
+              <div id="checkout-container" hidden></div>
+
+              <!-- Back to options (shown when checkout is active) -->
+              <button class="donate__back-btn" type="button" id="checkout-back" hidden>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                Change amount
+              </button>
 
               <!-- Success state -->
               <div class="donate__status donate__status--success" id="donate-success" hidden>
@@ -403,6 +425,6 @@
   </div>
 
   <script src="script.js?v=2" data-cfasync="false"></script>
-  <script src="donate.js?v=4" data-cfasync="false"></script>
+  <script src="donate.js?v=5" data-cfasync="false"></script>
 </body>
 </html>
