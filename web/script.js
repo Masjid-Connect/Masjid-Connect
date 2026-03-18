@@ -173,6 +173,27 @@
     }
   });
 
+  // ─── Speculative prefetch on hover (instant page loads) ────
+  // Prefetch same-origin pages when the user hovers a link,
+  // so by the time they click the page is already cached.
+  var prefetched = {};
+
+  function prefetchOnHover(e) {
+    var link = e.target.closest('a[href]');
+    if (!link) return;
+    var href = link.getAttribute('href');
+    // Only same-origin relative links, skip anchors/external/js
+    if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('http')) return;
+    if (prefetched[href]) return;
+    prefetched[href] = true;
+    var tag = document.createElement('link');
+    tag.rel = 'prefetch';
+    tag.href = href;
+    document.head.appendChild(tag);
+  }
+
+  document.addEventListener('pointerenter', prefetchOnHover, true);
+
   // ─── Spam Protection Helpers ────────────────────────────────
 
   // Track when page loaded — submissions within 3s are likely bots

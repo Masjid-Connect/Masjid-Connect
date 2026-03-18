@@ -140,8 +140,8 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={effectiveScheme === 'dark' ? MosqueDark : MosqueLight}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack screenOptions={{ animation: 'ios_from_right' }}>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'none' }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="privacy" options={{ presentation: 'card', headerBackTitle: ' ' }} />
         <Stack.Screen name="about" options={{ presentation: 'card', headerBackTitle: ' ' }} />
