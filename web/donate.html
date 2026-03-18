@@ -16,7 +16,7 @@
   <link rel="icon" href="images/favicon.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="images/favicon-180.png">
   <link rel="manifest" href="site.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=2">
+  <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body>
 
@@ -138,7 +138,21 @@
                 </div>
               </div>
 
-              <!-- Step 3: Choose payment method -->
+              <!-- Step 3: Gift Aid -->
+              <div class="donate__step">
+                <label class="donate__gift-aid" id="gift-aid-label">
+                  <input type="checkbox" id="gift-aid" class="donate__gift-aid-checkbox">
+                  <span class="donate__gift-aid-check">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </span>
+                  <span class="donate__gift-aid-text">
+                    <strong>Add Gift Aid</strong> — increase your donation by 25% at no extra cost.
+                    <span class="donate__gift-aid-hint">I am a UK taxpayer and understand that if I pay less Income Tax and/or Capital Gains Tax than the amount of Gift Aid claimed on all my donations in the relevant tax year, it is my responsibility to pay any difference.</span>
+                  </span>
+                </label>
+              </div>
+
+              <!-- Step 4: Choose payment method -->
               <div class="donate__step">
                 <span class="donate__step-label">Payment method</span>
 
@@ -403,6 +417,6 @@
   </div>
 
   <script src="script.js?v=2" data-cfasync="false"></script>
-  <script src="donate.js?v=4" data-cfasync="false"></script>
+  <script src="donate.js?v=5" data-cfasync="false"></script>
 </body>
 </html>

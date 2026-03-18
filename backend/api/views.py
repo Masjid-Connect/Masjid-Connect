@@ -722,9 +722,15 @@ def create_checkout_session(request):
     straight to Stripe.  Payment methods (Card, PayPal, Apple Pay, Google
     Pay, Pay by Bank) are managed via the Stripe Dashboard.
     """
-    from django.shortcuts import redirect as django_redirect
+    from django.http import HttpResponseRedirect
 
     import stripe as stripe_lib
+
+    def _redirect_303(url):
+        """Return a 303 See Other redirect (correct for POST-to-GET)."""
+        response = HttpResponseRedirect(url)
+        response.status_code = 303
+        return response
 
     secret_key = getattr(settings, "STRIPE_SECRET_KEY", "")
     if not secret_key:
@@ -747,7 +753,7 @@ def create_checkout_session(request):
             sep = "&" if "?" in return_url else "?"
             from urllib.parse import quote
 
-            return django_redirect(return_url + sep + "donation=error&msg=" + quote(msg))
+            return _redirect_303(return_url + sep + "donation=error&msg=" + quote(msg))
         return Response({"detail": msg}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -823,11 +829,12 @@ def create_checkout_session(request):
 
         session = stripe_lib.checkout.Session.create(**session_params)
 
-        # Redirect — browser follows with GET to Stripe's hosted page
-        return django_redirect(session.url)
+        # 303 See Other — browser converts POST to GET for Stripe's hosted page
+        return _redirect_303(session.url)
     except Exception:
         logger.exception("Stripe Checkout Session creation failed")
         return _error_redirect("Something went wrong. Please try again.")
+
 
 
 @api_view(["GET"])
