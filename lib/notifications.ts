@@ -172,7 +172,14 @@ export async function cancelPrayerReminders(): Promise<void> {
   }
 }
 
-/** Listen for notification interactions */
+/** Listen for notifications received while app is foregrounded */
+export function addNotificationReceivedListener(
+  callback: (notification: Notifications.Notification) => void
+) {
+  return Notifications.addNotificationReceivedListener(callback);
+}
+
+/** Listen for notification interactions (user tapped a notification) */
 export function addNotificationResponseListener(
   callback: (response: Notifications.NotificationResponse) => void
 ) {

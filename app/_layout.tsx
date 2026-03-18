@@ -9,9 +9,11 @@ import { useTranslation } from 'react-i18next';
 
 import { palette } from '@/constants/Colors';
 import { AnimatedSplash } from '@/components/brand/AnimatedSplash';
+import { InAppToast } from '@/components/ui/InAppToast';
 import { ThemeProvider as AppThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
-import { reschedulePrayerRemindersForToday } from '@/lib/notifications';
+import { ToastProvider, useToast } from '@/contexts/ToastContext';
+import { reschedulePrayerRemindersForToday, addNotificationReceivedListener } from '@/lib/notifications';
 import '@/lib/i18n';
 import { configureRTL } from '@/lib/rtl';
 
@@ -85,7 +87,10 @@ export default function RootLayout() {
     <AuthProvider>
       <AnimatedSplash isVisible={showSplash} onAnimationComplete={handleSplashComplete}>
         <AppThemeProvider>
-          <RootLayoutNav />
+          <ToastProvider>
+            <RootLayoutNav />
+            <InAppToast />
+          </ToastProvider>
         </AppThemeProvider>
       </AnimatedSplash>
     </AuthProvider>
@@ -98,6 +103,26 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
   const { t } = useTranslation();
+  const { showToast } = useToast();
+
+  // Show in-app toast when notification arrives while foregrounded
+  useEffect(() => {
+    const sub = addNotificationReceivedListener((notification) => {
+      const { title, body, data } = notification.request.content;
+      const dataType = (data as Record<string, unknown>)?.type;
+
+      const type = dataType === 'prayer_athan' ? 'athan' as const
+        : dataType === 'prayer_reminder' ? 'prayer' as const
+        : 'announcement' as const;
+
+      showToast({
+        type,
+        title: title ?? '',
+        subtitle: body ?? undefined,
+      });
+    });
+    return () => sub.remove();
+  }, [showToast]);
 
   useEffect(() => {
     if (isLoading) return;
