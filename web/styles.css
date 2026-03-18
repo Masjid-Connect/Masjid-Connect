@@ -3,6 +3,37 @@
    "Timeless Sanctuary" Design System → CSS Custom Properties
    ═══════════════════════════════════════════════════════════════ */
 
+/* ─── View Transitions (Apple-style cross-fade between pages) ── */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: vt-fade-out 0.2s cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+::view-transition-new(root) {
+  animation: vt-fade-in 0.25s cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+@keyframes vt-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes vt-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Keep navbar persistent across transitions */
+.navbar { view-transition-name: navbar; }
+
+::view-transition-old(navbar),
+::view-transition-new(navbar) {
+  animation: none;
+}
+
 /* ─── Design Tokens ──────────────────────────────────────────── */
 :root {
   /* Stone — warm marble backgrounds */
@@ -462,6 +493,9 @@ html {
   .reveal, .reveal-scale, .reveal-left, .reveal-right, .reveal-stagger > * {
     opacity: 1 !important; transform: none !important; transition: none !important;
   }
+  @view-transition { navigation: none; }
+  ::view-transition-old(root),
+  ::view-transition-new(root) { animation: none; }
 }
 
 body {

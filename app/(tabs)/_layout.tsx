@@ -19,6 +19,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.tabIconSelected,
         tabBarInactiveTintColor: colors.tabIconDefault,
         headerShown: false,
+        animation: 'fade',
       }}>
       <Tabs.Screen
         name="index"
