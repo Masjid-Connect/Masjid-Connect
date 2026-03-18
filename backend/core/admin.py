@@ -9,6 +9,7 @@ from unfold.admin import ModelAdmin
 
 from .models import (
     Announcement,
+    CharityGiftAidSettings,
     Donation,
     Event,
     Feedback,
@@ -282,6 +283,62 @@ def _export_gift_aid_csv(modeladmin, request, queryset):
 _export_gift_aid_csv.short_description = "Export as HMRC Gift Aid CSV (R68i)"
 
 
+def _export_gift_aid_xml(modeladmin, request, queryset):
+    """Export Gift Aid claim as HMRC R68 XML for Charities Online."""
+    if queryset.count() != 1:
+        modeladmin.message_user(
+            request, "Please select exactly one claim to export as XML.", level="error",
+        )
+        return
+
+    claim = queryset.first()
+
+    from .gift_aid_xml import generate_r68_schedule_xml
+
+    try:
+        xml_bytes = generate_r68_schedule_xml(claim)
+    except ValueError as e:
+        modeladmin.message_user(request, str(e), level="error")
+        return
+
+    response = HttpResponse(xml_bytes, content_type="application/xml")
+    response["Content-Disposition"] = (
+        f'attachment; filename="gift-aid-{claim.reference}.xml"'
+    )
+    return response
+
+
+_export_gift_aid_xml.short_description = "Export as HMRC R68 XML (Charities Online)"
+
+
+def _export_gift_aid_xml_envelope(modeladmin, request, queryset):
+    """Export Gift Aid claim as full GovTalkMessage XML (Transaction Engine)."""
+    if queryset.count() != 1:
+        modeladmin.message_user(
+            request, "Please select exactly one claim to export as XML.", level="error",
+        )
+        return
+
+    claim = queryset.first()
+
+    from .gift_aid_xml import generate_r68_xml
+
+    try:
+        xml_bytes = generate_r68_xml(claim, include_govtalk_envelope=True)
+    except ValueError as e:
+        modeladmin.message_user(request, str(e), level="error")
+        return
+
+    response = HttpResponse(xml_bytes, content_type="application/xml")
+    response["Content-Disposition"] = (
+        f'attachment; filename="gift-aid-{claim.reference}-govtalk.xml"'
+    )
+    return response
+
+
+_export_gift_aid_xml_envelope.short_description = "Export as GovTalkMessage XML (full envelope)"
+
+
 @admin.register(GiftAidClaim)
 class GiftAidClaimAdmin(ModelAdmin):
     list_display = [
@@ -302,7 +359,7 @@ class GiftAidClaimAdmin(ModelAdmin):
         "donation_count", "created", "updated",
     ]
     filter_horizontal = ["donations"]
-    actions = [_export_gift_aid_csv]
+    actions = [_export_gift_aid_csv, _export_gift_aid_xml, _export_gift_aid_xml_envelope]
     fieldsets = (
         ("Claim Period", {
             "fields": ("reference", "period_start", "period_end"),
@@ -333,3 +390,42 @@ class GiftAidClaimAdmin(ModelAdmin):
     @admin.display(description="Gift Aid (£)")
     def total_gift_aid_display(self, obj):
         return f"£{obj.total_gift_aid_pence / 100:.2f}"
+
+
+@admin.register(CharityGiftAidSettings)
+class CharityGiftAidSettingsAdmin(ModelAdmin):
+    list_display = ["charity_name", "hmrc_reference", "regulator_number", "official_surname"]
+    fieldsets = (
+        ("Charity Identity", {
+            "fields": ("charity_name", "hmrc_reference"),
+            "description": "Your charity's registered name and HMRC reference. "
+                           "Find your HMRC reference on your original recognition letter.",
+        }),
+        ("Regulator", {
+            "fields": ("regulator_name", "regulator_number"),
+            "description": "CCEW = Charity Commission for England & Wales, "
+                           "OSCR = Scotland, CCNI = Northern Ireland.",
+        }),
+        ("Authorised Official", {
+            "fields": (
+                "official_title", "official_forename", "official_surname",
+                "official_postcode", "official_phone",
+            ),
+            "description": "The person authorised to sign Gift Aid claims on behalf of the charity.",
+        }),
+        ("HMRC Gateway (optional)", {
+            "fields": ("gateway_sender_id",),
+            "description": "Only needed if submitting via the Transaction Engine API. "
+                           "Most charities use the Charities Online web portal instead.",
+            "classes": ("collapse",),
+        }),
+    )
+
+    def has_add_permission(self, request):
+        # Only allow one settings row
+        if CharityGiftAidSettings.objects.exists():
+            return False
+        return super().has_add_permission(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return False

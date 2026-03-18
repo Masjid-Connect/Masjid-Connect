@@ -297,6 +297,69 @@ class StripeEvent(models.Model):
 # ── Donations & Gift Aid ────────────────────────────────────────────
 
 
+class CharityGiftAidSettings(models.Model):
+    """Singleton settings for HMRC Gift Aid submissions.
+
+    Stores charity identity and authorised official details required
+    by the HMRC R68 XML schema.  Only one row should exist.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    # Charity identity
+    charity_name = models.CharField(
+        max_length=255, help_text="Registered charity name as known to HMRC",
+    )
+    hmrc_reference = models.CharField(
+        max_length=20,
+        help_text="HMRC Charities reference (e.g. XR12345)",
+    )
+
+    # Regulator (Charity Commission for England & Wales)
+    regulator_name = models.CharField(
+        max_length=100, default="CCEW",
+        help_text="CCEW, OSCR, or CCNI",
+    )
+    regulator_number = models.CharField(
+        max_length=20,
+        help_text="Charity Commission registration number",
+    )
+
+    # Authorised official (person signing the claim)
+    official_title = models.CharField(max_length=10, blank=True, help_text="e.g. Mr, Mrs, Dr")
+    official_forename = models.CharField(max_length=100)
+    official_surname = models.CharField(max_length=100)
+    official_postcode = models.CharField(max_length=20, help_text="Postcode of authorised official")
+    official_phone = models.CharField(max_length=30)
+
+    # HMRC Gateway credentials (for API submission — optional)
+    gateway_sender_id = models.CharField(
+        max_length=50, blank=True,
+        help_text="HMRC Government Gateway User ID (optional — only for API submission)",
+    )
+
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Gift Aid Settings"
+        verbose_name_plural = "Gift Aid Settings"
+
+    def __str__(self):
+        return f"{self.charity_name} ({self.hmrc_reference})"
+
+    def save(self, *args, **kwargs):
+        # Enforce singleton — delete any other rows
+        if not self.pk:
+            CharityGiftAidSettings.objects.exclude(pk=self.pk).delete()
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get(cls):
+        """Return the singleton settings instance or None."""
+        return cls.objects.first()
+
+
 class Donation(models.Model):
     """A recorded donation — created from Stripe webhook events.
 
