@@ -1,0 +1,25 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}{{ guide_title }} — Admin Guide{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'admin/guide/guide.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="guide-page">
+  {% block guide_breadcrumb %}
+    <div class="guide-breadcrumb">
+      <a href="{% url 'admin:guide_index' %}">User Guide</a>
+      {% if guide_section %}
+        <span class="sep">/</span>
+        <span>{{ guide_section }}</span>
+      {% endif %}
+    </div>
+  {% endblock %}
+
+  {% block guide_content %}{% endblock %}
+</div>
+{% endblock %}

@@ -5,6 +5,7 @@ import csv
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.http import HttpResponse
+from django.urls import path, reverse
 from unfold.admin import ModelAdmin
 
 from .models import (
@@ -122,6 +123,23 @@ class MosquePrayerTimeAdmin(ModelAdmin):
 # ── Donations & Gift Aid ────────────────────────────────────────────
 
 
+def _generate_donation_receipt(modeladmin, request, queryset):
+    """Generate donation receipt — opens receipt for the first selected donation."""
+    if queryset.count() != 1:
+        modeladmin.message_user(
+            request,
+            "Please select exactly one donation to generate a receipt.",
+            level="warning",
+        )
+        return
+    donation = queryset.first()
+    from django.shortcuts import redirect
+    return redirect(reverse("admin:donation_receipt_html", args=[donation.pk]))
+
+
+_generate_donation_receipt.short_description = "Generate donation receipt"
+
+
 @admin.register(Donation)
 class DonationAdmin(ModelAdmin):
     list_display = [
@@ -138,6 +156,7 @@ class DonationAdmin(ModelAdmin):
     search_fields = ["donor_name", "donor_email", "stripe_payment_intent_id", "stripe_checkout_session_id"]
     date_hierarchy = "donation_date"
     ordering = ["-donation_date"]
+    actions = [_generate_donation_receipt]
     readonly_fields = [
         "id", "stripe_payment_intent_id", "stripe_customer_id",
         "stripe_checkout_session_id", "gift_aid_amount_pence", "created", "updated",
@@ -429,3 +448,35 @@ class CharityGiftAidSettingsAdmin(ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+# ── Custom admin URLs for guide and receipts ─────────────────────────
+
+from .guide_views import (
+    guide_index, guide_announcements, guide_events, guide_prayer_times,
+    guide_donations, guide_users, guide_faqs, guide_troubleshooting,
+    donation_receipt_html, donation_receipt_pdf,
+)
+
+_original_get_urls = admin.AdminSite.get_urls
+
+
+def _custom_get_urls(self):
+    custom_urls = [
+        # Guide pages
+        path("guide/", self.admin_view(guide_index), name="guide_index"),
+        path("guide/announcements/", self.admin_view(guide_announcements), name="guide_announcements"),
+        path("guide/events/", self.admin_view(guide_events), name="guide_events"),
+        path("guide/prayer-times/", self.admin_view(guide_prayer_times), name="guide_prayer_times"),
+        path("guide/donations/", self.admin_view(guide_donations), name="guide_donations"),
+        path("guide/users/", self.admin_view(guide_users), name="guide_users"),
+        path("guide/faqs/", self.admin_view(guide_faqs), name="guide_faqs"),
+        path("guide/troubleshooting/", self.admin_view(guide_troubleshooting), name="guide_troubleshooting"),
+        # Donation receipts
+        path("receipts/donation/<uuid:pk>/", self.admin_view(donation_receipt_html), name="donation_receipt_html"),
+        path("receipts/donation/<uuid:pk>/pdf/", self.admin_view(donation_receipt_pdf), name="donation_receipt_pdf"),
+    ]
+    return custom_urls + _original_get_urls(self)
+
+
+admin.AdminSite.get_urls = _custom_get_urls

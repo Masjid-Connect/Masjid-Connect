@@ -1,0 +1,147 @@
+{% extends "admin/guide/base_guide.html" %}
+{% load static %}
+
+{% block guide_content %}
+<div class="guide-logo-header">
+  <img src="{% static 'admin/img/Masjid_Logo.png' %}" alt="The Salafi Masjid">
+  <h1>Frequently Asked Questions</h1>
+  <p>Quick answers to common questions about managing the admin panel.</p>
+</div>
+
+<h2>General</h2>
+<div class="faq-list">
+  <details class="faq-item">
+    <summary>How do I add a new mosque admin?</summary>
+    <div class="faq-answer">
+      <p>Go to <strong>Mosque Admins</strong> in the sidebar, click "Add Mosque Admin", select the person's user account and your mosque, choose their role (Admin or Super Admin), and save. The person must already have a user account — ask them to sign up in the app first.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>What's the difference between Admin and Super Admin?</summary>
+    <div class="faq-answer">
+      <p><strong>Admin</strong> can create and edit announcements, events, and prayer times for their mosque.</p>
+      <p><strong>Super Admin</strong> can do everything above, plus manage other admins, view donation records, and submit Gift Aid claims. Give this role only to trusted committee members.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>Can I schedule an announcement for the future?</summary>
+    <div class="faq-answer">
+      <p>Announcements are published immediately when you create them. However, you can set an <strong>Expiry Date</strong> so they automatically disappear after a certain date. If you need to prepare an announcement in advance, save it as a draft by noting the details elsewhere and creating it on the day you want it to go live.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>How do I change the mosque photo?</summary>
+    <div class="faq-answer">
+      <p>Go to <strong>Mosques</strong> in the sidebar, click on your mosque, scroll to the <strong>Photo</strong> field, and upload a new image. Use a high-quality photo of the mosque exterior — it will be shown in the app to community members.</p>
+    </div>
+  </details>
+</div>
+
+<h2>Prayer Times</h2>
+<div class="faq-list">
+  <details class="faq-item">
+    <summary>What does "calculation method" mean?</summary>
+    <div class="faq-answer">
+      <p>The calculation method determines how prayer start times are calculated based on sun angles. The default is <strong>Umm Al-Qura</strong> (used in Saudi Arabia). This affects the automatically calculated start times, not the jama'ah times you set manually. You generally don't need to change this.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>How often should I update prayer times?</summary>
+    <div class="faq-answer">
+      <p>Update jama'ah times whenever they change at your mosque — usually seasonally (every few weeks or months), during Ramadan, for Eid, and when clocks change. Community members rely on these being accurate, so keeping them up to date is important.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>Do I need to set prayer start times?</summary>
+    <div class="faq-answer">
+      <p>No. Prayer <strong>start times</strong> (Fajr begins, Dhuhr begins, etc.) are calculated automatically based on your mosque's location. You only need to set the <strong>jama'ah times</strong> — when the congregation actually prays.</p>
+    </div>
+  </details>
+</div>
+
+<h2>Announcements &amp; Events</h2>
+<div class="faq-list">
+  <details class="faq-item">
+    <summary>I accidentally deleted an announcement — can I get it back?</summary>
+    <div class="faq-answer">
+      <p>Unfortunately, deleted announcements cannot be recovered. You'll need to create a new one. To avoid this, consider setting an expiry date instead of deleting — expired announcements simply stop showing in the app.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>How long do announcements stay visible?</summary>
+    <div class="faq-answer">
+      <p>If you set an <strong>Expiry Date</strong>, the announcement will automatically disappear after that date. If you don't set one, it stays visible until you manually delete it.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>Can I create an event that happens every week?</summary>
+    <div class="faq-answer">
+      <p>Yes! When creating an event, set the <strong>Recurring</strong> field to "Weekly" or "Monthly". You only need to create the event once — the app will automatically show it on the appropriate days.</p>
+    </div>
+  </details>
+</div>
+
+<h2>Donations &amp; Gift Aid</h2>
+<div class="faq-list">
+  <details class="faq-item">
+    <summary>How do donors receive receipts?</summary>
+    <div class="faq-answer">
+      <p>You can generate receipts from the admin panel. Go to <strong>Donations</strong>, select the donation(s), and use the "Generate donation receipt" action. Receipts include all details including Gift Aid information where applicable. You can then print or save the receipt as a PDF to share with the donor.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>How do I submit a Gift Aid claim to HMRC?</summary>
+    <div class="faq-answer">
+      <p>1. Make sure <strong>Charity Gift Aid Settings</strong> are filled in (your charity name, HMRC reference, authorised official).</p>
+      <p>2. Go to <strong>Gift Aid Claims</strong> and create a new claim with the period dates.</p>
+      <p>3. Add the eligible donations to the claim.</p>
+      <p>4. Save, then use the Actions dropdown to export as CSV or XML.</p>
+      <p>5. Upload the file on the <a href="https://www.gov.uk/claim-gift-aid-online" target="_blank">HMRC Charities Online portal</a>.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>Why can't I see the donations section?</summary>
+    <div class="faq-answer">
+      <p>The donations section is only visible to <strong>Super Admins</strong> and staff users. If you need access to donations and Gift Aid, ask a Super Admin to upgrade your role, or contact the person who manages the admin panel.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>Do I need to manually add donations?</summary>
+    <div class="faq-answer">
+      <p>No — donations made through the website are recorded automatically via Stripe. You only need to add donations manually if someone donates via bank transfer, cash, or other offline methods and you want to track it in the system.</p>
+    </div>
+  </details>
+</div>
+
+<h2>Account &amp; Access</h2>
+<div class="faq-list">
+  <details class="faq-item">
+    <summary>I forgot my password — how do I reset it?</summary>
+    <div class="faq-answer">
+      <p>On the admin login page, look for the "Forgot password?" link. If you don't see one, contact the Super Admin or technical support to reset your password manually.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>Can I use this admin panel on my phone?</summary>
+    <div class="faq-answer">
+      <p>Yes! The admin panel works on mobile browsers. Open your phone's browser and go to the admin URL. The layout will adjust to fit your screen. For the best experience, use a tablet or desktop.</p>
+    </div>
+  </details>
+</div>
+
+<div class="guide-nav">
+  <a href="{% url 'admin:guide_users' %}" class="secondary">&larr; Users &amp; Subscribers</a>
+  <a href="{% url 'admin:guide_troubleshooting' %}">Troubleshooting &rarr;</a>
+</div>
+{% endblock %}

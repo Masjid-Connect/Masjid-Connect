@@ -1,0 +1,77 @@
+{% extends "admin/guide/base_guide.html" %}
+{% load static %}
+
+{% block guide_content %}
+<div class="guide-logo-header">
+  <img src="{% static 'admin/img/Masjid_Logo.png' %}" alt="The Salafi Masjid">
+  <h1>Users &amp; Subscribers</h1>
+  <p>See who is connected to your mosque and manage admin access.</p>
+</div>
+
+<h2>Viewing Subscribers</h2>
+<p>
+  When a community member subscribes to your mosque in the app, they appear in the
+  <strong>Subscriptions</strong> list. Each subscription shows their notification preferences.
+</p>
+<ol class="guide-steps">
+  <li>Click <strong>Subscriptions</strong> in the left sidebar under "Users".</li>
+  <li>You'll see which users are subscribed to which mosques, and what notifications they want:
+    <ul style="margin-top: 6px; padding-left: 20px;">
+      <li><strong>Prayer notifications</strong> — reminders before jama'ah times</li>
+      <li><strong>Announcement notifications</strong> — new announcements</li>
+      <li><strong>Event notifications</strong> — new events and lessons</li>
+    </ul>
+  </li>
+</ol>
+
+<div class="guide-info">
+  Subscribers manage their own notification preferences in the app. You can see their choices here, but they control what notifications they receive.
+</div>
+
+<h2>Managing Mosque Admins</h2>
+<p>
+  Mosque Admins are people who can manage content (announcements, events, prayer times) for a specific mosque.
+</p>
+<ol class="guide-steps">
+  <li>Click <strong>Mosque Admins</strong> in the left sidebar under "Mosques".</li>
+  <li>To add a new admin, click <strong>"Add Mosque Admin"</strong>.</li>
+  <li>Select the <strong>User</strong> (they must have an account already) and the <strong>Mosque</strong>.</li>
+  <li>Choose their <strong>Role</strong>:
+    <ul style="margin-top: 6px; padding-left: 20px;">
+      <li><span class="guide-badge sapphire">Admin</span> — can manage announcements, events, and prayer times</li>
+      <li><span class="guide-badge gold">Super Admin</span> — can do everything above, plus manage other admins and view donations</li>
+    </ul>
+  </li>
+  <li>Click <strong>"Save"</strong>.</li>
+</ol>
+
+<div class="guide-tip">
+  Start new admins with the "Admin" role. Only give "Super Admin" to trusted individuals who need to manage finances and other admins.
+</div>
+
+<h2>Push Tokens</h2>
+<p>
+  Push Tokens are technical records that allow the app to send notifications to specific devices.
+  <strong>You don't need to do anything with these</strong> — they are managed automatically.
+</p>
+
+<div class="guide-info">
+  If you see push tokens in the sidebar, you can ignore them. They are listed for technical support purposes only.
+</div>
+
+<h2>Viewing User Accounts</h2>
+<ol class="guide-steps">
+  <li>Click <strong>Users</strong> in the left sidebar.</li>
+  <li>You can search by name or email to find a specific person.</li>
+  <li>Click on a user to see their details — name, email, and when they joined.</li>
+</ol>
+
+<div class="guide-warning">
+  Be careful when editing user accounts. Changing someone's email or password can lock them out of the app. Only do this if the person has asked you to.
+</div>
+
+<div class="guide-nav">
+  <a href="{% url 'admin:guide_donations' %}" class="secondary">&larr; Donations &amp; Gift Aid</a>
+  <a href="{% url 'admin:guide_faqs' %}">FAQs &rarr;</a>
+</div>
+{% endblock %}

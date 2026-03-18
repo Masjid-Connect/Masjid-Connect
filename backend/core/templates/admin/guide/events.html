@@ -1,0 +1,149 @@
+{% extends "admin/guide/base_guide.html" %}
+{% load static %}
+
+{% block guide_content %}
+<div class="guide-logo-header">
+  <img src="{% static 'admin/img/Masjid_Logo.png' %}" alt="The Salafi Masjid">
+  <h1>Managing Events &amp; Lessons</h1>
+  <p>Add classes, lectures, youth programs, and community gatherings.</p>
+</div>
+
+<h2>How to Add an Event</h2>
+<ol class="guide-steps">
+  <li>Click <strong>Events</strong> in the left sidebar under "Content".</li>
+  <li>Click <strong>"Add Event"</strong> in the top-right corner.</li>
+  <li>Select your <strong>Mosque</strong> from the dropdown.</li>
+  <li>Enter a clear <strong>Title</strong> (e.g., "Weekly Tafseer Class" or "Youth Football Tournament").</li>
+  <li>Choose a <strong>Category</strong> — this helps the app organise events for community members:
+    <ul style="margin-top: 6px; padding-left: 20px;">
+      <li><strong>Lesson</strong> — regular classes (fiqh, aqeedah, Arabic)</li>
+      <li><strong>Lecture</strong> — one-off or special talks</li>
+      <li><strong>Quran School</strong> — Quran circles, hifz classes, tajweed</li>
+      <li><strong>Youth</strong> — youth-specific programs</li>
+      <li><strong>Sisters</strong> — sisters-only events</li>
+      <li><strong>Community</strong> — iftars, open days, fundraisers, etc.</li>
+    </ul>
+  </li>
+  <li>Set the <strong>Event Date</strong>, <strong>Start Time</strong>, and <strong>End Time</strong>.</li>
+  <li>If this event happens regularly, set <strong>Recurring</strong> to "Weekly" or "Monthly".</li>
+  <li>Add the <strong>Speaker</strong> name if applicable (optional).</li>
+  <li>Add a <strong>Description</strong> with any extra details — who it's for, what to bring, etc.</li>
+  <li>Click <strong>"Save"</strong>.</li>
+</ol>
+
+<div class="guide-tip">
+  For recurring events (e.g., a weekly class every Saturday), you only need to create it once and set it to "Weekly". The app will show it each week automatically.
+</div>
+
+<h2>Event Categories Explained</h2>
+<table class="guide-table">
+  <thead>
+    <tr>
+      <th>Category</th>
+      <th>Best For</th>
+      <th>Examples</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="guide-badge sapphire">Lesson</span></td>
+      <td>Regular educational classes</td>
+      <td>Fiqh class, Arabic grammar, Kitab study</td>
+    </tr>
+    <tr>
+      <td><span class="guide-badge sapphire">Lecture</span></td>
+      <td>One-off talks, guest speakers</td>
+      <td>Friday reminder, visiting scholar lecture</td>
+    </tr>
+    <tr>
+      <td><span class="guide-badge sage">Quran School</span></td>
+      <td>Quran-specific learning</td>
+      <td>Tajweed class, hifz circle, Quran study</td>
+    </tr>
+    <tr>
+      <td><span class="guide-badge gold">Youth</span></td>
+      <td>Programs for young people</td>
+      <td>Youth halaqah, sports day, mentoring</td>
+    </tr>
+    <tr>
+      <td><span class="guide-badge gold">Sisters</span></td>
+      <td>Sisters-only programs</td>
+      <td>Sisters' class, support circle</td>
+    </tr>
+    <tr>
+      <td><span class="guide-badge sage">Community</span></td>
+      <td>General community gatherings</td>
+      <td>Iftar, charity dinner, open day</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Editing or Deleting an Event</h2>
+<ol class="guide-steps">
+  <li>Click <strong>Events</strong> in the sidebar to see all events.</li>
+  <li>Click the <strong>title</strong> of the event you want to change.</li>
+  <li>Make your edits and click <strong>"Save"</strong>, or scroll down and click <strong>"Delete"</strong> to remove it.</li>
+</ol>
+
+<div class="guide-info">
+  You can filter events by category, recurring type, or mosque using the filters on the right side of the events list.
+</div>
+
+<h2>Quick Reference</h2>
+<table class="guide-table">
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>Required?</th>
+      <th>What to Enter</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Mosque</td>
+      <td>Yes</td>
+      <td>Your mosque</td>
+    </tr>
+    <tr>
+      <td>Title</td>
+      <td>Yes</td>
+      <td>Name of the event (e.g., "Tafseer Class")</td>
+    </tr>
+    <tr>
+      <td>Category</td>
+      <td>Yes</td>
+      <td>Lesson, Lecture, Quran School, Youth, Sisters, or Community</td>
+    </tr>
+    <tr>
+      <td>Event Date</td>
+      <td>Yes</td>
+      <td>When it takes place (YYYY-MM-DD format)</td>
+    </tr>
+    <tr>
+      <td>Start/End Time</td>
+      <td>Yes</td>
+      <td>e.g., 19:00 to 20:30</td>
+    </tr>
+    <tr>
+      <td>Recurring</td>
+      <td>No</td>
+      <td>Leave blank for one-off, or select Weekly/Monthly</td>
+    </tr>
+    <tr>
+      <td>Speaker</td>
+      <td>No</td>
+      <td>Name of the speaker or teacher</td>
+    </tr>
+    <tr>
+      <td>Description</td>
+      <td>No</td>
+      <td>Extra details — topic, target audience, location within mosque</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="guide-nav">
+  <a href="{% url 'admin:guide_announcements' %}" class="secondary">&larr; Announcements</a>
+  <a href="{% url 'admin:guide_prayer_times' %}">Prayer Times &rarr;</a>
+</div>
+{% endblock %}

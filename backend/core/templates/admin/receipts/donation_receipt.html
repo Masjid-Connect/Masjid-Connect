@@ -1,0 +1,189 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Donation Receipt — {{ donation.donor_name|default:"Donor" }}</title>
+  <link rel="stylesheet" href="{% static 'admin/guide/guide.css' %}">
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background: #F9F7F2;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    }
+    .receipt-actions {
+      max-width: 700px;
+      margin: 0 auto 20px;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    .receipt-actions button,
+    .receipt-actions a {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-print {
+      background: #0F2D52;
+      color: #fff;
+    }
+    .btn-print:hover { background: #163C53; }
+    .btn-pdf {
+      background: #D4AF37;
+      color: #fff;
+    }
+    .btn-pdf:hover { background: #C4A030; }
+    .btn-back {
+      background: transparent;
+      color: #0F2D52;
+      border: 1px solid #E2DFD8;
+    }
+    .btn-back:hover { border-color: #0F2D52; }
+    @media print {
+      .receipt-actions { display: none !important; }
+      body { background: #fff; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="receipt-actions">
+    <a href="javascript:history.back()" class="btn-back">&#8592; Back to Admin</a>
+    <button onclick="window.print()" class="btn-print">&#128424; Print Receipt</button>
+    <a href="{% url 'admin:donation_receipt_pdf' donation.pk %}" class="btn-pdf">&#128196; Download PDF</a>
+  </div>
+
+  <div class="receipt-page">
+    <!-- Header -->
+    <div class="receipt-header">
+      <div class="receipt-logo">
+        <img src="{% static 'admin/img/Masjid_Logo.png' %}" alt="The Salafi Masjid">
+      </div>
+      <div class="receipt-charity">
+        <h1>{{ charity_name|default:"The Salafi Masjid" }}</h1>
+        {% if hmrc_reference %}
+          <p>HMRC Reference: {{ hmrc_reference }}</p>
+        {% endif %}
+        {% if regulator_number %}
+          <p>Charity No: {{ regulator_number }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Receipt title -->
+    <div class="receipt-title">
+      <h2>Donation Receipt</h2>
+      <div class="receipt-number">Receipt #{{ donation.id|truncatechars:13 }}</div>
+    </div>
+
+    <!-- Donor details -->
+    <div class="receipt-section">
+      <h3>Donor Details</h3>
+      <dl class="receipt-detail-grid">
+        <dt>Name</dt>
+        <dd>{{ donation.donor_name|default:"Anonymous" }}</dd>
+
+        {% if donation.donor_email %}
+          <dt>Email</dt>
+          <dd>{{ donation.donor_email }}</dd>
+        {% endif %}
+
+        {% if donation.donor_address_line1 %}
+          <dt>Address</dt>
+          <dd>
+            {{ donation.donor_address_line1 }}
+            {% if donation.donor_address_line2 %}<br>{{ donation.donor_address_line2 }}{% endif %}
+            {% if donation.donor_city %}<br>{{ donation.donor_city }}{% endif %}
+            {% if donation.donor_postcode %}<br>{{ donation.donor_postcode }}{% endif %}
+            {% if donation.donor_country %}<br>{{ donation.donor_country }}{% endif %}
+          </dd>
+        {% endif %}
+      </dl>
+    </div>
+
+    <!-- Donation amount -->
+    <div class="receipt-amount-box">
+      <div class="amount-label">Donation Amount</div>
+      <div class="amount-value">&pound;{{ amount_pounds }}</div>
+    </div>
+
+    <!-- Donation details -->
+    <div class="receipt-section">
+      <h3>Donation Details</h3>
+      <dl class="receipt-detail-grid">
+        <dt>Date</dt>
+        <dd>{{ donation.donation_date|date:"j F Y" }}</dd>
+
+        <dt>Frequency</dt>
+        <dd>{{ donation.get_frequency_display }}</dd>
+
+        <dt>Payment Method</dt>
+        <dd>{{ donation.get_source_display }}</dd>
+
+        <dt>Currency</dt>
+        <dd>{{ donation.currency|upper }}</dd>
+
+        {% if donation.stripe_payment_intent_id %}
+          <dt>Reference</dt>
+          <dd>{{ donation.stripe_payment_intent_id }}</dd>
+        {% endif %}
+      </dl>
+    </div>
+
+    <!-- Gift Aid section (if eligible) -->
+    {% if donation.gift_aid_eligible %}
+      <div class="receipt-gift-aid">
+        <h3>Gift Aid Declaration</h3>
+        <dl class="receipt-detail-grid">
+          {% if donation.gift_aid_declaration %}
+            <dt>Reference</dt>
+            <dd>{{ donation.gift_aid_declaration.charity_reference }}</dd>
+
+            <dt>Declaration Date</dt>
+            <dd>{{ donation.gift_aid_declaration.declaration_date|date:"j F Y" }}</dd>
+          {% endif %}
+
+          <dt>Gift Aid Amount</dt>
+          <dd class="gift-aid-amount">&pound;{{ gift_aid_pounds }}</dd>
+        </dl>
+
+        <p class="declaration-text">
+          I confirm I have paid or will pay an amount of Income Tax and/or Capital Gains Tax
+          for the current tax year (6 April to 5 April) that is at least equal to the amount
+          of tax that all the charities and Community Amateur Sports Clubs that I donate to
+          will reclaim on my gifts for the current tax year. I understand that other taxes such
+          as VAT and Council Tax do not qualify. I understand the charity will reclaim 25p of
+          tax on every &pound;1 that I have given.
+        </p>
+      </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="receipt-footer">
+      <div class="charity-details">
+        <strong>{{ charity_name|default:"The Salafi Masjid" }}</strong>
+        {% if regulator_number %} | Charity No: {{ regulator_number }}{% endif %}
+        {% if hmrc_reference %} | HMRC Ref: {{ hmrc_reference }}{% endif %}
+      </div>
+      <div>
+        This receipt was generated on {{ today|date:"j F Y" }}.
+        Please retain for your records.
+      </div>
+      {% if donation.gift_aid_eligible %}
+        <div style="margin-top: 8px;">
+          If your circumstances change and you no longer pay sufficient tax, please notify the charity.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</body>
+</html>

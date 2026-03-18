@@ -1,0 +1,136 @@
+{% extends "admin/guide/base_guide.html" %}
+{% load static %}
+
+{% block guide_content %}
+<div class="guide-logo-header">
+  <img src="{% static 'admin/img/Masjid_Logo.png' %}" alt="The Salafi Masjid">
+  <h1>Troubleshooting</h1>
+  <p>Something not working? Find solutions to common issues here.</p>
+</div>
+
+<h2>I Can't Log In</h2>
+<div class="faq-list">
+  <details class="faq-item" open>
+    <summary>Wrong password or email</summary>
+    <div class="faq-answer">
+      <p>Make sure you're using the <strong>email address</strong> you registered with, not a username. Check for typos and make sure Caps Lock is off. Passwords are case-sensitive.</p>
+      <p>If you've forgotten your password, ask a Super Admin to reset it for you from the Users section.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>Account locked or disabled</summary>
+    <div class="faq-answer">
+      <p>If your account has been deactivated, you won't be able to log in. Contact the Super Admin or the person who manages the admin panel to reactivate your account.</p>
+    </div>
+  </details>
+</div>
+
+<h2>Changes Not Showing in the App</h2>
+<div class="faq-list">
+  <details class="faq-item" open>
+    <summary>I updated an announcement/event but the app still shows the old version</summary>
+    <div class="faq-answer">
+      <p>The app caches data to work offline. Community members may need to:</p>
+      <ul style="padding-left: 20px; margin: 8px 0;">
+        <li><strong>Pull to refresh</strong> — swipe down on the relevant screen in the app</li>
+        <li><strong>Wait a few minutes</strong> — the app refreshes automatically every few minutes</li>
+        <li><strong>Restart the app</strong> — close it completely and reopen</li>
+      </ul>
+      <p>Your changes are saved immediately on the server. The delay is only on the app side.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>New prayer times aren't appearing</summary>
+    <div class="faq-answer">
+      <p>Check that you saved the prayer times for the <strong>correct date</strong> and <strong>correct mosque</strong>. Go back to the prayer times list and verify the entry exists. If it does, the app should pick it up within a few minutes.</p>
+    </div>
+  </details>
+</div>
+
+<h2>Errors When Saving</h2>
+<div class="faq-list">
+  <details class="faq-item" open>
+    <summary>"This field is required" error</summary>
+    <div class="faq-answer">
+      <p>A required field is empty. Scroll through the form and look for fields highlighted in red. Fill in all required fields and try saving again. Required fields are marked — check the Quick Reference tables in each guide section for details.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>"Mosque prayer time with this Mosque and Date already exists"</summary>
+    <div class="faq-answer">
+      <p>You're trying to add prayer times for a date that already has an entry. Go back to the prayer times list, find the existing entry for that date, and <strong>edit it</strong> instead of creating a new one.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>"Enter a valid date/time" error</summary>
+    <div class="faq-answer">
+      <p>Make sure dates are in <strong>YYYY-MM-DD</strong> format (e.g., 2026-03-18) and times are in <strong>HH:MM</strong> format (e.g., 13:30). Don't include AM/PM — use 24-hour time.</p>
+    </div>
+  </details>
+</div>
+
+<h2>Gift Aid Issues</h2>
+<div class="faq-list">
+  <details class="faq-item">
+    <summary>CSV/XML export is empty</summary>
+    <div class="faq-answer">
+      <p>Make sure the Gift Aid Claim has <strong>donations assigned to it</strong>. Open the claim and check the "Donations" section — you need to select donations from the "Available" list and move them to the "Chosen" list. Only donations marked as "Gift Aid eligible" will appear.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>"Please select exactly one claim" error on XML export</summary>
+    <div class="faq-answer">
+      <p>XML export works for one claim at a time. On the claims list, tick only <strong>one</strong> claim's checkbox before selecting the export action.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>Charity Gift Aid Settings won't save</summary>
+    <div class="faq-answer">
+      <p>Make sure all required fields are filled in — especially the Charity Name, HMRC Reference, and Authorised Official details. If you see an error about the "Add" button being greyed out, settings already exist — click on the existing entry to edit it instead.</p>
+    </div>
+  </details>
+</div>
+
+<h2>Display Issues</h2>
+<div class="faq-list">
+  <details class="faq-item">
+    <summary>The page looks broken or things are overlapping</summary>
+    <div class="faq-answer">
+      <p>Try these steps:</p>
+      <ul style="padding-left: 20px; margin: 8px 0;">
+        <li><strong>Refresh the page</strong> — press Ctrl+R (or Cmd+R on Mac)</li>
+        <li><strong>Clear your browser cache</strong> — press Ctrl+Shift+Delete</li>
+        <li><strong>Try a different browser</strong> — Chrome, Safari, or Firefox all work well</li>
+        <li><strong>Check your internet connection</strong> — a slow connection can cause pages to load partially</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>The admin panel is very slow</summary>
+    <div class="faq-answer">
+      <p>This is usually a network issue. Check your internet speed. If the problem persists, it could be a server issue — contact technical support.</p>
+    </div>
+  </details>
+</div>
+
+<h2>Still Need Help?</h2>
+<div style="background: var(--guide-stone-100); border-radius: 12px; padding: 24px; margin: 24px 0; text-align: center;">
+  <h3 style="margin-top: 0;">Contact Technical Support</h3>
+  <p>If you can't find the answer here, reach out to the technical team:</p>
+  <p style="margin-bottom: 0;">
+    <strong>Email:</strong> info@salafimasjid.app
+  </p>
+</div>
+
+<div class="guide-nav">
+  <a href="{% url 'admin:guide_faqs' %}" class="secondary">&larr; FAQs</a>
+  <a href="{% url 'admin:guide_index' %}">Back to Guide Home &rarr;</a>
+</div>
+{% endblock %}

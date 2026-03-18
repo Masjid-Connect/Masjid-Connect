@@ -261,6 +261,7 @@ UNFOLD = {
                 "items": [
                     {"title": "Mosques", "link": "/admin/core/mosque/", "icon": "mosque"},
                     {"title": "Mosque Admins", "link": "/admin/core/mosqueadmin/", "icon": "admin_panel_settings"},
+                    {"title": "Prayer Times", "link": "/admin/core/mosqueprayertime/", "icon": "schedule"},
                 ],
             },
             {
@@ -268,6 +269,15 @@ UNFOLD = {
                 "items": [
                     {"title": "Announcements", "link": "/admin/core/announcement/", "icon": "campaign"},
                     {"title": "Events", "link": "/admin/core/event/", "icon": "event"},
+                ],
+            },
+            {
+                "title": "Donations & Gift Aid",
+                "items": [
+                    {"title": "Donations", "link": "/admin/core/donation/", "icon": "volunteer_activism"},
+                    {"title": "Gift Aid Declarations", "link": "/admin/core/giftaiddeclaration/", "icon": "description"},
+                    {"title": "Gift Aid Claims", "link": "/admin/core/giftaidclaim/", "icon": "request_quote"},
+                    {"title": "Charity Settings", "link": "/admin/core/charitygiftaidsettings/", "icon": "settings"},
                 ],
             },
             {
@@ -282,6 +292,15 @@ UNFOLD = {
                     {"title": "Users", "link": "/admin/core/user/", "icon": "person"},
                     {"title": "Subscriptions", "link": "/admin/core/usersubscription/", "icon": "notifications"},
                     {"title": "Push Tokens", "link": "/admin/core/pushtoken/", "icon": "phone_android"},
+                ],
+            },
+            {
+                "title": "Help & Guides",
+                "separator": True,
+                "items": [
+                    {"title": "User Guide", "link": "/admin/guide/", "icon": "menu_book"},
+                    {"title": "FAQs", "link": "/admin/guide/faqs/", "icon": "help"},
+                    {"title": "Troubleshooting", "link": "/admin/guide/troubleshooting/", "icon": "build"},
                 ],
             },
         ],
