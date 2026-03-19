@@ -3648,14 +3648,6 @@ a.contact__info-value:hover {
     height: 38px;
   }
 
-  .footer__grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-  }
-
-  .footer__store-badges {
-    flex-direction: column;
-  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
