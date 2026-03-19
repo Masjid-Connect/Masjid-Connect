@@ -10,12 +10,17 @@ import { useTranslation } from 'react-i18next';
 import { palette } from '@/constants/Colors';
 import { AnimatedSplash } from '@/components/brand/AnimatedSplash';
 import { InAppToast } from '@/components/ui/InAppToast';
+import { ErrorFallback } from '@/components/ui/ErrorFallback';
 import { ThemeProvider as AppThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ToastProvider, useToast } from '@/contexts/ToastContext';
 import { reschedulePrayerRemindersForToday, addNotificationReceivedListener, addNotificationResponseListener } from '@/lib/notifications';
+import { initSentry, Sentry } from '@/lib/sentry';
 import '@/lib/i18n';
 import { configureRTL } from '@/lib/rtl';
+
+// Initialize Sentry before anything else renders
+initSentry();
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -51,7 +56,7 @@ const MosqueDark = {
   },
 };
 
-export default function RootLayout() {
+function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
@@ -84,18 +89,24 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
-      <AnimatedSplash isVisible={showSplash} onAnimationComplete={handleSplashComplete}>
-        <AppThemeProvider>
-          <ToastProvider>
-            <RootLayoutNav />
-            <InAppToast />
-          </ToastProvider>
-        </AppThemeProvider>
-      </AnimatedSplash>
-    </AuthProvider>
+    <Sentry.ErrorBoundary fallback={({ error, resetError }) => (
+      <ErrorFallback error={error} resetError={resetError} />
+    )}>
+      <AuthProvider>
+        <AnimatedSplash isVisible={showSplash} onAnimationComplete={handleSplashComplete}>
+          <AppThemeProvider>
+            <ToastProvider>
+              <RootLayoutNav />
+              <InAppToast />
+            </ToastProvider>
+          </AppThemeProvider>
+        </AnimatedSplash>
+      </AuthProvider>
+    </Sentry.ErrorBoundary>
   );
 }
+
+export default Sentry.wrap(RootLayout);
 
 function RootLayoutNav() {
   const { effectiveScheme } = useTheme();
