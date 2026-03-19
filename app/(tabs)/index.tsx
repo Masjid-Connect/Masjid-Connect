@@ -26,7 +26,7 @@ import { SkiaAtmosphericGradient } from '@/components/brand/SkiaAtmosphericGradi
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { GlowDot } from '@/components/brand/GlowDot';
 import { SolarLight } from '@/components/brand/SolarLight';
-import { SkyArc } from '@/components/brand/SkyArc';
+
 import { DateNavigator } from '@/components/prayer/DateNavigator';
 import { Ionicons } from '@expo/vector-icons';
 import type { PrayerName } from '@/types';
@@ -197,17 +197,6 @@ export default function PrayerTimesScreen() {
           ]}
           style={styles.heroFade}
         />
-
-        {/* ── Sky Arc: sun path visualization ─────────────────────── */}
-        {prayers.length > 0 && isToday && (
-          <View style={styles.skyArcWrapper}>
-            <SkyArc
-              width={SCREEN_WIDTH}
-              prayers={prayers}
-              nextPrayer={nextPrayer}
-            />
-          </View>
-        )}
 
         {/* ── Date Navigator ─────────────────────────────────────── */}
         <DateNavigator
@@ -421,11 +410,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
 
-  // Sky Arc wrapper — proper vertical spacing
-  skyArcWrapper: {
-    marginTop: spacing.sm,   // 8
-    marginBottom: spacing.xs, // 4
-  },
 
   // Active row progress bar
   progressBarContainer: {
