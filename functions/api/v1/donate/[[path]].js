@@ -14,6 +14,9 @@ export async function onRequest(context) {
   // Remove Cloudflare-specific headers that shouldn't be forwarded
   headers.delete("cf-connecting-ip");
   headers.delete("cf-ray");
+  // Tell Django the original request came via HTTPS (needed for
+  // SECURE_PROXY_SSL_HEADER so Django doesn't 301-redirect to HTTPS)
+  headers.set("X-Forwarded-Proto", "https");
 
   const init = {
     method: request.method,
@@ -25,7 +28,18 @@ export async function onRequest(context) {
     init.body = request.body;
   }
 
-  const upstreamResponse = await fetch(targetUrl.toString(), init);
+  let upstreamResponse;
+  try {
+    upstreamResponse = await fetch(targetUrl.toString(), init);
+  } catch (err) {
+    return new Response(
+      JSON.stringify({ detail: "Payment service temporarily unavailable." }),
+      {
+        status: 502,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  }
 
   const responseHeaders = new Headers(upstreamResponse.headers);
   responseHeaders.delete("content-length");

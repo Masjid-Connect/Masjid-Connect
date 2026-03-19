@@ -173,8 +173,11 @@
 
     createSession('embedded')
       .then(function (data) {
-        if (!data.client_secret || !data.publishable_key) {
-          throw new Error('Missing checkout credentials.');
+        if (!data.client_secret) {
+          throw new Error('Server did not return a checkout session. Please try again.');
+        }
+        if (!data.publishable_key) {
+          throw new Error('Payment configuration incomplete. Please contact the masjid.');
         }
 
         // Wait for Stripe.js to load (it's loaded async)
@@ -197,9 +200,12 @@
       })
       .catch(function (err) {
         setLoading(false);
-        // Fallback: redirect checkout via form POST
-        console.warn('Embedded checkout failed, trying redirect:', err.message);
-        formPostFallback();
+        console.error('Embedded checkout failed:', err.message);
+        // Show the error so the user (and developer) can see what went wrong,
+        // rather than silently falling back to redirect checkout.
+        showError('Checkout could not load inline. ' + err.message + ' Redirecting to payment page...');
+        // Give the user a moment to see the message, then redirect as fallback
+        setTimeout(formPostFallback, 2000);
       });
   }
 
