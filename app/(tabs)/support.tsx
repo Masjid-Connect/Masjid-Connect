@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -62,6 +62,15 @@ export default function SupportScreen() {
 
   const feeAmount = amount ? calculateFee(amount) : 0;
   const totalAmount = amount ? amount + (coverFees ? feeAmount : 0) : 0;
+
+  // Rotate hadith daily (day of year % 10)
+  const hadith = useMemo(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    const dayOfYear = Math.floor((now.getTime() - start.getTime()) / 86400000);
+    const hadiths = t('support.hadiths', { returnObjects: true }) as Array<{ text: string; source: string }>;
+    return hadiths[dayOfYear % hadiths.length];
+  }, [t]);
 
   // Large title collapse animation
   const scrollY = useSharedValue(0);
@@ -463,10 +472,10 @@ export default function SupportScreen() {
         <Animated.View entering={FadeInDown.delay(550).duration(400)}>
           <View style={[styles.hadithCard, { backgroundColor: isDark ? colors.backgroundGrouped : 'rgba(15, 45, 82, 0.03)', borderColor: isDark ? 'rgba(91, 155, 213, 0.12)' : 'rgba(15, 45, 82, 0.08)' }]}>
             <Text style={[typography.callout, { color: colors.text, fontStyle: 'italic', lineHeight: 24 }]}>
-              {t('support.hadith')}
+              &ldquo;{hadith.text}&rdquo;
             </Text>
             <Text style={[typography.caption1, { color: colors.textTertiary, marginTop: spacing.sm }]}>
-              — {t('support.hadithSource')}
+              — {hadith.source}
             </Text>
           </View>
         </Animated.View>
