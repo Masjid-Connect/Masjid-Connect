@@ -138,11 +138,14 @@ export default function SupportScreen() {
           presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
         });
       }
-    } catch {
+    } catch (err) {
+      const message = err instanceof Error && err.message
+        ? err.message
+        : t('support.errorMessage');
       if (Platform.OS === 'web') {
-        window.alert(t('support.errorMessage'));
+        window.alert(message);
       } else {
-        Alert.alert(t('support.error'), t('support.errorMessage'));
+        Alert.alert(t('support.error'), message);
       }
     } finally {
       setIsLoading(false);

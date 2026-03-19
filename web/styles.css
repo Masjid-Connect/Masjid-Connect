@@ -1384,7 +1384,7 @@ ul {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--divine-gold);
+  color: var(--onyx-600);
   margin-bottom: 12px;
 }
 
@@ -1497,6 +1497,7 @@ ul {
 
 /* Gift Aid */
 .donate__gift-aid {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -1578,6 +1579,7 @@ ul {
 
 /* Cover Processing Fees */
 .donate__cover-fees {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -1655,6 +1657,73 @@ ul {
   font-size: 12px;
   line-height: 1.5;
   color: var(--onyx-600);
+}
+
+/* Live total breakdown — Apple receipt-style summary */
+.donate__live-total {
+  padding: 16px 20px;
+  background: var(--stone-100);
+  border: 1px solid var(--separator);
+  border-radius: 12px;
+  margin-bottom: 28px;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.donate__live-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 4px 0;
+}
+
+.donate__live-total-row--fee,
+.donate__live-total-row--gift-aid {
+  color: var(--onyx-600);
+}
+
+.donate__live-total-row--fee .donate__live-total-label,
+.donate__live-total-row--gift-aid .donate__live-total-label {
+  font-size: 13px;
+  color: var(--onyx-600);
+}
+
+.donate__live-total-row--fee .donate__live-total-value,
+.donate__live-total-row--gift-aid .donate__live-total-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--onyx-600);
+  font-variant-numeric: tabular-nums;
+}
+
+.donate__live-total-label {
+  font-size: 14px;
+  color: var(--onyx-900);
+}
+
+.donate__live-total-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--onyx-900);
+  font-variant-numeric: tabular-nums;
+}
+
+.donate__live-total-divider {
+  height: 1px;
+  background: var(--separator);
+  margin: 8px 0;
+}
+
+.donate__live-total-row--total .donate__live-total-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--onyx-900);
+}
+
+.donate__live-total-row--total .donate__live-total-value {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--sapphire-700);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Payment method buttons */
@@ -1882,6 +1951,23 @@ ul {
 
 [data-theme="dark"] .donate__summary-change:hover {
   color: var(--divine-gold-bright, #E5C14B);
+}
+
+[data-theme="dark"] .donate__live-total {
+  background: var(--onyx-850, #1A1A1E);
+  border-color: var(--separator);
+}
+
+[data-theme="dark"] .donate__live-total-label {
+  color: var(--snow, #F5F5F7);
+}
+
+[data-theme="dark"] .donate__live-total-value {
+  color: var(--snow, #F5F5F7);
+}
+
+[data-theme="dark"] .donate__live-total-row--total .donate__live-total-value {
+  color: var(--sapphire-400, #5B9BD5);
 }
 
 /* Bank Transfer Bottom Sheet */
