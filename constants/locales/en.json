@@ -312,7 +312,13 @@
     "error": "Something went wrong",
     "errorMessage": "Please try again or use bank transfer instead.",
     "minAmount": "Minimum donation is £1",
-    "maxAmount": "Maximum donation is £10,000"
+    "maxAmount": "Maximum donation is £10,000",
+    "giftAid": "Add Gift Aid",
+    "giftAidDescription": "Increase your donation by 25% at no extra cost",
+    "giftAidHint": "I am a UK taxpayer and understand that if I pay less Income Tax and/or Capital Gains Tax than the amount of Gift Aid claimed on all my donations in the relevant tax year, it is my responsibility to pay any difference.",
+    "coverFees": "Cover processing fees",
+    "coverFeesDescription": "Add {{amount}} so the masjid receives your full donation",
+    "coverFeesHint": "Payment providers charge a small fee per transaction. Covering this means 100% of your donation goes to the masjid."
   },
   "common": {
     "loading": "Loading...",

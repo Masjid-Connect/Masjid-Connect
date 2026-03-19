@@ -22,11 +22,21 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, borderRadius, typography, getElevation } from '@/constants/Theme';
 import { AmountSelector, BankDetailsSheet } from '@/components/support';
 import { donations } from '@/lib/api';
+
+// Fee calculation: blended 2.5% + 20p estimate
+const FEE_PERCENT = 0.025;
+const FEE_FIXED_PENCE = 20;
+
+function calculateFee(amountPounds: number): number {
+  const netPence = Math.round(amountPounds * 100);
+  const grossPence = Math.ceil((netPence + FEE_FIXED_PENCE) / (1 - FEE_PERCENT));
+  return (grossPence - netPence) / 100;
+}
 
 const HEADER_HEIGHT = 44;
 const LARGE_TITLE_HEIGHT = 52;
@@ -47,6 +57,10 @@ export default function SupportScreen() {
   const [amount, setAmount] = useState<number | null>(25);
   const [isLoading, setIsLoading] = useState(false);
   const [showBankDetails, setShowBankDetails] = useState(false);
+  const [giftAid, setGiftAid] = useState(false);
+  const [coverFees, setCoverFees] = useState(false);
+
+  const feeAmount = amount ? calculateFee(amount) : 0;
 
   // Large title collapse animation
   const scrollY = useSharedValue(0);
@@ -105,6 +119,7 @@ export default function SupportScreen() {
         amount * 100, // Convert pounds to pence
         'gbp',
         frequency,
+        { giftAid, coverFees },
       );
 
       if (stripeUrl) {
@@ -122,7 +137,7 @@ export default function SupportScreen() {
     } finally {
       setIsLoading(false);
     }
-  }, [amount, frequency, t]);
+  }, [amount, frequency, giftAid, coverFees, t]);
 
   const handleBankTransfer = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -221,8 +236,106 @@ export default function SupportScreen() {
           />
         </Animated.View>
 
+        {/* Gift Aid */}
+        <Animated.View entering={FadeInDown.delay(350).duration(400)}>
+          <Pressable
+            style={[
+              styles.optionCard,
+              {
+                backgroundColor: giftAid
+                  ? (isDark ? 'rgba(45, 106, 79, 0.12)' : 'rgba(45, 106, 79, 0.06)')
+                  : (isDark ? colors.backgroundGrouped : 'rgba(45, 106, 79, 0.03)'),
+                borderColor: giftAid
+                  ? palette.sage600
+                  : (isDark ? 'rgba(45, 106, 79, 0.2)' : 'rgba(45, 106, 79, 0.12)'),
+              },
+            ]}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setGiftAid(!giftAid);
+            }}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: giftAid }}
+            accessibilityLabel={t('support.giftAid')}
+          >
+            <View
+              style={[
+                styles.optionCheck,
+                {
+                  backgroundColor: giftAid ? palette.sage600 : (isDark ? colors.backgroundGrouped : '#fff'),
+                  borderColor: giftAid ? palette.sage600 : colors.separator,
+                },
+              ]}
+            >
+              {giftAid && (
+                <Ionicons name="checkmark" size={14} color="#fff" />
+              )}
+            </View>
+            <View style={styles.optionText}>
+              <Text style={[typography.subhead, { fontWeight: '600', color: palette.sage600 }]}>
+                {t('support.giftAid')}
+              </Text>
+              <Text style={[typography.footnote, { color: colors.textSecondary }]}>
+                {t('support.giftAidDescription')}
+              </Text>
+              <Text style={[typography.caption2, { color: colors.textTertiary, marginTop: spacing['2xs'] }]}>
+                {t('support.giftAidHint')}
+              </Text>
+            </View>
+          </Pressable>
+        </Animated.View>
+
+        {/* Cover Processing Fees */}
+        <Animated.View entering={FadeInDown.delay(380).duration(400)}>
+          <Pressable
+            style={[
+              styles.optionCard,
+              {
+                backgroundColor: coverFees
+                  ? (isDark ? 'rgba(15, 45, 82, 0.12)' : 'rgba(15, 45, 82, 0.06)')
+                  : (isDark ? colors.backgroundGrouped : 'rgba(15, 45, 82, 0.03)'),
+                borderColor: coverFees
+                  ? colors.tint
+                  : (isDark ? 'rgba(91, 155, 213, 0.2)' : 'rgba(15, 45, 82, 0.12)'),
+              },
+            ]}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setCoverFees(!coverFees);
+            }}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: coverFees }}
+            accessibilityLabel={t('support.coverFees')}
+          >
+            <View
+              style={[
+                styles.optionCheck,
+                {
+                  backgroundColor: coverFees ? colors.tint : (isDark ? colors.backgroundGrouped : '#fff'),
+                  borderColor: coverFees ? colors.tint : colors.separator,
+                },
+              ]}
+            >
+              {coverFees && (
+                <Ionicons name="checkmark" size={14} color="#fff" />
+              )}
+            </View>
+            <View style={styles.optionText}>
+              <Text style={[typography.subhead, { fontWeight: '600', color: colors.tint }]}>
+                {t('support.coverFees')}
+              </Text>
+              <Text style={[typography.footnote, { color: colors.textSecondary }]}>
+                {t('support.coverFeesDescription', { amount: `£${feeAmount.toFixed(2)}` })}
+              </Text>
+              <Text style={[typography.caption2, { color: colors.textTertiary, marginTop: spacing['2xs'] }]}>
+                {t('support.coverFeesHint')}
+              </Text>
+            </View>
+          </Pressable>
+        </Animated.View>
+
         {/* Donate button */}
-        <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+        <Animated.View entering={FadeInDown.delay(420).duration(400)}>
           <Pressable
             style={[
               styles.donateButton,
@@ -348,6 +461,27 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: spacing.sm,
     alignItems: 'center',
+  },
+  optionCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.md,
+    padding: spacing.lg,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1.5,
+    marginTop: spacing.md,
+  },
+  optionCheck: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
+  },
+  optionText: {
+    flex: 1,
   },
   donateButton: {
     flexDirection: 'row',
