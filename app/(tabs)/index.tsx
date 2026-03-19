@@ -239,7 +239,10 @@ export default function PrayerTimesScreen() {
 
           {prayers.map((prayer, index) => {
             const isNext = prayer.name === nextPrayer;
-            const isPassed = !isNext && prayer.time < new Date() && prayer.name !== 'sunrise';
+            // A prayer is "passed" when both adhan AND jama'ah times are in the past
+            const effectiveTime = prayer.jamaahTime && prayer.jamaahTime > prayer.time
+              ? prayer.jamaahTime : prayer.time;
+            const isPassed = !isNext && effectiveTime < new Date() && prayer.name !== 'sunrise';
 
             return (
               <Animated.View

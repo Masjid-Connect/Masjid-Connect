@@ -67,6 +67,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const selectedDateRef = useRef(selectedDate);
   selectedDateRef.current = selectedDate;
+  const jamaahTimesRef = useRef<JamaahTimesData | null>(null);
 
   const isToday = isTodayFn(selectedDate);
 
@@ -97,7 +98,8 @@ export function usePrayerTimes(): UsePrayerTimesResult {
       if (cached) {
         const entries = buildPrayerEntries(cached.times, cached.jamaahTimes);
         setPrayers(entries);
-        setNextPrayer(getNextPrayer(cached.times));
+        jamaahTimesRef.current = cached.jamaahTimes ?? null;
+        setNextPrayer(getNextPrayer(cached.times, cached.jamaahTimes));
         setJamaahAvailable(cached.jamaahTimes !== null);
         setSource('cache');
         setIsLoading(false);
@@ -115,7 +117,8 @@ export function usePrayerTimes(): UsePrayerTimesResult {
           const entries = buildPrayerEntries(mosqueResult.times, jamaahTimes);
 
           setPrayers(entries);
-          setNextPrayer(isTodayFn(targetDate) ? getNextPrayer(mosqueResult.times) : null);
+          jamaahTimesRef.current = jamaahTimes;
+          setNextPrayer(isTodayFn(targetDate) ? getNextPrayer(mosqueResult.times, jamaahTimes) : null);
           setSource('mosque');
           setJamaahAvailable(true);
 
@@ -146,6 +149,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
       const entries = buildPrayerEntries(result.times);
 
       setPrayers(entries);
+      jamaahTimesRef.current = null;
       setNextPrayer(isTodayFn(targetDate) ? getNextPrayer(result.times) : null);
       setSource(result.source);
       setJamaahAvailable(false);
@@ -235,7 +239,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
         maghrib: prayers.find((p) => p.name === 'maghrib')!.time,
         isha: prayers.find((p) => p.name === 'isha')!.time,
       };
-      setNextPrayer(getNextPrayer(times));
+      setNextPrayer(getNextPrayer(times, jamaahTimesRef.current));
     };
 
     nextPrayerIntervalRef.current = setInterval(checkNextPrayer, 60_000);
