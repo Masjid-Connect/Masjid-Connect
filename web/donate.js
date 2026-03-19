@@ -228,7 +228,9 @@
     summaryMeta.textContent = parts.join(' · ');
   }
 
-  // ─── Show/hide checkout vs form (Apple-style collapse) ─────
+  // ─── Show/hide checkout inline (no page change) ────────────
+  var formCard = document.querySelector('.donate__form-card');
+
   function showCheckout() {
     // Hide error during checkout
     if (errorEl) errorEl.classList.add('status--checkout-hidden');
@@ -236,29 +238,27 @@
     // Update and show the summary bar
     updateSummary();
 
-    // Fade out form steps
-    formSteps.forEach(function (el) {
-      el.classList.add('donate__step--hidden');
-    });
+    // Lock the form — dim it, disable interactions, but keep visible
+    if (formCard) formCard.classList.add('donate__form-card--locked');
 
-    // After form fades out, reveal summary + checkout
+    // Show summary bar between form and checkout
+    if (summaryEl) {
+      summaryEl.hidden = false;
+      summaryEl.offsetHeight;
+      summaryEl.classList.add('donate__summary--visible');
+    }
+
+    // Show checkout container below the form
+    if (checkoutContainer) {
+      checkoutContainer.hidden = false;
+      checkoutContainer.offsetHeight;
+      checkoutContainer.classList.add('checkout--visible');
+    }
+
+    // Scroll to checkout smoothly
     setTimeout(function () {
-      formSteps.forEach(function (el) { el.hidden = true; });
-
-      // Show summary
-      if (summaryEl) {
-        summaryEl.hidden = false;
-        summaryEl.offsetHeight;
-        summaryEl.classList.add('donate__summary--visible');
-      }
-
-      // Show checkout container
-      if (checkoutContainer) {
-        checkoutContainer.hidden = false;
-        checkoutContainer.offsetHeight;
-        checkoutContainer.classList.add('checkout--visible');
-      }
-    }, 200);
+      if (summaryEl) summaryEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   }
 
   function showForm() {
@@ -270,18 +270,17 @@
       if (checkoutContainer) checkoutContainer.hidden = true;
       if (summaryEl) summaryEl.hidden = true;
 
-      // Restore form steps
-      formSteps.forEach(function (el) {
-        el.hidden = false;
-        el.offsetHeight;
-        el.classList.remove('donate__step--hidden');
-      });
+      // Unlock the form
+      if (formCard) formCard.classList.remove('donate__form-card--locked');
 
       // Allow error to be shown again
       if (errorEl) errorEl.classList.remove('status--checkout-hidden');
 
       hideError();
       destroyCheckout();
+
+      // Scroll back to top of form
+      if (formCard) formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 300);
   }
 
@@ -525,7 +524,7 @@
   const donation = params.get('donation');
 
   if (donation === 'success') {
-    formSteps.forEach(function (el) { el.hidden = true; });
+    if (formCard) formCard.classList.add('donate__form-card--locked');
     if (successEl) {
       successEl.hidden = false;
       // Trigger entrance animation after a frame

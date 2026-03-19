@@ -807,11 +807,15 @@ def create_checkout_session(request):
             "metadata": base_metadata,
         }
 
-        # Gift Aid requires donor's full name and UK address for HMRC
+        # Gift Aid requires donor's full name and UK address for HMRC.
+        # Without Gift Aid, minimise data collection — only collect
+        # billing info when the payment method requires it.
         if wants_gift_aid:
             session_params["billing_address_collection"] = "required"
             if not is_recurring:
                 session_params["customer_creation"] = "always"
+        else:
+            session_params["billing_address_collection"] = "auto"
 
         # Line items
         product_name = (
