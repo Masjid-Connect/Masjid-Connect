@@ -6,6 +6,7 @@ const KEYS = {
   PRAYER_TIMES: 'cached_prayer_times',
   PRAYER_DATE: 'cached_prayer_date',
   JAMAAH_TIMES: 'cached_jamaah_times',
+  LATEST_JAMAAH_TIMES: 'latest_jamaah_times',
   USER_LOCATION: 'user_location',
   CALCULATION_METHOD: 'calculation_method',
   CALCULATION_METHOD_NAME: 'calculation_method_name',
@@ -86,6 +87,43 @@ export async function getCachedPrayerTimes(
   }
 
   return { times, jamaahTimes };
+}
+
+/**
+ * Latest known jama'ah times — NOT keyed by date.
+ * Persists across app restarts so we can extrapolate future times
+ * even if the current day has no backend data.
+ */
+export async function saveLatestJamaahTimes(jamaahTimes: JamaahTimesData): Promise<void> {
+  const serialized = {
+    fajr: `${jamaahTimes.fajr.getHours()}:${String(jamaahTimes.fajr.getMinutes()).padStart(2, '0')}`,
+    dhuhr: `${jamaahTimes.dhuhr.getHours()}:${String(jamaahTimes.dhuhr.getMinutes()).padStart(2, '0')}`,
+    asr: `${jamaahTimes.asr.getHours()}:${String(jamaahTimes.asr.getMinutes()).padStart(2, '0')}`,
+    maghrib: `${jamaahTimes.maghrib.getHours()}:${String(jamaahTimes.maghrib.getMinutes()).padStart(2, '0')}`,
+    isha: `${jamaahTimes.isha.getHours()}:${String(jamaahTimes.isha.getMinutes()).padStart(2, '0')}`,
+  };
+  await AsyncStorage.setItem(KEYS.LATEST_JAMAAH_TIMES, JSON.stringify(serialized));
+}
+
+export async function getLatestJamaahTimes(targetDate: Date): Promise<JamaahTimesData | null> {
+  const raw = await AsyncStorage.getItem(KEYS.LATEST_JAMAAH_TIMES);
+  if (!raw) return null;
+
+  const parsed = JSON.parse(raw);
+  const makeDate = (timeStr: string): Date => {
+    const [h, m] = timeStr.split(':').map(Number);
+    const d = new Date(targetDate);
+    d.setHours(h, m, 0, 0);
+    return d;
+  };
+
+  return {
+    fajr: makeDate(parsed.fajr),
+    dhuhr: ensurePM(makeDate(parsed.dhuhr)),
+    asr: ensurePM(makeDate(parsed.asr)),
+    maghrib: ensurePM(makeDate(parsed.maghrib)),
+    isha: ensurePM(makeDate(parsed.isha)),
+  };
 }
 
 /** User location */

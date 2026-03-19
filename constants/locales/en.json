@@ -23,6 +23,7 @@
     "calculating": "Calculating prayer times...",
     "mosqueName": "The Salafi Masjid",
     "mosqueTimes": "Jama'ah times",
+    "estimatedTimes": "Estimated jama'ah",
     "calculatedTimes": "Calculated times",
     "startTime": "Start {{time}}",
     "upcoming": "Next",

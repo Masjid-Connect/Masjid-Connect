@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { format, addDays, isSameDay, isToday as isTodayFn } from 'date-fns';
-import { getPrayerTimes, fetchMosquePrayerTimes, buildPrayerEntries, getNextPrayer, getCountdown } from '@/lib/prayer';
-import { cachePrayerTimes, getCachedPrayerTimes, getReminderMinutes, getUse24h } from '@/lib/storage';
+import { getPrayerTimes, fetchMosquePrayerTimes, buildPrayerEntries, getNextPrayer, getCountdown, extrapolateJamaahTimes } from '@/lib/prayer';
+import { cachePrayerTimes, getCachedPrayerTimes, getReminderMinutes, getUse24h, saveLatestJamaahTimes, getLatestJamaahTimes } from '@/lib/storage';
 import { getMosqueId, SALAFI_MASJID } from '@/constants/mosque';
 import { reschedulePrayerRemindersForToday, schedulePrayerReminders } from '@/lib/notifications';
 import type { PrayerTimeEntry, PrayerName, JamaahTimesData } from '@/types';
@@ -40,6 +40,8 @@ interface UsePrayerTimesResult {
   isLoading: boolean;
   source: 'api' | 'offline' | 'cache' | 'mosque';
   jamaahAvailable: boolean;
+  /** True when jama'ah times are extrapolated from the last known timetable */
+  isEstimated: boolean;
   use24h: boolean;
   refresh: () => Promise<void>;
   /** Currently selected date */
@@ -63,6 +65,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
   const [isLoading, setIsLoading] = useState(true);
   const [source, setSource] = useState<'api' | 'offline' | 'cache' | 'mosque'>('cache');
   const [jamaahAvailable, setJamaahAvailable] = useState(false);
+  const [isEstimated, setIsEstimated] = useState(false);
   const [use24h, setUse24hState] = useState(false);
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const selectedDateRef = useRef(selectedDate);
@@ -121,6 +124,12 @@ export function usePrayerTimes(): UsePrayerTimesResult {
           setNextPrayer(isTodayFn(targetDate) ? getNextPrayer(mosqueResult.times, jamaahTimes) : null);
           setSource('mosque');
           setJamaahAvailable(true);
+          setIsEstimated(false);
+
+          // Persist latest jama'ah times for future extrapolation
+          if (jamaahTimes) {
+            saveLatestJamaahTimes(jamaahTimes).catch(() => {});
+          }
 
           if (isTodayFn(targetDate)) {
             await cachePrayerTimes(mosqueResult.times, today, jamaahTimes);
@@ -146,13 +155,24 @@ export function usePrayerTimes(): UsePrayerTimesResult {
       const lng = SALAFI_MASJID.longitude;
 
       const result = await getPrayerTimes(lat, lng, CALCULATION_METHOD_CODE, CALCULATION_METHOD_NAME, targetDate);
-      const entries = buildPrayerEntries(result.times);
+
+      // Extrapolate jama'ah times from the last known timetable
+      // (timetable changes on Sundays — carry forward until new one is available)
+      let extrapolatedJamaah: JamaahTimesData | null = null;
+      const knownJamaah = jamaahTimesRef.current ?? await getLatestJamaahTimes(targetDate);
+      if (knownJamaah) {
+        extrapolatedJamaah = jamaahTimesRef.current
+          ? extrapolateJamaahTimes(knownJamaah, targetDate)
+          : knownJamaah; // getLatestJamaahTimes already applies targetDate
+      }
+
+      const entries = buildPrayerEntries(result.times, extrapolatedJamaah);
 
       setPrayers(entries);
-      jamaahTimesRef.current = null;
-      setNextPrayer(isTodayFn(targetDate) ? getNextPrayer(result.times) : null);
+      setNextPrayer(isTodayFn(targetDate) ? getNextPrayer(result.times, extrapolatedJamaah) : null);
       setSource(result.source);
-      setJamaahAvailable(false);
+      setJamaahAvailable(extrapolatedJamaah !== null);
+      setIsEstimated(extrapolatedJamaah !== null);
 
       // Islamic day starts at Maghrib — correct the Hijri date accordingly
       try {
@@ -270,6 +290,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     isLoading,
     source,
     jamaahAvailable,
+    isEstimated,
     use24h,
     refresh: loadPrayerTimes,
     selectedDate,
