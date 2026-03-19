@@ -37,7 +37,7 @@
   const giftAidCheckbox = document.getElementById('gift-aid');
   const coverFeesCheckbox = document.getElementById('cover-fees');
   const coverFeesAmountEl = document.getElementById('cover-fees-amount');
-  const formSteps = document.querySelectorAll('.donate__step, .form-hp');
+  const formSteps = document.querySelectorAll('.donate__step, .form-hp, .donate__live-total');
   const secureEl = document.querySelector('.donate__secure');
   const checkoutContainer = document.getElementById('checkout-container');
   const checkoutBack = document.getElementById('checkout-back');
@@ -102,6 +102,73 @@
 
   // Update fee whenever amount changes
   updateFeeDisplay();
+
+  // ─── Cover fees checkbox listener ─────────────────────────
+  if (coverFeesCheckbox) {
+    coverFeesCheckbox.addEventListener('change', updateFeeDisplay);
+  }
+
+  // ─── Live total display ───────────────────────────────────
+  var liveTotalBase = document.getElementById('live-total-base');
+  var liveTotalFee = document.getElementById('live-total-fee');
+  var liveTotalFeeRow = document.getElementById('live-total-fee-row');
+  var liveTotalGiftAid = document.getElementById('live-total-gift-aid');
+  var liveTotalGiftAidRow = document.getElementById('live-total-gift-aid-row');
+  var liveTotalAmount = document.getElementById('live-total-amount');
+
+  function updateLiveTotal() {
+    if (!liveTotalAmount) return;
+
+    var base = selectedAmount || 0;
+    var fee = 0;
+    var giftAidValue = 0;
+    var total = base;
+
+    // Base amount
+    if (liveTotalBase) {
+      liveTotalBase.textContent = base % 1 === 0 ? '£' + base.toLocaleString('en-GB') : '£' + base.toFixed(2);
+    }
+
+    // Processing fee
+    if (coverFeesCheckbox && coverFeesCheckbox.checked) {
+      fee = calculateFee(base);
+      total += fee;
+      if (liveTotalFee) liveTotalFee.textContent = '£' + fee.toFixed(2);
+      if (liveTotalFeeRow) liveTotalFeeRow.hidden = false;
+    } else {
+      if (liveTotalFeeRow) liveTotalFeeRow.hidden = true;
+    }
+
+    // Gift Aid
+    if (giftAidCheckbox && giftAidCheckbox.checked) {
+      giftAidValue = base * 0.25;
+      if (liveTotalGiftAid) liveTotalGiftAid.textContent = '£' + giftAidValue.toFixed(2);
+      if (liveTotalGiftAidRow) liveTotalGiftAidRow.hidden = false;
+    } else {
+      if (liveTotalGiftAidRow) liveTotalGiftAidRow.hidden = true;
+    }
+
+    // Total (charge amount = base + fee; gift aid is reclaimed separately)
+    liveTotalAmount.textContent = '£' + total.toFixed(2);
+  }
+
+  // Wire up live total updates
+  if (coverFeesCheckbox) {
+    coverFeesCheckbox.addEventListener('change', updateLiveTotal);
+  }
+  if (giftAidCheckbox) {
+    giftAidCheckbox.addEventListener('change', updateLiveTotal);
+  }
+
+  // Also update live total when amount changes — hook into existing amount listeners
+  var _origUpdateFeeDisplay = updateFeeDisplay;
+  updateFeeDisplay = function () {
+    _origUpdateFeeDisplay();
+    updateLiveTotal();
+  };
+
+  // Initial live total
+  updateLiveTotal();
 
   // ─── Validation ─────────────────────────────────────────────
   function validateAmount() {
@@ -292,12 +359,13 @@
       })
       .catch(function (err) {
         setLoading(false);
-        console.error('Embedded checkout failed:', err.message);
-        // Show the error so the user (and developer) can see what went wrong,
-        // rather than silently falling back to redirect checkout.
-        showError('Checkout could not load inline. ' + err.message + ' Redirecting to payment page...');
-        // Give the user a moment to see the message, then redirect as fallback
-        setTimeout(formPostFallback, 2000);
+        if (err instanceof TypeError && err.message === 'Failed to fetch') {
+          showError('Unable to connect. Please check your internet connection and try again.');
+        } else {
+          console.error('Embedded checkout failed:', err.message);
+          showError(err.message || 'Something went wrong. Please try again.');
+          setTimeout(formPostFallback, 2000);
+        }
       });
   }
 
@@ -425,6 +493,32 @@
       if (btn) copyToClipboard(el.getAttribute('data-copy'), btn);
     });
   });
+
+  // ─── Rotating Hadiths ────────────────────────────────────────
+  var hadiths = [
+    { text: 'The most beloved of deeds to Allah are those that are most consistent, even if they are small.', source: 'Sahih al-Bukhari' },
+    { text: 'Charity does not decrease wealth.', source: 'Sahih Muslim' },
+    { text: 'The believer\u2019s shade on the Day of Resurrection will be his charity.', source: 'Musnad Ahmad' },
+    { text: 'Protect yourself from the Hellfire even if it is with half a date in charity.', source: 'Sahih al-Bukhari' },
+    { text: 'The upper hand is better than the lower hand. The upper hand is the one that gives, and the lower hand is the one that receives.', source: 'Sahih al-Bukhari' },
+    { text: 'Give charity without delay, for it stands in the way of calamity.', source: 'Sunan al-Tirmidhi' },
+    { text: 'When a person dies, his deeds come to an end except for three: ongoing charity, beneficial knowledge, or a righteous child who prays for him.', source: 'Sahih Muslim' },
+    { text: 'Allah said: Spend in charity, O son of Adam, and I will spend on you.', source: 'Sahih al-Bukhari' },
+    { text: 'Every Muslim has to give in charity. If he cannot find something to give, then he should work with his hands to benefit himself and give in charity.', source: 'Sahih al-Bukhari' },
+    { text: 'The generous one is close to Allah, close to Paradise, close to the people, and far from the Hellfire.', source: 'Sunan al-Tirmidhi' },
+  ];
+
+  var hadithTextEl = document.getElementById('hadith-text');
+  var hadithSourceEl = document.getElementById('hadith-source');
+
+  if (hadithTextEl && hadithSourceEl) {
+    var now = new Date();
+    var start = new Date(now.getFullYear(), 0, 0);
+    var dayOfYear = Math.floor((now - start) / 86400000);
+    var hadith = hadiths[dayOfYear % hadiths.length];
+    hadithTextEl.textContent = '\u201C' + hadith.text + '\u201D';
+    hadithSourceEl.textContent = '\u2014 ' + hadith.source;
+  }
 
   // ─── Check for return from checkout ─────────────────────────
   const params = new URLSearchParams(window.location.search);

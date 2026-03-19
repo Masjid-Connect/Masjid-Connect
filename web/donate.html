@@ -167,6 +167,27 @@
                 </label>
               </div>
 
+              <!-- Live total -->
+              <div class="donate__live-total" id="live-total">
+                <div class="donate__live-total-row">
+                  <span class="donate__live-total-label">Your donation</span>
+                  <span class="donate__live-total-value" id="live-total-base">£50</span>
+                </div>
+                <div class="donate__live-total-row donate__live-total-row--fee" id="live-total-fee-row" hidden>
+                  <span class="donate__live-total-label">Processing fee</span>
+                  <span class="donate__live-total-value" id="live-total-fee">£0.00</span>
+                </div>
+                <div class="donate__live-total-row donate__live-total-row--gift-aid" id="live-total-gift-aid-row" hidden>
+                  <span class="donate__live-total-label">Gift Aid (25%)</span>
+                  <span class="donate__live-total-value" id="live-total-gift-aid">£0.00</span>
+                </div>
+                <div class="donate__live-total-divider"></div>
+                <div class="donate__live-total-row donate__live-total-row--total">
+                  <span class="donate__live-total-label">Total</span>
+                  <span class="donate__live-total-value" id="live-total-amount">£50.00</span>
+                </div>
+              </div>
+
               <!-- Step 4: Choose payment method -->
               <div class="donate__step" id="donate-step-pay">
                 <span class="donate__step-label">Payment method</span>
@@ -278,8 +299,8 @@
             </div>
 
             <blockquote class="donate__hadith">
-              <p>"The most beloved of deeds to Allah are those that are most consistent, even if they are small."</p>
-              <cite>— Sahih al-Bukhari</cite>
+              <p id="hadith-text">"The most beloved of deeds to Allah are those that are most consistent, even if they are small."</p>
+              <cite id="hadith-source">— Sahih al-Bukhari</cite>
             </blockquote>
           </div>
 
