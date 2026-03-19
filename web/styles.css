@@ -370,6 +370,30 @@
   border-color: rgba(91,155,213,0.2);
 }
 
+[data-theme="dark"] .donate__cover-fees {
+  background: rgba(91, 155, 213, 0.06);
+  border-color: rgba(91, 155, 213, 0.15);
+}
+
+[data-theme="dark"] .donate__cover-fees:hover {
+  border-color: rgba(91, 155, 213, 0.3);
+  background: rgba(91, 155, 213, 0.1);
+}
+
+[data-theme="dark"] .donate__cover-fees-check {
+  background: #0E1829;
+  border-color: rgba(91, 155, 213, 0.2);
+}
+
+[data-theme="dark"] .donate__cover-fees-checkbox:checked ~ .donate__cover-fees-check {
+  background: var(--sapphire-400, #5B9BD5);
+  border-color: var(--sapphire-400, #5B9BD5);
+}
+
+[data-theme="dark"] .donate__cover-fees-text strong {
+  color: var(--sapphire-400, #5B9BD5);
+}
+
 [data-theme="dark"] .donate__status--success {
   background: rgba(45, 106, 79, 0.1);
 }
@@ -1545,6 +1569,87 @@ ul {
 }
 
 .donate__gift-aid-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--onyx-600);
+}
+
+/* Cover Processing Fees */
+.donate__cover-fees {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  padding: 16px;
+  background: rgba(15, 45, 82, 0.03);
+  border: 1.5px solid rgba(15, 45, 82, 0.12);
+  border-radius: 12px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.donate__cover-fees:hover {
+  border-color: rgba(15, 45, 82, 0.25);
+  background: rgba(15, 45, 82, 0.05);
+}
+
+.donate__cover-fees-checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.donate__cover-fees-check {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--separator);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  margin-top: 1px;
+}
+
+.donate__cover-fees-check svg {
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  stroke: #fff;
+}
+
+.donate__cover-fees-checkbox:checked ~ .donate__cover-fees-check {
+  background: var(--sapphire-700, #0F2D52);
+  border-color: var(--sapphire-700, #0F2D52);
+}
+
+.donate__cover-fees-checkbox:checked ~ .donate__cover-fees-check svg {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.donate__cover-fees-checkbox:focus-visible ~ .donate__cover-fees-check {
+  box-shadow: 0 0 0 3px rgba(15, 45, 82, 0.15);
+}
+
+.donate__cover-fees-text {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--onyx-900);
+}
+
+.donate__cover-fees-text strong {
+  color: var(--sapphire-700, #0F2D52);
+}
+
+.donate__cover-fees-hint {
   display: block;
   margin-top: 6px;
   font-size: 12px;

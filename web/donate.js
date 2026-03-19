@@ -35,6 +35,8 @@
   const errorEl = document.getElementById('donate-error');
   const errorText = document.getElementById('donate-error-text');
   const giftAidCheckbox = document.getElementById('gift-aid');
+  const coverFeesCheckbox = document.getElementById('cover-fees');
+  const coverFeesAmountEl = document.getElementById('cover-fees-amount');
   const formSteps = document.querySelectorAll('.donate__step, .form-hp');
   const secureEl = document.querySelector('.donate__secure');
   const checkoutContainer = document.getElementById('checkout-container');
@@ -52,6 +54,7 @@
       btn.classList.add('donate__amount--active');
       selectedAmount = parseInt(btn.dataset.amount, 10);
       if (customInput) customInput.value = '';
+      updateFeeDisplay();
     });
   });
 
@@ -64,6 +67,7 @@
       } else {
         selectedAmount = 50;
       }
+      updateFeeDisplay();
     });
   }
 
@@ -75,6 +79,29 @@
       frequency = btn.dataset.freq;
     });
   });
+
+  // ─── Fee calculation ────────────────────────────────────────
+  // Blended estimate: 2.5% + 20p covers UK card (1.2%+20p with nonprofit
+  // discount), EU/intl cards, Apple Pay, Google Pay, and PayPal.
+  // Pay by Bank is lower, but we use a single conservative estimate.
+  var FEE_PERCENT = 0.025;
+  var FEE_FIXED_PENCE = 20;
+
+  function calculateFee(amountPounds) {
+    // gross = (net_pence + fixed) / (1 - percent) — solve for fee
+    var netPence = Math.round(amountPounds * 100);
+    var grossPence = Math.ceil((netPence + FEE_FIXED_PENCE) / (1 - FEE_PERCENT));
+    return (grossPence - netPence) / 100;
+  }
+
+  function updateFeeDisplay() {
+    if (!coverFeesAmountEl) return;
+    var fee = calculateFee(selectedAmount);
+    coverFeesAmountEl.textContent = '£' + fee.toFixed(2);
+  }
+
+  // Update fee whenever amount changes
+  updateFeeDisplay();
 
   // ─── Validation ─────────────────────────────────────────────
   function validateAmount() {
@@ -128,6 +155,9 @@
     var parts = [];
     parts.push(frequency === 'monthly' ? 'Monthly donation' : 'One-time donation');
     if (giftAidCheckbox && giftAidCheckbox.checked) parts.push('Gift Aid');
+    if (coverFeesCheckbox && coverFeesCheckbox.checked) {
+      parts.push('+£' + calculateFee(selectedAmount).toFixed(2) + ' fees');
+    }
     summaryMeta.textContent = parts.join(' · ');
   }
 
@@ -214,6 +244,7 @@
         return_url: returnUrl,
         ui_mode: uiMode,
         gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no',
+        cover_fees: coverFeesCheckbox && coverFeesCheckbox.checked ? 'yes' : 'no',
       }),
     }).then(function (res) {
       if (!res.ok) {
@@ -284,7 +315,8 @@
       currency: 'gbp',
       frequency: frequency,
       return_url: returnUrl,
-      gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no'
+      gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no',
+      cover_fees: coverFeesCheckbox && coverFeesCheckbox.checked ? 'yes' : 'no'
     };
 
     Object.keys(fields).forEach(function (name) {
