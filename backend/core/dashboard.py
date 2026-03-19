@@ -12,11 +12,13 @@ from .models import Donation, GiftAidClaim, GiftAidDeclaration, MosqueAdmin, Use
 # ── Access helpers ───────────────────────────────────────────────────
 
 
-def can_view_donation_details(user):
+def can_view_donation_details(request_or_user):
     """Can this user see individual donation amounts and donor info?
 
     Granted to: superusers, users with explicit permission, Super Admins.
+    Accepts either a request object (from Unfold sidebar) or a user object.
     """
+    user = getattr(request_or_user, "user", request_or_user)
     if not user.is_authenticated:
         return False
     if user.is_superuser:
@@ -26,12 +28,14 @@ def can_view_donation_details(user):
     return MosqueAdmin.objects.filter(user=user, role="super_admin").exists()
 
 
-def can_view_donation_summary(user):
+def can_view_donation_summary(request_or_user):
     """Can this user see aggregated donation totals (no PII)?
 
     Granted to: anyone who can see details, plus any mosque admin.
+    Accepts either a request object (from Unfold sidebar) or a user object.
     """
-    if can_view_donation_details(user):
+    user = getattr(request_or_user, "user", request_or_user)
+    if can_view_donation_details(request_or_user):
         return True
     return MosqueAdmin.objects.filter(user=user).exists()
 
