@@ -1,6 +1,5 @@
 import React, { useState, useRef } from 'react';
 import {
-  Dimensions,
   StyleSheet,
   View,
   Text,
@@ -8,6 +7,7 @@ import {
   RefreshControl,
   ActivityIndicator,
   PanResponder,
+  useWindowDimensions,
   type ViewStyle,
 } from 'react-native';
 import Animated, { FadeInDown, FadeIn, useReducedMotion } from 'react-native-reanimated';
@@ -47,7 +47,7 @@ import type { PrayerName } from '@/types';
 // Three colours max per screen state: gradient + text + one accent.
 //
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+// Removed static Dimensions — use useWindowDimensions() for orientation-aware layout
 
 // ─── Grid constants ─────────────────────────────────────────────────
 // All vertical measurements derive from the spacing scale (8pt grid).
@@ -58,6 +58,8 @@ const SECTION_HEADER_MB = spacing.lg;         // 16
 
 export default function PrayerTimesScreen() {
   const insets = useSafeAreaInsets();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const isLandscape = screenWidth > screenHeight;
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
@@ -66,12 +68,12 @@ export default function PrayerTimesScreen() {
   const reducedMotion = useReducedMotion();
   const {
     prayers, nextPrayer, countdown, windowProgress, hijriDate,
-    isLoading, source, jamaahAvailable, use24h, refresh,
+    isLoading, source, jamaahAvailable, isEstimated, use24h, refresh,
     selectedDate, isToday, goToNextDay, goToPrevDay, goToToday,
   } = usePrayerTimes();
 
   const [refreshing, setRefreshing] = React.useState(false);
-  const [heroLayout, setHeroLayout] = useState<{ width: number; height: number }>({ width: SCREEN_WIDTH, height: layout.heroHeight });
+  const [heroLayout, setHeroLayout] = useState<{ width: number; height: number }>({ width: screenWidth, height: layout.heroHeight });
 
   // Horizontal swipe to change date
   const swipeHandled = useRef(false);
@@ -128,7 +130,11 @@ export default function PrayerTimesScreen() {
       >
         {/* ── Hero: one dominant element ─────────────────────────── */}
         <View
-          style={[styles.hero, { paddingTop: insets.top + spacing['3xl'] }]}
+          style={[
+            styles.hero,
+            { paddingTop: insets.top + (isLandscape ? spacing.lg : spacing['3xl']) },
+            isLandscape && styles.heroLandscape,
+          ]}
           onLayout={(e) => {
             const { width, height } = e.nativeEvent.layout;
             setHeroLayout({ width, height });
@@ -173,7 +179,11 @@ export default function PrayerTimesScreen() {
 
                 {/* Countdown — large ultralight, contrasts with the bold name */}
                 {countdown ? (
-                  <Text style={[styles.countdown, { color: colors.text }]}>
+                  <Text style={[
+                    styles.countdown,
+                    { color: colors.text },
+                    isLandscape && { fontSize: 32, lineHeight: 38 },
+                  ]}>
                     {countdown}
                   </Text>
                 ) : null}
@@ -195,7 +205,7 @@ export default function PrayerTimesScreen() {
             gradient[gradient.length - 1] || colors.background,
             colors.background,
           ]}
-          style={styles.heroFade}
+          style={[styles.heroFade, isLandscape && { height: spacing.xl }]}
         />
 
         {/* ── Date Navigator ─────────────────────────────────────── */}
@@ -231,9 +241,13 @@ export default function PrayerTimesScreen() {
             </Text>
             <Text style={[
               typography.caption2,
-              { color: jamaahAvailable ? colors.success : colors.textTertiary },
+              { color: isEstimated ? colors.info : jamaahAvailable ? colors.success : colors.textTertiary },
             ]}>
-              {jamaahAvailable ? t('prayer.mosqueTimes') : t('prayer.calculatedTimes')}
+              {isEstimated
+                ? t('prayer.estimatedTimes')
+                : jamaahAvailable
+                  ? t('prayer.mosqueTimes')
+                  : t('prayer.calculatedTimes')}
             </Text>
           </View>
 
@@ -373,6 +387,10 @@ const styles = StyleSheet.create({
     paddingBottom: HERO_PADDING_BOTTOM,
     justifyContent: 'flex-end',
     minHeight: 320,
+  },
+  heroLandscape: {
+    minHeight: 160,
+    paddingBottom: spacing.xl, // 20 — tighter in landscape
   },
   heroContent: {
     alignItems: 'center',

@@ -211,6 +211,31 @@ export function buildPrayerEntries(
 }
 
 /**
+ * Extrapolate jama'ah times from a known source to a different date.
+ * Copies the HH:MM from each prayer and applies them to targetDate.
+ * Used when the backend has no timetable for a future date — we carry
+ * forward the last known jama'ah schedule (timetable changes on Sundays).
+ */
+export function extrapolateJamaahTimes(
+  source: JamaahTimesData,
+  targetDate: Date,
+): JamaahTimesData {
+  const applyDate = (src: Date): Date => {
+    const d = new Date(targetDate);
+    d.setHours(src.getHours(), src.getMinutes(), src.getSeconds(), 0);
+    return d;
+  };
+
+  return {
+    fajr: applyDate(source.fajr),
+    dhuhr: applyDate(source.dhuhr),
+    asr: applyDate(source.asr),
+    maghrib: applyDate(source.maghrib),
+    isha: applyDate(source.isha),
+  };
+}
+
+/**
  * Determine the next upcoming prayer.
  *
  * When jama'ah times are available, a prayer is not considered "passed"

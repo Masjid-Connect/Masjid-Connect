@@ -23,6 +23,7 @@
     "calculating": "جارٍ حساب أوقات الصلاة...",
     "mosqueName": "المسجد السلفي",
     "mosqueTimes": "أوقات الجماعة",
+    "estimatedTimes": "أوقات جماعة تقديرية",
     "calculatedTimes": "أوقات محسوبة",
     "startTime": "البداية {{time}}",
     "upcoming": "التالية",
