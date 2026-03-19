@@ -210,13 +210,28 @@ export function buildPrayerEntries(
   });
 }
 
-/** Determine the next upcoming prayer */
-export function getNextPrayer(times: PrayerTimesData): PrayerName | null {
+/**
+ * Determine the next upcoming prayer.
+ *
+ * When jama'ah times are available, a prayer is not considered "passed"
+ * until BOTH the adhan time AND the jama'ah time have passed. This prevents
+ * the app from jumping to the next prayer while the congregation hasn't
+ * prayed yet (e.g. Dhuhr adhan at 12:17 but jama'ah at 12:45).
+ */
+export function getNextPrayer(
+  times: PrayerTimesData,
+  jamaahTimes?: JamaahTimesData | null,
+): PrayerName | null {
   const now = new Date();
   const order: PrayerName[] = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
   for (const name of order) {
-    if (times[name] > now) {
+    const adhanTime = times[name];
+    // Use the later of adhan or jama'ah time (sunrise has no jama'ah)
+    const jamaahTime = name !== 'sunrise' && jamaahTimes?.[name as keyof JamaahTimesData];
+    const effectiveTime = jamaahTime && jamaahTime > adhanTime ? jamaahTime : adhanTime;
+
+    if (effectiveTime > now) {
       return name;
     }
   }
