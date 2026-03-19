@@ -1656,7 +1656,110 @@ ul {
   opacity: 0.5;
 }
 
-/* Embedded Checkout */
+/* Embedded Checkout ────────────────────────────────────────── */
+
+/* Form steps fade out/in smoothly */
+.donate__step,
+.donate__secure {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.donate__step--hidden,
+.donate__secure--hidden {
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  position: absolute;
+  visibility: hidden;
+}
+
+/* Checkout container — slides up and fades in */
+#checkout-container {
+  min-height: 320px;
+  border-radius: 12px;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#checkout-container.checkout--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Back button — subtle, Apple-style text button */
+.donate__back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 20px;
+  padding: 10px 16px 10px 12px;
+  background: none;
+  border: 1px solid var(--separator);
+  border-radius: 10px;
+  color: var(--sapphire-700, #0F2D52);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.3s ease 0.15s,
+              transform 0.3s ease 0.15s,
+              background 0.2s ease,
+              border-color 0.2s ease;
+}
+
+.donate__back-btn.back-btn--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.donate__back-btn:hover {
+  background: var(--stone-200, #F0EDE6);
+  border-color: var(--sapphire-700, #0F2D52);
+}
+
+.donate__back-btn:active {
+  transform: scale(0.98) translateY(0);
+}
+
+.donate__back-btn svg {
+  transition: transform 0.2s ease;
+}
+
+.donate__back-btn:hover svg {
+  transform: translateX(-2px);
+}
+
+/* Error state — slides in, hidden during active checkout */
+.donate__status--error {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.donate__status--error.status--checkout-hidden {
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  height: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+/* Dark mode — embedded checkout */
+[data-theme="dark"] .donate__back-btn {
+  color: var(--sapphire-400, #5B9BD5);
+  border-color: rgba(91, 155, 213, 0.15);
+}
+
+[data-theme="dark"] .donate__back-btn:hover {
+  background: #1E3354;
+  border-color: var(--sapphire-400, #5B9BD5);
+}
+
 /* Bank Transfer Bottom Sheet */
 .bank-sheet[hidden] {
   display: none;
@@ -1875,6 +1978,15 @@ ul {
   background: rgba(45, 106, 79, 0.06);
   color: var(--sage-600);
   text-align: center;
+  opacity: 0;
+  transform: scale(0.96) translateY(8px);
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.donate__status--enter {
+  opacity: 1;
+  transform: scale(1) translateY(0);
 }
 
 .donate__status-icon {

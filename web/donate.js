@@ -112,19 +112,55 @@
     }
   }
 
-  // ─── Show/hide checkout vs form ─────────────────────────────
+  // ─── Show/hide checkout vs form (smooth transitions) ────────
   function showCheckout() {
-    formSteps.forEach(function (el) { el.hidden = true; });
-    if (checkoutContainer) checkoutContainer.hidden = false;
-    if (checkoutBack) checkoutBack.hidden = false;
+    // Hide error during checkout
+    if (errorEl) errorEl.classList.add('status--checkout-hidden');
+
+    // Fade out form steps
+    formSteps.forEach(function (el) {
+      el.classList.add('donate__step--hidden', 'donate__secure--hidden');
+    });
+
+    // After form fades out, reveal checkout container
+    setTimeout(function () {
+      formSteps.forEach(function (el) { el.hidden = true; });
+      if (checkoutContainer) {
+        checkoutContainer.hidden = false;
+        // Force reflow so the transition plays
+        checkoutContainer.offsetHeight;
+        checkoutContainer.classList.add('checkout--visible');
+      }
+      if (checkoutBack) {
+        checkoutBack.hidden = false;
+        checkoutBack.offsetHeight;
+        checkoutBack.classList.add('back-btn--visible');
+      }
+    }, 250);
   }
 
   function showForm() {
-    formSteps.forEach(function (el) { el.hidden = false; });
-    if (checkoutContainer) checkoutContainer.hidden = true;
-    if (checkoutBack) checkoutBack.hidden = true;
-    hideError();
-    destroyCheckout();
+    // Fade out checkout
+    if (checkoutContainer) checkoutContainer.classList.remove('checkout--visible');
+    if (checkoutBack) checkoutBack.classList.remove('back-btn--visible');
+
+    setTimeout(function () {
+      if (checkoutContainer) checkoutContainer.hidden = true;
+      if (checkoutBack) checkoutBack.hidden = true;
+
+      // Restore form steps
+      formSteps.forEach(function (el) {
+        el.hidden = false;
+        el.offsetHeight;
+        el.classList.remove('donate__step--hidden', 'donate__secure--hidden');
+      });
+
+      // Allow error to be shown again
+      if (errorEl) errorEl.classList.remove('status--checkout-hidden');
+
+      hideError();
+      destroyCheckout();
+    }, 300);
   }
 
   function destroyCheckout() {
@@ -341,6 +377,10 @@
     formSteps.forEach(function (el) { el.hidden = true; });
     if (successEl) {
       successEl.hidden = false;
+      // Trigger entrance animation after a frame
+      requestAnimationFrame(function () {
+        successEl.classList.add('donate__status--enter');
+      });
       successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
     window.history.replaceState({}, '', window.location.pathname);
