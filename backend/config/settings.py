@@ -189,6 +189,7 @@ CONTACT_TO_EMAIL = env("CONTACT_TO_EMAIL", default="info@salafimasjid.app")
 
 # Stripe
 STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="")
+STRIPE_PUBLISHABLE_KEY = env("STRIPE_PUBLISHABLE_KEY", default="")
 STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default="")
 
 # API Documentation
