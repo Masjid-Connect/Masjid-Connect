@@ -437,6 +437,7 @@ export const donations = {
     amountPence: number,
     currency: string,
     frequency: 'one-time' | 'monthly',
+    options?: { giftAid?: boolean; coverFees?: boolean },
   ): Promise<string | null> {
     const returnUrl = 'https://salafimasjid.app/donate';
     const url = `${API_URL}/donate/checkout/`;
@@ -449,6 +450,8 @@ export const donations = {
         currency,
         frequency,
         return_url: returnUrl,
+        gift_aid: options?.giftAid ? 'yes' : 'no',
+        cover_fees: options?.coverFees ? 'yes' : 'no',
       }),
       redirect: 'manual',
     });
