@@ -494,17 +494,15 @@
   });
 
   // ─── Rotating Hadiths ────────────────────────────────────────
+  // Only Bukhari, Muslim, or agreed upon (muttafaqun 'alayh)
   var hadiths = [
     { text: 'The most beloved of deeds to Allah are those that are most consistent, even if they are small.', source: 'Sahih al-Bukhari' },
     { text: 'Charity does not decrease wealth.', source: 'Sahih Muslim' },
-    { text: 'The believer\u2019s shade on the Day of Resurrection will be his charity.', source: 'Musnad Ahmad' },
     { text: 'Protect yourself from the Hellfire even if it is with half a date in charity.', source: 'Sahih al-Bukhari' },
-    { text: 'The upper hand is better than the lower hand. The upper hand is the one that gives, and the lower hand is the one that receives.', source: 'Sahih al-Bukhari' },
-    { text: 'Give charity without delay, for it stands in the way of calamity.', source: 'Sunan al-Tirmidhi' },
+    { text: 'The upper hand is better than the lower hand. The upper hand is the one that gives, and the lower hand is the one that receives.', source: 'Agreed upon' },
     { text: 'When a person dies, his deeds come to an end except for three: ongoing charity, beneficial knowledge, or a righteous child who prays for him.', source: 'Sahih Muslim' },
-    { text: 'Allah said: Spend in charity, O son of Adam, and I will spend on you.', source: 'Sahih al-Bukhari' },
+    { text: 'Allah said: Spend in charity, O son of Adam, and I will spend on you.', source: 'Agreed upon' },
     { text: 'Every Muslim has to give in charity. If he cannot find something to give, then he should work with his hands to benefit himself and give in charity.', source: 'Sahih al-Bukhari' },
-    { text: 'The generous one is close to Allah, close to Paradise, close to the people, and far from the Hellfire.', source: 'Sunan al-Tirmidhi' },
   ];
 
   var hadithTextEl = document.getElementById('hadith-text');
