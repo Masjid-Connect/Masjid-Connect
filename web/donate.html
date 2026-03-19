@@ -189,14 +189,17 @@
                 All payments are secure and encrypted. We never store your payment details.
               </p>
 
-              <!-- Stripe Embedded Checkout container (replaces form when active) -->
-              <div id="checkout-container" hidden></div>
+              <!-- Donation summary — visible during checkout, keeps context -->
+              <div class="donate__summary" id="checkout-summary" hidden>
+                <div class="donate__summary-details">
+                  <span class="donate__summary-amount" id="summary-amount">£50</span>
+                  <span class="donate__summary-meta" id="summary-meta">One-time donation</span>
+                </div>
+                <button class="donate__summary-change" type="button" id="checkout-back">Change</button>
+              </div>
 
-              <!-- Back to options (shown when checkout is active) -->
-              <button class="donate__back-btn" type="button" id="checkout-back" hidden>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-                Change amount
-              </button>
+              <!-- Stripe Embedded Checkout container -->
+              <div id="checkout-container" hidden></div>
 
               <!-- Success state -->
               <div class="donate__status donate__status--success" id="donate-success" hidden>

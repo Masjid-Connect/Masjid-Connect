@@ -35,9 +35,13 @@
   const errorEl = document.getElementById('donate-error');
   const errorText = document.getElementById('donate-error-text');
   const giftAidCheckbox = document.getElementById('gift-aid');
-  const formSteps = document.querySelectorAll('.donate__step, .donate__secure, .form-hp');
+  const formSteps = document.querySelectorAll('.donate__step, .form-hp');
+  const secureEl = document.querySelector('.donate__secure');
   const checkoutContainer = document.getElementById('checkout-container');
   const checkoutBack = document.getElementById('checkout-back');
+  const summaryEl = document.getElementById('checkout-summary');
+  const summaryAmount = document.getElementById('summary-amount');
+  const summaryMeta = document.getElementById('summary-meta');
 
   if (!cardBtn) return;
 
@@ -112,47 +116,68 @@
     }
   }
 
-  // ─── Show/hide checkout vs form (smooth transitions) ────────
+  // ─── Build summary text ─────────────────────────────────────
+  function updateSummary() {
+    if (!summaryAmount || !summaryMeta) return;
+
+    var amt = selectedAmount;
+    // Format with commas for large amounts
+    var formatted = amt % 1 === 0 ? '£' + amt.toLocaleString('en-GB') : '£' + amt.toFixed(2);
+    summaryAmount.textContent = formatted;
+
+    var parts = [];
+    parts.push(frequency === 'monthly' ? 'Monthly donation' : 'One-time donation');
+    if (giftAidCheckbox && giftAidCheckbox.checked) parts.push('Gift Aid');
+    summaryMeta.textContent = parts.join(' · ');
+  }
+
+  // ─── Show/hide checkout vs form (Apple-style collapse) ─────
   function showCheckout() {
     // Hide error during checkout
     if (errorEl) errorEl.classList.add('status--checkout-hidden');
 
+    // Update and show the summary bar
+    updateSummary();
+
     // Fade out form steps
     formSteps.forEach(function (el) {
-      el.classList.add('donate__step--hidden', 'donate__secure--hidden');
+      el.classList.add('donate__step--hidden');
     });
 
-    // After form fades out, reveal checkout container
+    // After form fades out, reveal summary + checkout
     setTimeout(function () {
       formSteps.forEach(function (el) { el.hidden = true; });
+
+      // Show summary
+      if (summaryEl) {
+        summaryEl.hidden = false;
+        summaryEl.offsetHeight;
+        summaryEl.classList.add('donate__summary--visible');
+      }
+
+      // Show checkout container
       if (checkoutContainer) {
         checkoutContainer.hidden = false;
-        // Force reflow so the transition plays
         checkoutContainer.offsetHeight;
         checkoutContainer.classList.add('checkout--visible');
       }
-      if (checkoutBack) {
-        checkoutBack.hidden = false;
-        checkoutBack.offsetHeight;
-        checkoutBack.classList.add('back-btn--visible');
-      }
-    }, 250);
+    }, 200);
   }
 
   function showForm() {
-    // Fade out checkout
+    // Fade out checkout + summary
     if (checkoutContainer) checkoutContainer.classList.remove('checkout--visible');
-    if (checkoutBack) checkoutBack.classList.remove('back-btn--visible');
+    if (summaryEl) summaryEl.classList.remove('donate__summary--visible');
 
     setTimeout(function () {
       if (checkoutContainer) checkoutContainer.hidden = true;
-      if (checkoutBack) checkoutBack.hidden = true;
+      if (summaryEl) summaryEl.hidden = true;
 
       // Restore form steps
       formSteps.forEach(function (el) {
         el.hidden = false;
         el.offsetHeight;
-        el.classList.remove('donate__step--hidden', 'donate__secure--hidden');
+        el.classList.remove('donate__step--hidden');
       });
 
       // Allow error to be shown again

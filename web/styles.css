@@ -1659,29 +1659,88 @@ ul {
 /* Embedded Checkout ────────────────────────────────────────── */
 
 /* Form steps fade out/in smoothly */
-.donate__step,
-.donate__secure {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+.donate__step {
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
-.donate__step--hidden,
-.donate__secure--hidden {
+.donate__step--hidden {
   opacity: 0;
-  transform: translateY(-6px);
+  transform: translateY(-4px);
   pointer-events: none;
   position: absolute;
   visibility: hidden;
 }
 
-/* Checkout container — slides up and fades in */
+/* Donation summary — compact bar showing chosen amount during checkout.
+   Stays visible above the Stripe embed so the donor never loses context.
+   Inspired by Apple's order summary pattern. */
+.donate__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  background: var(--stone-200, #F0EDE6);
+  border-radius: 12px;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.donate__summary--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.donate__summary-details {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.donate__summary-amount {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--onyx-900, #121216);
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.donate__summary-meta {
+  font-size: 13px;
+  color: var(--onyx-600, #6B6B70);
+  white-space: nowrap;
+}
+
+/* "Change" link — Apple-style inline text action, not a button */
+.donate__summary-change {
+  padding: 6px 0;
+  background: none;
+  border: none;
+  color: var(--sapphire-700, #0F2D52);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+.donate__summary-change:hover {
+  color: var(--divine-gold, #D4AF37);
+}
+
+/* Checkout container — fades in below the summary */
 #checkout-container {
   min-height: 320px;
   border-radius: 12px;
   overflow: hidden;
   opacity: 0;
-  transform: translateY(12px);
-  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-              transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(8px);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.1s,
+              transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
 }
 
 #checkout-container.checkout--visible {
@@ -1689,59 +1748,13 @@ ul {
   transform: translateY(0);
 }
 
-/* Back button — subtle, Apple-style text button */
-.donate__back-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin-top: 20px;
-  padding: 10px 16px 10px 12px;
-  background: none;
-  border: 1px solid var(--separator);
-  border-radius: 10px;
-  color: var(--sapphire-700, #0F2D52);
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.3s ease 0.15s,
-              transform 0.3s ease 0.15s,
-              background 0.2s ease,
-              border-color 0.2s ease;
-}
-
-.donate__back-btn.back-btn--visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.donate__back-btn:hover {
-  background: var(--stone-200, #F0EDE6);
-  border-color: var(--sapphire-700, #0F2D52);
-}
-
-.donate__back-btn:active {
-  transform: scale(0.98) translateY(0);
-}
-
-.donate__back-btn svg {
-  transition: transform 0.2s ease;
-}
-
-.donate__back-btn:hover svg {
-  transform: translateX(-2px);
-}
-
-/* Error state — slides in, hidden during active checkout */
+/* Error state — hidden during active checkout */
 .donate__status--error {
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition: opacity 0.2s ease;
 }
 
 .donate__status--error.status--checkout-hidden {
   opacity: 0;
-  transform: translateY(-4px);
   pointer-events: none;
   height: 0;
   padding: 0;
@@ -1750,14 +1763,20 @@ ul {
 }
 
 /* Dark mode — embedded checkout */
-[data-theme="dark"] .donate__back-btn {
-  color: var(--sapphire-400, #5B9BD5);
-  border-color: rgba(91, 155, 213, 0.15);
+[data-theme="dark"] .donate__summary {
+  background: #0E1829;
 }
 
-[data-theme="dark"] .donate__back-btn:hover {
-  background: #1E3354;
-  border-color: var(--sapphire-400, #5B9BD5);
+[data-theme="dark"] .donate__summary-amount {
+  color: #F5F5F7;
+}
+
+[data-theme="dark"] .donate__summary-change {
+  color: var(--sapphire-400, #5B9BD5);
+}
+
+[data-theme="dark"] .donate__summary-change:hover {
+  color: var(--divine-gold-bright, #E5C14B);
 }
 
 /* Bank Transfer Bottom Sheet */
