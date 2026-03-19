@@ -1,4 +1,4 @@
-"""Signals for the core app — email notifications on new feedback."""
+"""Signals for the core app — email notifications and push notifications."""
 
 import json
 import logging
@@ -8,7 +8,7 @@ from django.core.mail import send_mail
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .models import Feedback
+from .models import Announcement, Event, Feedback
 
 logger = logging.getLogger(__name__)
 
@@ -40,3 +40,45 @@ def notify_admin_on_new_feedback(sender, instance, created, **kwargs):
         send_mail(subject, body, from_email, [notify_email], fail_silently=True)
     except Exception:
         logger.exception("Failed to send feedback notification email")
+
+
+@receiver(post_save, sender=Announcement)
+def push_notify_new_announcement(sender, instance, created, **kwargs):
+    """Send push notifications to mosque subscribers when a new announcement is created."""
+    if not created:
+        return
+
+    try:
+        from .push import notify_announcement_subscribers
+
+        result = notify_announcement_subscribers(instance)
+        logger.info(
+            "Push notifications for announcement '%s': %d sent, %d failed, %d pruned",
+            instance.title,
+            result["sent"],
+            result["failed"],
+            len(result["pruned"]),
+        )
+    except Exception:
+        logger.exception("Failed to send push notifications for announcement '%s'", instance.title)
+
+
+@receiver(post_save, sender=Event)
+def push_notify_new_event(sender, instance, created, **kwargs):
+    """Send push notifications to mosque subscribers when a new event is created."""
+    if not created:
+        return
+
+    try:
+        from .push import notify_event_subscribers
+
+        result = notify_event_subscribers(instance)
+        logger.info(
+            "Push notifications for event '%s': %d sent, %d failed, %d pruned",
+            instance.title,
+            result["sent"],
+            result["failed"],
+            len(result["pruned"]),
+        )
+    except Exception:
+        logger.exception("Failed to send push notifications for event '%s'", instance.title)
