@@ -715,12 +715,18 @@ class DonationRateThrottle(AnonRateThrottle):
 @permission_classes([permissions.AllowAny])
 @throttle_classes([DonationRateThrottle])
 def create_checkout_session(request):
-    """Create a Stripe Hosted Checkout Session and redirect to it.
+    """Create a Stripe Checkout Session.
 
-    Accepts form POST (no CORS needed) or JSON.  Creates a Stripe-hosted
-    checkout page and returns a 303 redirect so the browser navigates
-    straight to Stripe.  Payment methods (Card, PayPal, Apple Pay, Google
-    Pay, Pay by Bank) are managed via the Stripe Dashboard.
+    Supports two modes controlled by the ``ui_mode`` field:
+
+    **embedded** (recommended) — returns JSON ``{client_secret, publishable_key}``
+    so the frontend can mount Stripe Embedded Checkout inline via Stripe.js.
+
+    **redirect** (legacy) — creates a hosted checkout session and returns a 303
+    redirect so the browser navigates straight to Stripe.
+
+    Payment methods (Card, PayPal, Apple Pay, Google Pay, Pay by Bank) are
+    managed via the Stripe Dashboard — no code changes needed.
     """
     from django.http import HttpResponseRedirect
 
@@ -745,17 +751,19 @@ def create_checkout_session(request):
     currency = request.data.get("currency", "gbp")
     frequency = request.data.get("frequency", "one-time")
     return_url = request.data.get("return_url", "")
-    gift_aid = request.data.get("gift_aid", "")  # "yes" if donor opted in
+    gift_aid = request.data.get("gift_aid", "")
+    ui_mode = request.data.get("ui_mode", "redirect")
 
-    # Validation — redirect back with error on failure (no JSON for form POSTs)
-    def _error_redirect(msg):
-        if return_url:
-            sep = "&" if "?" in return_url else "?"
+    # ── Validation ────────────────────────────────────────────
+    def _error(msg, for_redirect=False):
+        """Return an error — JSON for embedded, redirect for legacy."""
+        if for_redirect and return_url:
             from urllib.parse import quote
-
+            sep = "&" if "?" in return_url else "?"
             return _redirect_303(return_url + sep + "donation=error&msg=" + quote(msg))
         return Response({"detail": msg}, status=status.HTTP_400_BAD_REQUEST)
 
+    is_embedded = ui_mode == "embedded"
 
     if not return_url:
         return Response(
@@ -766,10 +774,10 @@ def create_checkout_session(request):
     try:
         amount = int(amount)
     except (TypeError, ValueError):
-        return _error_redirect("Invalid amount.")
+        return _error("Invalid amount.", for_redirect=not is_embedded)
 
     if amount < 100 or amount > 1000000:
-        return _error_redirect("Amount must be between £1 and £10,000.")
+        return _error("Amount must be between £1 and £10,000.", for_redirect=not is_embedded)
 
     try:
         is_recurring = frequency == "monthly"
@@ -780,60 +788,63 @@ def create_checkout_session(request):
             "gift_aid": "yes" if wants_gift_aid else "no",
         }
 
-        success_url = return_url + "?donation=success&session_id={CHECKOUT_SESSION_ID}"
-        cancel_url = return_url + "?donation=cancelled"
-
         session_params = {
             "mode": "subscription" if is_recurring else "payment",
-            "success_url": success_url,
-            "cancel_url": cancel_url,
             "metadata": base_metadata,
         }
 
         # Gift Aid requires donor's full name and UK address for HMRC
         if wants_gift_aid:
             session_params["billing_address_collection"] = "required"
-            session_params["customer_creation"] = "always" if not is_recurring else None
-        if session_params.get("customer_creation") is None and not is_recurring:
-            pass  # don't set customer_creation unless Gift Aid
-        # Clean up None values
-        session_params = {k: v for k, v in session_params.items() if v is not None}
+            if not is_recurring:
+                session_params["customer_creation"] = "always"
 
+        # Line items
+        product_name = (
+            "Monthly Donation to The Salafi Masjid"
+            if is_recurring
+            else "Donation to The Salafi Masjid"
+        )
+        price_data = {
+            "currency": currency,
+            "product_data": {"name": product_name},
+            "unit_amount": amount,
+        }
         if is_recurring:
-            session_params["line_items"] = [
-                {
-                    "price_data": {
-                        "currency": currency,
-                        "product_data": {
-                            "name": "Monthly Donation to The Salafi Masjid",
-                        },
-                        "unit_amount": amount,
-                        "recurring": {"interval": "month"},
-                    },
-                    "quantity": 1,
-                }
-            ]
+            price_data["recurring"] = {"interval": "month"}
+
+        session_params["line_items"] = [{"price_data": price_data, "quantity": 1}]
+
+        if is_embedded:
+            # Embedded Checkout — stays on the donor's page
+            session_params["ui_mode"] = "embedded"
+            session_params["return_url"] = (
+                return_url + "?donation=success&session_id={CHECKOUT_SESSION_ID}"
+            )
         else:
-            session_params["line_items"] = [
-                {
-                    "price_data": {
-                        "currency": currency,
-                        "product_data": {
-                            "name": "Donation to The Salafi Masjid",
-                        },
-                        "unit_amount": amount,
-                    },
-                    "quantity": 1,
-                }
-            ]
+            # Hosted Checkout — redirect to Stripe
+            session_params["success_url"] = (
+                return_url + "?donation=success&session_id={CHECKOUT_SESSION_ID}"
+            )
+            session_params["cancel_url"] = return_url + "?donation=cancelled"
 
         session = stripe_lib.checkout.Session.create(**session_params)
 
-        # 303 See Other — browser converts POST to GET for Stripe's hosted page
-        return _redirect_303(session.url)
+        if is_embedded:
+            publishable_key = getattr(settings, "STRIPE_PUBLISHABLE_KEY", "")
+            return Response(
+                {
+                    "client_secret": session.client_secret,
+                    "publishable_key": publishable_key,
+                },
+                status=status.HTTP_200_OK,
+            )
+        else:
+            # 303 See Other — browser converts POST to GET for Stripe's hosted page
+            return _redirect_303(session.url)
     except Exception:
         logger.exception("Stripe Checkout Session creation failed")
-        return _error_redirect("Something went wrong. Please try again.")
+        return _error("Something went wrong. Please try again.", for_redirect=not is_embedded)
 
 
 
