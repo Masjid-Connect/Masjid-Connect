@@ -7,6 +7,7 @@ from pathlib import Path
 TESTING = "test" in sys.argv
 
 import environ
+import sentry_sdk
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -318,3 +319,17 @@ UNFOLD = {
         ],
     },
 }
+
+# ── Sentry — error tracking ──────────────────────────────────────────
+SENTRY_DSN_BACKEND = env("SENTRY_DSN_BACKEND", default="")
+
+if SENTRY_DSN_BACKEND and not TESTING:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN_BACKEND,
+        # Send 100% of errors, sample 10% of performance transactions
+        traces_sample_rate=0.1,
+        # Never attach PII (emails, usernames, IPs) to error reports
+        send_default_pii=False,
+        # Tag with environment for filtering in Sentry dashboard
+        environment="production" if not DEBUG else "development",
+    )

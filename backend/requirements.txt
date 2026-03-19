@@ -20,3 +20,4 @@ stripe>=8.0
 lxml>=5.0
 weasyprint>=62.0
 exponent-server-sdk>=2.1.0
+sentry-sdk[django]>=2.0
