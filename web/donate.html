@@ -153,6 +153,20 @@
                 </label>
               </div>
 
+              <!-- Step 3b: Cover processing fees -->
+              <div class="donate__step">
+                <label class="donate__cover-fees" id="cover-fees-label">
+                  <input type="checkbox" id="cover-fees" class="donate__cover-fees-checkbox">
+                  <span class="donate__cover-fees-check">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </span>
+                  <span class="donate__cover-fees-text">
+                    <strong>Cover processing fees</strong> — add <span id="cover-fees-amount">£1.49</span> so the masjid receives your full donation.
+                    <span class="donate__cover-fees-hint">Payment providers charge a small fee per transaction. Covering this means 100% of your donation goes to the masjid.</span>
+                  </span>
+                </label>
+              </div>
+
               <!-- Step 4: Choose payment method -->
               <div class="donate__step" id="donate-step-pay">
                 <span class="donate__step-label">Payment method</span>
@@ -189,14 +203,17 @@
                 All payments are secure and encrypted. We never store your payment details.
               </p>
 
-              <!-- Stripe Embedded Checkout container (replaces form when active) -->
-              <div id="checkout-container" hidden></div>
+              <!-- Donation summary — visible during checkout, keeps context -->
+              <div class="donate__summary" id="checkout-summary" hidden>
+                <div class="donate__summary-details">
+                  <span class="donate__summary-amount" id="summary-amount">£50</span>
+                  <span class="donate__summary-meta" id="summary-meta">One-time donation</span>
+                </div>
+                <button class="donate__summary-change" type="button" id="checkout-back">Change</button>
+              </div>
 
-              <!-- Back to options (shown when checkout is active) -->
-              <button class="donate__back-btn" type="button" id="checkout-back" hidden>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-                Change amount
-              </button>
+              <!-- Stripe Embedded Checkout container -->
+              <div id="checkout-container" hidden></div>
 
               <!-- Success state -->
               <div class="donate__status donate__status--success" id="donate-success" hidden>

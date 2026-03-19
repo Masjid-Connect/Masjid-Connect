@@ -35,9 +35,15 @@
   const errorEl = document.getElementById('donate-error');
   const errorText = document.getElementById('donate-error-text');
   const giftAidCheckbox = document.getElementById('gift-aid');
-  const formSteps = document.querySelectorAll('.donate__step, .donate__secure, .form-hp');
+  const coverFeesCheckbox = document.getElementById('cover-fees');
+  const coverFeesAmountEl = document.getElementById('cover-fees-amount');
+  const formSteps = document.querySelectorAll('.donate__step, .form-hp');
+  const secureEl = document.querySelector('.donate__secure');
   const checkoutContainer = document.getElementById('checkout-container');
   const checkoutBack = document.getElementById('checkout-back');
+  const summaryEl = document.getElementById('checkout-summary');
+  const summaryAmount = document.getElementById('summary-amount');
+  const summaryMeta = document.getElementById('summary-meta');
 
   if (!cardBtn) return;
 
@@ -48,6 +54,7 @@
       btn.classList.add('donate__amount--active');
       selectedAmount = parseInt(btn.dataset.amount, 10);
       if (customInput) customInput.value = '';
+      updateFeeDisplay();
     });
   });
 
@@ -60,6 +67,7 @@
       } else {
         selectedAmount = 50;
       }
+      updateFeeDisplay();
     });
   }
 
@@ -71,6 +79,29 @@
       frequency = btn.dataset.freq;
     });
   });
+
+  // ─── Fee calculation ────────────────────────────────────────
+  // Blended estimate: 2.5% + 20p covers UK card (1.2%+20p with nonprofit
+  // discount), EU/intl cards, Apple Pay, Google Pay, and PayPal.
+  // Pay by Bank is lower, but we use a single conservative estimate.
+  var FEE_PERCENT = 0.025;
+  var FEE_FIXED_PENCE = 20;
+
+  function calculateFee(amountPounds) {
+    // gross = (net_pence + fixed) / (1 - percent) — solve for fee
+    var netPence = Math.round(amountPounds * 100);
+    var grossPence = Math.ceil((netPence + FEE_FIXED_PENCE) / (1 - FEE_PERCENT));
+    return (grossPence - netPence) / 100;
+  }
+
+  function updateFeeDisplay() {
+    if (!coverFeesAmountEl) return;
+    var fee = calculateFee(selectedAmount);
+    coverFeesAmountEl.textContent = '£' + fee.toFixed(2);
+  }
+
+  // Update fee whenever amount changes
+  updateFeeDisplay();
 
   // ─── Validation ─────────────────────────────────────────────
   function validateAmount() {
@@ -112,19 +143,79 @@
     }
   }
 
-  // ─── Show/hide checkout vs form ─────────────────────────────
+  // ─── Build summary text ─────────────────────────────────────
+  function updateSummary() {
+    if (!summaryAmount || !summaryMeta) return;
+
+    var amt = selectedAmount;
+    // Format with commas for large amounts
+    var formatted = amt % 1 === 0 ? '£' + amt.toLocaleString('en-GB') : '£' + amt.toFixed(2);
+    summaryAmount.textContent = formatted;
+
+    var parts = [];
+    parts.push(frequency === 'monthly' ? 'Monthly donation' : 'One-time donation');
+    if (giftAidCheckbox && giftAidCheckbox.checked) parts.push('Gift Aid');
+    if (coverFeesCheckbox && coverFeesCheckbox.checked) {
+      parts.push('+£' + calculateFee(selectedAmount).toFixed(2) + ' fees');
+    }
+    summaryMeta.textContent = parts.join(' · ');
+  }
+
+  // ─── Show/hide checkout vs form (Apple-style collapse) ─────
   function showCheckout() {
-    formSteps.forEach(function (el) { el.hidden = true; });
-    if (checkoutContainer) checkoutContainer.hidden = false;
-    if (checkoutBack) checkoutBack.hidden = false;
+    // Hide error during checkout
+    if (errorEl) errorEl.classList.add('status--checkout-hidden');
+
+    // Update and show the summary bar
+    updateSummary();
+
+    // Fade out form steps
+    formSteps.forEach(function (el) {
+      el.classList.add('donate__step--hidden');
+    });
+
+    // After form fades out, reveal summary + checkout
+    setTimeout(function () {
+      formSteps.forEach(function (el) { el.hidden = true; });
+
+      // Show summary
+      if (summaryEl) {
+        summaryEl.hidden = false;
+        summaryEl.offsetHeight;
+        summaryEl.classList.add('donate__summary--visible');
+      }
+
+      // Show checkout container
+      if (checkoutContainer) {
+        checkoutContainer.hidden = false;
+        checkoutContainer.offsetHeight;
+        checkoutContainer.classList.add('checkout--visible');
+      }
+    }, 200);
   }
 
   function showForm() {
-    formSteps.forEach(function (el) { el.hidden = false; });
-    if (checkoutContainer) checkoutContainer.hidden = true;
-    if (checkoutBack) checkoutBack.hidden = true;
-    hideError();
-    destroyCheckout();
+    // Fade out checkout + summary
+    if (checkoutContainer) checkoutContainer.classList.remove('checkout--visible');
+    if (summaryEl) summaryEl.classList.remove('donate__summary--visible');
+
+    setTimeout(function () {
+      if (checkoutContainer) checkoutContainer.hidden = true;
+      if (summaryEl) summaryEl.hidden = true;
+
+      // Restore form steps
+      formSteps.forEach(function (el) {
+        el.hidden = false;
+        el.offsetHeight;
+        el.classList.remove('donate__step--hidden');
+      });
+
+      // Allow error to be shown again
+      if (errorEl) errorEl.classList.remove('status--checkout-hidden');
+
+      hideError();
+      destroyCheckout();
+    }, 300);
   }
 
   function destroyCheckout() {
@@ -153,6 +244,7 @@
         return_url: returnUrl,
         ui_mode: uiMode,
         gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no',
+        cover_fees: coverFeesCheckbox && coverFeesCheckbox.checked ? 'yes' : 'no',
       }),
     }).then(function (res) {
       if (!res.ok) {
@@ -223,7 +315,8 @@
       currency: 'gbp',
       frequency: frequency,
       return_url: returnUrl,
-      gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no'
+      gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no',
+      cover_fees: coverFeesCheckbox && coverFeesCheckbox.checked ? 'yes' : 'no'
     };
 
     Object.keys(fields).forEach(function (name) {
@@ -341,6 +434,10 @@
     formSteps.forEach(function (el) { el.hidden = true; });
     if (successEl) {
       successEl.hidden = false;
+      // Trigger entrance animation after a frame
+      requestAnimationFrame(function () {
+        successEl.classList.add('donate__status--enter');
+      });
       successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
     window.history.replaceState({}, '', window.location.pathname);
