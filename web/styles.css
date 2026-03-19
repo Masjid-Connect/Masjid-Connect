@@ -1371,6 +1371,15 @@ ul {
   border-radius: var(--radius-lg);
   padding: 40px;
   box-shadow: var(--shadow-lg);
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+/* Locked state — form stays visible but dimmed during checkout */
+.donate__form-card--locked {
+  opacity: 0.45;
+  pointer-events: none;
+  filter: grayscale(0.3);
+  user-select: none;
 }
 
 /* Step grouping */
@@ -1845,7 +1854,7 @@ ul {
   visibility: hidden;
 }
 
-/* Donation summary — compact bar showing chosen amount during checkout.
+/* Donation summary — compact bar between form and Stripe checkout.
    Stays visible above the Stripe embed so the donor never loses context.
    Inspired by Apple's order summary pattern. */
 .donate__summary {
@@ -1853,7 +1862,8 @@ ul {
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  margin-bottom: 24px;
+  margin-top: 20px;
+  margin-bottom: 20px;
   background: var(--stone-200, #F0EDE6);
   border-radius: 12px;
   opacity: 0;
