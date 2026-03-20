@@ -752,6 +752,7 @@ def create_checkout_session(request):
     frequency = request.data.get("frequency", "one-time")
     return_url = request.data.get("return_url", "")
     gift_aid = request.data.get("gift_aid", "")
+    cover_fees = request.data.get("cover_fees", "")
     ui_mode = request.data.get("ui_mode", "redirect")
 
     # ── Validation ────────────────────────────────────────────
@@ -782,10 +783,23 @@ def create_checkout_session(request):
     try:
         is_recurring = frequency == "monthly"
         wants_gift_aid = str(gift_aid).lower() in ("yes", "true", "1")
+        wants_cover_fees = str(cover_fees).lower() in ("yes", "true", "1")
+
+        # If donor opts to cover processing fees, calculate the gross amount
+        # so the masjid receives the full donation after Stripe's cut.
+        # Blended estimate: 2.5% + 20p (covers UK/EU cards, wallets, PayPal).
+        import math
+
+        donation_amount = amount  # original donation in pence
+        if wants_cover_fees:
+            amount = math.ceil((amount + 20) / (1 - 0.025))
+
         base_metadata = {
             "frequency": frequency,
             "source": "website",
             "gift_aid": "yes" if wants_gift_aid else "no",
+            "cover_fees": "yes" if wants_cover_fees else "no",
+            "donation_amount": str(donation_amount),
         }
 
         session_params = {
@@ -793,11 +807,15 @@ def create_checkout_session(request):
             "metadata": base_metadata,
         }
 
-        # Gift Aid requires donor's full name and UK address for HMRC
+        # Gift Aid requires donor's full name and UK address for HMRC.
+        # Without Gift Aid, minimise data collection — only collect
+        # billing info when the payment method requires it.
         if wants_gift_aid:
             session_params["billing_address_collection"] = "required"
             if not is_recurring:
                 session_params["customer_creation"] = "always"
+        else:
+            session_params["billing_address_collection"] = "auto"
 
         # Line items
         product_name = (

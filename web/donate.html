@@ -4,19 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Donate — The Salafi Masjid</title>
-  <meta name="description" content="Support The Salafi Masjid, Birmingham. Your donation helps maintain the masjid, fund educational programs, and serve the community.">
+  <meta name="description" content="Support The Salafi Masjid, Birmingham. Your donation helps maintain the masjid, fund educational programmes, and serve the community.">
   <meta name="theme-color" content="#0F2D52">
 
   <meta property="og:type" content="website">
+  <meta property="og:url" content="https://salafimasjid.app/donate">
   <meta property="og:title" content="Donate — The Salafi Masjid">
   <meta property="og:description" content="Support The Salafi Masjid, Birmingham. Your donation helps maintain the masjid and serve the community.">
   <meta property="og:image" content="https://salafimasjid.app/images/og-image.png">
 
-  <link rel="icon" href="images/favicon.ico" sizes="any">
-  <link rel="icon" href="images/favicon.png" type="image/png" sizes="32x32">
-  <link rel="apple-touch-icon" href="images/favicon-180.png">
-  <link rel="manifest" href="site.webmanifest">
-  <link rel="stylesheet" href="styles.css?v=3">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Donate — The Salafi Masjid">
+  <meta name="twitter:description" content="Support The Salafi Masjid, Birmingham. Your donation helps maintain the masjid and serve the community.">
+  <meta name="twitter:image" content="https://salafimasjid.app/images/twitter-card.png">
+
+  <link rel="canonical" href="https://salafimasjid.app/donate">
+  <link rel="icon" href="images/favicon.ico?v=2" sizes="any">
+  <link rel="icon" href="images/favicon.png?v=2" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="images/favicon-180.png?v=2">
+  <link rel="manifest" href="site.webmanifest?v=2">
+  <link rel="stylesheet" href="styles.css?v=4">
   <script src="https://js.stripe.com/v3/" async></script>
 </head>
 <body>
@@ -153,6 +160,41 @@
                 </label>
               </div>
 
+              <!-- Step 3b: Cover processing fees -->
+              <div class="donate__step">
+                <label class="donate__cover-fees" id="cover-fees-label">
+                  <input type="checkbox" id="cover-fees" class="donate__cover-fees-checkbox">
+                  <span class="donate__cover-fees-check">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </span>
+                  <span class="donate__cover-fees-text">
+                    <strong>Cover processing fees</strong> — add <span id="cover-fees-amount">£1.49</span> so the masjid receives your full donation.
+                    <span class="donate__cover-fees-hint">Payment providers charge a small fee per transaction. Covering this means 100% of your donation goes to the masjid.</span>
+                  </span>
+                </label>
+              </div>
+
+              <!-- Live total -->
+              <div class="donate__live-total" id="live-total">
+                <div class="donate__live-total-row">
+                  <span class="donate__live-total-label">Your donation</span>
+                  <span class="donate__live-total-value" id="live-total-base">£50</span>
+                </div>
+                <div class="donate__live-total-row donate__live-total-row--fee" id="live-total-fee-row" hidden>
+                  <span class="donate__live-total-label">Processing fee</span>
+                  <span class="donate__live-total-value" id="live-total-fee">£0.00</span>
+                </div>
+                <div class="donate__live-total-row donate__live-total-row--gift-aid" id="live-total-gift-aid-row" hidden>
+                  <span class="donate__live-total-label">Gift Aid (25%)</span>
+                  <span class="donate__live-total-value" id="live-total-gift-aid">£0.00</span>
+                </div>
+                <div class="donate__live-total-divider"></div>
+                <div class="donate__live-total-row donate__live-total-row--total">
+                  <span class="donate__live-total-label">Total</span>
+                  <span class="donate__live-total-value" id="live-total-amount">£50.00</span>
+                </div>
+              </div>
+
               <!-- Step 4: Choose payment method -->
               <div class="donate__step" id="donate-step-pay">
                 <span class="donate__step-label">Payment method</span>
@@ -186,32 +228,35 @@
 
               <p class="donate__secure">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                All payments are secure and encrypted. We never store your payment details.
+                All payments are secure and encrypted. We never store your payment details. Registered Charity No. 1083080.
               </p>
+            </div>
 
-              <!-- Stripe Embedded Checkout container (replaces form when active) -->
-              <div id="checkout-container" hidden></div>
-
-              <!-- Back to options (shown when checkout is active) -->
-              <button class="donate__back-btn" type="button" id="checkout-back" hidden>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-                Change amount
-              </button>
-
-              <!-- Success state -->
-              <div class="donate__status donate__status--success" id="donate-success" hidden>
-                <div class="donate__status-icon">
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                </div>
-                <strong>JazakAllahu khairan!</strong>
-                <p>Your donation has been processed successfully. May Allah reward you abundantly.</p>
+            <!-- Donation summary — shown between form and checkout, keeps context -->
+            <div class="donate__summary" id="checkout-summary" hidden>
+              <div class="donate__summary-details">
+                <span class="donate__summary-amount" id="summary-amount">£50</span>
+                <span class="donate__summary-meta" id="summary-meta">One-time donation</span>
               </div>
+              <button class="donate__summary-change" type="button" id="checkout-back">Change</button>
+            </div>
 
-              <!-- Error state -->
-              <div class="donate__status donate__status--error" id="donate-error" hidden>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                <span id="donate-error-text">Something went wrong. Please try again.</span>
+            <!-- Stripe Embedded Checkout container -->
+            <div id="checkout-container" hidden></div>
+
+            <!-- Success state -->
+            <div class="donate__status donate__status--success" id="donate-success" hidden>
+              <div class="donate__status-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
               </div>
+              <strong>JazakAllahu khairan!</strong>
+              <p>Your donation has been processed successfully. May Allah reward you abundantly.</p>
+            </div>
+
+            <!-- Error state -->
+            <div class="donate__status donate__status--error" id="donate-error" hidden>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              <span id="donate-error-text">Something went wrong. Please try again.</span>
             </div>
           </div>
 
@@ -219,7 +264,7 @@
           <div class="donate__info">
             <div class="donate__info-card">
               <h2 class="donate__info-title">Where your donation goes</h2>
-              <p class="donate__info-desc">All donations go directly to The Salafi Masjid, Birmingham.</p>
+              <p class="donate__info-desc">All donations go directly to The Salafi Masjid, Birmingham — part of Salafi Bookstore and Islamic Centre (Registered Charity No. 1083080).</p>
 
               <div class="donate__impact-list">
                 <div class="donate__impact">
@@ -242,7 +287,7 @@
                   </div>
                   <div>
                     <h3 class="donate__impact-title">Education & Da'wah</h3>
-                    <p class="donate__impact-desc">Weekly lessons, Quran circles, youth programmes, and dawah materials.</p>
+                    <p class="donate__impact-desc">Weekly lessons, Quran circles, youth programmes, and da'wah materials.</p>
                   </div>
                 </div>
 
@@ -261,8 +306,8 @@
             </div>
 
             <blockquote class="donate__hadith">
-              <p>"The most beloved of deeds to Allah are those that are most consistent, even if they are small."</p>
-              <cite>— Sahih al-Bukhari</cite>
+              <p id="hadith-text">"The most beloved of deeds to Allah are those that are most consistent, even if they are small."</p>
+              <cite id="hadith-source">— Sahih al-Bukhari</cite>
             </blockquote>
           </div>
 
@@ -342,7 +387,7 @@
     <div class="bank-sheet__panel">
       <div class="bank-sheet__handle"></div>
       <h3 class="bank-sheet__title">Bank Transfer Details</h3>
-      <p class="bank-sheet__desc">Transfer directly to the masjid account using your banking app or online banking.</p>
+      <p class="bank-sheet__desc">Transfer directly to the masjid account using your banking app or online banking. The account is registered under the masjid's official entity name.</p>
 
       <ol class="bank-sheet__steps">
         <li>Open your banking app or log in to online banking</li>
@@ -426,7 +471,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=2" data-cfasync="false"></script>
-  <script src="donate.js?v=5" data-cfasync="false"></script>
+  <script src="script.js?v=3" data-cfasync="false"></script>
+  <script src="donate.js?v=6" data-cfasync="false"></script>
 </body>
 </html>

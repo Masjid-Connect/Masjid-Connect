@@ -7,6 +7,7 @@ from pathlib import Path
 TESTING = "test" in sys.argv
 
 import environ
+import sentry_sdk
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -178,6 +179,7 @@ EMAIL_BACKEND = env(
 EMAIL_HOST = env("EMAIL_HOST", default="")
 EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+EMAIL_USE_SSL = env.bool("EMAIL_USE_SSL", default=False)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@salafimasjid.app")
@@ -189,6 +191,7 @@ CONTACT_TO_EMAIL = env("CONTACT_TO_EMAIL", default="info@salafimasjid.app")
 
 # Stripe
 STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="")
+STRIPE_PUBLISHABLE_KEY = env("STRIPE_PUBLISHABLE_KEY", default="")
 STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default="")
 
 # API Documentation
@@ -232,27 +235,35 @@ UNFOLD = {
     "SITE_TITLE": "The Salafi Masjid",
     "SITE_HEADER": "The Salafi Masjid Admin",
     "DASHBOARD_CALLBACK": "core.dashboard.dashboard_callback",
+    "SITE_LOGO": {
+        "light": lambda request: "/static/admin/img/Masjid_Logo.png",
+        "dark": lambda request: "/static/admin/img/Masjid_Logo.png",
+    },
+    "SITE_ICON": lambda request: "/static/admin/img/Masjid_Logo.png",
+    "SITE_FAVICONS": [
+        {"rel": "icon", "sizes": "any", "href": lambda request: "/static/admin/img/Masjid_Logo.png"},
+    ],
     "COLORS": {
         "font": {
             "subtle-light": "107 114 128",
             "subtle-dark": "156 163 175",
-            "default-light": "43 45 66",
-            "default-dark": "209 213 219",
-            "important-light": "27 73 101",
-            "important-dark": "200 169 81",
+            "default-light": "18 18 22",
+            "default-dark": "245 245 247",
+            "important-light": "15 45 82",
+            "important-dark": "212 175 55",
         },
         "primary": {
-            "50": "240 249 255",
-            "100": "224 242 254",
-            "200": "186 230 253",
-            "300": "125 211 252",
-            "400": "56 189 248",
-            "500": "27 73 101",
-            "600": "22 60 83",
-            "700": "18 48 66",
-            "800": "14 37 51",
-            "900": "12 30 41",
-            "950": "8 21 29",
+            "50": "232 238 247",
+            "100": "209 222 238",
+            "200": "163 189 218",
+            "300": "116 155 198",
+            "400": "70 122 178",
+            "500": "36 90 148",
+            "600": "25 68 118",
+            "700": "15 45 82",
+            "800": "10 31 58",
+            "900": "6 20 37",
+            "950": "3 12 22",
         },
     },
     "SIDEBAR": {
@@ -308,3 +319,17 @@ UNFOLD = {
         ],
     },
 }
+
+# ── Sentry — error tracking ──────────────────────────────────────────
+SENTRY_DSN_BACKEND = env("SENTRY_DSN_BACKEND", default="")
+
+if SENTRY_DSN_BACKEND and not TESTING:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN_BACKEND,
+        # Send 100% of errors, sample 10% of performance transactions
+        traces_sample_rate=0.1,
+        # Never attach PII (emails, usernames, IPs) to error reports
+        send_default_pii=False,
+        # Tag with environment for filtering in Sentry dashboard
+        environment="production" if not DEBUG else "development",
+    )

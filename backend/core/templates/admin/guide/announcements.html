@@ -1,9 +1,7 @@
 {% extends "admin/guide/base_guide.html" %}
-{% load static %}
 
 {% block guide_content %}
 <div class="guide-logo-header">
-  <img src="{% static 'admin/img/Masjid_Logo.png' %}" alt="The Salafi Masjid">
   <h1>Managing Announcements</h1>
   <p>Keep your community informed with timely updates and notices.</p>
 </div>
@@ -25,12 +23,16 @@
   <li>Click <strong>"Save"</strong> at the bottom of the page.</li>
 </ol>
 
+<div class="guide-info">
+  <strong>Push notifications are sent automatically.</strong> When you save a new announcement, everyone subscribed to your mosque who has announcement notifications turned on will receive a push notification on their phone. Urgent announcements are delivered with high priority so they appear immediately.
+</div>
+
 <div class="guide-tip">
-  Keep titles short and specific. "Mosque Closed on Monday" is better than "Important Notice Regarding Closure".
+  Keep titles short and specific. "Mosque Closed on Monday" is better than "Important Notice Regarding Closure". Remember — the title is what appears in the push notification, so make it clear at a glance.
 </div>
 
 <div class="guide-warning">
-  Only use <strong>Urgent</strong> priority for genuinely time-sensitive matters. If everything is marked urgent, community members will start ignoring notifications.
+  Only use <strong>Urgent</strong> priority for genuinely time-sensitive matters. Urgent announcements send high-priority notifications that may bypass Do Not Disturb. If everything is marked urgent, community members will start ignoring notifications.
 </div>
 
 <h2>Editing an Existing Announcement</h2>

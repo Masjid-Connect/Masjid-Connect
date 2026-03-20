@@ -370,6 +370,30 @@
   border-color: rgba(91,155,213,0.2);
 }
 
+[data-theme="dark"] .donate__cover-fees {
+  background: rgba(91, 155, 213, 0.06);
+  border-color: rgba(91, 155, 213, 0.15);
+}
+
+[data-theme="dark"] .donate__cover-fees:hover {
+  border-color: rgba(91, 155, 213, 0.3);
+  background: rgba(91, 155, 213, 0.1);
+}
+
+[data-theme="dark"] .donate__cover-fees-check {
+  background: #0E1829;
+  border-color: rgba(91, 155, 213, 0.2);
+}
+
+[data-theme="dark"] .donate__cover-fees-checkbox:checked ~ .donate__cover-fees-check {
+  background: var(--sapphire-400, #5B9BD5);
+  border-color: var(--sapphire-400, #5B9BD5);
+}
+
+[data-theme="dark"] .donate__cover-fees-text strong {
+  color: var(--sapphire-400, #5B9BD5);
+}
+
 [data-theme="dark"] .donate__status--success {
   background: rgba(45, 106, 79, 0.1);
 }
@@ -1347,6 +1371,15 @@ ul {
   border-radius: var(--radius-lg);
   padding: 40px;
   box-shadow: var(--shadow-lg);
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+/* Locked state — form stays visible but dimmed during checkout */
+.donate__form-card--locked {
+  opacity: 0.45;
+  pointer-events: none;
+  filter: grayscale(0.3);
+  user-select: none;
 }
 
 /* Step grouping */
@@ -1360,7 +1393,7 @@ ul {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--divine-gold);
+  color: var(--onyx-600);
   margin-bottom: 12px;
 }
 
@@ -1473,6 +1506,7 @@ ul {
 
 /* Gift Aid */
 .donate__gift-aid {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -1550,6 +1584,155 @@ ul {
   font-size: 12px;
   line-height: 1.5;
   color: var(--onyx-600);
+}
+
+/* Cover Processing Fees */
+.donate__cover-fees {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  padding: 16px;
+  background: rgba(15, 45, 82, 0.03);
+  border: 1.5px solid rgba(15, 45, 82, 0.12);
+  border-radius: 12px;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.donate__cover-fees:hover {
+  border-color: rgba(15, 45, 82, 0.25);
+  background: rgba(15, 45, 82, 0.05);
+}
+
+.donate__cover-fees-checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.donate__cover-fees-check {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--separator);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  margin-top: 1px;
+}
+
+.donate__cover-fees-check svg {
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  stroke: #fff;
+}
+
+.donate__cover-fees-checkbox:checked ~ .donate__cover-fees-check {
+  background: var(--sapphire-700, #0F2D52);
+  border-color: var(--sapphire-700, #0F2D52);
+}
+
+.donate__cover-fees-checkbox:checked ~ .donate__cover-fees-check svg {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.donate__cover-fees-checkbox:focus-visible ~ .donate__cover-fees-check {
+  box-shadow: 0 0 0 3px rgba(15, 45, 82, 0.15);
+}
+
+.donate__cover-fees-text {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--onyx-900);
+}
+
+.donate__cover-fees-text strong {
+  color: var(--sapphire-700, #0F2D52);
+}
+
+.donate__cover-fees-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--onyx-600);
+}
+
+/* Live total breakdown — Apple receipt-style summary */
+.donate__live-total {
+  padding: 16px 20px;
+  background: var(--stone-100);
+  border: 1px solid var(--separator);
+  border-radius: 12px;
+  margin-bottom: 28px;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.donate__live-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 4px 0;
+}
+
+.donate__live-total-row--fee,
+.donate__live-total-row--gift-aid {
+  color: var(--onyx-600);
+}
+
+.donate__live-total-row--fee .donate__live-total-label,
+.donate__live-total-row--gift-aid .donate__live-total-label {
+  font-size: 13px;
+  color: var(--onyx-600);
+}
+
+.donate__live-total-row--fee .donate__live-total-value,
+.donate__live-total-row--gift-aid .donate__live-total-value {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--onyx-600);
+  font-variant-numeric: tabular-nums;
+}
+
+.donate__live-total-label {
+  font-size: 14px;
+  color: var(--onyx-900);
+}
+
+.donate__live-total-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--onyx-900);
+  font-variant-numeric: tabular-nums;
+}
+
+.donate__live-total-divider {
+  height: 1px;
+  background: var(--separator);
+  margin: 8px 0;
+}
+
+.donate__live-total-row--total .donate__live-total-label {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--onyx-900);
+}
+
+.donate__live-total-row--total .donate__live-total-value {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--sapphire-700);
+  font-variant-numeric: tabular-nums;
 }
 
 /* Payment method buttons */
@@ -1656,7 +1839,147 @@ ul {
   opacity: 0.5;
 }
 
-/* Embedded Checkout */
+/* Embedded Checkout ────────────────────────────────────────── */
+
+/* Form steps fade out/in smoothly */
+.donate__step {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.donate__step--hidden {
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  position: absolute;
+  visibility: hidden;
+}
+
+/* Donation summary — compact bar between form and Stripe checkout.
+   Stays visible above the Stripe embed so the donor never loses context.
+   Inspired by Apple's order summary pattern. */
+.donate__summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  background: var(--stone-200, #F0EDE6);
+  border-radius: 12px;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.donate__summary--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.donate__summary-details {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.donate__summary-amount {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--onyx-900, #121216);
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.donate__summary-meta {
+  font-size: 13px;
+  color: var(--onyx-600, #6B6B70);
+  white-space: nowrap;
+}
+
+/* "Change" link — Apple-style inline text action, not a button */
+.donate__summary-change {
+  padding: 6px 0;
+  background: none;
+  border: none;
+  color: var(--sapphire-700, #0F2D52);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+
+.donate__summary-change:hover {
+  color: var(--divine-gold, #D4AF37);
+}
+
+/* Checkout container — fades in below the summary */
+#checkout-container {
+  min-height: 320px;
+  border-radius: 12px;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.1s,
+              transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
+}
+
+#checkout-container.checkout--visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Error state — hidden during active checkout */
+.donate__status--error {
+  transition: opacity 0.2s ease;
+}
+
+.donate__status--error.status--checkout-hidden {
+  opacity: 0;
+  pointer-events: none;
+  height: 0;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+}
+
+/* Dark mode — embedded checkout */
+[data-theme="dark"] .donate__summary {
+  background: #0E1829;
+}
+
+[data-theme="dark"] .donate__summary-amount {
+  color: #F5F5F7;
+}
+
+[data-theme="dark"] .donate__summary-change {
+  color: var(--sapphire-400, #5B9BD5);
+}
+
+[data-theme="dark"] .donate__summary-change:hover {
+  color: var(--divine-gold-bright, #E5C14B);
+}
+
+[data-theme="dark"] .donate__live-total {
+  background: var(--onyx-850, #1A1A1E);
+  border-color: var(--separator);
+}
+
+[data-theme="dark"] .donate__live-total-label {
+  color: var(--snow, #F5F5F7);
+}
+
+[data-theme="dark"] .donate__live-total-value {
+  color: var(--snow, #F5F5F7);
+}
+
+[data-theme="dark"] .donate__live-total-row--total .donate__live-total-value {
+  color: var(--sapphire-400, #5B9BD5);
+}
+
 /* Bank Transfer Bottom Sheet */
 .bank-sheet[hidden] {
   display: none;
@@ -1875,6 +2198,15 @@ ul {
   background: rgba(45, 106, 79, 0.06);
   color: var(--sage-600);
   text-align: center;
+  opacity: 0;
+  transform: scale(0.96) translateY(8px);
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.donate__status--enter {
+  opacity: 1;
+  transform: scale(1) translateY(0);
 }
 
 .donate__status-icon {
@@ -3316,14 +3648,6 @@ a.contact__info-value:hover {
     height: 38px;
   }
 
-  .footer__grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-  }
-
-  .footer__store-badges {
-    flex-direction: column;
-  }
 }
 
 /* ═══════════════════════════════════════════════════════════════

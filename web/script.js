@@ -144,13 +144,22 @@
   // ─── Footer accordion toggles (mobile) ────────────────────
   const footerCols = document.querySelectorAll('.footer__col:not(.footer__col--brand)');
 
-  footerCols.forEach(function (col) {
+  footerCols.forEach(function (col, index) {
     const heading = col.querySelector('.footer__heading');
     const list = col.querySelector('.footer__list');
     const badges = col.querySelector('.footer__store-badges');
 
     if (heading && list) {
-      heading.addEventListener('click', function () {
+      // ARIA: make headings accessible as toggle buttons
+      const regionId = 'footer-section-' + index;
+      heading.setAttribute('role', 'button');
+      heading.setAttribute('aria-expanded', 'false');
+      heading.setAttribute('aria-controls', regionId);
+      heading.setAttribute('tabindex', '0');
+      list.setAttribute('id', regionId);
+      list.setAttribute('role', 'region');
+
+      function toggleSection() {
         const isOpen = heading.classList.contains('is-open');
 
         // Close all other sections first
@@ -158,7 +167,10 @@
           const otherHeading = otherCol.querySelector('.footer__heading');
           const otherList = otherCol.querySelector('.footer__list');
           const otherBadges = otherCol.querySelector('.footer__store-badges');
-          if (otherHeading) otherHeading.classList.remove('is-open');
+          if (otherHeading) {
+            otherHeading.classList.remove('is-open');
+            otherHeading.setAttribute('aria-expanded', 'false');
+          }
           if (otherList) otherList.classList.remove('is-open');
           if (otherBadges) otherBadges.classList.remove('is-open');
         });
@@ -166,8 +178,17 @@
         // Toggle current section
         if (!isOpen) {
           heading.classList.add('is-open');
+          heading.setAttribute('aria-expanded', 'true');
           list.classList.add('is-open');
           if (badges) badges.classList.add('is-open');
+        }
+      }
+
+      heading.addEventListener('click', toggleSection);
+      heading.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggleSection();
         }
       });
     }

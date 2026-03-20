@@ -1,9 +1,7 @@
 {% extends "admin/guide/base_guide.html" %}
-{% load static %}
 
 {% block guide_content %}
 <div class="guide-logo-header">
-  <img src="{% static 'admin/img/Masjid_Logo.png' %}" alt="The Salafi Masjid">
   <h1>Managing Events &amp; Lessons</h1>
   <p>Add classes, lectures, youth programs, and community gatherings.</p>
 </div>
@@ -31,8 +29,12 @@
   <li>Click <strong>"Save"</strong>.</li>
 </ol>
 
+<div class="guide-info">
+  <strong>Push notifications are sent automatically.</strong> When you save a new event, everyone subscribed to your mosque who has event notifications turned on will receive a push notification with the event name and date.
+</div>
+
 <div class="guide-tip">
-  For recurring events (e.g., a weekly class every Saturday), you only need to create it once and set it to "Weekly". The app will show it each week automatically.
+  For recurring events (e.g., a weekly class every Saturday), you only need to create it once and set it to "Weekly". The app will show it each week automatically. The push notification is only sent once when the event is first created.
 </div>
 
 <h2>Event Categories Explained</h2>

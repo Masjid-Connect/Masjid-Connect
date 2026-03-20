@@ -35,9 +35,15 @@
   const errorEl = document.getElementById('donate-error');
   const errorText = document.getElementById('donate-error-text');
   const giftAidCheckbox = document.getElementById('gift-aid');
-  const formSteps = document.querySelectorAll('.donate__step, .donate__secure, .form-hp');
+  const coverFeesCheckbox = document.getElementById('cover-fees');
+  const coverFeesAmountEl = document.getElementById('cover-fees-amount');
+  const formSteps = document.querySelectorAll('.donate__step, .form-hp, .donate__live-total');
+  const secureEl = document.querySelector('.donate__secure');
   const checkoutContainer = document.getElementById('checkout-container');
   const checkoutBack = document.getElementById('checkout-back');
+  const summaryEl = document.getElementById('checkout-summary');
+  const summaryAmount = document.getElementById('summary-amount');
+  const summaryMeta = document.getElementById('summary-meta');
 
   if (!cardBtn) return;
 
@@ -48,6 +54,7 @@
       btn.classList.add('donate__amount--active');
       selectedAmount = parseInt(btn.dataset.amount, 10);
       if (customInput) customInput.value = '';
+      updateFeeDisplay();
     });
   });
 
@@ -60,6 +67,7 @@
       } else {
         selectedAmount = 50;
       }
+      updateFeeDisplay();
     });
   }
 
@@ -71,6 +79,96 @@
       frequency = btn.dataset.freq;
     });
   });
+
+  // ─── Fee calculation ────────────────────────────────────────
+  // Blended estimate: 2.5% + 20p covers UK card (1.2%+20p with nonprofit
+  // discount), EU/intl cards, Apple Pay, Google Pay, and PayPal.
+  // Pay by Bank is lower, but we use a single conservative estimate.
+  var FEE_PERCENT = 0.025;
+  var FEE_FIXED_PENCE = 20;
+
+  function calculateFee(amountPounds) {
+    // gross = (net_pence + fixed) / (1 - percent) — solve for fee
+    var netPence = Math.round(amountPounds * 100);
+    var grossPence = Math.ceil((netPence + FEE_FIXED_PENCE) / (1 - FEE_PERCENT));
+    return (grossPence - netPence) / 100;
+  }
+
+  function updateFeeDisplay() {
+    if (!coverFeesAmountEl) return;
+    var fee = calculateFee(selectedAmount);
+    coverFeesAmountEl.textContent = '£' + fee.toFixed(2);
+  }
+
+  // Update fee whenever amount changes
+  updateFeeDisplay();
+
+  // ─── Cover fees checkbox listener ─────────────────────────
+  if (coverFeesCheckbox) {
+    coverFeesCheckbox.addEventListener('change', updateFeeDisplay);
+  }
+
+  // ─── Live total display ───────────────────────────────────
+  var liveTotalBase = document.getElementById('live-total-base');
+  var liveTotalFee = document.getElementById('live-total-fee');
+  var liveTotalFeeRow = document.getElementById('live-total-fee-row');
+  var liveTotalGiftAid = document.getElementById('live-total-gift-aid');
+  var liveTotalGiftAidRow = document.getElementById('live-total-gift-aid-row');
+  var liveTotalAmount = document.getElementById('live-total-amount');
+
+  function updateLiveTotal() {
+    if (!liveTotalAmount) return;
+
+    var base = selectedAmount || 0;
+    var fee = 0;
+    var giftAidValue = 0;
+    var total = base;
+
+    // Base amount
+    if (liveTotalBase) {
+      liveTotalBase.textContent = base % 1 === 0 ? '£' + base.toLocaleString('en-GB') : '£' + base.toFixed(2);
+    }
+
+    // Processing fee
+    if (coverFeesCheckbox && coverFeesCheckbox.checked) {
+      fee = calculateFee(base);
+      total += fee;
+      if (liveTotalFee) liveTotalFee.textContent = '£' + fee.toFixed(2);
+      if (liveTotalFeeRow) liveTotalFeeRow.hidden = false;
+    } else {
+      if (liveTotalFeeRow) liveTotalFeeRow.hidden = true;
+    }
+
+    // Gift Aid
+    if (giftAidCheckbox && giftAidCheckbox.checked) {
+      giftAidValue = base * 0.25;
+      if (liveTotalGiftAid) liveTotalGiftAid.textContent = '£' + giftAidValue.toFixed(2);
+      if (liveTotalGiftAidRow) liveTotalGiftAidRow.hidden = false;
+    } else {
+      if (liveTotalGiftAidRow) liveTotalGiftAidRow.hidden = true;
+    }
+
+    // Total (charge amount = base + fee; gift aid is reclaimed separately)
+    liveTotalAmount.textContent = '£' + total.toFixed(2);
+  }
+
+  // Wire up live total updates
+  if (coverFeesCheckbox) {
+    coverFeesCheckbox.addEventListener('change', updateLiveTotal);
+  }
+  if (giftAidCheckbox) {
+    giftAidCheckbox.addEventListener('change', updateLiveTotal);
+  }
+
+  // Also update live total when amount changes — hook into existing amount listeners
+  var _origUpdateFeeDisplay = updateFeeDisplay;
+  updateFeeDisplay = function () {
+    _origUpdateFeeDisplay();
+    updateLiveTotal();
+  };
+
+  // Initial live total
+  updateLiveTotal();
 
   // ─── Validation ─────────────────────────────────────────────
   function validateAmount() {
@@ -112,19 +210,78 @@
     }
   }
 
-  // ─── Show/hide checkout vs form ─────────────────────────────
+  // ─── Build summary text ─────────────────────────────────────
+  function updateSummary() {
+    if (!summaryAmount || !summaryMeta) return;
+
+    var amt = selectedAmount;
+    // Format with commas for large amounts
+    var formatted = amt % 1 === 0 ? '£' + amt.toLocaleString('en-GB') : '£' + amt.toFixed(2);
+    summaryAmount.textContent = formatted;
+
+    var parts = [];
+    parts.push(frequency === 'monthly' ? 'Monthly donation' : 'One-time donation');
+    if (giftAidCheckbox && giftAidCheckbox.checked) parts.push('Gift Aid');
+    if (coverFeesCheckbox && coverFeesCheckbox.checked) {
+      parts.push('+£' + calculateFee(selectedAmount).toFixed(2) + ' fees');
+    }
+    summaryMeta.textContent = parts.join(' · ');
+  }
+
+  // ─── Show/hide checkout inline (no page change) ────────────
+  var formCard = document.querySelector('.donate__form-card');
+
   function showCheckout() {
-    formSteps.forEach(function (el) { el.hidden = true; });
-    if (checkoutContainer) checkoutContainer.hidden = false;
-    if (checkoutBack) checkoutBack.hidden = false;
+    // Hide error during checkout
+    if (errorEl) errorEl.classList.add('status--checkout-hidden');
+
+    // Update and show the summary bar
+    updateSummary();
+
+    // Lock the form — dim it, disable interactions, but keep visible
+    if (formCard) formCard.classList.add('donate__form-card--locked');
+
+    // Show summary bar between form and checkout
+    if (summaryEl) {
+      summaryEl.hidden = false;
+      summaryEl.offsetHeight;
+      summaryEl.classList.add('donate__summary--visible');
+    }
+
+    // Show checkout container below the form
+    if (checkoutContainer) {
+      checkoutContainer.hidden = false;
+      checkoutContainer.offsetHeight;
+      checkoutContainer.classList.add('checkout--visible');
+    }
+
+    // Scroll to checkout smoothly
+    setTimeout(function () {
+      if (summaryEl) summaryEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
   }
 
   function showForm() {
-    formSteps.forEach(function (el) { el.hidden = false; });
-    if (checkoutContainer) checkoutContainer.hidden = true;
-    if (checkoutBack) checkoutBack.hidden = true;
-    hideError();
-    destroyCheckout();
+    // Fade out checkout + summary
+    if (checkoutContainer) checkoutContainer.classList.remove('checkout--visible');
+    if (summaryEl) summaryEl.classList.remove('donate__summary--visible');
+
+    setTimeout(function () {
+      if (checkoutContainer) checkoutContainer.hidden = true;
+      if (summaryEl) summaryEl.hidden = true;
+
+      // Unlock the form
+      if (formCard) formCard.classList.remove('donate__form-card--locked');
+
+      // Allow error to be shown again
+      if (errorEl) errorEl.classList.remove('status--checkout-hidden');
+
+      hideError();
+      destroyCheckout();
+
+      // Scroll back to top of form
+      if (formCard) formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 300);
   }
 
   function destroyCheckout() {
@@ -153,6 +310,7 @@
         return_url: returnUrl,
         ui_mode: uiMode,
         gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no',
+        cover_fees: coverFeesCheckbox && coverFeesCheckbox.checked ? 'yes' : 'no',
       }),
     }).then(function (res) {
       if (!res.ok) {
@@ -173,8 +331,11 @@
 
     createSession('embedded')
       .then(function (data) {
-        if (!data.client_secret || !data.publishable_key) {
-          throw new Error('Missing checkout credentials.');
+        if (!data.client_secret) {
+          throw new Error('Server did not return a checkout session. Please try again.');
+        }
+        if (!data.publishable_key) {
+          throw new Error('Payment configuration incomplete. Please contact the masjid.');
         }
 
         // Wait for Stripe.js to load (it's loaded async)
@@ -197,9 +358,13 @@
       })
       .catch(function (err) {
         setLoading(false);
-        // Fallback: redirect checkout via form POST
-        console.warn('Embedded checkout failed, trying redirect:', err.message);
-        formPostFallback();
+        if (err instanceof TypeError && err.message === 'Failed to fetch') {
+          showError('Unable to connect. Please check your internet connection and try again.');
+        } else {
+          console.error('Embedded checkout failed:', err.message);
+          showError(err.message || 'Something went wrong. Please try again.');
+          setTimeout(formPostFallback, 2000);
+        }
       });
   }
 
@@ -217,7 +382,8 @@
       currency: 'gbp',
       frequency: frequency,
       return_url: returnUrl,
-      gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no'
+      gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no',
+      cover_fees: coverFeesCheckbox && coverFeesCheckbox.checked ? 'yes' : 'no'
     };
 
     Object.keys(fields).forEach(function (name) {
@@ -327,14 +493,42 @@
     });
   });
 
+  // ─── Rotating Hadiths ────────────────────────────────────────
+  // Only Bukhari, Muslim, or agreed upon (muttafaqun 'alayh)
+  var hadiths = [
+    { text: 'The most beloved of deeds to Allah are those that are most consistent, even if they are small.', source: 'Sahih al-Bukhari' },
+    { text: 'Charity does not decrease wealth.', source: 'Sahih Muslim' },
+    { text: 'Protect yourself from the Hellfire even if it is with half a date in charity.', source: 'Sahih al-Bukhari' },
+    { text: 'The upper hand is better than the lower hand. The upper hand is the one that gives, and the lower hand is the one that receives.', source: 'Agreed upon' },
+    { text: 'When a person dies, his deeds come to an end except for three: ongoing charity, beneficial knowledge, or a righteous child who prays for him.', source: 'Sahih Muslim' },
+    { text: 'Allah said: Spend in charity, O son of Adam, and I will spend on you.', source: 'Agreed upon' },
+    { text: 'Every Muslim has to give in charity. If he cannot find something to give, then he should work with his hands to benefit himself and give in charity.', source: 'Sahih al-Bukhari' },
+  ];
+
+  var hadithTextEl = document.getElementById('hadith-text');
+  var hadithSourceEl = document.getElementById('hadith-source');
+
+  if (hadithTextEl && hadithSourceEl) {
+    var now = new Date();
+    var start = new Date(now.getFullYear(), 0, 0);
+    var dayOfYear = Math.floor((now - start) / 86400000);
+    var hadith = hadiths[dayOfYear % hadiths.length];
+    hadithTextEl.textContent = '\u201C' + hadith.text + '\u201D';
+    hadithSourceEl.textContent = '\u2014 ' + hadith.source;
+  }
+
   // ─── Check for return from checkout ─────────────────────────
   const params = new URLSearchParams(window.location.search);
   const donation = params.get('donation');
 
   if (donation === 'success') {
-    formSteps.forEach(function (el) { el.hidden = true; });
+    if (formCard) formCard.classList.add('donate__form-card--locked');
     if (successEl) {
       successEl.hidden = false;
+      // Trigger entrance animation after a frame
+      requestAnimationFrame(function () {
+        successEl.classList.add('donate__status--enter');
+      });
       successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
     window.history.replaceState({}, '', window.location.pathname);

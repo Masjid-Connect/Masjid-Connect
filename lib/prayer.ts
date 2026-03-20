@@ -210,13 +210,53 @@ export function buildPrayerEntries(
   });
 }
 
-/** Determine the next upcoming prayer */
-export function getNextPrayer(times: PrayerTimesData): PrayerName | null {
+/**
+ * Extrapolate jama'ah times from a known source to a different date.
+ * Copies the HH:MM from each prayer and applies them to targetDate.
+ * Used when the backend has no timetable for a future date — we carry
+ * forward the last known jama'ah schedule (timetable changes on Sundays).
+ */
+export function extrapolateJamaahTimes(
+  source: JamaahTimesData,
+  targetDate: Date,
+): JamaahTimesData {
+  const applyDate = (src: Date): Date => {
+    const d = new Date(targetDate);
+    d.setHours(src.getHours(), src.getMinutes(), src.getSeconds(), 0);
+    return d;
+  };
+
+  return {
+    fajr: applyDate(source.fajr),
+    dhuhr: applyDate(source.dhuhr),
+    asr: applyDate(source.asr),
+    maghrib: applyDate(source.maghrib),
+    isha: applyDate(source.isha),
+  };
+}
+
+/**
+ * Determine the next upcoming prayer.
+ *
+ * When jama'ah times are available, a prayer is not considered "passed"
+ * until BOTH the adhan time AND the jama'ah time have passed. This prevents
+ * the app from jumping to the next prayer while the congregation hasn't
+ * prayed yet (e.g. Dhuhr adhan at 12:17 but jama'ah at 12:45).
+ */
+export function getNextPrayer(
+  times: PrayerTimesData,
+  jamaahTimes?: JamaahTimesData | null,
+): PrayerName | null {
   const now = new Date();
   const order: PrayerName[] = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
   for (const name of order) {
-    if (times[name] > now) {
+    const adhanTime = times[name];
+    // Use the later of adhan or jama'ah time (sunrise has no jama'ah)
+    const jamaahTime = name !== 'sunrise' && jamaahTimes?.[name as keyof JamaahTimesData];
+    const effectiveTime = jamaahTime && jamaahTime > adhanTime ? jamaahTime : adhanTime;
+
+    if (effectiveTime > now) {
       return name;
     }
   }

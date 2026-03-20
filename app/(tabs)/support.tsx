@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -22,11 +22,21 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, borderRadius, typography, getElevation } from '@/constants/Theme';
 import { AmountSelector, BankDetailsSheet } from '@/components/support';
 import { donations } from '@/lib/api';
+
+// Fee calculation: blended 2.5% + 20p estimate
+const FEE_PERCENT = 0.025;
+const FEE_FIXED_PENCE = 20;
+
+function calculateFee(amountPounds: number): number {
+  const netPence = Math.round(amountPounds * 100);
+  const grossPence = Math.ceil((netPence + FEE_FIXED_PENCE) / (1 - FEE_PERCENT));
+  return (grossPence - netPence) / 100;
+}
 
 const HEADER_HEIGHT = 44;
 const LARGE_TITLE_HEIGHT = 52;
@@ -47,6 +57,20 @@ export default function SupportScreen() {
   const [amount, setAmount] = useState<number | null>(25);
   const [isLoading, setIsLoading] = useState(false);
   const [showBankDetails, setShowBankDetails] = useState(false);
+  const [giftAid, setGiftAid] = useState(false);
+  const [coverFees, setCoverFees] = useState(false);
+
+  const feeAmount = amount ? calculateFee(amount) : 0;
+  const totalAmount = amount ? amount + (coverFees ? feeAmount : 0) : 0;
+
+  // Rotate hadith daily (day of year % 10)
+  const hadith = useMemo(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    const dayOfYear = Math.floor((now.getTime() - start.getTime()) / 86400000);
+    const hadiths = t('support.hadiths', { returnObjects: true }) as Array<{ text: string; source: string }>;
+    return hadiths[dayOfYear % hadiths.length];
+  }, [t]);
 
   // Large title collapse animation
   const scrollY = useSharedValue(0);
@@ -105,6 +129,7 @@ export default function SupportScreen() {
         amount * 100, // Convert pounds to pence
         'gbp',
         frequency,
+        { giftAid, coverFees },
       );
 
       if (stripeUrl) {
@@ -113,25 +138,24 @@ export default function SupportScreen() {
           presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
         });
       }
-    } catch {
+    } catch (err) {
+      const message = err instanceof Error && err.message
+        ? err.message
+        : t('support.errorMessage');
       if (Platform.OS === 'web') {
-        window.alert(t('support.errorMessage'));
+        window.alert(message);
       } else {
-        Alert.alert(t('support.error'), t('support.errorMessage'));
+        Alert.alert(t('support.error'), message);
       }
     } finally {
       setIsLoading(false);
     }
-  }, [amount, frequency, t]);
+  }, [amount, frequency, giftAid, coverFees, t]);
 
   const handleBankTransfer = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setShowBankDetails(true);
   }, []);
-
-  const buttonLabel = amount && amount >= 1
-    ? t('support.donateButton', { amount: amount.toLocaleString() })
-    : t('support.donateButtonDefault');
 
   return (
     <View style={[styles.root, { backgroundColor: colors.backgroundSecondary }]}>
@@ -166,6 +190,13 @@ export default function SupportScreen() {
         <Animated.View entering={FadeInDown.delay(100).duration(400)}>
           <Text style={[typography.body, styles.subtitle, { color: colors.textSecondary }]}>
             {t('support.subtitle')}
+          </Text>
+        </Animated.View>
+
+        {/* Section: How often? */}
+        <Animated.View entering={FadeInDown.delay(150).duration(400)}>
+          <Text style={[typography.sectionHeader, styles.sectionLabel, { color: colors.textSecondary }]}>
+            {t('support.howOften')}
           </Text>
         </Animated.View>
 
@@ -213,6 +244,13 @@ export default function SupportScreen() {
           })}
         </Animated.View>
 
+        {/* Section: How much? */}
+        <Animated.View entering={FadeInDown.delay(250).duration(400)}>
+          <Text style={[typography.sectionHeader, styles.sectionLabel, { color: colors.textSecondary }]}>
+            {t('support.howMuch')}
+          </Text>
+        </Animated.View>
+
         {/* Amount selection */}
         <Animated.View entering={FadeInDown.delay(300).duration(400)}>
           <AmountSelector
@@ -221,63 +259,171 @@ export default function SupportScreen() {
           />
         </Animated.View>
 
-        {/* Donate button */}
-        <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+        {/* Gift Aid */}
+        <Animated.View entering={FadeInDown.delay(350).duration(400)}>
           <Pressable
             style={[
-              styles.donateButton,
+              styles.optionCard,
               {
-                backgroundColor: isLoading ? colors.textTertiary : colors.tint,
+                backgroundColor: giftAid
+                  ? (isDark ? 'rgba(45, 106, 79, 0.12)' : 'rgba(45, 106, 79, 0.06)')
+                  : (isDark ? colors.backgroundGrouped : 'rgba(45, 106, 79, 0.03)'),
+                borderColor: giftAid
+                  ? palette.sage600
+                  : (isDark ? 'rgba(45, 106, 79, 0.2)' : 'rgba(45, 106, 79, 0.12)'),
               },
             ]}
-            onPress={handleDonate}
-            disabled={isLoading}
-            accessibilityRole="button"
-            accessibilityLabel={buttonLabel}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setGiftAid(!giftAid);
+            }}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: giftAid }}
+            accessibilityLabel={t('support.giftAid')}
           >
-            {isLoading ? (
-              <Text style={[typography.headline, { color: colors.onPrimary }]}>
-                {t('support.processing')}
+            <View
+              style={[
+                styles.optionCheck,
+                {
+                  backgroundColor: giftAid ? palette.sage600 : (isDark ? colors.backgroundGrouped : '#fff'),
+                  borderColor: giftAid ? palette.sage600 : colors.separator,
+                },
+              ]}
+            >
+              {giftAid && (
+                <Ionicons name="checkmark" size={14} color="#fff" />
+              )}
+            </View>
+            <View style={styles.optionText}>
+              <Text style={[typography.subhead, { fontWeight: '600', color: palette.sage600 }]}>
+                {t('support.giftAid')}
               </Text>
-            ) : (
-              <>
-                <Ionicons name="heart" size={20} color={colors.onPrimary} />
-                <Text style={[typography.headline, { color: colors.onPrimary }]}>
-                  {buttonLabel}
-                </Text>
-              </>
-            )}
+              <Text style={[typography.footnote, { color: colors.textSecondary }]}>
+                {t('support.giftAidDescription')}
+              </Text>
+              <Text style={[typography.caption2, { color: colors.textTertiary, marginTop: spacing['2xs'] }]}>
+                {t('support.giftAidHint')}
+              </Text>
+            </View>
           </Pressable>
         </Animated.View>
 
-        {/* Divider with "or" */}
-        <View style={styles.dividerRow}>
-          <View style={[styles.dividerLine, { backgroundColor: colors.separator }]} />
-          <Text style={[typography.footnote, { color: colors.textTertiary, marginHorizontal: spacing.md }]}>
-            {t('support.or')}
-          </Text>
-          <View style={[styles.dividerLine, { backgroundColor: colors.separator }]} />
-        </View>
-
-        {/* Bank transfer card */}
-        <Animated.View entering={FadeInDown.delay(500).duration(400)}>
+        {/* Cover Processing Fees */}
+        <Animated.View entering={FadeInDown.delay(380).duration(400)}>
           <Pressable
             style={[
-              styles.bankCard,
+              styles.optionCard,
+              {
+                backgroundColor: coverFees
+                  ? (isDark ? 'rgba(15, 45, 82, 0.12)' : 'rgba(15, 45, 82, 0.06)')
+                  : (isDark ? colors.backgroundGrouped : 'rgba(15, 45, 82, 0.03)'),
+                borderColor: coverFees
+                  ? colors.tint
+                  : (isDark ? 'rgba(91, 155, 213, 0.2)' : 'rgba(15, 45, 82, 0.12)'),
+              },
+            ]}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setCoverFees(!coverFees);
+            }}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: coverFees }}
+            accessibilityLabel={t('support.coverFees')}
+          >
+            <View
+              style={[
+                styles.optionCheck,
+                {
+                  backgroundColor: coverFees ? colors.tint : (isDark ? colors.backgroundGrouped : '#fff'),
+                  borderColor: coverFees ? colors.tint : colors.separator,
+                },
+              ]}
+            >
+              {coverFees && (
+                <Ionicons name="checkmark" size={14} color="#fff" />
+              )}
+            </View>
+            <View style={styles.optionText}>
+              <Text style={[typography.subhead, { fontWeight: '600', color: colors.tint }]}>
+                {t('support.coverFees')}
+              </Text>
+              <Text style={[typography.footnote, { color: colors.textSecondary }]}>
+                {t('support.coverFeesDescription', { amount: `£${feeAmount.toFixed(2)}` })}
+              </Text>
+              <Text style={[typography.caption2, { color: colors.textTertiary, marginTop: spacing['2xs'] }]}>
+                {t('support.coverFeesHint')}
+              </Text>
+            </View>
+          </Pressable>
+        </Animated.View>
+
+        {/* Section: Payment method */}
+        <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+          <Text style={[typography.sectionHeader, styles.sectionLabel, { color: colors.textSecondary, marginTop: spacing['2xl'] }]}>
+            {t('support.paymentMethod')}
+          </Text>
+        </Animated.View>
+
+        {/* Donate Now button — Card, PayPal, Apple Pay, Google Pay */}
+        <Animated.View entering={FadeInDown.delay(420).duration(400)}>
+          <Pressable
+            style={[
+              styles.methodCard,
               {
                 backgroundColor: colors.card,
                 borderColor: colors.separator,
                 ...getElevation('sm', isDark),
               },
             ]}
+            onPress={handleDonate}
+            disabled={isLoading}
+            accessibilityRole="button"
+            accessibilityLabel={t('support.donateNow')}
+          >
+            <View style={[styles.methodIcon, { backgroundColor: colors.tint }]}>
+              <Ionicons name="card-outline" size={20} color={colors.onPrimary} />
+            </View>
+            <View style={styles.methodText}>
+              <Text style={[typography.headline, { color: colors.text }]}>
+                {isLoading ? t('support.processing') : t('support.donateNow')}
+              </Text>
+              <Text style={[typography.footnote, { color: colors.textSecondary }]}>
+                {t('support.donateNowHint')}
+              </Text>
+            </View>
+            {!isLoading && (
+              <View style={styles.methodRight}>
+                {amount && amount >= 1 && (
+                  <Text style={[typography.headline, { color: colors.tint }]}>
+                    £{totalAmount.toFixed(2)}
+                  </Text>
+                )}
+                <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+              </View>
+            )}
+          </Pressable>
+        </Animated.View>
+
+        {/* Bank Transfer */}
+        <Animated.View entering={FadeInDown.delay(450).duration(400)}>
+          <Pressable
+            style={[
+              styles.methodCard,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.separator,
+                ...getElevation('sm', isDark),
+                marginTop: spacing.sm,
+              },
+            ]}
             onPress={handleBankTransfer}
             accessibilityRole="button"
             accessibilityLabel={t('support.bankTransfer')}
           >
-            <View style={[styles.bankIcon, { backgroundColor: colors.tint }]}>
-              <Ionicons name="business-outline" size={20} color={colors.onPrimary} />
+            <View style={[styles.methodIcon, { backgroundColor: isDark ? colors.backgroundGrouped : colors.backgroundSecondary }]}>
+              <Ionicons name="business-outline" size={20} color={colors.textSecondary} />
             </View>
-            <View style={styles.bankText}>
+            <View style={styles.methodText}>
               <Text style={[typography.headline, { color: colors.text }]}>
                 {t('support.bankTransfer')}
               </Text>
@@ -287,6 +433,54 @@ export default function SupportScreen() {
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
           </Pressable>
+        </Animated.View>
+
+        {/* Security note */}
+        <Animated.View entering={FadeInDown.delay(470).duration(400)} style={styles.secureRow}>
+          <Ionicons name="shield-checkmark-outline" size={14} color={colors.textTertiary} />
+          <Text style={[typography.caption1, { color: colors.textTertiary }]}>
+            {t('support.secureNote')}
+          </Text>
+        </Animated.View>
+
+        {/* Where your donation goes */}
+        <Animated.View entering={FadeInDown.delay(500).duration(400)}>
+          <View style={[styles.impactCard, { backgroundColor: colors.card, borderColor: colors.separator, ...getElevation('sm', isDark) }]}>
+            <Text style={[typography.headline, { color: colors.text, marginBottom: spacing['2xs'] }]}>
+              {t('support.impactTitle')}
+            </Text>
+            <Text style={[typography.footnote, { color: colors.textSecondary, marginBottom: spacing.lg }]}>
+              {t('support.impactSubtitle')}
+            </Text>
+
+            {[
+              { icon: 'home-outline' as const, title: t('support.impactMaintenance'), desc: t('support.impactMaintenanceDesc') },
+              { icon: 'book-outline' as const, title: t('support.impactEducation'), desc: t('support.impactEducationDesc') },
+              { icon: 'people-outline' as const, title: t('support.impactCommunity'), desc: t('support.impactCommunityDesc') },
+            ].map((item, i) => (
+              <View key={i} style={[styles.impactRow, i < 2 && { borderBottomColor: colors.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+                <View style={[styles.impactIcon, { backgroundColor: isDark ? colors.backgroundGrouped : colors.backgroundSecondary }]}>
+                  <Ionicons name={item.icon} size={18} color={colors.tint} />
+                </View>
+                <View style={styles.impactText}>
+                  <Text style={[typography.subhead, { fontWeight: '600', color: colors.text }]}>{item.title}</Text>
+                  <Text style={[typography.caption1, { color: colors.textSecondary }]}>{item.desc}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        </Animated.View>
+
+        {/* Hadith */}
+        <Animated.View entering={FadeInDown.delay(550).duration(400)}>
+          <View style={[styles.hadithCard, { backgroundColor: isDark ? colors.backgroundGrouped : 'rgba(15, 45, 82, 0.03)', borderColor: isDark ? 'rgba(91, 155, 213, 0.12)' : 'rgba(15, 45, 82, 0.08)' }]}>
+            <Text style={[typography.callout, { color: colors.text, fontStyle: 'italic', lineHeight: 24 }]}>
+              &ldquo;{hadith.text}&rdquo;
+            </Text>
+            <Text style={[typography.caption1, { color: colors.textTertiary, marginTop: spacing.sm }]}>
+              — {hadith.source}
+            </Text>
+          </View>
         </Animated.View>
 
         {/* Footer */}
@@ -349,25 +543,31 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     alignItems: 'center',
   },
-  donateButton: {
+  optionCard: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.md,
+    padding: spacing.lg,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1.5,
+    marginTop: spacing.md,
+  },
+  optionCheck: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.sm,
-    paddingVertical: spacing.lg,
-    borderRadius: borderRadius.sm,
-    marginTop: spacing.xl,
+    marginTop: 1,
   },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: spacing.xl,
-  },
-  dividerLine: {
+  optionText: {
     flex: 1,
-    height: StyleSheet.hairlineWidth,
   },
-  bankCard: {
+  sectionLabel: {
+    marginBottom: spacing.sm,
+  },
+  methodCard: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.lg,
@@ -375,16 +575,57 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     gap: spacing.md,
   },
-  bankIcon: {
+  methodIcon: {
     width: 40,
     height: 40,
     borderRadius: borderRadius.xs,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  bankText: {
+  methodText: {
     flex: 1,
     gap: spacing['2xs'],
+  },
+  methodRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  secureRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.lg,
+    marginBottom: spacing['2xl'],
+  },
+  impactCard: {
+    padding: spacing.lg,
+    borderRadius: borderRadius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  impactRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  impactIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.xs,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  impactText: {
+    flex: 1,
+    gap: spacing['2xs'],
+  },
+  hadithCard: {
+    padding: spacing.lg,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    marginTop: spacing.lg,
   },
   footer: {
     textAlign: 'center',

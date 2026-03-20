@@ -16,6 +16,17 @@ def health(request):
     return response
 
 
+def api_root(request):
+    """Root endpoint — friendly landing for anyone hitting the base URL."""
+    return JsonResponse({
+        "name": "The Salafi Masjid API",
+        "status": "ok",
+        "docs": "/api/docs/",
+        "health": "/health/",
+        "api": "/api/v1/",
+    })
+
+
 def cors_debug(request):
     """Temporary diagnostic endpoint — shows CORS config. Remove after debugging."""
     import os
@@ -47,6 +58,7 @@ def cors_debug(request):
 
 
 urlpatterns = [
+    path("", api_root),
     path("admin/", admin.site.urls),
     path("api/v1/", include("api.urls")),
     path("health/", health),

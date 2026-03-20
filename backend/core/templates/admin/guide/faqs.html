@@ -1,9 +1,7 @@
 {% extends "admin/guide/base_guide.html" %}
-{% load static %}
 
 {% block guide_content %}
 <div class="guide-logo-header">
-  <img src="{% static 'admin/img/Masjid_Logo.png' %}" alt="The Salafi Masjid">
   <h1>Frequently Asked Questions</h1>
   <p>Quick answers to common questions about managing the admin panel.</p>
 </div>
@@ -119,6 +117,43 @@
     <summary>Do I need to manually add donations?</summary>
     <div class="faq-answer">
       <p>No — donations made through the website are recorded automatically via Stripe. You only need to add donations manually if someone donates via bank transfer, cash, or other offline methods and you want to track it in the system.</p>
+    </div>
+  </details>
+</div>
+
+<h2>Push Notifications</h2>
+<div class="faq-list">
+  <details class="faq-item">
+    <summary>Do I need to send notifications manually?</summary>
+    <div class="faq-answer">
+      <p>No — push notifications are sent <strong>automatically</strong> when you create a new announcement or event. You don't need to do anything extra. Just save the announcement or event and subscribers will be notified.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>Who receives the push notification?</summary>
+    <div class="faq-answer">
+      <p>Only community members who have:</p>
+      <ul style="padding-left: 20px; margin: 8px 0;">
+        <li><strong>Subscribed</strong> to your mosque in the app</li>
+        <li><strong>Turned on</strong> the relevant notification type (announcements or events) in their app settings</li>
+        <li><strong>Allowed</strong> notifications on their phone</li>
+      </ul>
+      <p>You can see subscriber preferences in the <strong>Subscriptions</strong> section of the admin panel.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>Does editing an announcement send another notification?</summary>
+    <div class="faq-answer">
+      <p>No. Push notifications are only sent when an announcement or event is <strong>first created</strong>. Editing an existing one does not send another notification. If you need to re-notify people, delete the old announcement and create a new one.</p>
+    </div>
+  </details>
+
+  <details class="faq-item">
+    <summary>What happens when someone uninstalls the app?</summary>
+    <div class="faq-answer">
+      <p>Their push token becomes invalid. The system automatically detects this and removes the old token so it doesn't slow things down. You don't need to do anything.</p>
     </div>
   </details>
 </div>
