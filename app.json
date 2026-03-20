@@ -1,9 +1,9 @@
 {
   "expo": {
     "name": "The Salafi Masjid",
-    "slug": "mosque-connect",
+    "slug": "masjid-app",
     "version": "1.0.0",
-    "owner": "masjid-connect",
+    "owner": "salafimasjid",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "salafimasjid",
@@ -16,10 +16,10 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/YOUR_PROJECT_ID_HERE"
+      "url": "https://u.expo.dev/2c59ce1c-80b6-434a-9c9f-90a1fd1f415f"
     },
     "splash": {
-      "image": "./assets/images/Masjid_Logo.png",
+      "image": "./assets/images/Masjid-Logo-App.png",
       "resizeMode": "contain",
       "backgroundColor": "#F9F7F2"
     },
@@ -39,7 +39,12 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "package": "app.salafimasjid",
-      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"]
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -52,7 +57,9 @@
       [
         "expo-notifications",
         {
-          "sounds": ["./assets/sounds/adhan.wav"]
+          "sounds": [
+            "./assets/sounds/adhan.wav"
+          ]
         }
       ],
       [
@@ -67,8 +74,9 @@
     },
     "extra": {
       "eas": {
-        "projectId": "SET_YOUR_EAS_PROJECT_ID_HERE"
-      }
+        "projectId": "2c59ce1c-80b6-434a-9c9f-90a1fd1f415f"
+      },
+      "router": {}
     }
   }
 }
