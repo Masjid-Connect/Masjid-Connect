@@ -96,41 +96,85 @@
   /* Layout */
   --max-width: 1120px;
   --nav-height: 72px;
+
+  /* ─── Semantic Layer ──────────────────────────────────────── */
+  /* Maps intent to palette vars. Matches mobile semantic tokens. */
+  --surface-main: var(--stone-100);
+  --surface-card: #FFFFFF;
+  --surface-grouped: var(--stone-300);
+  --surface-frosted: rgba(249, 247, 242, 0.85);
+  --text-primary: var(--onyx-900);
+  --text-secondary: var(--onyx-600);
+  --text-tertiary: var(--onyx-400);
+  --brand-primary: var(--sapphire-700);
+  --brand-accent: var(--divine-gold);
+  --status-success: var(--sage-600);
+  --status-urgent: var(--crimson-600);
+  --status-active-prayer: var(--divine-gold);
+  /* Alpha tokens — translucent surfaces */
+  --alpha-urgent-bg: rgba(185, 28, 28, 0.05);
+  --alpha-prayer-active-bg: rgba(212, 175, 55, 0.04);
+  --alpha-frosted-border: rgba(0, 0, 0, 0.04);
+  --alpha-action-bg: rgba(0, 0, 0, 0.03);
 }
 
 /* ─── Dark Mode — "Midnight in the Masjid" ─────────────────── */
-/* Deep sapphire navy, not black — the brand lives in every pixel */
+/* Deep sapphire navy, not black — the brand lives in every pixel.
+   Values here MUST match mobile palette in constants/Colors.ts. */
 [data-theme="dark"] {
-  --stone-100: #0B1120;
-  --stone-200: #111D33;
-  --stone-300: #182844;
+  /* Backgrounds → sapphire navy family (matching mobile sapphire950/900/800) */
+  --stone-100: #0A1628;
+  --stone-200: #0F1E34;
+  --stone-300: #18304E;
+  /* Text → snow family (matching mobile snow/snowSecondary/snowTertiary) */
   --onyx-900: #F5F5F7;
-  --onyx-850: #111D33;
-  --onyx-800: #182844;
-  --onyx-600: #8BA3C4;
-  --onyx-400: #5A7599;
+  --onyx-850: #0F1E34;
+  --onyx-800: #18304E;
+  --onyx-600: #8E8E93;
+  --onyx-400: #636366;
+  /* Brand tints for dark mode */
   --sapphire-700: #5B9BD5;
-  --sapphire-600: #7AB4E4;
+  --sapphire-600: #1A3F6B;
   --sapphire-400: #5B9BD5;
+  /* Gold — brighter variant for dark contrast (matching mobile divineGoldBright) */
   --divine-gold: #E5C14B;
-  --divine-gold-bright: #F0D060;
-  --divine-gold-glow: rgba(229, 193, 75, 0.12);
-  --sage-600: #4DA87A;
-  --crimson-600: #EF4444;
-  --separator: rgba(255,255,255,0.08);
+  --divine-gold-bright: #E5C14B;
+  --divine-gold-glow: rgba(229, 193, 75, 0.15);
+  /* Status colors — lighter variants for dark backgrounds (matching mobile) */
+  --sage-600: #6BCB9B;
+  --crimson-600: #F87171;
+  /* Separator — sapphire navy divider (matching mobile sapphireSeparator) */
+  --separator: #1E3B5A;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
   --shadow-md: 0 2px 8px rgba(0,0,0,0.4);
   --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
   --shadow-xl: 0 16px 48px rgba(0,0,0,0.6);
+  /* Semantic layer — dark overrides */
+  --surface-main: var(--stone-100);
+  --surface-card: #132742;
+  --surface-grouped: var(--stone-300);
+  --surface-frosted: rgba(10, 22, 40, 0.85);
+  --text-primary: var(--onyx-900);
+  --text-secondary: var(--onyx-600);
+  --text-tertiary: var(--onyx-400);
+  --brand-primary: var(--sapphire-400);
+  --brand-accent: var(--divine-gold);
+  --status-success: var(--sage-600);
+  --status-urgent: var(--crimson-600);
+  --status-active-prayer: var(--divine-gold);
+  --alpha-urgent-bg: rgba(248, 113, 113, 0.12);
+  --alpha-prayer-active-bg: rgba(229, 193, 75, 0.06);
+  --alpha-frosted-border: rgba(255, 255, 255, 0.08);
+  --alpha-action-bg: rgba(255, 255, 255, 0.06);
 }
 
 /* Dark: Navbar */
 [data-theme="dark"] .navbar.is-scrolled {
-  background: rgba(11, 17, 32, 0.94);
+  background: rgba(10, 22, 40, 0.94);
 }
 
 [data-theme="dark"] .navbar.is-scrolled .navbar__link {
-  color: #8BA3C4;
+  color: var(--onyx-600);
 }
 
 [data-theme="dark"] .navbar.is-scrolled .navbar__link:hover {
@@ -146,7 +190,7 @@
 }
 
 [data-theme="dark"] .navbar--solid {
-  background: rgba(11, 17, 32, 0.97);
+  background: rgba(10, 22, 40, 0.97);
 }
 
 [data-theme="dark"] .navbar--solid .navbar__logo-img {
@@ -154,7 +198,7 @@
 }
 
 [data-theme="dark"] .navbar--solid .navbar__link {
-  color: #8BA3C4;
+  color: var(--onyx-600);
 }
 
 [data-theme="dark"] .navbar--solid .navbar__link:hover {
@@ -171,7 +215,7 @@
 }
 
 [data-theme="dark"] .section-subtitle {
-  color: #8BA3C4;
+  color: var(--onyx-600);
 }
 
 /* Dark: Feature cards */
@@ -189,7 +233,7 @@
 }
 
 [data-theme="dark"] .feature__desc {
-  color: #8BA3C4;
+  color: var(--onyx-600);
 }
 
 /* Dark: Showcase */
@@ -280,7 +324,7 @@
 }
 
 [data-theme="dark"] .contact-form__label {
-  color: #8BA3C4;
+  color: var(--onyx-600);
 }
 
 /* Dark: Contact info */
@@ -295,7 +339,7 @@
 }
 
 [data-theme="dark"] .donate__freq-btn {
-  color: #8BA3C4;
+  color: var(--onyx-600);
 }
 
 [data-theme="dark"] .donate__frequency {

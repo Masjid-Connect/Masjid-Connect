@@ -2,8 +2,9 @@ import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import * as Updates from 'expo-updates';
 import { useCallback, useEffect, useState } from 'react';
-import { AppState } from 'react-native';
+import { Alert, AppState, Platform } from 'react-native';
 import 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 
@@ -77,6 +78,37 @@ function RootLayout() {
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') reschedulePrayerRemindersForToday().catch(() => {});
     });
+    return () => sub.remove();
+  }, []);
+
+  // Check for OTA updates when app comes to foreground
+  useEffect(() => {
+    if (__DEV__ || Platform.OS === 'web') return;
+
+    async function checkForUpdate() {
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          Alert.alert(
+            'Update Available',
+            'A new version has been downloaded. Restart to apply?',
+            [
+              { text: 'Later', style: 'cancel' },
+              { text: 'Restart', onPress: () => Updates.reloadAsync() },
+            ],
+          );
+        }
+      } catch {
+        // Silently fail — update check is best-effort
+      }
+    }
+
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') checkForUpdate();
+    });
+    // Also check on initial mount
+    checkForUpdate();
     return () => sub.remove();
   }, []);
 

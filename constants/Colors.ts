@@ -228,6 +228,11 @@ export const alpha = {
     light: 'rgba(0, 0, 0, 0.03)',
     dark: 'rgba(255, 255, 255, 0.06)',
   },
+  /** Gold-tinted pill/chip backgrounds (e.g. "Today" pill in DateNavigator) */
+  accentPill: {
+    light: 'rgba(212, 175, 55, 0.12)',
+    dark: 'rgba(229, 193, 75, 0.15)',
+  },
 } as const;
 
 export type ColorScheme = 'light' | 'dark';
@@ -247,6 +252,7 @@ export function getAlpha(scheme: string | null | undefined) {
     frostedBg: alpha.frostedBg[key],
     frostedBorder: alpha.frostedBorder[key],
     actionBg: alpha.actionBg[key],
+    accentPill: alpha.accentPill[key],
   };
 }
 

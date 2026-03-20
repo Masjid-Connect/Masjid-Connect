@@ -66,6 +66,31 @@ jobs:
           ALLOWED_HOSTS: "*"
 
   # -----------------------------------------------------------
+  # Publish OTA update via EAS (only on push to main, after tests pass)
+  # Requires EXPO_TOKEN secret set in repo settings.
+  # -----------------------------------------------------------
+  eas-update:
+    name: EAS Update (OTA)
+    runs-on: ubuntu-latest
+    needs: [frontend, backend]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci --legacy-peer-deps
+
+      - name: Publish OTA update
+        run: npx eas-cli update --branch production --auto --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+  # -----------------------------------------------------------
   # Deploy to production (only on push to main, after tests pass)
   # -----------------------------------------------------------
   deploy:
