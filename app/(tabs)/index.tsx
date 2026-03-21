@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -10,14 +10,24 @@ import {
   useWindowDimensions,
   type ViewStyle,
 } from 'react-native';
-import Animated, { FadeInDown, FadeIn, useReducedMotion } from 'react-native-reanimated';
+import Animated, {
+  FadeInDown,
+  FadeIn,
+  useReducedMotion,
+  useSharedValue,
+  useAnimatedStyle,
+  withSequence,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, getElevation } from '@/constants/Theme';
+import { spacing, typography, borderRadius, getElevation, springs } from '@/constants/Theme';
 import { layout, patterns } from '@/lib/layoutGrid';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { formatPrayerTime } from '@/lib/prayer';
@@ -74,6 +84,45 @@ export default function PrayerTimesScreen() {
 
   const [refreshing, setRefreshing] = React.useState(false);
   const [heroLayout, setHeroLayout] = useState<{ width: number; height: number }>({ width: screenWidth, height: layout.heroHeight });
+
+  // ─── Prayer transition animations ───────────────────────────────
+  // Scale pulse on countdown + gold overlay flash when active prayer changes
+  const prevNextPrayer = useRef<PrayerName | null>(null);
+  const countdownScale = useSharedValue(1);
+  const goldPulseOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (
+      nextPrayer &&
+      prevNextPrayer.current !== null &&
+      prevNextPrayer.current !== nextPrayer
+    ) {
+      // Sacred moment: prayer has transitioned
+      if (!reducedMotion) {
+        // Countdown scale pulse: 1 → 1.08 → 1 (spring)
+        countdownScale.value = withSequence(
+          withSpring(1.08, springs.snappy),
+          withSpring(1, springs.gentle),
+        );
+        // Gold overlay flash: 0 → 0.25 → 0
+        goldPulseOpacity.value = withSequence(
+          withTiming(0.25, { duration: 200 }),
+          withTiming(0, { duration: 600 }),
+        );
+      }
+      // Haptic feedback — Medium impact for prayer transition (sacred moment)
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    prevNextPrayer.current = nextPrayer;
+  }, [nextPrayer]);
+
+  const countdownAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: countdownScale.value }],
+  }));
+
+  const goldPulseStyle = useAnimatedStyle(() => ({
+    opacity: goldPulseOpacity.value,
+  }));
 
   // Horizontal swipe to change date
   const swipeHandled = useRef(false);
@@ -164,6 +213,16 @@ export default function PrayerTimesScreen() {
             tileSize={patterns.tileSize}
           />
 
+          {/* Gold pulse overlay — momentary flash on prayer transition */}
+          <Animated.View
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: isDark ? palette.divineGoldBright : palette.divineGold },
+              goldPulseStyle,
+            ]}
+            pointerEvents="none"
+          />
+
           <Animated.View
             entering={FadeIn.duration(600)}
             style={styles.heroContent}
@@ -177,15 +236,17 @@ export default function PrayerTimesScreen() {
                   {t(`prayer.${nextPrayerData.name}`)}
                 </Text>
 
-                {/* Countdown — large ultralight, contrasts with the bold name */}
+                {/* Countdown — large ultralight, spring scale on prayer transition */}
                 {countdown ? (
-                  <Text style={[
-                    styles.countdown,
-                    { color: colors.text },
-                    isLandscape && { fontSize: 32, lineHeight: 38 },
-                  ]}>
-                    {countdown}
-                  </Text>
+                  <Animated.View style={countdownAnimatedStyle}>
+                    <Text style={[
+                      styles.countdown,
+                      { color: colors.text },
+                      isLandscape && { fontSize: 32, lineHeight: 38 },
+                    ]}>
+                      {countdown}
+                    </Text>
+                  </Animated.View>
                 ) : null}
 
                 {/* Prayer time — tertiary, gold accent */}

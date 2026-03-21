@@ -76,7 +76,6 @@ export default function TabLayout() {
       {/* Hide old standalone tabs — kept as files for now but not in tab bar */}
       <Tabs.Screen name="announcements" options={{ href: null, tabBarItemStyle: { display: 'none' } }} />
       <Tabs.Screen name="events" options={{ href: null, tabBarItemStyle: { display: 'none' } }} />
-      <Tabs.Screen name="qibla" options={{ href: null, tabBarItemStyle: { display: 'none' } }} />
     </Tabs>
   );
 }
