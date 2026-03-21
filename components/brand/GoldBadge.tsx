@@ -10,6 +10,7 @@ import React from 'react';
 import { StyleSheet, View, Text, ViewStyle } from 'react-native';
 
 import { palette } from '@/constants/Colors';
+import { spacing } from '@/constants/Theme';
 
 interface GoldBadgeProps {
   /** Number to display inside the badge. If undefined, shows a dot. */
@@ -28,7 +29,7 @@ export const GoldBadge = ({
   count,
   size = 18,
   color = palette.divineGold,
-  textColor = '#FFFFFF',
+  textColor = palette.white,
   style,
 }: GoldBadgeProps) => {
   const showCount = count !== undefined && count > 0;
@@ -45,7 +46,7 @@ export const GoldBadge = ({
           height: dotSize,
           minWidth: dotSize,
           borderRadius: dotSize / 2,
-          paddingHorizontal: showCount ? 5 : 0,
+          paddingHorizontal: showCount ? spacing.xs : 0,
         },
         style,
       ]}

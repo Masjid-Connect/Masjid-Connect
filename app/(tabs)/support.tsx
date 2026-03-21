@@ -285,13 +285,13 @@ export default function SupportScreen() {
               style={[
                 styles.optionCheck,
                 {
-                  backgroundColor: giftAid ? palette.sage600 : (isDark ? colors.backgroundGrouped : '#fff'),
+                  backgroundColor: giftAid ? palette.sage600 : (isDark ? colors.backgroundGrouped : palette.white),
                   borderColor: giftAid ? palette.sage600 : colors.separator,
                 },
               ]}
             >
               {giftAid && (
-                <Ionicons name="checkmark" size={14} color="#fff" />
+                <Ionicons name="checkmark" size={14} color={palette.white} />
               )}
             </View>
             <View style={styles.optionText}>
@@ -334,13 +334,13 @@ export default function SupportScreen() {
               style={[
                 styles.optionCheck,
                 {
-                  backgroundColor: coverFees ? colors.tint : (isDark ? colors.backgroundGrouped : '#fff'),
+                  backgroundColor: coverFees ? colors.tint : (isDark ? colors.backgroundGrouped : palette.white),
                   borderColor: coverFees ? colors.tint : colors.separator,
                 },
               ]}
             >
               {coverFees && (
-                <Ionicons name="checkmark" size={14} color="#fff" />
+                <Ionicons name="checkmark" size={14} color={palette.white} />
               )}
             </View>
             <View style={styles.optionText}>

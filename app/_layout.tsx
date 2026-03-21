@@ -37,7 +37,7 @@ const MosqueLight = {
     ...DefaultTheme.colors,
     primary: palette.sapphire700,
     background: palette.stone100,
-    card: '#FFFFFF',
+    card: palette.white,
     text: palette.onyx900,
     border: palette.separatorLight,
     notification: palette.divineGold,

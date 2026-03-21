@@ -21,7 +21,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { borderRadius, spacing, springs, typography } from '@/constants/Theme';
+import { borderRadius, components, spacing, springs, typography } from '@/constants/Theme';
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -143,7 +143,7 @@ export const AuthGate = ({ variant }: AuthGateProps) => {
                 <Text style={[typography.headline, { color: colors.text }]}>
                   {t(prop.titleKey)}
                 </Text>
-                <Text style={[typography.footnote, { color: colors.textSecondary, marginTop: 2 }]}>
+                <Text style={[typography.footnote, { color: colors.textSecondary, marginTop: spacing['2xs'] }]}>
                   {t(prop.subtitleKey)}
                 </Text>
               </View>
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   primaryBtn: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: 52,
+    height: components.button.height,
     borderRadius: borderRadius.xl,
   },
   secondaryBtn: {

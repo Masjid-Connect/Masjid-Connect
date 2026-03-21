@@ -221,8 +221,8 @@ export const ReportIssueSheet = ({ visible, onDismiss }: ReportIssueSheetProps) 
               },
             ]}
           >
-            <Ionicons name="send" size={18} color="#FFFFFF" style={{ marginRight: spacing.sm }} />
-            <Text style={[typography.headline, { color: '#FFFFFF' }]}>
+            <Ionicons name="send" size={18} color={palette.white} style={{ marginRight: spacing.sm }} />
+            <Text style={[typography.headline, { color: palette.white }]}>
               {submitting ? t('settings.feedbackSending') : t('settings.reportIssueSend')}
             </Text>
           </Pressable>

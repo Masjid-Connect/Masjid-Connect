@@ -248,6 +248,6 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     ...typography.subhead,
-    marginTop: 2,
+    marginTop: spacing['2xs'],
   },
 });
