@@ -10,8 +10,6 @@ export const fonts = {
   headingSemiBold: undefined,
   body: undefined,
   bodyMedium: undefined,
-  arabicHeading: undefined, // system Arabic (SF Arabic / Noto)
-  arabicBody: undefined,
   mono: 'SpaceMono',
 } as const;
 
@@ -242,76 +240,6 @@ export const typography: Record<string, TextStyle> = {
   },
 };
 
-/** Arabic typography — mirrors English scale with Arabic-appropriate line heights */
-export const arabicTypography: Record<string, TextStyle> = {
-  largeTitle: {
-    fontSize: 34,
-    fontWeight: '700',
-    lineHeight: 44,
-  },
-  title1: {
-    fontSize: 28,
-    fontWeight: '700',
-    lineHeight: 38,
-  },
-  title2: {
-    fontSize: 22,
-    fontWeight: '700',
-    lineHeight: 30,
-  },
-  title3: {
-    fontSize: 20,
-    fontWeight: '600',
-    lineHeight: 28,
-  },
-  headline: {
-    fontSize: 17,
-    fontWeight: '600',
-    lineHeight: 24,
-  },
-  body: {
-    fontSize: 17,
-    fontWeight: '400',
-    lineHeight: 28,
-  },
-  callout: {
-    fontSize: 16,
-    fontWeight: '400',
-    lineHeight: 24,
-  },
-  subhead: {
-    fontSize: 15,
-    fontWeight: '400',
-    lineHeight: 24,
-  },
-  footnote: {
-    fontSize: 13,
-    fontWeight: '400',
-    lineHeight: 20,
-  },
-  caption1: {
-    fontSize: 12,
-    fontWeight: '400',
-    lineHeight: 20,
-  },
-  caption2: {
-    fontSize: 11,
-    fontWeight: '400',
-    lineHeight: 16,
-  },
-  // Legacy alias
-  heading: {
-    fontSize: 28,
-    fontWeight: '700',
-    lineHeight: 38,
-  },
-  caption: {
-    fontSize: 12,
-    fontWeight: '400',
-    lineHeight: 20,
-  },
-};
-
 /**
  * Component-specific dimension tokens.
  * For values that don't fit the spacing/borderRadius scales
@@ -417,13 +345,3 @@ export function getScaledTypography(): Record<string, TextStyle> {
   return result;
 }
 
-/**
- * Returns the Arabic typography scale with dynamic type applied.
- */
-export function getScaledArabicTypography(): Record<string, TextStyle> {
-  const result: Record<string, TextStyle> = {};
-  for (const [key, style] of Object.entries(arabicTypography)) {
-    result[key] = scaleTextStyle(style);
-  }
-  return result;
-}
