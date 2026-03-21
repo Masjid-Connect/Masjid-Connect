@@ -26,6 +26,17 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.salafimasjid",
+      "icon": "./assets/images/icon.png",
+      "splash": {
+        "image": "./assets/images/Masjid-Logo-App.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#F9F7F2",
+        "dark": {
+          "image": "./assets/images/Masjid-Logo-App.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#0A0A0C"
+        }
+      },
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "The Salafi Masjid app uses your location to calculate accurate prayer times and find nearby mosques.",
         "ITSAppUsesNonExemptEncryption": false
@@ -39,6 +50,16 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "package": "app.salafimasjid",
+      "splash": {
+        "image": "./assets/images/Masjid-Logo-App.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#F9F7F2",
+        "dark": {
+          "image": "./assets/images/Masjid-Logo-App.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#0A0A0C"
+        }
+      },
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
