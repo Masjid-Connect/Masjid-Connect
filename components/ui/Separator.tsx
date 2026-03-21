@@ -21,7 +21,7 @@ export const Separator = ({ inset = 0, style }: SeparatorProps) => {
     <View
       style={[
         styles.separator,
-        { backgroundColor: colors.separator, marginLeft: inset },
+        { backgroundColor: colors.separator, marginStart: inset },
         style,
       ]}
     />

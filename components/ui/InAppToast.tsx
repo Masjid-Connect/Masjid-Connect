@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginRight: spacing.md,
+    marginEnd: spacing.md,
   },
   textContainer: {
     flex: 1,

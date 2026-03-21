@@ -111,7 +111,7 @@ const ThemeCard = ({
           name={icon}
           size={18}
           color={selected ? colors.tint : colors.textSecondary}
-          style={{ marginRight: spacing.xs }}
+          style={{ marginEnd: spacing.xs }}
         />
         <Text
           style={[
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
     width: badge.smallDotSize,
     height: badge.smallDotSize,
     borderRadius: badge.smallDotSize / 2,
-    marginRight: badge.smallDotSize,
+    marginEnd: badge.smallDotSize,
   },
   checkBadge: {
     position: 'absolute',

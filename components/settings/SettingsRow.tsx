@@ -113,7 +113,7 @@ export const SettingsRow = ({
         {accessory === 'disclosure' && (
           <View style={styles.disclosureContent}>
             {value ? (
-              <Text style={[typography.body, { color: colors.textSecondary, marginRight: spacing.xs }]} numberOfLines={1}>
+              <Text style={[typography.body, { color: colors.textSecondary, marginEnd: spacing.xs }]} numberOfLines={1}>
                 {value}
               </Text>
             ) : null}
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: spacing.lg,
+    paddingStart: spacing.lg,
     minHeight: layout.minTouchTarget,
   },
   iconBox: {
@@ -144,14 +144,14 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xs,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: spacing.md,
+    marginEnd: spacing.md,
   },
   content: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: spacing.md,
-    paddingRight: spacing.lg,
+    paddingEnd: spacing.lg,
   },
   separator: {
     borderBottomWidth: StyleSheet.hairlineWidth,
