@@ -95,11 +95,11 @@ export const ListRow = ({
 
 const styles = StyleSheet.create({
   row: {
-    paddingLeft: spacing.lg,
+    paddingStart: spacing.lg,
   },
   content: {
     paddingVertical: spacing.lg,
-    paddingRight: spacing.lg,
+    paddingEnd: spacing.lg,
   },
   separator: {
     borderBottomWidth: StyleSheet.hairlineWidth,

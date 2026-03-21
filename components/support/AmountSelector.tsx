@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   checkmark: {
-    marginLeft: spacing['2xs'],
+    marginStart: spacing['2xs'],
   },
   customInputContainer: {
     flexDirection: 'row',

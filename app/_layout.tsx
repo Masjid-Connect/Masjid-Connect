@@ -58,6 +58,7 @@ const MosqueDark = {
 };
 
 function RootLayout() {
+  const { t } = useTranslation();
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
@@ -91,11 +92,11 @@ function RootLayout() {
         if (update.isAvailable) {
           await Updates.fetchUpdateAsync();
           Alert.alert(
-            'Update Available',
-            'A new version has been downloaded. Restart to apply?',
+            t('common.updateAvailable'),
+            t('common.updateMessage'),
             [
-              { text: 'Later', style: 'cancel' },
-              { text: 'Restart', onPress: () => Updates.reloadAsync() },
+              { text: t('common.updateLater'), style: 'cancel' },
+              { text: t('common.updateRestart'), onPress: () => Updates.reloadAsync() },
             ],
           );
         }

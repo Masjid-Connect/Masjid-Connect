@@ -463,13 +463,13 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   row: {
-    paddingLeft: spacing.lg,
+    paddingStart: spacing.lg,
   },
   rowInner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     paddingVertical: spacing.lg,
-    paddingRight: spacing.lg,
+    paddingEnd: spacing.lg,
   },
   rowSeparator: {
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
   },
   chevronColumn: {
     justifyContent: 'center',
-    paddingLeft: spacing.sm,
+    paddingStart: spacing.sm,
     paddingTop: spacing.xs,
     opacity: 0.5,
   },

@@ -74,10 +74,10 @@ export const QuickPostSheet = ({
     if (title || body) {
       Alert.alert(
         t('common.cancel'),
-        'Discard this announcement?',
+        t('admin.discardAnnouncement'),
         [
-          { text: 'Keep editing', style: 'cancel' },
-          { text: 'Discard', style: 'destructive', onPress: () => { resetForm(); onDismiss(); } },
+          { text: t('admin.keepEditing'), style: 'cancel' },
+          { text: t('admin.discard'), style: 'destructive', onPress: () => { resetForm(); onDismiss(); } },
         ],
       );
     } else {

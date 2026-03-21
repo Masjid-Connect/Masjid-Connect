@@ -136,8 +136,8 @@ const styles = StyleSheet.create({
   },
   info: {
     flex: 1,
-    marginLeft: spacing.lg,
-    marginRight: spacing.sm,
+    marginStart: spacing.lg,
+    marginEnd: spacing.sm,
   },
   guestCard: {
     flexDirection: 'column',

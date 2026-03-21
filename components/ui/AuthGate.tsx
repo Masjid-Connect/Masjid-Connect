@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: spacing.lg,
+    marginEnd: spacing.lg,
   },
   propText: {
     flex: 1,

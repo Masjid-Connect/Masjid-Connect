@@ -170,7 +170,7 @@ export const ReportIssueSheet = ({ visible, onDismiss }: ReportIssueSheetProps) 
                       typography.subhead,
                       {
                         color: isSelected ? colors.tint : colors.text,
-                        marginLeft: spacing.sm,
+                        marginStart: spacing.sm,
                       },
                     ]}
                   >
@@ -181,7 +181,7 @@ export const ReportIssueSheet = ({ visible, onDismiss }: ReportIssueSheetProps) 
                       name="checkmark"
                       size={16}
                       color={colors.tint}
-                      style={{ marginLeft: spacing.xs }}
+                      style={{ marginStart: spacing.xs }}
                     />
                   )}
                 </Pressable>
@@ -221,7 +221,7 @@ export const ReportIssueSheet = ({ visible, onDismiss }: ReportIssueSheetProps) 
               },
             ]}
           >
-            <Ionicons name="send" size={18} color={palette.white} style={{ marginRight: spacing.sm }} />
+            <Ionicons name="send" size={18} color={palette.white} style={{ marginEnd: spacing.sm }} />
             <Text style={[typography.headline, { color: palette.white }]}>
               {submitting ? t('settings.feedbackSending') : t('settings.reportIssueSend')}
             </Text>

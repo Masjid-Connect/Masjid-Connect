@@ -401,7 +401,13 @@
     "locationError": "تعذر تحديد موقعك. يرجى المحاولة مرة أخرى.",
     "calendarError": "تعذر فتح التقويم.",
     "networkError": "تعذر الاتصال. يرجى التحقق من الإنترنت والمحاولة مرة أخرى.",
-    "clearFilter": "مسح الفلتر"
+    "clearFilter": "مسح الفلتر",
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور",
+    "updateAvailable": "تحديث متاح",
+    "updateMessage": "تم تحميل إصدار جديد. هل تريد إعادة التشغيل للتطبيق؟",
+    "updateLater": "لاحقاً",
+    "updateRestart": "إعادة التشغيل"
   },
   "legal": {
     "privacyPolicy": "سياسة الخصوصية",

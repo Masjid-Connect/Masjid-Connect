@@ -94,6 +94,6 @@ const styles = StyleSheet.create({
   },
   optionText: {
     flex: 1,
-    marginRight: spacing.md,
+    marginEnd: spacing.md,
   },
 });

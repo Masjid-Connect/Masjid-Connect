@@ -83,10 +83,10 @@ export const EventWizardSheet = ({
     if (title || description) {
       Alert.alert(
         t('common.cancel'),
-        'Discard this event?',
+        t('admin.discardEvent'),
         [
-          { text: 'Keep editing', style: 'cancel' },
-          { text: 'Discard', style: 'destructive', onPress: () => { resetForm(); onDismiss(); } },
+          { text: t('admin.keepEditing'), style: 'cancel' },
+          { text: t('admin.discard'), style: 'destructive', onPress: () => { resetForm(); onDismiss(); } },
         ],
       );
     } else {
