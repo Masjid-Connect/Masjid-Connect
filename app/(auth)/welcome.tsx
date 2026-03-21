@@ -27,7 +27,7 @@ import Animated, {
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography, springs, components, timing } from '@/constants/Theme';
+import { spacing, borderRadius, typography, springs, components, timing, layout } from '@/constants/Theme';
 import { patterns } from '@/lib/layoutGrid';
 import { useAuth } from '@/contexts/AuthContext';
 import { SkiaAtmosphericGradient, IslamicPattern, SolarLight } from '@/components/brand';
@@ -433,6 +433,8 @@ const styles = StyleSheet.create({
   },
   guestLink: {
     marginTop: spacing['2xl'],
+    minHeight: layout.minTouchTarget,
+    justifyContent: 'center',
     paddingVertical: spacing.sm,
   },
 });

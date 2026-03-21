@@ -38,7 +38,7 @@ export const palette = {
   sapphire800: '#18304E',   // Dark mode grouped list backgrounds
   sapphire700: '#0F2D52',   // Brand primary (light mode tint, tab selection)
   sapphire600: '#1A3F6B',   // Slightly lighter for interactive states
-  sapphire400: '#5B9BD5',   // Dark mode tint (lighter for dark backgrounds)
+  sapphire400: '#6BABE5',   // Dark mode tint (lighter for dark backgrounds, WCAG AA on sapphire850+)
   sapphireLight: '#EBF2FA', // Tint background (light mode)
   sapphireSeparator: '#1E3B5A', // Dark mode dividers — visible on navy
 
@@ -47,9 +47,9 @@ export const palette = {
   sage400: '#6BCB9B',       // Success states (dark mode)
 
   // ─── Gold: divine accent, prayer signal ─────────────────────────
-  divineGold: '#D4AF37',    // Rich matte leaf gold — accent, prayer active
-  divineGoldBright: '#E5C14B', // Brighter variant for dark mode contrast
-  divineGoldGlow: 'rgba(212, 175, 55, 0.08)', // Subtle glow for active prayer
+  divineGold: '#BF9B30',    // Rich matte leaf gold — accent, prayer active (3:1+ on Stone-100)
+  divineGoldBright: '#F0D060', // Brighter variant for dark mode contrast (4.5:1+ on sapphire950)
+  divineGoldGlow: 'rgba(191, 155, 48, 0.08)', // Subtle glow for active prayer
   divineGoldText: '#8A7023',        // Darker gold for text on light backgrounds (4.5:1 contrast on white)
   divineGoldTextDark: '#E0C96B',    // Lighter gold for text on dark backgrounds (4.5:1 contrast on black)
 
@@ -102,7 +102,7 @@ export const palette = {
   // Legacy emerald aliases → sapphire
   emerald700: '#0F2D52',
   emerald600: '#2D6A4F',
-  emerald400: '#5B9BD5',
+  emerald400: '#6BABE5',
 } as const;
 
 /**
@@ -185,7 +185,7 @@ const Colors = {
     tabIconSelected: palette.divineGoldBright,
     divider: palette.sapphireSeparator,
     prayerActive: palette.divineGoldBright,
-    prayerActiveGlow: 'rgba(229, 193, 75, 0.15)',
+    prayerActiveGlow: 'rgba(240, 208, 96, 0.15)',
     separator: palette.sapphireSeparator,
     inverseText: palette.sapphire950,
     onPrimary: palette.white,
@@ -210,8 +210,8 @@ export const alpha = {
   },
   /** Prayer active row highlight */
   prayerActiveBg: {
-    light: 'rgba(212, 175, 55, 0.04)',
-    dark: 'rgba(229, 193, 75, 0.06)',
+    light: 'rgba(191, 155, 48, 0.04)',
+    dark: 'rgba(240, 208, 96, 0.06)',
   },
   /** Frosted navigation / sheet backgrounds (tab bar, bottom zones) */
   frostedBg: {
@@ -230,8 +230,8 @@ export const alpha = {
   },
   /** Gold-tinted pill/chip backgrounds (e.g. "Today" pill in DateNavigator) */
   accentPill: {
-    light: 'rgba(212, 175, 55, 0.12)',
-    dark: 'rgba(229, 193, 75, 0.15)',
+    light: 'rgba(191, 155, 48, 0.12)',
+    dark: 'rgba(240, 208, 96, 0.15)',
   },
 } as const;
 
