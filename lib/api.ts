@@ -5,7 +5,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
-import type { Mosque, Announcement, MosqueEvent, UserSubscription } from '@/types';
+import type { Mosque, Announcement, MosqueEvent, UserSubscription, MosqueAdminRole, AnnouncementCreatePayload, EventCreatePayload } from '@/types';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.salafimasjid.app/api/v1';
 
@@ -298,6 +298,24 @@ export const announcements = {
     };
   },
 
+  async create(payload: AnnouncementCreatePayload) {
+    return request<Record<string, unknown>>('/announcements/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }).then(mapAnnouncement);
+  },
+
+  async update(id: string, payload: Partial<AnnouncementCreatePayload>) {
+    return request<Record<string, unknown>>(`/announcements/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }).then(mapAnnouncement);
+  },
+
+  async delete(id: string) {
+    return request<void>(`/announcements/${id}/`, { method: 'DELETE' });
+  },
+
   // Realtime not supported in Django REST — use polling via refresh
   subscribe(_mosqueIds: string[], _callback: (data: Announcement) => void) {
     // No-op: Django doesn't support realtime subscriptions out of the box.
@@ -348,6 +366,24 @@ export const events = {
   async getById(id: string) {
     const raw = await request<Record<string, unknown>>(`/events/${id}/`);
     return mapEvent(raw);
+  },
+
+  async create(payload: EventCreatePayload) {
+    return request<Record<string, unknown>>('/events/', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }).then(mapEvent);
+  },
+
+  async update(id: string, payload: Partial<EventCreatePayload>) {
+    return request<Record<string, unknown>>(`/events/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload),
+    }).then(mapEvent);
+  },
+
+  async delete(id: string) {
+    return request<void>(`/events/${id}/`, { method: 'DELETE' });
   },
 };
 
@@ -474,6 +510,27 @@ export const donations = {
       amount_total: number;
       currency: string;
     }>(`/donate/session-status/?session_id=${encodeURIComponent(sessionId)}`);
+  },
+};
+
+// ── Admin Roles ─────────────────────────────────────────────────────
+
+export const adminRoles = {
+  /** Fetch mosques the current user administers. Returns empty array if not an admin. */
+  async list(): Promise<MosqueAdminRole[]> {
+    if (!auth.isLoggedIn) return [];
+    try {
+      const data = await auth.exportData();
+      return data.admin_roles.map((r) => ({
+        id: r.id,
+        mosque: r.mosque,
+        user: r.user,
+        role: r.role as 'admin' | 'super_admin',
+        created: r.created,
+      }));
+    } catch {
+      return [];
+    }
   },
 };
 

@@ -130,6 +130,41 @@ export const CALCULATION_METHODS: Record<string, { label: string; code: number }
   Karachi: { label: 'University of Karachi', code: 1 },
 };
 
+export interface MosqueAdminRole {
+  id: string;
+  mosque: string;
+  user: string;
+  role: 'admin' | 'super_admin';
+  created: string;
+  mosque_detail?: {
+    id: string;
+    name: string;
+    city: string;
+    country: string;
+  };
+}
+
+export interface AnnouncementCreatePayload {
+  mosque: string;
+  title: string;
+  body: string;
+  priority: 'normal' | 'urgent' | 'janazah';
+  expires_at?: string | null;
+}
+
+export interface EventCreatePayload {
+  mosque: string;
+  title: string;
+  description: string;
+  speaker: string;
+  event_date: string;
+  start_time: string;
+  end_time?: string | null;
+  location: string;
+  recurring: null | 'weekly' | 'monthly';
+  category: EventCategory;
+}
+
 export const EVENT_CATEGORY_COLORS: Record<EventCategory, string> = {
   lesson: '#0F2D52',     // sapphire — primary brand
   lecture: '#1A3F6B',    // sapphire-600 — interactive
