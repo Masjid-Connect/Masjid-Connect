@@ -40,22 +40,104 @@ class MosqueAdminView(ModelAdmin):
     list_display = ["name", "city", "country", "calculation_method", "updated"]
     list_filter = ["country", "city"]
     search_fields = ["name", "city", "address"]
+    save_on_top = True
+    fieldsets = (
+        ("Basics", {
+            "fields": ("name", "address", "city", "state", "country", "photo"),
+        }),
+        ("Location & Prayer Calculation", {
+            "fields": ("latitude", "longitude", "calculation_method", "jumua_time"),
+            "description": "GPS coordinates are used for prayer time calculations and the 'nearby mosques' feature.",
+        }),
+        ("Contact Information", {
+            "fields": ("contact_phone", "contact_email", "website"),
+        }),
+    )
+
+
+class _MosqueAutoPopulateMixin:
+    """Auto-populate the mosque field for admins who manage only one mosque."""
+
+    def get_changeform_initial_data(self, request):
+        initial = super().get_changeform_initial_data(request)
+        if "mosque" not in initial or not initial["mosque"]:
+            user_mosques = MosqueAdmin.objects.filter(user=request.user).select_related("mosque")
+            if user_mosques.count() == 1:
+                initial["mosque"] = user_mosques.first().mosque_id
+        return initial
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        """Limit mosque choices for non-superusers to their assigned mosques."""
+        if db_field.name == "mosque" and not request.user.is_superuser:
+            user_mosque_ids = MosqueAdmin.objects.filter(user=request.user).values_list("mosque_id", flat=True)
+            if user_mosque_ids:
+                kwargs["queryset"] = Mosque.objects.filter(id__in=user_mosque_ids)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def save_model(self, request, obj, form, change):
+        """Auto-fill author field on create."""
+        if not change and hasattr(obj, "author") and not obj.author_id:
+            obj.author = request.user
+        super().save_model(request, obj, form, change)
 
 
 @admin.register(Announcement)
-class AnnouncementAdmin(ModelAdmin):
+class AnnouncementAdmin(_MosqueAutoPopulateMixin, ModelAdmin):
     list_display = ["title", "mosque", "priority", "published_at", "expires_at"]
     list_filter = ["priority", "mosque"]
     search_fields = ["title", "body"]
     date_hierarchy = "published_at"
+    save_on_top = True
+    fieldsets = (
+        ("Basics", {
+            "fields": ("mosque", "title", "body"),
+            "description": "Write a clear title (max 255 characters) and body for your announcement.",
+        }),
+        ("Priority & Visibility", {
+            "fields": ("priority", "expires_at"),
+            "description": (
+                "Normal = appears in the feed. "
+                "Urgent = highlighted in red. "
+                "Janazah = funeral prayer notice with dignified styling."
+            ),
+        }),
+        ("Author", {
+            "fields": ("author",),
+            "classes": ("collapse",),
+            "description": "Auto-filled with your name. Only change if posting on behalf of someone else.",
+        }),
+    )
 
 
 @admin.register(Event)
-class EventAdmin(ModelAdmin):
+class EventAdmin(_MosqueAutoPopulateMixin, ModelAdmin):
     list_display = ["title", "mosque", "category", "event_date", "start_time", "recurring"]
     list_filter = ["category", "recurring", "mosque"]
     search_fields = ["title", "speaker", "description"]
     date_hierarchy = "event_date"
+    save_on_top = True
+    fieldsets = (
+        ("Basics", {
+            "fields": ("mosque", "title", "category", "description"),
+            "description": "Give your event a clear name and pick the right category.",
+        }),
+        ("Date & Time", {
+            "fields": ("event_date", "start_time", "end_time", "recurring"),
+            "description": (
+                "Set the date and time. For recurring events, set the date of the "
+                "first occurrence and choose weekly or monthly."
+            ),
+        }),
+        ("Details", {
+            "fields": ("speaker", "location"),
+            "description": "Optional: add the speaker name and specific room/area in the mosque.",
+        }),
+        ("Author", {
+            "fields": ("author",),
+            "classes": ("collapse",),
+            "description": "Auto-filled with your name. Only change if posting on behalf of someone else.",
+        }),
+    )
 
 
 @admin.register(UserSubscription)
@@ -118,6 +200,25 @@ class MosquePrayerTimeAdmin(ModelAdmin):
     list_filter = ["mosque"]
     date_hierarchy = "date"
     ordering = ["-date"]
+    save_on_top = True
+    fieldsets = (
+        ("Basics", {
+            "fields": ("mosque", "date"),
+        }),
+        ("Congregation (Jama'ah) Times", {
+            "fields": ("fajr_jamat", "dhuhr_jamat", "asr_jamat", "maghrib_jamat", "isha_jamat"),
+            "description": "These are the times set by the mosque for congregational prayer.",
+        }),
+        ("Prayer Start Times (from timetable)", {
+            "fields": ("fajr_start", "sunrise", "dhuhr_start", "asr_start", "isha_start"),
+            "description": "Optional start times from the mosque's printed timetable or PDF.",
+            "classes": ("collapse",),
+        }),
+        ("Source", {
+            "fields": ("source_url",),
+            "classes": ("collapse",),
+        }),
+    )
 
 
 # ── Donations & Gift Aid ────────────────────────────────────────────
