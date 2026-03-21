@@ -1,4 +1,4 @@
-import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
+import { PixelRatio, StyleSheet, TextStyle, ViewStyle } from 'react-native';
 
 /**
  * Font families — system-first strategy.
@@ -242,17 +242,68 @@ export const typography: Record<string, TextStyle> = {
   },
 };
 
-/** Arabic typography — mirrors English scale */
+/** Arabic typography — mirrors English scale with Arabic-appropriate line heights */
 export const arabicTypography: Record<string, TextStyle> = {
-  heading: {
+  largeTitle: {
+    fontSize: 34,
+    fontWeight: '700',
+    lineHeight: 44,
+  },
+  title1: {
     fontSize: 28,
     fontWeight: '700',
     lineHeight: 38,
   },
+  title2: {
+    fontSize: 22,
+    fontWeight: '700',
+    lineHeight: 30,
+  },
+  title3: {
+    fontSize: 20,
+    fontWeight: '600',
+    lineHeight: 28,
+  },
+  headline: {
+    fontSize: 17,
+    fontWeight: '600',
+    lineHeight: 24,
+  },
   body: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '400',
     lineHeight: 28,
+  },
+  callout: {
+    fontSize: 16,
+    fontWeight: '400',
+    lineHeight: 24,
+  },
+  subhead: {
+    fontSize: 15,
+    fontWeight: '400',
+    lineHeight: 24,
+  },
+  footnote: {
+    fontSize: 13,
+    fontWeight: '400',
+    lineHeight: 20,
+  },
+  caption1: {
+    fontSize: 12,
+    fontWeight: '400',
+    lineHeight: 20,
+  },
+  caption2: {
+    fontSize: 11,
+    fontWeight: '400',
+    lineHeight: 16,
+  },
+  // Legacy alias
+  heading: {
+    fontSize: 28,
+    fontWeight: '700',
+    lineHeight: 38,
   },
   caption: {
     fontSize: 12,
@@ -273,7 +324,7 @@ export const components = {
   },
   button: {
     height: 48,
-    compactHeight: 40,
+    compactHeight: 44,
   },
   grabber: {
     width: 36,
@@ -315,3 +366,64 @@ export const springs = {
   snappy: { damping: 15, stiffness: 180, mass: 0.8 },
   bouncy: { damping: 12, stiffness: 200, mass: 0.6 },
 } as const;
+
+/**
+ * Layout constants for accessibility compliance.
+ * minTouchTarget follows Apple HIG (44pt) for all interactive elements.
+ */
+export const layout = {
+  /** Minimum interactive touch target (Apple HIG) */
+  minTouchTarget: 44,
+} as const;
+
+/**
+ * Dynamic type scaling — respects system font scale preference.
+ * Clamps between 0.85× and 1.35× to prevent layout breakage at extremes.
+ * Use `getScaledTypography()` for text that should honor accessibility settings.
+ */
+const MIN_FONT_SCALE = 0.85;
+const MAX_FONT_SCALE = 1.35;
+
+function clampFontScale(scale: number): number {
+  'worklet';
+  return Math.min(MAX_FONT_SCALE, Math.max(MIN_FONT_SCALE, scale));
+}
+
+/** Returns a scaled copy of a text style based on the device font scale */
+export function scaleTextStyle(style: TextStyle): TextStyle {
+  const fontScale = clampFontScale(PixelRatio.getFontScale());
+  const scaled: TextStyle = { ...style };
+  if (style.fontSize) {
+    scaled.fontSize = Math.round(style.fontSize * fontScale);
+  }
+  if (style.lineHeight) {
+    scaled.lineHeight = Math.round(style.lineHeight * fontScale);
+  }
+  if (style.letterSpacing !== undefined) {
+    scaled.letterSpacing = style.letterSpacing * fontScale;
+  }
+  return scaled;
+}
+
+/**
+ * Returns the full typography scale with dynamic type applied.
+ * Call at render time to pick up the current system font scale.
+ */
+export function getScaledTypography(): Record<string, TextStyle> {
+  const result: Record<string, TextStyle> = {};
+  for (const [key, style] of Object.entries(typography)) {
+    result[key] = scaleTextStyle(style);
+  }
+  return result;
+}
+
+/**
+ * Returns the Arabic typography scale with dynamic type applied.
+ */
+export function getScaledArabicTypography(): Record<string, TextStyle> {
+  const result: Record<string, TextStyle> = {};
+  for (const [key, style] of Object.entries(arabicTypography)) {
+    result[key] = scaleTextStyle(style);
+  }
+  return result;
+}

@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography } from '@/constants/Theme';
+import { spacing, borderRadius, typography, layout } from '@/constants/Theme';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginScreen() {
@@ -121,13 +121,17 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   button: {
+    minHeight: layout.minTouchTarget,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.md,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: spacing.sm,
   },
   link: {
+    minHeight: layout.minTouchTarget,
     marginTop: spacing.lg,
     alignItems: 'center',
+    justifyContent: 'center',
   },
 });

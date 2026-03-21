@@ -225,7 +225,7 @@ export default function SignUpScreen() {
             <Text style={[typography.subhead, { color: colors.textSecondary }]}>
               {t('auth.haveAccountQuestion')}{' '}
             </Text>
-            <TouchableOpacity onPress={() => router.back()}>
+            <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
               <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>
                 {t('auth.login')}
               </Text>

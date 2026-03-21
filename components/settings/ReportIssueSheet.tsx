@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, components } from '@/constants/Theme';
+import { spacing, typography, borderRadius, components, layout } from '@/constants/Theme';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { feedback } from '@/lib/api';
 
@@ -242,6 +242,7 @@ const styles = StyleSheet.create({
   categoryPill: {
     flexDirection: 'row',
     alignItems: 'center',
+    minHeight: layout.minTouchTarget,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
     borderRadius: borderRadius.full,

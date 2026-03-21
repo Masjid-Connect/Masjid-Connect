@@ -21,7 +21,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { borderRadius, components, spacing, springs, typography } from '@/constants/Theme';
+import { borderRadius, components, layout, spacing, springs, typography } from '@/constants/Theme';
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -228,6 +228,7 @@ const styles = StyleSheet.create({
   secondaryBtn: {
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: layout.minTouchTarget,
     marginTop: spacing.lg,
     paddingVertical: spacing.sm,
   },
