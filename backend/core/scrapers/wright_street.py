@@ -49,6 +49,70 @@ class WrightStreetScraper(MosqueTimetableScraper):
         "Accept-Encoding": "identity",
     }
 
+    def discover_all_pdf_urls(self) -> list[str]:
+        """Discover ALL timetable PDF URLs from the mosque website archive.
+
+        Paginates through WordPress search results and extracts PDF links from
+        every timetable post found.  Returns a list of PDF URLs (oldest first).
+        """
+        base = "https://www.wrightstreetmosque.com/?s=prayer+timetable"
+        pdf_urls: list[str] = []
+        seen_pages: set[str] = set()
+
+        for page_num in range(1, 20):  # safety cap at 20 pages
+            url = f"{base}&paged={page_num}" if page_num > 1 else base
+            logger.info("Archive page %d: %s", page_num, url)
+
+            try:
+                resp = requests.get(url, timeout=15, verify=False, headers=self.HEADERS)
+                if resp.status_code == 404:
+                    break  # no more pages
+                resp.raise_for_status()
+            except requests.RequestException:
+                break
+
+            soup = BeautifulSoup(resp.text, "html.parser")
+
+            # Find timetable post links on this search results page
+            post_links: list[str] = []
+            for a in soup.find_all("a", href=True):
+                href = a["href"].rstrip("/")
+                if "prayer-timetable" in href and href not in seen_pages:
+                    seen_pages.add(href)
+                    post_links.append(a["href"])
+
+            if not post_links:
+                break  # no results on this page
+
+            # Visit each post and extract its PDF link
+            for post_url in post_links:
+                try:
+                    resp2 = requests.get(post_url, timeout=15, verify=False, headers=self.HEADERS)
+                    resp2.raise_for_status()
+                    post_soup = BeautifulSoup(resp2.text, "html.parser")
+
+                    for a2 in post_soup.find_all("a", href=True):
+                        if ".pdf" in a2["href"]:
+                            pdf_urls.append(a2["href"])
+                            logger.info("  Found PDF: %s", a2["href"])
+                            break
+                    else:
+                        # Check embedded PDFs
+                        for tag_name in ("iframe", "embed", "object"):
+                            for tag in post_soup.find_all(tag_name):
+                                src = tag.get("src") or tag.get("data") or ""
+                                if ".pdf" in src:
+                                    pdf_urls.append(src)
+                                    logger.info("  Found embedded PDF: %s", src)
+                                    break
+                except requests.RequestException as e:
+                    logger.warning("  Failed to fetch %s: %s", post_url, e)
+
+        # Return oldest-first so the DB gets populated chronologically
+        pdf_urls.reverse()
+        logger.info("Discovered %d PDF URLs total", len(pdf_urls))
+        return pdf_urls
+
     def discover_pdf_url(self) -> str:
         """Search the mosque website for the latest timetable page and extract PDF link.
 
