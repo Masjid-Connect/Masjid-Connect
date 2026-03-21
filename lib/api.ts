@@ -278,7 +278,7 @@ function mapAnnouncement(raw: Record<string, unknown>): Announcement {
     mosque: raw.mosque as string,
     title: raw.title as string,
     body: raw.body as string,
-    priority: raw.priority as 'normal' | 'urgent',
+    priority: raw.priority as 'normal' | 'urgent' | 'janazah',
     published_at: raw.published_at as string,
     expires_at: (raw.expires_at as string) || null,
     author: (raw.author as string) || '',

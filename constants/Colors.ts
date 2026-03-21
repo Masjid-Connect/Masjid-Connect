@@ -233,6 +233,16 @@ export const alpha = {
     light: 'rgba(191, 155, 48, 0.12)',
     dark: 'rgba(240, 208, 96, 0.15)',
   },
+  /** Janazah announcement — respectful gold tint (not alarm red) */
+  janazahBg: {
+    light: 'rgba(191, 155, 48, 0.06)',
+    dark: 'rgba(240, 208, 96, 0.08)',
+  },
+  /** Stronger janazah emphasis (badge fills in detail sheet) */
+  janazahBgEmphasis: {
+    light: 'rgba(191, 155, 48, 0.10)',
+    dark: 'rgba(240, 208, 96, 0.14)',
+  },
 } as const;
 
 export type ColorScheme = 'light' | 'dark';
@@ -253,6 +263,8 @@ export function getAlpha(scheme: string | null | undefined) {
     frostedBorder: alpha.frostedBorder[key],
     actionBg: alpha.actionBg[key],
     accentPill: alpha.accentPill[key],
+    janazahBg: alpha.janazahBg[key],
+    janazahBgEmphasis: alpha.janazahBgEmphasis[key],
   };
 }
 

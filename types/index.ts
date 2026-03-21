@@ -24,7 +24,7 @@ export interface Announcement {
   mosque: string;
   title: string;
   body: string;
-  priority: 'normal' | 'urgent';
+  priority: 'normal' | 'urgent' | 'janazah';
   published_at: string;
   expires_at: string | null;
   author: string;

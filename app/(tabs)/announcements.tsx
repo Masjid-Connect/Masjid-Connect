@@ -58,9 +58,12 @@ function groupByTime(
     earlier: [],
   };
 
-  // Sort urgent first within each group, then by date descending
+  // Priority order: janazah first (time-sensitive), then urgent, then normal
+  const priorityOrder: Record<string, number> = { janazah: 0, urgent: 1, normal: 2 };
   const sorted = [...announcements].sort((a, b) => {
-    if (a.priority !== b.priority) return a.priority === 'urgent' ? -1 : 1;
+    const pa = priorityOrder[a.priority] ?? 2;
+    const pb = priorityOrder[b.priority] ?? 2;
+    if (pa !== pb) return pa - pb;
     return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
   });
 
@@ -225,20 +228,29 @@ export default function AnnouncementsScreen() {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
           }>
-          <Ionicons name="megaphone-outline" size={48} color={colors.textSecondary} style={{ opacity: 0.5 }} />
+          <View style={[styles.emptyIconCircle, { backgroundColor: isDark ? 'rgba(240, 208, 96, 0.08)' : 'rgba(191, 155, 48, 0.06)' }]}>
+            <Ionicons name="megaphone-outline" size={32} color={colors.accent} />
+          </View>
           <Text
             style={[
-              typography.headline,
-              { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.lg },
+              typography.title3,
+              { color: colors.text, textAlign: 'center', marginTop: spacing.xl },
             ]}>
             {t('announcements.empty')}
           </Text>
           <Text
             style={[
               typography.subhead,
-              { color: colors.textTertiary, textAlign: 'center', marginTop: spacing.sm },
+              { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm, paddingHorizontal: spacing['2xl'] },
             ]}>
             {t('announcements.emptyHint')}
+          </Text>
+          <Text
+            style={[
+              typography.caption1,
+              { color: colors.textTertiary, textAlign: 'center', marginTop: spacing.xl },
+            ]}>
+            {t('announcements.emptyPullHint')}
           </Text>
         </ScrollView>
       </View>
@@ -248,6 +260,8 @@ export default function AnnouncementsScreen() {
   // ─── List ───────────────────────────────────────────────────────
   const renderItem = ({ item, index, section }: { item: Announcement; index: number; section: SectionListData<Announcement> }) => {
     const isUrgent = item.priority === 'urgent';
+    const isJanazah = item.priority === 'janazah';
+    const isHighPriority = isUrgent || isJanazah;
     const unread = isUnread(item.id);
     const mosqueName = item.expand?.mosque?.name || '';
     const timeAgo = item.published_at
@@ -255,17 +269,21 @@ export default function AnnouncementsScreen() {
       : '';
     const isLast = index === section.data.length - 1;
 
+    // Janazah uses respectful gold; urgent uses crimson
+    const priorityColor = isJanazah ? colors.accent : isUrgent ? colors.urgent : undefined;
+    const priorityBg = isJanazah ? alphaColors.janazahBg : isUrgent ? alphaColors.urgentBg : undefined;
+
     return (
       <Pressable
         onPress={() => handlePress(item)}
         accessibilityRole="button"
-        accessibilityLabel={`${item.title}${isUrgent ? `, ${t('announcements.urgent')}` : ''}${mosqueName ? `, ${mosqueName}` : ''}${unread ? `, ${t('announcements.unread')}` : ''}`}
+        accessibilityLabel={`${item.title}${isJanazah ? `, ${t('announcements.janazah')}` : isUrgent ? `, ${t('announcements.urgent')}` : ''}${mosqueName ? `, ${mosqueName}` : ''}${unread ? `, ${t('announcements.unread')}` : ''}`}
       >
         <Animated.View
           entering={reducedMotion ? FadeIn.duration(300) : FadeInDown.delay(Math.min(index * 40, 300)).duration(300).springify()}
           style={[
             styles.row,
-            isUrgent && { backgroundColor: alphaColors.urgentBg },
+            priorityBg ? { backgroundColor: priorityBg } : undefined,
           ]}>
           <View style={[
             styles.rowInner,
@@ -284,8 +302,25 @@ export default function AnnouncementsScreen() {
 
             {/* Content */}
             <View style={styles.contentColumn}>
-              {/* Meta: category + urgent badge */}
+              {/* Meta: category + priority badge */}
               <View style={styles.metaRow}>
+                {isJanazah && (
+                  <>
+                    <Ionicons name="moon-outline" size={12} color={colors.accent} accessibilityLabel={t('announcements.janazah')} />
+                    <Text
+                      style={[
+                        typography.caption2,
+                        { color: colors.accentText, fontWeight: '600', marginStart: spacing.xs, marginEnd: spacing.xs },
+                      ]}>
+                      {t('announcements.janazah')}
+                    </Text>
+                    {mosqueName ? (
+                      <Text style={[typography.caption2, { color: colors.accentText, fontWeight: '600' }]}>
+                        · {mosqueName.toUpperCase()}
+                      </Text>
+                    ) : null}
+                  </>
+                )}
                 {isUrgent && (
                   <>
                     <Ionicons name="alert-circle" size={12} color={colors.urgent} accessibilityLabel={t('announcements.urgent')} />
@@ -303,7 +338,7 @@ export default function AnnouncementsScreen() {
                     ) : null}
                   </>
                 )}
-                {!isUrgent && mosqueName ? (
+                {!isHighPriority && mosqueName ? (
                   <Text
                     style={[
                       typography.categoryLabel,
@@ -417,6 +452,19 @@ export default function AnnouncementsScreen() {
       <BottomSheet visible={!!expandedItem} onDismiss={handleDismissSheet}>
         {expandedItem && (
           <View>
+            {/* Janazah badge — respectful gold */}
+            {expandedItem.priority === 'janazah' && (
+              <View style={[styles.urgentBadge, { backgroundColor: alphaColors.janazahBgEmphasis }]}>
+                <Ionicons name="moon-outline" size={14} color={colors.accent} />
+                <Text
+                  style={[
+                    typography.caption2,
+                    { color: colors.accentText, fontWeight: '700', marginLeft: spacing.xs },
+                  ]}>
+                  {t('announcements.janazah')}
+                </Text>
+              </View>
+            )}
             {/* Urgent badge */}
             {expandedItem.priority === 'urgent' && (
               <View style={[styles.urgentBadge, { backgroundColor: alphaColors.urgentBgEmphasis }]}>
@@ -433,7 +481,7 @@ export default function AnnouncementsScreen() {
 
             {/* Mosque name */}
             {expandedItem.expand?.mosque?.name ? (
-              <View style={[styles.mosqueRow, { marginTop: expandedItem.priority === 'urgent' ? spacing.md : 0 }]}>
+              <View style={[styles.mosqueRow, { marginTop: expandedItem.priority !== 'normal' ? spacing.md : 0 }]}>
                 <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
                 <Text
                   style={[
@@ -562,6 +610,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing['3xl'],
+  },
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   listContent: {
     paddingHorizontal: spacing['3xl'],
