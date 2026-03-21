@@ -37,6 +37,7 @@ import {
   setLanguage as persistLanguage,
 } from '@/lib/storage';
 import { reschedulePrayerRemindersForToday } from '@/lib/notifications';
+import { subscriptions as subscriptionsApi } from '@/lib/api';
 import i18n from '@/lib/i18n';
 import {
   ProfileCard,
@@ -142,12 +143,34 @@ export default function SettingsScreen() {
   const handleNotifyAnnouncementsChange = useCallback(async (value: boolean) => {
     setNotifyAnnouncementsState(value);
     await setNotifyAnnouncements(value);
-  }, []);
+    // Sync to backend — update all user subscriptions
+    if (isAuthenticated) {
+      try {
+        const subs = await subscriptionsApi.list();
+        await Promise.all(
+          subs.map((s) => subscriptionsApi.updatePreferences(s.id, { notify_announcements: value }))
+        );
+      } catch {
+        // Preference saved locally; backend sync will retry on next app open
+      }
+    }
+  }, [isAuthenticated]);
 
   const handleNotifyEventsChange = useCallback(async (value: boolean) => {
     setNotifyEventsState(value);
     await setNotifyEvents(value);
-  }, []);
+    // Sync to backend — update all user subscriptions
+    if (isAuthenticated) {
+      try {
+        const subs = await subscriptionsApi.list();
+        await Promise.all(
+          subs.map((s) => subscriptionsApi.updatePreferences(s.id, { notify_events: value }))
+        );
+      } catch {
+        // Preference saved locally; backend sync will retry on next app open
+      }
+    }
+  }, [isAuthenticated]);
 
   const handleThemeChange = useCallback(async (theme: 'light' | 'dark' | 'system') => {
     await setThemePreference(theme);

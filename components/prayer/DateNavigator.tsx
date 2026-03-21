@@ -10,7 +10,7 @@ import { format } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 
-import { getColors, palette } from '@/constants/Colors';
+import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography } from '@/constants/Theme';
 
@@ -90,7 +90,7 @@ export const DateNavigator = ({
         {!isTodayDate && (
           <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)}>
             <Pressable onPress={handleToday} style={[styles.todayPill, {
-              backgroundColor: isDark ? 'rgba(229,193,75,0.15)' : 'rgba(212,175,55,0.12)',
+              backgroundColor: getAlpha(effectiveScheme).accentPill,
             }]}>
               <Text style={[styles.todayText, {
                 color: isDark ? palette.divineGoldBright : palette.divineGold,
