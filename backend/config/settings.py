@@ -11,11 +11,13 @@ import sentry_sdk
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+_INSECURE_SECRET_KEY = "django-insecure-dev-only-change-me"
+
 env = environ.Env(
     DEBUG=(bool, False),
     ALLOWED_HOSTS=(list, []),
     DATABASE_URL=(str, "sqlite:///db.sqlite3"),
-    SECRET_KEY=(str, "change-me-in-production"),
+    SECRET_KEY=(str, _INSECURE_SECRET_KEY),
     CORS_ALLOWED_ORIGINS=(list, []),
     CSRF_TRUSTED_ORIGINS=(list, []),
 )
@@ -26,6 +28,13 @@ if env_file.exists():
 
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
+
+# Refuse to start in production with the insecure default key
+if not DEBUG and SECRET_KEY == _INSECURE_SECRET_KEY:
+    raise ValueError(
+        "SECRET_KEY must be set to a unique, unpredictable value in production. "
+        "Set it in your .env file or environment variables."
+    )
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 
 INSTALLED_APPS = [
@@ -86,7 +95,10 @@ AUTH_USER_MODEL = "core.User"
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
-    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 10},
+    },
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
@@ -112,7 +124,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # DRF
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication",
+        "api.authentication.ExpiringTokenAuthentication",
     ],
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticatedOrReadOnly",
@@ -130,8 +142,8 @@ REST_FRAMEWORK = {
         "rest_framework.throttling.UserRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
-        "anon": "100/hour",
-        "user": "1000/hour",
+        "anon": "60/hour",
+        "user": "500/hour",
         "feedback": "5/hour",
         "contact": "5/hour",
     },
