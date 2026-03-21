@@ -25,7 +25,6 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { formatDistanceToNow, isToday, isThisWeek, format } from 'date-fns';
-import { ar } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 
@@ -87,8 +86,7 @@ export default function AnnouncementsScreen() {
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
   const alphaColors = getAlpha(effectiveScheme);
-  const { t, i18n } = useTranslation();
-  const dateLocale = i18n.language === 'ar' ? ar : undefined;
+  const { t } = useTranslation();
   const { announcements, isLoading, error, refresh } = useAnnouncements();
   const { isUnread, markRead } = useReadAnnouncements();
   const [refreshing, setRefreshing] = useState(false);
@@ -265,7 +263,7 @@ export default function AnnouncementsScreen() {
     const unread = isUnread(item.id);
     const mosqueName = item.expand?.mosque?.name || '';
     const timeAgo = item.published_at
-      ? formatDistanceToNow(new Date(item.published_at), { addSuffix: true, locale: dateLocale })
+      ? formatDistanceToNow(new Date(item.published_at), { addSuffix: true })
       : '';
     const isLast = index === section.data.length - 1;
 
@@ -529,7 +527,7 @@ export default function AnnouncementsScreen() {
             </Text>
             <Text style={[typography.footnote, { color: colors.textTertiary, marginTop: spacing.lg, opacity: 0.7 }]}>
               {expandedItem.published_at
-                ? formatDistanceToNow(new Date(expandedItem.published_at), { addSuffix: true, locale: dateLocale })
+                ? formatDistanceToNow(new Date(expandedItem.published_at), { addSuffix: true })
                 : ''}
             </Text>
 

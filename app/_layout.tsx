@@ -18,7 +18,6 @@ import { ToastProvider, useToast } from '@/contexts/ToastContext';
 import { reschedulePrayerRemindersForToday, addNotificationReceivedListener, addNotificationResponseListener } from '@/lib/notifications';
 import { initSentry, Sentry } from '@/lib/sentry';
 import '@/lib/i18n';
-import { configureRTL } from '@/lib/rtl';
 
 // Initialize Sentry before anything else renders
 initSentry();
@@ -69,7 +68,6 @@ function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
-      configureRTL();
       SplashScreen.hideAsync();
     }
   }, [loaded]);

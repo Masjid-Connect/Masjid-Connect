@@ -24,7 +24,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { format } from 'date-fns';
-import { ar } from 'date-fns/locale';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Calendar, DateData } from 'react-native-calendars';
 
@@ -56,8 +55,7 @@ export default function EventsScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
-  const { t, i18n } = useTranslation();
-  const dateLocale = i18n.language === 'ar' ? ar : undefined;
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   // ─── Large title collapse animation ────────────────────────────
@@ -171,7 +169,7 @@ export default function EventsScreen() {
       <Pressable
         onPress={() => setDetailEvent(item)}
         accessibilityRole="button"
-        accessibilityLabel={`${item.title}, ${t(`events.categories.${item.category}`)}, ${format(new Date(dateStr), 'EEE, MMM d', { locale: dateLocale })} at ${formatTimeString(item.start_time, use24h)}${mosqueName ? `, ${mosqueName}` : ''}${item.recurring ? `, ${t('events.repeats', { frequency: item.recurring })}` : ''}`}
+        accessibilityLabel={`${item.title}, ${t(`events.categories.${item.category}`)}, ${format(new Date(dateStr), 'EEE, MMM d')} at ${formatTimeString(item.start_time, use24h)}${mosqueName ? `, ${mosqueName}` : ''}${item.recurring ? `, ${t('events.repeats', { frequency: item.recurring })}` : ''}`}
       >
         <Animated.View
           entering={reducedMotion ? FadeIn.duration(300) : FadeInDown.delay(Math.min(index * 50, 300)).duration(350).springify()}
@@ -191,7 +189,7 @@ export default function EventsScreen() {
               </Text>
               <Text style={[typography.subhead, { color: colors.textSecondary, marginTop: spacing.xs }]}>
                 {item.speaker ? `${item.speaker} · ` : ''}
-                {format(new Date(dateStr), 'EEE, MMM d', { locale: dateLocale })} at {formatTimeString(item.start_time, use24h)}
+                {format(new Date(dateStr), 'EEE, MMM d')} at {formatTimeString(item.start_time, use24h)}
                 {item.end_time ? ` – ${formatTimeString(item.end_time, use24h)}` : ''}
               </Text>
               {mosqueName ? (
@@ -410,11 +408,11 @@ export default function EventsScreen() {
         <Pressable
           onPress={() => setSelectedDate(null)}
           accessibilityRole="button"
-          accessibilityLabel={`${format(new Date(selectedDate), 'EEE, MMM d', { locale: dateLocale })}, ${t('common.clearFilter')}`}
+          accessibilityLabel={`${format(new Date(selectedDate), 'EEE, MMM d')}, ${t('common.clearFilter')}`}
         >
           <View style={[styles.dateChip, { backgroundColor: colors.tintLight }]}>
             <Text style={[typography.footnote, { color: colors.tint }]}>
-              {format(new Date(selectedDate), 'EEE, MMM d', { locale: dateLocale })}
+              {format(new Date(selectedDate), 'EEE, MMM d')}
             </Text>
             <Ionicons name="close-circle" size={16} color={colors.tint} style={{ marginStart: spacing.xs }} />
           </View>
@@ -509,7 +507,7 @@ export default function EventsScreen() {
               </Text>
             ) : null}
             <Text style={[typography.footnote, { color: colors.textSecondary, marginTop: spacing.sm }]}>
-              {format(new Date(detailEvent.event_date.split('T')[0] || detailEvent.event_date), 'EEEE, MMMM d', { locale: dateLocale })} at {formatTimeString(detailEvent.start_time, use24h)}
+              {format(new Date(detailEvent.event_date.split('T')[0] || detailEvent.event_date), 'EEEE, MMMM d')} at {formatTimeString(detailEvent.start_time, use24h)}
               {detailEvent.end_time ? ` – ${formatTimeString(detailEvent.end_time, use24h)}` : ''}
             </Text>
             {detailEvent.expand?.mosque?.name ? (
