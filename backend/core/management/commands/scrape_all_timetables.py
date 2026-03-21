@@ -8,11 +8,15 @@ static timetable fallback.
 Usage:
     python manage.py scrape_all_timetables
     python manage.py scrape_all_timetables --mosque wright_street
+    python manage.py scrape_all_timetables --months 15
 """
 
 import logging
+import re
 import time as time_mod
+from datetime import date
 
+from dateutil.relativedelta import relativedelta
 from django.core.management.base import BaseCommand, CommandError
 
 from core.scrapers import SCRAPERS
@@ -30,9 +34,33 @@ class Command(BaseCommand):
             default="wright_street",
             help=f"Scraper key. Available: {', '.join(SCRAPERS.keys())}",
         )
+        parser.add_argument(
+            "--months",
+            type=int,
+            default=0,
+            help="Only process PDFs from the last N months (0 = all)",
+        )
+
+    @staticmethod
+    def _pdf_url_date(url: str) -> date | None:
+        """Extract an approximate date from a PDF URL.
+
+        Wright Street URLs look like:
+          .../uploads/2025/06/June-2025-TT.pdf
+        We use the /YYYY/MM/ directory path.
+        """
+        m = re.search(r"/(\d{4})/(\d{2})/", url)
+        if m:
+            try:
+                return date(int(m.group(1)), int(m.group(2)), 1)
+            except ValueError:
+                return None
+        return None
 
     def handle(self, *args, **options):
         mosque_key = options["mosque"]
+        months_limit = options["months"]
+
         if mosque_key not in SCRAPERS:
             raise CommandError(
                 f"Unknown scraper '{mosque_key}'. "
@@ -44,7 +72,21 @@ class Command(BaseCommand):
 
         self.stdout.write(f"Discovering all timetable PDFs for '{mosque_key}'...")
         pdf_urls = scraper.discover_all_pdf_urls()
-        self.stdout.write(f"Found {len(pdf_urls)} PDFs\n")
+        self.stdout.write(f"Found {len(pdf_urls)} PDFs total")
+
+        if months_limit > 0:
+            cutoff = date.today() - relativedelta(months=months_limit)
+            original_count = len(pdf_urls)
+            pdf_urls = [
+                url for url in pdf_urls
+                if (d := self._pdf_url_date(url)) is None or d >= cutoff
+            ]
+            self.stdout.write(
+                f"Filtered to {len(pdf_urls)} PDFs "
+                f"(last {months_limit} months, cutoff {cutoff})"
+            )
+
+        self.stdout.write(f"Processing {len(pdf_urls)} PDFs\n")
 
         total_saved = 0
         errors = []

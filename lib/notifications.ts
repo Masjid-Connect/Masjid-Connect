@@ -1,11 +1,12 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
-import { format } from 'date-fns';
 import type { PrayerTimesData, PrayerName, JamaahTimesData } from '@/types';
 import { PRAYER_LABELS } from '@/types';
 import { getPrayerTimes } from '@/lib/prayer';
-import { getCachedPrayerTimes, getReminderMinutes, getUserLocation, getCalculationMethod, DEFAULT_LOCATION } from '@/lib/storage';
+import { getStaticPrayerTimes } from '@/lib/staticTimetable';
+import { getReminderMinutes } from '@/lib/storage';
+import { SALAFI_MASJID } from '@/constants/mosque';
 
 /** Configure notification handler (native only) */
 if (Platform.OS !== 'web') {
@@ -135,25 +136,26 @@ export async function schedulePrayerReminders(
   }
 }
 
-/** Reschedule prayer reminders using cached or freshly fetched times for today. Call after loading times or when user changes reminder preference. */
+/** Reschedule prayer reminders using static timetable or Aladhan for today. */
 export async function reschedulePrayerRemindersForToday(): Promise<void> {
   if (Platform.OS === 'web') return;
-  const today = format(new Date(), 'yyyy-MM-dd');
-  const cached = await getCachedPrayerTimes(today);
+
+  const today = new Date();
   let times: PrayerTimesData;
   let jamaahTimes: JamaahTimesData | null = null;
 
-  if (cached) {
-    times = cached.times;
-    jamaahTimes = cached.jamaahTimes;
+  // Static timetable is primary
+  const staticResult = getStaticPrayerTimes(today);
+  if (staticResult) {
+    times = staticResult.times;
+    jamaahTimes = staticResult.jamaahTimes;
   } else {
-    const location = await getUserLocation();
-    const method = await getCalculationMethod();
-    const lat = location?.latitude ?? DEFAULT_LOCATION.latitude;
-    const lng = location?.longitude ?? DEFAULT_LOCATION.longitude;
-    const result = await getPrayerTimes(lat, lng, method.code, method.name);
+    // Fallback to Aladhan calculated times
+    const { latitude: lat, longitude: lng } = SALAFI_MASJID;
+    const result = await getPrayerTimes(lat, lng, 4, 'UmmAlQura');
     times = result.times;
   }
+
   const reminderMinutes = await getReminderMinutes();
   await schedulePrayerReminders(times, reminderMinutes, jamaahTimes);
 }

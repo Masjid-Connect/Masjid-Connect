@@ -1,7 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
-  cachePrayerTimes,
-  getCachedPrayerTimes,
   getUserLocation,
   setUserLocation,
   getCalculationMethod,
@@ -13,40 +11,11 @@ import {
   getThemePreference,
   setThemePreference,
 } from '../storage';
-import type { PrayerTimesData } from '@/types';
 
 // AsyncStorage is automatically mocked by jest-expo
 
 beforeEach(async () => {
   await AsyncStorage.clear();
-});
-
-describe('prayer times cache', () => {
-  const times: PrayerTimesData = {
-    fajr: new Date('2024-01-01T05:30:00'),
-    sunrise: new Date('2024-01-01T07:00:00'),
-    dhuhr: new Date('2024-01-01T12:15:00'),
-    asr: new Date('2024-01-01T15:30:00'),
-    maghrib: new Date('2024-01-01T17:45:00'),
-    isha: new Date('2024-01-01T19:15:00'),
-  };
-
-  it('caches and retrieves prayer times for the same date', async () => {
-    await cachePrayerTimes(times, '2024-01-01');
-    const cached = await getCachedPrayerTimes('2024-01-01');
-
-    expect(cached).not.toBeNull();
-    expect(cached!.times.fajr.toISOString()).toBe(times.fajr.toISOString());
-    expect(cached!.times.isha.toISOString()).toBe(times.isha.toISOString());
-    expect(cached!.jamaahTimes).toBeNull();
-  });
-
-  it('returns null for a different date', async () => {
-    await cachePrayerTimes(times, '2024-01-01');
-    const cached = await getCachedPrayerTimes('2024-01-02');
-
-    expect(cached).toBeNull();
-  });
 });
 
 describe('user location', () => {
