@@ -1,27 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   StyleSheet,
   TextInput as RNTextInput,
   View,
   Text,
-  TouchableOpacity,
-  useColorScheme,
+  Pressable,
   type TextInputProps as RNTextInputProps,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+} from 'react-native-reanimated';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
+
 import { getColors } from '@/constants/Colors';
-import { spacing, borderRadius, typography, fonts } from '@/constants/Theme';
+import { useTheme } from '@/contexts/ThemeContext';
+import { spacing, borderRadius, typography, fonts, layout, timing } from '@/constants/Theme';
 
 interface TextInputProps extends RNTextInputProps {
   label: string;
   error?: string;
 }
 
+const AnimatedView = Animated.createAnimatedComponent(View);
+
 export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
   ({ label, error, secureTextEntry, style, ...props }, ref) => {
-    const colorScheme = useColorScheme();
-    const colors = getColors(colorScheme);
+    const { effectiveScheme } = useTheme();
+    const colors = getColors(effectiveScheme);
+    const { t } = useTranslation();
     const [focused, setFocused] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+
+    // Animated border color
+    const borderProgress = useSharedValue(0); // 0 = default, 1 = focused, 2 = error
+
+    const updateBorder = useCallback(
+      (isFocused: boolean, hasError: boolean) => {
+        if (hasError) {
+          borderProgress.value = withTiming(2, { duration: timing.fast });
+        } else if (isFocused) {
+          borderProgress.value = withTiming(1, { duration: timing.fast });
+        } else {
+          borderProgress.value = withTiming(0, { duration: timing.fast });
+        }
+      },
+      [borderProgress],
+    );
+
+    const handleFocus = useCallback(() => {
+      setFocused(true);
+      updateBorder(true, !!error);
+    }, [error, updateBorder]);
+
+    const handleBlur = useCallback(() => {
+      setFocused(false);
+      updateBorder(false, !!error);
+    }, [error, updateBorder]);
+
+    // Update border when error changes
+    React.useEffect(() => {
+      updateBorder(focused, !!error);
+    }, [error, focused, updateBorder]);
 
     const borderColor = error
       ? colors.urgent
@@ -29,14 +71,19 @@ export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
         ? colors.tint
         : colors.cardBorder;
 
+    const togglePassword = useCallback(() => {
+      setShowPassword((prev) => !prev);
+    }, []);
+
     return (
       <View style={styles.wrapper}>
         <Text
           style={[
-            typography.caption,
+            typography.caption1,
             {
               color: error ? colors.urgent : colors.textSecondary,
               marginBottom: spacing.xs,
+              fontWeight: '500',
             },
           ]}>
           {label}
@@ -52,30 +99,38 @@ export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
               },
               style,
             ]}
-            placeholderTextColor={colors.textSecondary}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
+            placeholderTextColor={colors.textTertiary}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
             secureTextEntry={secureTextEntry && !showPassword}
             autoCapitalize="none"
             accessibilityLabel={label}
-            accessibilityHint={error ? error : undefined}
+            accessibilityHint={error || undefined}
             {...props}
           />
           {secureTextEntry && (
-            <TouchableOpacity
-              onPress={() => setShowPassword(!showPassword)}
+            <Pressable
+              onPress={togglePassword}
               style={styles.eyeButton}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-              <Text style={[typography.caption, { color: colors.textSecondary }]}>
-                {showPassword ? 'Hide' : 'Show'}
-              </Text>
-            </TouchableOpacity>
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              accessibilityRole="button"
+              accessibilityLabel={showPassword ? t('common.hidePassword') : t('common.showPassword')}
+            >
+              <Ionicons
+                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                size={20}
+                color={colors.textSecondary}
+              />
+            </Pressable>
           )}
         </View>
         {error && (
-          <Text style={[typography.caption, { color: colors.urgent, marginTop: spacing.xs }]}>
-            {error}
-          </Text>
+          <View style={styles.errorRow}>
+            <Ionicons name="alert-circle" size={14} color={colors.urgent} />
+            <Text style={[typography.caption1, { color: colors.urgent, marginStart: spacing.xs, flex: 1 }]}>
+              {error}
+            </Text>
+          </View>
         )}
       </View>
     );
@@ -86,7 +141,7 @@ TextInput.displayName = 'TextInput';
 
 const styles = StyleSheet.create({
   wrapper: {
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -94,6 +149,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderRadius: borderRadius.sm,
     paddingHorizontal: spacing.md,
+    minHeight: layout.minTouchTarget,
   },
   input: {
     flex: 1,
@@ -102,6 +158,14 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   eyeButton: {
-    paddingLeft: spacing.sm,
+    width: layout.minTouchTarget,
+    height: layout.minTouchTarget,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.xs,
   },
 });
