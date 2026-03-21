@@ -217,8 +217,8 @@ export const FeatureRequestSheet = ({ visible, onDismiss }: FeatureRequestSheetP
               },
             ]}
           >
-            <Ionicons name="bulb" size={18} color="#FFFFFF" style={{ marginRight: spacing.sm }} />
-            <Text style={[typography.headline, { color: '#FFFFFF' }]}>
+            <Ionicons name="bulb" size={18} color={palette.white} style={{ marginRight: spacing.sm }} />
+            <Text style={[typography.headline, { color: palette.white }]}>
               {submitting ? t('settings.feedbackSending') : t('settings.featureSend')}
             </Text>
           </Pressable>

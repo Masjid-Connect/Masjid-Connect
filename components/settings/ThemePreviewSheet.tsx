@@ -150,18 +150,18 @@ export const ThemePreviewSheet = ({
 
   // Light preview colors
   const lightPreview = {
-    previewBg: '#F9F7F2',
-    previewText: '#121216',
-    previewAccent: '#0F2D52',
-    previewCard: '#FFFFFF',
+    previewBg: palette.stone100,
+    previewText: palette.onyx900,
+    previewAccent: palette.sapphire700,
+    previewCard: palette.white,
   };
 
   // Dark preview colors
   const darkPreview = {
-    previewBg: '#0A0A0C',
-    previewText: '#F5F5F7',
-    previewAccent: '#5B9BD5',
-    previewCard: '#1A1A1E',
+    previewBg: palette.sapphire950,
+    previewText: palette.snow,
+    previewAccent: palette.sapphire400,
+    previewCard: palette.sapphire850,
   };
 
   // System uses current effective theme for preview

@@ -11,12 +11,15 @@ import * as Haptics from 'expo-haptics';
 import { getColors } from '@/constants/Colors';
 import { spacing, borderRadius, typography, fonts, components } from '@/constants/Theme';
 
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive';
+
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary';
+  variant?: ButtonVariant;
   loading?: boolean;
   disabled?: boolean;
+  compact?: boolean;
   style?: ViewStyle;
 }
 
@@ -26,6 +29,7 @@ export const Button = ({
   variant = 'primary',
   loading = false,
   disabled = false,
+  compact = false,
   style,
 }: ButtonProps) => {
   const colorScheme = useColorScheme();
@@ -38,10 +42,7 @@ export const Button = ({
     onPress();
   };
 
-  const isPrimary = variant === 'primary';
-  const bgColor = isPrimary ? colors.tint : 'transparent';
-  const textColor = isPrimary ? colors.onPrimary : colors.tint;
-  const borderColor = isPrimary ? colors.tint : colors.tint;
+  const variantStyles = getVariantStyles(variant, colors);
 
   return (
     <TouchableOpacity
@@ -53,24 +54,41 @@ export const Button = ({
       accessibilityState={{ disabled: isDisabled }}
       style={[
         styles.button,
+        compact && styles.compact,
         {
-          backgroundColor: bgColor,
-          borderColor,
+          backgroundColor: variantStyles.bg,
+          borderColor: variantStyles.border,
           opacity: isDisabled ? 0.5 : 1,
         },
-        !isPrimary && styles.outlined,
+        variantStyles.outlined && styles.outlined,
         style,
       ]}>
       {loading ? (
-        <ActivityIndicator color={textColor} size="small" />
+        <ActivityIndicator color={variantStyles.text} size="small" />
       ) : (
-        <Text style={[styles.label, { color: textColor, fontFamily: fonts.body }]}>
+        <Text style={[styles.label, { color: variantStyles.text, fontFamily: fonts.body }]}>
           {title}
         </Text>
       )}
     </TouchableOpacity>
   );
 };
+
+function getVariantStyles(
+  variant: ButtonVariant,
+  colors: ReturnType<typeof getColors>,
+) {
+  switch (variant) {
+    case 'primary':
+      return { bg: colors.tint, text: colors.onPrimary, border: colors.tint, outlined: false };
+    case 'secondary':
+      return { bg: 'transparent', text: colors.tint, border: colors.tint, outlined: true };
+    case 'ghost':
+      return { bg: 'transparent', text: colors.tint, border: 'transparent', outlined: false };
+    case 'destructive':
+      return { bg: colors.urgent, text: colors.onPrimary, border: colors.urgent, outlined: false };
+  }
+}
 
 const styles = StyleSheet.create({
   button: {
@@ -80,6 +98,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: components.button.height,
+  },
+  compact: {
+    minHeight: components.button.compactHeight,
+    paddingVertical: spacing.sm,
   },
   outlined: {
     borderWidth: 1.5,

@@ -272,12 +272,18 @@ export const components = {
     md: 64,
   },
   button: {
-    height: 52,
-    compactHeight: 44,
+    height: 48,
+    compactHeight: 40,
   },
   grabber: {
     width: 36,
     height: 5,
+  },
+  icon: {
+    sm: 16,
+    md: 20,
+    lg: 24,
+    xl: 32,
   },
   iconBox: {
     size: 32,

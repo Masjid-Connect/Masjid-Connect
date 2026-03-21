@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, useColorScheme } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { palette } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { typography, spacing, borderRadius } from '@/constants/Theme';
 
 interface ErrorFallbackProps {
@@ -16,24 +16,34 @@ interface ErrorFallbackProps {
  */
 export const ErrorFallback = ({ error, resetError }: ErrorFallbackProps) => {
   const { t } = useTranslation();
+  const colorScheme = useColorScheme();
+  const colors = getColors(colorScheme);
 
   const handleRetry = useCallback(() => {
     resetError();
   }, [resetError]);
 
   return (
-    <View style={styles.container}>
-      <Ionicons name="alert-circle-outline" size={64} color={palette.crimson600} />
-      <Text style={styles.title}>{t('error.title', 'Something went wrong')}</Text>
-      <Text style={styles.message}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Ionicons name="alert-circle-outline" size={64} color={colors.urgent} />
+      <Text style={[styles.title, { color: colors.text }]}>
+        {t('error.title', 'Something went wrong')}
+      </Text>
+      <Text style={[styles.message, { color: colors.textSecondary }]}>
         {t('error.message', 'An unexpected error occurred. Please try again.')}
       </Text>
       {__DEV__ && (
-        <Text style={styles.debug}>{error.message}</Text>
+        <Text style={[styles.debug, { color: colors.urgent }]}>{error.message}</Text>
       )}
-      <TouchableOpacity style={styles.button} onPress={handleRetry} activeOpacity={0.7}>
-        <Ionicons name="refresh-outline" size={20} color="#FFFFFF" />
-        <Text style={styles.buttonText}>{t('error.retry', 'Try Again')}</Text>
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: colors.tint }]}
+        onPress={handleRetry}
+        activeOpacity={0.7}
+      >
+        <Ionicons name="refresh-outline" size={20} color={colors.onPrimary} />
+        <Text style={[styles.buttonText, { color: colors.onPrimary }]}>
+          {t('error.retry', 'Try Again')}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -45,17 +55,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing['3xl'],
-    backgroundColor: palette.stone100,
   },
   title: {
     ...typography.title2,
-    color: palette.onyx900,
     marginTop: spacing.xl,
     textAlign: 'center',
   },
   message: {
     ...typography.body,
-    color: palette.onyx600,
     marginTop: spacing.sm,
     textAlign: 'center',
     maxWidth: 300,
@@ -63,7 +70,6 @@ const styles = StyleSheet.create({
   debug: {
     ...typography.caption1,
     fontFamily: 'SpaceMono',
-    color: palette.crimson600,
     marginTop: spacing.lg,
     textAlign: 'center',
     maxWidth: 320,
@@ -72,7 +78,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    backgroundColor: palette.sapphire700,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
     borderRadius: borderRadius.sm,
@@ -80,6 +85,5 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     ...typography.headline,
-    color: '#FFFFFF',
   },
 });
