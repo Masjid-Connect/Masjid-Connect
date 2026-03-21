@@ -1,3 +1,4 @@
+import os
 from unittest.mock import MagicMock, patch
 
 import jwt as pyjwt
@@ -297,6 +298,11 @@ class AuthDeleteAccountTests(TestCase):
         self.assertFalse(User.objects.filter(id=social_user_id).exists())
 
 
+@patch.dict(os.environ, {
+    "APPLE_BUNDLE_ID": "app.salafimasjid.test",
+    "GOOGLE_CLIENT_ID": "test-google-client-id",
+    "GOOGLE_IOS_CLIENT_ID": "test-google-ios-client-id",
+})
 class SocialLoginTests(TestCase):
     """Tests for POST /api/v1/auth/social/ (Apple & Google social login)."""
 

@@ -155,7 +155,9 @@ def login(request):
     if not user.check_password(password):
         return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
 
-    token, _ = Token.objects.get_or_create(user=user)
+    # Rotate token on each login to limit token lifetime
+    Token.objects.filter(user=user).delete()
+    token = Token.objects.create(user=user)
     return Response({"token": token.key, "user": UserSerializer(user).data})
 
 
@@ -210,7 +212,9 @@ def social_login(request):
             user.set_unusable_password()
             user.save()
 
-    token, _ = Token.objects.get_or_create(user=user)
+    # Rotate token on each social login to limit token lifetime
+    Token.objects.filter(user=user).delete()
+    token = Token.objects.create(user=user)
     return Response(
         {"token": token.key, "user": UserSerializer(user).data},
         status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
@@ -235,11 +239,17 @@ def _verify_apple_token(id_token: str) -> tuple[str, str]:
             raise ValueError("Apple key not found.")
 
         public_key = jwt.algorithms.RSAAlgorithm.from_jwk(key_data)
+        apple_bundle_id = os.environ.get("APPLE_BUNDLE_ID", "")
+        if not apple_bundle_id:
+            raise ValueError(
+                "Apple login is not configured. "
+                "Set APPLE_BUNDLE_ID in environment variables."
+            )
         payload = jwt.decode(
             id_token,
             public_key,
             algorithms=["RS256"],
-            audience=[os.environ.get("APPLE_BUNDLE_ID", "app.salafimasjid")],
+            audience=[apple_bundle_id],
             issuer="https://appleid.apple.com",
         )
 
@@ -278,18 +288,18 @@ def _verify_google_token(id_token: str) -> tuple[str, str]:
             os.environ.get("GOOGLE_IOS_CLIENT_ID", ""),
         ] if a]
 
-        decode_options = {}
         if not audiences:
-            # No client IDs configured — skip audience verification (dev only)
-            decode_options["verify_aud"] = False
+            raise ValueError(
+                "Google login is not configured. "
+                "Set GOOGLE_CLIENT_ID in environment variables."
+            )
 
         payload = jwt.decode(
             id_token,
             public_key,
             algorithms=["RS256"],
-            audience=audiences if audiences else None,
+            audience=audiences,
             issuer=["accounts.google.com", "https://accounts.google.com"],
-            options=decode_options,
         )
 
         email = payload.get("email", "")
@@ -755,10 +765,33 @@ def create_checkout_session(request):
     cover_fees = request.data.get("cover_fees", "")
     ui_mode = request.data.get("ui_mode", "redirect")
 
+    # ── Validate return_url against allowed domains ───────────
+    ALLOWED_RETURN_DOMAINS = {
+        "salafimasjid.app",
+        "www.salafimasjid.app",
+    }
+
+    def _is_safe_return_url(url: str) -> bool:
+        """Only allow return URLs on our own domains (prevent open redirect)."""
+        from urllib.parse import urlparse
+        try:
+            parsed = urlparse(url)
+        except Exception:
+            return False
+        if parsed.scheme not in ("https",):
+            return False
+        host = parsed.hostname or ""
+        # Allow exact match or Cloudflare Pages preview subdomains
+        if host in ALLOWED_RETURN_DOMAINS:
+            return True
+        if host.endswith(".masjid-connect.pages.dev"):
+            return True
+        return False
+
     # ── Validation ────────────────────────────────────────────
     def _error(msg, for_redirect=False):
         """Return an error — JSON for embedded, redirect for legacy."""
-        if for_redirect and return_url:
+        if for_redirect and return_url and _is_safe_return_url(return_url):
             from urllib.parse import quote
             sep = "&" if "?" in return_url else "?"
             return _redirect_303(return_url + sep + "donation=error&msg=" + quote(msg))
@@ -769,6 +802,12 @@ def create_checkout_session(request):
     if not return_url:
         return Response(
             {"detail": "return_url is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not _is_safe_return_url(return_url):
+        return Response(
+            {"detail": "return_url must be on an allowed domain."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
