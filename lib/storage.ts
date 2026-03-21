@@ -1,12 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { PrayerTimesData, JamaahTimesData } from '@/types';
-import { ensurePM } from '@/lib/prayer';
 
 const KEYS = {
-  PRAYER_TIMES: 'cached_prayer_times',
-  PRAYER_DATE: 'cached_prayer_date',
-  JAMAAH_TIMES: 'cached_jamaah_times',
-  LATEST_JAMAAH_TIMES: 'latest_jamaah_times',
   USER_LOCATION: 'user_location',
   CALCULATION_METHOD: 'calculation_method',
   CALCULATION_METHOD_NAME: 'calculation_method_name',
@@ -17,114 +11,6 @@ const KEYS = {
   NOTIFY_ANNOUNCEMENTS: 'notify_announcements',
   NOTIFY_EVENTS: 'notify_events',
 };
-
-/** Prayer times cache */
-export async function cachePrayerTimes(
-  times: PrayerTimesData,
-  date: string,
-  jamaahTimes?: JamaahTimesData | null
-): Promise<void> {
-  const serialized = {
-    fajr: times.fajr.toISOString(),
-    sunrise: times.sunrise.toISOString(),
-    dhuhr: times.dhuhr.toISOString(),
-    asr: times.asr.toISOString(),
-    maghrib: times.maghrib.toISOString(),
-    isha: times.isha.toISOString(),
-  };
-  await AsyncStorage.setItem(KEYS.PRAYER_TIMES, JSON.stringify(serialized));
-  await AsyncStorage.setItem(KEYS.PRAYER_DATE, date);
-
-  if (jamaahTimes) {
-    const serializedJamaah = {
-      fajr: jamaahTimes.fajr.toISOString(),
-      dhuhr: jamaahTimes.dhuhr.toISOString(),
-      asr: jamaahTimes.asr.toISOString(),
-      maghrib: jamaahTimes.maghrib.toISOString(),
-      isha: jamaahTimes.isha.toISOString(),
-    };
-    await AsyncStorage.setItem(KEYS.JAMAAH_TIMES, JSON.stringify(serializedJamaah));
-  } else {
-    await AsyncStorage.removeItem(KEYS.JAMAAH_TIMES);
-  }
-}
-
-export async function getCachedPrayerTimes(
-  date: string
-): Promise<{ times: PrayerTimesData; jamaahTimes: JamaahTimesData | null } | null> {
-  const results = await AsyncStorage.multiGet([
-    KEYS.PRAYER_DATE,
-    KEYS.PRAYER_TIMES,
-    KEYS.JAMAAH_TIMES,
-  ]);
-  const cachedDate = results[0][1];
-  const raw = results[1][1];
-  const rawJamaah = results[2][1];
-
-  if (cachedDate !== date) return null;
-  if (!raw) return null;
-
-  const parsed = JSON.parse(raw);
-  const times: PrayerTimesData = {
-    fajr: new Date(parsed.fajr),
-    sunrise: new Date(parsed.sunrise),
-    dhuhr: ensurePM(new Date(parsed.dhuhr)),
-    asr: ensurePM(new Date(parsed.asr)),
-    maghrib: ensurePM(new Date(parsed.maghrib)),
-    isha: ensurePM(new Date(parsed.isha)),
-  };
-
-  let jamaahTimes: JamaahTimesData | null = null;
-  if (rawJamaah) {
-    const parsedJamaah = JSON.parse(rawJamaah);
-    jamaahTimes = {
-      fajr: new Date(parsedJamaah.fajr),
-      dhuhr: ensurePM(new Date(parsedJamaah.dhuhr)),
-      asr: ensurePM(new Date(parsedJamaah.asr)),
-      maghrib: ensurePM(new Date(parsedJamaah.maghrib)),
-      isha: ensurePM(new Date(parsedJamaah.isha)),
-    };
-  }
-
-  return { times, jamaahTimes };
-}
-
-/**
- * Latest known jama'ah times — NOT keyed by date.
- * Persists across app restarts so we can extrapolate future times
- * even if the current day has no backend data.
- */
-export async function saveLatestJamaahTimes(jamaahTimes: JamaahTimesData): Promise<void> {
-  const serialized = {
-    fajr: `${jamaahTimes.fajr.getHours()}:${String(jamaahTimes.fajr.getMinutes()).padStart(2, '0')}`,
-    dhuhr: `${jamaahTimes.dhuhr.getHours()}:${String(jamaahTimes.dhuhr.getMinutes()).padStart(2, '0')}`,
-    asr: `${jamaahTimes.asr.getHours()}:${String(jamaahTimes.asr.getMinutes()).padStart(2, '0')}`,
-    maghrib: `${jamaahTimes.maghrib.getHours()}:${String(jamaahTimes.maghrib.getMinutes()).padStart(2, '0')}`,
-    isha: `${jamaahTimes.isha.getHours()}:${String(jamaahTimes.isha.getMinutes()).padStart(2, '0')}`,
-  };
-  await AsyncStorage.setItem(KEYS.LATEST_JAMAAH_TIMES, JSON.stringify(serialized));
-}
-
-export async function getLatestJamaahTimes(targetDate: Date): Promise<JamaahTimesData | null> {
-  const raw = await AsyncStorage.getItem(KEYS.LATEST_JAMAAH_TIMES);
-  if (!raw) return null;
-
-  const parsed = JSON.parse(raw);
-  const makeDate = (timeStr: string): Date => {
-    const [h, m] = timeStr.split(':').map(Number);
-    const d = new Date(targetDate);
-    d.setHours(h, m, 0, 0);
-    return d;
-  };
-
-  return {
-    fajr: makeDate(parsed.fajr),
-    dhuhr: ensurePM(makeDate(parsed.dhuhr)),
-    asr: ensurePM(makeDate(parsed.asr)),
-    maghrib: ensurePM(makeDate(parsed.maghrib)),
-    isha: ensurePM(makeDate(parsed.isha)),
-  };
-}
 
 /** User location */
 export async function getUserLocation(): Promise<{ latitude: number; longitude: number } | null> {
