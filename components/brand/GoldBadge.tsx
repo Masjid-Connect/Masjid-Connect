@@ -33,7 +33,7 @@ export const GoldBadge = ({
   style,
 }: GoldBadgeProps) => {
   const showCount = count !== undefined && count > 0;
-  const dotSize = showCount ? Math.max(size, 18) : 8;
+  const dotSize = showCount ? Math.max(size, 18) : 10;
   const displayCount = count !== undefined && count > 99 ? '99+' : count;
 
   return (

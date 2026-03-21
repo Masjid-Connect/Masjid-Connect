@@ -24,6 +24,9 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography, borderRadius } from '@/constants/Theme';
 import { AnnouncementsContent } from '@/components/community/AnnouncementsContent';
 import { EventsContent } from '@/components/community/EventsContent';
+import { GoldBadge } from '@/components/brand/GoldBadge';
+import { useAnnouncements } from '@/hooks/useAnnouncements';
+import { useReadAnnouncements } from '@/hooks/useReadAnnouncements';
 
 type CommunitySegment = 'announcements' | 'events';
 
@@ -36,6 +39,9 @@ export default function CommunityScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [activeSegment, setActiveSegment] = useState<CommunitySegment>('announcements');
+  const { announcements } = useAnnouncements();
+  const { unreadCount } = useReadAnnouncements();
+  const announcementUnreadCount = unreadCount(announcements.map((a) => a.id));
 
   // ─── Large title collapse animation ────────────────────────────
   const scrollY = useSharedValue(0);
@@ -124,16 +130,24 @@ export default function CommunityScreen() {
                 ],
               ]}
               onPress={() => handleSegmentChange('announcements')}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: activeSegment === 'announcements' }}
+              accessibilityLabel={`${t('community.announcements')}${announcementUnreadCount > 0 ? `, ${announcementUnreadCount} ${t('announcements.unread')}` : ''}`}
             >
-              <Text style={[
-                typography.subhead,
-                {
-                  color: activeSegment === 'announcements' ? colors.text : colors.textSecondary,
-                  fontWeight: activeSegment === 'announcements' ? '600' : '400',
-                },
-              ]}>
-                {t('community.announcements')}
-              </Text>
+              <View style={styles.segmentLabelRow}>
+                <Text style={[
+                  typography.subhead,
+                  {
+                    color: activeSegment === 'announcements' ? colors.text : colors.textSecondary,
+                    fontWeight: activeSegment === 'announcements' ? '600' : '400',
+                  },
+                ]}>
+                  {t('community.announcements')}
+                </Text>
+                {announcementUnreadCount > 0 && (
+                  <GoldBadge count={announcementUnreadCount} size={16} style={{ marginStart: spacing.xs }} />
+                )}
+              </View>
             </Pressable>
             <Pressable
               style={[
@@ -144,6 +158,9 @@ export default function CommunityScreen() {
                 ],
               ]}
               onPress={() => handleSegmentChange('events')}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: activeSegment === 'events' }}
+              accessibilityLabel={t('community.events')}
             >
               <Text style={[
                 typography.subhead,
@@ -238,8 +255,13 @@ const styles = StyleSheet.create({
   segmentButton: {
     flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.sm - 2,
+  },
+  segmentLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   segmentButtonActive: {
     shadowColor: '#000',

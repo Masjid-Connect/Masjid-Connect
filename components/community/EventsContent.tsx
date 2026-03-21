@@ -23,8 +23,9 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, getElevation, borderRadius, typography, components } from '@/constants/Theme';
 import { useEvents } from '@/hooks/useEvents';
 import { BottomSheet } from '@/components/ui/BottomSheet';
+import { Card } from '@/components/ui/Card';
 import type { MosqueEvent, EventCategory } from '@/types';
-import { EVENT_CATEGORY_COLORS } from '@/types';
+import { EVENT_CATEGORY_COLORS, EVENT_CATEGORY_COLORS_DARK } from '@/types';
 import { formatTimeString } from '@/lib/prayer';
 import { getUse24h } from '@/lib/storage';
 
@@ -112,41 +113,48 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
 
   const renderEvent = ({ item, index }: { item: MosqueEvent; index: number }) => {
     const mosqueName = item.expand?.mosque?.name || '';
-    const categoryColor = EVENT_CATEGORY_COLORS[item.category] || colors.accent;
+    const categoryColors = isDark ? EVENT_CATEGORY_COLORS_DARK : EVENT_CATEGORY_COLORS;
+    const categoryColor = categoryColors[item.category] || colors.accent;
     const dateStr = item.event_date.split('T')[0] || item.event_date;
 
     return (
-      <Pressable onPress={() => setDetailEvent(item)}>
+      <Pressable
+        onPress={() => setDetailEvent(item)}
+        accessibilityRole="button"
+        accessibilityLabel={`${item.title}, ${t(`events.categories.${item.category}`)}, ${format(new Date(dateStr), 'EEE, MMM d')} at ${formatTimeString(item.start_time, use24h)}${mosqueName ? `, ${mosqueName}` : ''}`}
+      >
         <Animated.View
-          entering={FadeInDown.delay(index * 50).duration(350).springify()}
-          style={[
-            styles.eventCard,
-            { backgroundColor: colors.card, ...getElevation('sm', isDark) },
-          ]}>
-          <View style={[styles.categoryAccent, { backgroundColor: categoryColor }]} />
-          <View style={styles.eventContent}>
-            <Text style={[typography.categoryLabel, { color: categoryColor }]}>
-              {item.category.replace('_', ' ').toUpperCase()}
-            </Text>
-            <Text style={[typography.headline, { color: colors.text, marginTop: spacing.xs }]}>
-              {item.title}
-            </Text>
-            <Text style={[typography.subhead, { color: colors.textSecondary, marginTop: spacing.xs }]}>
-              {item.speaker ? `${item.speaker} · ` : ''}
-              {format(new Date(dateStr), 'EEE, MMM d')} at {formatTimeString(item.start_time, use24h)}
-              {item.end_time ? ` – ${formatTimeString(item.end_time, use24h)}` : ''}
-            </Text>
-            {mosqueName ? (
-              <Text style={[typography.caption1, { color: colors.textSecondary, marginTop: spacing.xs }]}>
-                {mosqueName}
+          entering={FadeInDown.delay(Math.min(index * 50, 300)).duration(350).springify()}
+        >
+          <Card variant="elevated" elevation="sm" style={styles.eventCard}>
+            <View style={[styles.categoryAccent, { backgroundColor: categoryColor }]} />
+            <View style={styles.eventContent}>
+              <Text style={[typography.categoryLabel, { color: categoryColor }]}>
+                {t(`events.categories.${item.category}`).toUpperCase()}
               </Text>
-            ) : null}
-            {item.recurring && (
-              <Text style={[typography.caption1, { color: colors.success, marginTop: spacing.xs, fontWeight: '500' }]}>
-                {t('events.repeats', { frequency: item.recurring })}
+              <Text
+                style={[typography.headline, { color: colors.text, marginTop: spacing.xs }]}
+                numberOfLines={2}
+              >
+                {item.title}
               </Text>
-            )}
-          </View>
+              <Text style={[typography.subhead, { color: colors.textSecondary, marginTop: spacing.xs }]}>
+                {item.speaker ? `${item.speaker} · ` : ''}
+                {format(new Date(dateStr), 'EEE, MMM d')} at {formatTimeString(item.start_time, use24h)}
+                {item.end_time ? ` – ${formatTimeString(item.end_time, use24h)}` : ''}
+              </Text>
+              {mosqueName ? (
+                <Text style={[typography.caption1, { color: colors.textSecondary, marginTop: spacing.xs }]}>
+                  {mosqueName}
+                </Text>
+              ) : null}
+              {item.recurring && (
+                <Text style={[typography.caption1, { color: colors.success, marginTop: spacing.xs, fontWeight: '500' }]}>
+                  {t('events.repeats', { frequency: item.recurring })}
+                </Text>
+              )}
+            </View>
+          </Card>
         </Animated.View>
       </Pressable>
     );
@@ -271,8 +279,8 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
       <BottomSheet visible={!!detailEvent} onDismiss={() => setDetailEvent(null)}>
         {detailEvent && (
           <View>
-            <Text style={[typography.categoryLabel, { color: EVENT_CATEGORY_COLORS[detailEvent.category] || colors.accent }]}>
-              {detailEvent.category.replace('_', ' ').toUpperCase()}
+            <Text style={[typography.categoryLabel, { color: (isDark ? EVENT_CATEGORY_COLORS_DARK : EVENT_CATEGORY_COLORS)[detailEvent.category] || colors.accent }]}>
+              {t(`events.categories.${detailEvent.category}`).toUpperCase()}
             </Text>
             <Text style={[typography.title2, { color: colors.text, marginTop: spacing.sm }]}>
               {detailEvent.title}
@@ -350,9 +358,7 @@ const styles = StyleSheet.create({
   },
   eventCard: {
     flexDirection: 'row',
-    borderRadius: borderRadius.md,
     marginBottom: spacing.md,
-    overflow: 'hidden',
   },
   categoryAccent: {
     width: components.categoryAccent.width,

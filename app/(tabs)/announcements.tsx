@@ -31,10 +31,11 @@ import * as Haptics from 'expo-haptics';
 
 import { getColors, getAlpha } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, badge } from '@/constants/Theme';
+import { spacing, typography, borderRadius, getElevation } from '@/constants/Theme';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { useReadAnnouncements } from '@/hooks/useReadAnnouncements';
 import { BottomSheet } from '@/components/ui/BottomSheet';
+import { GoldBadge } from '@/components/brand/GoldBadge';
 import type { Announcement } from '@/types';
 
 // ─── Time grouping ──────────────────────────────────────────────────
@@ -245,42 +246,38 @@ export default function AnnouncementsScreen() {
   }
 
   // ─── List ───────────────────────────────────────────────────────
-  const renderItem = ({ item, index }: { item: Announcement; index: number }) => {
+  const renderItem = ({ item, index, section }: { item: Announcement; index: number; section: SectionListData<Announcement> }) => {
     const isUrgent = item.priority === 'urgent';
     const unread = isUnread(item.id);
     const mosqueName = item.expand?.mosque?.name || '';
     const timeAgo = item.published_at
       ? formatDistanceToNow(new Date(item.published_at), { addSuffix: true, locale: dateLocale })
       : '';
+    const isLast = index === section.data.length - 1;
 
     return (
       <Pressable
         onPress={() => handlePress(item)}
         accessibilityRole="button"
-        accessibilityLabel={`${item.title}${isUrgent ? `, ${t('announcements.urgent')}` : ''}${mosqueName ? `, ${mosqueName}` : ''}`}
+        accessibilityLabel={`${item.title}${isUrgent ? `, ${t('announcements.urgent')}` : ''}${mosqueName ? `, ${mosqueName}` : ''}${unread ? `, ${t('announcements.unread')}` : ''}`}
       >
         <Animated.View
           entering={reducedMotion ? FadeIn.duration(300) : FadeInDown.delay(Math.min(index * 40, 300)).duration(300).springify()}
           style={[
             styles.row,
-            isUrgent && {
-              backgroundColor: alphaColors.urgentBg,
-              marginHorizontal: -spacing.lg,
-              paddingHorizontal: spacing.lg,
-              borderRadius: borderRadius.sm,
-            },
+            isUrgent && { backgroundColor: alphaColors.urgentBg },
           ]}>
-          <View style={styles.rowInner}>
-            {/* Unread indicator — leading-edge accent dot */}
+          <View style={[
+            styles.rowInner,
+            !isLast && styles.rowSeparator,
+            !isLast && { borderBottomColor: colors.separator },
+          ]}>
+            {/* Unread indicator — GoldBadge dot */}
             <View style={styles.unreadColumn}>
               {unread && (
-                <View
-                  style={[
-                    styles.unreadDot,
-                    {
-                      backgroundColor: isUrgent ? colors.urgent : colors.accent,
-                    },
-                  ]}
+                <GoldBadge
+                  size={10}
+                  color={isUrgent ? colors.urgent : undefined}
                 />
               )}
             </View>
@@ -291,11 +288,11 @@ export default function AnnouncementsScreen() {
               <View style={styles.metaRow}>
                 {isUrgent && (
                   <>
-                    <View style={[styles.urgentDot, { backgroundColor: colors.urgent }]} />
+                    <Ionicons name="alert-circle" size={12} color={colors.urgent} accessibilityLabel={t('announcements.urgent')} />
                     <Text
                       style={[
                         typography.caption2,
-                        { color: colors.urgent, fontWeight: '600', marginEnd: spacing.xs },
+                        { color: colors.urgent, fontWeight: '600', marginStart: spacing.xs, marginEnd: spacing.xs },
                       ]}>
                       {t('announcements.urgent')}
                     </Text>
@@ -320,13 +317,13 @@ export default function AnnouncementsScreen() {
               {/* Title — bold when unread, regular weight when read */}
               <Text
                 style={[
-                  typography.headline,
+                  unread ? typography.headline : typography.body,
                   {
                     color: colors.text,
                     marginTop: spacing.xs,
-                    fontWeight: unread ? '600' : '400',
                   },
-                ]}>
+                ]}
+                numberOfLines={2}>
                 {item.title}
               </Text>
 
@@ -341,7 +338,7 @@ export default function AnnouncementsScreen() {
               <Text
                 style={[
                   typography.caption1,
-                  { color: colors.textTertiary, marginTop: spacing.sm, opacity: 0.7 },
+                  { color: colors.textTertiary, marginTop: spacing.sm },
                 ]}>
                 {timeAgo}
               </Text>
@@ -349,7 +346,7 @@ export default function AnnouncementsScreen() {
 
             {/* Disclosure chevron */}
             <View style={styles.chevronColumn}>
-              <Ionicons name="chevron-forward" size={14} color={colors.textTertiary} />
+              <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} accessibilityLabel="" />
             </View>
           </View>
         </Animated.View>
@@ -367,10 +364,6 @@ export default function AnnouncementsScreen() {
         {section.title}
       </Text>
     </View>
-  );
-
-  const renderSeparator = () => (
-    <View style={[styles.separator, { backgroundColor: colors.separator }]} />
   );
 
   return (
@@ -400,7 +393,6 @@ export default function AnnouncementsScreen() {
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
-        ItemSeparatorComponent={renderSeparator}
         ListHeaderComponent={
           <Animated.View style={[styles.largeTitleContainer, largeTitleStyle]}>
             <Text style={[typography.largeTitle, { color: colors.text }]}>
@@ -580,21 +572,21 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   row: {
-    paddingVertical: spacing.xl,
+    paddingLeft: spacing.lg,
   },
   rowInner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    paddingVertical: spacing.lg,
+    paddingRight: spacing.lg,
+  },
+  rowSeparator: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   unreadColumn: {
     width: spacing.xl,
-    paddingTop: badge.smallDotSize,
+    paddingTop: spacing.xs,
     alignItems: 'center',
-  },
-  unreadDot: {
-    width: badge.dotSize,
-    height: badge.dotSize,
-    borderRadius: badge.dotSize / 2,
   },
   contentColumn: {
     flex: 1,
@@ -602,21 +594,12 @@ const styles = StyleSheet.create({
   chevronColumn: {
     justifyContent: 'center',
     paddingLeft: spacing.sm,
-    opacity: 0.4,
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    marginLeft: spacing.xl, // Align with content column
+    paddingTop: spacing.xs,
+    opacity: 0.5,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  urgentDot: {
-    width: badge.smallDotSize,
-    height: badge.smallDotSize,
-    borderRadius: badge.smallDotSize / 2,
-    marginEnd: spacing.xs,
   },
   retryBtn: {
     marginTop: spacing.xl,

@@ -5,6 +5,8 @@ interface UseReadAnnouncementsResult {
   readIds: Set<string>;
   markRead: (id: string) => Promise<void>;
   isUnread: (id: string) => boolean;
+  /** Count unread items from a given list of announcement IDs */
+  unreadCount: (allIds: string[]) => number;
 }
 
 export function useReadAnnouncements(): UseReadAnnouncementsResult {
@@ -24,5 +26,10 @@ export function useReadAnnouncements(): UseReadAnnouncementsResult {
     [readIds],
   );
 
-  return { readIds, markRead, isUnread };
+  const unreadCount = useCallback(
+    (allIds: string[]) => allIds.filter((id) => !readIds.has(id)).length,
+    [readIds],
+  );
+
+  return { readIds, markRead, isUnread, unreadCount };
 }

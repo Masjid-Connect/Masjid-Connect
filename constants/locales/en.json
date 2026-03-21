@@ -42,6 +42,8 @@
     "publishedOn": "Published {{date}}",
     "share": "Share",
     "markRead": "Mark as read",
+    "unread": "unread",
+    "location": "Location",
     "signInPrompt": "Sign in to see announcements",
     "signInHint": "Create an account or sign in to view announcements from your masjid."
   },
@@ -390,7 +392,9 @@
     "locationError": "Could not detect your location. Please try again.",
     "calendarError": "Could not open calendar.",
     "networkError": "Unable to connect. Please check your internet and try again.",
-    "clearFilter": "Clear filter"
+    "clearFilter": "Clear filter",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "legal": {
     "privacyPolicy": "Privacy Policy",

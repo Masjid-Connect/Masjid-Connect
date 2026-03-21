@@ -12,7 +12,7 @@ import {
   Share,
   Platform,
 } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeIn, useReducedMotion } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { formatDistanceToNow, isToday, isThisWeek, format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
@@ -20,10 +20,11 @@ import * as Haptics from 'expo-haptics';
 
 import { getColors, getAlpha } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, badge } from '@/constants/Theme';
+import { spacing, typography, borderRadius, getElevation } from '@/constants/Theme';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { useReadAnnouncements } from '@/hooks/useReadAnnouncements';
 import { BottomSheet } from '@/components/ui/BottomSheet';
+import { GoldBadge } from '@/components/brand/GoldBadge';
 import type { Announcement } from '@/types';
 
 // ─── Time grouping ──────────────────────────────────────────────────
@@ -69,10 +70,12 @@ interface AnnouncementsContentProps {
 export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) => {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
+  const isDark = effectiveScheme === 'dark';
   const alphaColors = getAlpha(effectiveScheme);
   const { t } = useTranslation();
+  const reducedMotion = useReducedMotion();
   const { announcements, isLoading, error, refresh } = useAnnouncements();
-  const { isUnread, markRead } = useReadAnnouncements();
+  const { isUnread, markRead, unreadCount } = useReadAnnouncements();
   const [refreshing, setRefreshing] = useState(false);
   const [expandedItem, setExpandedItem] = useState<Announcement | null>(null);
 
@@ -136,7 +139,7 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
   if (error && announcements.length === 0) {
     return (
       <View style={[styles.centered, { flex: 1 }]}>
-        <Ionicons name="cloud-offline-outline" size={48} color={colors.textSecondary} />
+        <Ionicons name="cloud-offline-outline" size={48} color={colors.textSecondary} accessibilityLabel={t('common.networkError')} />
         <Text
           style={[
             typography.headline,
@@ -144,7 +147,12 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
           ]}>
           {t('common.networkError')}
         </Text>
-        <Pressable onPress={handleRefresh} style={[styles.retryBtn, { borderColor: colors.tint }]}>
+        <Pressable
+          onPress={handleRefresh}
+          style={[styles.retryBtn, { borderColor: colors.tint }]}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.retry')}
+        >
           <Text style={[typography.subhead, { color: colors.tint }]}>{t('common.retry')}</Text>
         </Pressable>
       </View>
@@ -159,7 +167,7 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
         }>
-        <Ionicons name="megaphone-outline" size={48} color={colors.textSecondary} style={{ opacity: 0.5 }} />
+        <Ionicons name="megaphone-outline" size={48} color={colors.textSecondary} style={{ opacity: 0.5 }} accessibilityLabel={t('announcements.empty')} />
         <Text
           style={[
             typography.headline,
@@ -179,48 +187,52 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
   }
 
   // ─── List ───────────────────────────────────────────────────────
-  const renderItem = ({ item, index }: { item: Announcement; index: number }) => {
+  const renderItem = ({ item, index, section }: { item: Announcement; index: number; section: SectionListData<Announcement> }) => {
     const isUrgent = item.priority === 'urgent';
     const unread = isUnread(item.id);
     const mosqueName = item.expand?.mosque?.name || '';
     const timeAgo = item.published_at
       ? formatDistanceToNow(new Date(item.published_at), { addSuffix: true })
       : '';
+    const isLast = index === section.data.length - 1;
 
     return (
-      <Pressable onPress={() => handlePress(item)}>
+      <Pressable
+        onPress={() => handlePress(item)}
+        accessibilityRole="button"
+        accessibilityLabel={`${item.title}${isUrgent ? `, ${t('announcements.urgent')}` : ''}${mosqueName ? `, ${mosqueName}` : ''}${unread ? `, ${t('announcements.unread')}` : ''}`}
+      >
         <Animated.View
-          entering={FadeInDown.delay(index * 40).duration(300).springify()}
+          entering={reducedMotion ? FadeIn.duration(300) : FadeInDown.delay(Math.min(index * 40, 300)).duration(300).springify()}
           style={[
             styles.row,
-            isUrgent && {
-              backgroundColor: alphaColors.urgentBg,
-              marginHorizontal: -spacing.lg,
-              paddingHorizontal: spacing.lg,
-              borderRadius: borderRadius.sm,
-            },
+            isUrgent && { backgroundColor: alphaColors.urgentBg },
           ]}>
-          <View style={styles.rowInner}>
+          <View style={[
+            styles.rowInner,
+            !isLast && styles.rowSeparator,
+            !isLast && { borderBottomColor: colors.separator },
+          ]}>
+            {/* Unread indicator — GoldBadge dot */}
             <View style={styles.unreadColumn}>
               {unread && (
-                <View
-                  style={[
-                    styles.unreadDot,
-                    { backgroundColor: isUrgent ? colors.urgent : colors.accent },
-                  ]}
+                <GoldBadge
+                  size={10}
+                  color={isUrgent ? colors.urgent : undefined}
                 />
               )}
             </View>
 
+            {/* Content */}
             <View style={styles.contentColumn}>
               <View style={styles.metaRow}>
                 {isUrgent && (
                   <>
-                    <View style={[styles.urgentDot, { backgroundColor: colors.urgent }]} />
+                    <Ionicons name="alert-circle" size={12} color={colors.urgent} accessibilityLabel={t('announcements.urgent')} />
                     <Text
                       style={[
                         typography.caption2,
-                        { color: colors.urgent, fontWeight: '600', marginRight: spacing.xs },
+                        { color: colors.urgent, fontWeight: '600', marginStart: spacing.xs, marginEnd: spacing.xs },
                       ]}>
                       {t('announcements.urgent')}
                     </Text>
@@ -240,13 +252,13 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
 
               <Text
                 style={[
-                  typography.headline,
+                  unread ? typography.headline : typography.body,
                   {
                     color: colors.text,
                     marginTop: spacing.xs,
-                    fontWeight: unread ? '600' : '400',
                   },
-                ]}>
+                ]}
+                numberOfLines={2}>
                 {item.title}
               </Text>
 
@@ -259,14 +271,15 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
               <Text
                 style={[
                   typography.caption1,
-                  { color: colors.textTertiary, marginTop: spacing.sm, opacity: 0.7 },
+                  { color: colors.textTertiary, marginTop: spacing.sm },
                 ]}>
                 {timeAgo}
               </Text>
             </View>
 
+            {/* Disclosure chevron */}
             <View style={styles.chevronColumn}>
-              <Ionicons name="chevron-forward" size={14} color={colors.textTertiary} />
+              <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} accessibilityLabel="" />
             </View>
           </View>
         </Animated.View>
@@ -286,10 +299,6 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
     </View>
   );
 
-  const renderSeparator = () => (
-    <View style={[styles.separator, { backgroundColor: colors.separator }]} />
-  );
-
   return (
     <>
       <SectionList
@@ -297,7 +306,6 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
-        ItemSeparatorComponent={renderSeparator}
         contentContainerStyle={styles.listContent}
         stickySectionHeadersEnabled
         refreshControl={
@@ -316,7 +324,7 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
                 <Text
                   style={[
                     typography.caption2,
-                    { color: colors.urgent, fontWeight: '700', marginLeft: spacing.xs },
+                    { color: colors.urgent, fontWeight: '700', marginStart: spacing.xs },
                   ]}>
                   {t('announcements.urgent')}
                 </Text>
@@ -325,18 +333,18 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
 
             {expandedItem.expand?.mosque?.name ? (
               <View style={[styles.mosqueRow, { marginTop: expandedItem.priority === 'urgent' ? spacing.md : 0 }]}>
-                <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
+                <Ionicons name="location-outline" size={14} color={colors.textSecondary} accessibilityLabel={t('announcements.location')} />
                 <Text
                   style={[
                     typography.footnote,
-                    { color: colors.textSecondary, fontWeight: '500', marginLeft: spacing.xs },
+                    { color: colors.textSecondary, fontWeight: '500', marginStart: spacing.xs },
                   ]}>
                   {expandedItem.expand.mosque.name}
                 </Text>
               </View>
             ) : null}
 
-            <Text style={[typography.title2, { color: colors.text, marginTop: spacing.md }]}>
+            <Text style={[typography.title2, { color: colors.text, marginTop: spacing.md }]} accessibilityRole="header">
               {expandedItem.title}
             </Text>
 
@@ -363,9 +371,12 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   handleShare(expandedItem);
-                }}>
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={t('announcements.share')}
+              >
                 <Ionicons name="share-outline" size={18} color={colors.tint} />
-                <Text style={[typography.subhead, { color: colors.tint, marginLeft: spacing.sm }]}>
+                <Text style={[typography.subhead, { color: colors.tint, marginStart: spacing.sm }]}>
                   {t('announcements.share')}
                 </Text>
               </Pressable>
@@ -377,9 +388,12 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     markRead(expandedItem.id);
                     setExpandedItem(null);
-                  }}>
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('announcements.markRead')}
+                >
                   <Ionicons name="checkmark-circle-outline" size={18} color={colors.success} />
-                  <Text style={[typography.subhead, { color: colors.success, marginLeft: spacing.sm }]}>
+                  <Text style={[typography.subhead, { color: colors.success, marginStart: spacing.sm }]}>
                     {t('announcements.markRead')}
                   </Text>
                 </Pressable>
@@ -413,21 +427,21 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   row: {
-    paddingVertical: spacing.xl,
+    paddingLeft: spacing.lg,
   },
   rowInner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    paddingVertical: spacing.lg,
+    paddingRight: spacing.lg,
+  },
+  rowSeparator: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   unreadColumn: {
     width: spacing.xl,
-    paddingTop: badge.smallDotSize,
+    paddingTop: spacing.xs,
     alignItems: 'center',
-  },
-  unreadDot: {
-    width: badge.dotSize,
-    height: badge.dotSize,
-    borderRadius: badge.dotSize / 2,
   },
   contentColumn: {
     flex: 1,
@@ -435,21 +449,12 @@ const styles = StyleSheet.create({
   chevronColumn: {
     justifyContent: 'center',
     paddingLeft: spacing.sm,
-    opacity: 0.4,
-  },
-  separator: {
-    height: StyleSheet.hairlineWidth,
-    marginLeft: spacing.xl,
+    paddingTop: spacing.xs,
+    opacity: 0.5,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  urgentDot: {
-    width: badge.smallDotSize,
-    height: badge.smallDotSize,
-    borderRadius: badge.smallDotSize / 2,
-    marginRight: spacing.xs,
   },
   retryBtn: {
     marginTop: spacing.xl,
