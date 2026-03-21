@@ -50,14 +50,20 @@ class WrightStreetScraper(MosqueTimetableScraper):
     }
 
     def discover_pdf_url(self) -> str:
-        """Search the mosque website for the latest timetable page and extract PDF link."""
+        """Search the mosque website for the latest timetable page and extract PDF link.
+
+        Handles transitional months where multiple timetables exist (e.g. Ramadan
+        ending mid-month with a separate "End of <Month>" timetable).  Priority:
+
+        1. "End of <month>" timetable (covers post-Ramadan or partial month)
+        2. Regular "<month> <year>" timetable
+        3. "Ramadan" timetable (if current month overlaps with Ramadan)
+        4. Any timetable matching the year
+        """
         today = date.today()
         month_name = MONTH_NAMES[today.month]
         year = today.year
 
-        # Try the predictable URL pattern first
-        # e.g. /february-2026-shaban-1447-prayer-timetable/
-        # or /ramadan-1447-prayer-timetable/
         search_url = f"https://www.wrightstreetmosque.com/?s={month_name}+{year}+prayer+timetable"
         logger.info("Searching for timetable at: %s", search_url)
 
@@ -65,28 +71,48 @@ class WrightStreetScraper(MosqueTimetableScraper):
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "html.parser")
 
-        # Find links to timetable posts
-        timetable_link = None
+        # Collect all unique timetable links
+        seen = set()
+        candidates: list[tuple[str, int]] = []  # (url, priority)
         for a in soup.find_all("a", href=True):
-            href = a["href"]
-            if "prayer-timetable" in href and (month_name in href or "ramadan" in href.lower()):
-                timetable_link = href
-                break
+            href = a["href"].rstrip("/")
+            if href in seen or "prayer-timetable" not in href:
+                continue
+            seen.add(href)
+            href_lower = href.lower()
 
-        if not timetable_link:
-            # Fallback: search more broadly
+            # Prioritise: "end-of-<month>" > regular month > ramadan > year-only
+            if f"end-of-{month_name}" in href_lower:
+                candidates.append((a["href"], 0))
+            elif month_name in href_lower and "end-of" not in href_lower:
+                candidates.append((a["href"], 1))
+            elif "ramadan" in href_lower:
+                candidates.append((a["href"], 2))
+            elif str(year) in href_lower:
+                candidates.append((a["href"], 3))
+
+        if not candidates:
+            # Broader fallback search
+            search_url2 = f"https://www.wrightstreetmosque.com/?s=prayer+timetable+{year}"
+            logger.info("Broad search fallback: %s", search_url2)
+            resp = requests.get(search_url2, timeout=15, verify=False, headers=self.HEADERS)
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.text, "html.parser")
             for a in soup.find_all("a", href=True):
                 href = a["href"]
                 if "prayer-timetable" in href and str(year) in href:
-                    timetable_link = href
+                    candidates.append((href, 3))
                     break
 
-        if not timetable_link:
+        if not candidates:
             raise ValueError(
                 f"Could not find timetable page for {month_name} {year} on wrightstreetmosque.com"
             )
 
-        logger.info("Found timetable page: %s", timetable_link)
+        # Pick the highest-priority (lowest number) candidate
+        candidates.sort(key=lambda c: c[1])
+        timetable_link = candidates[0][0]
+        logger.info("Selected timetable (priority %d): %s", candidates[0][1], timetable_link)
 
         # Now fetch the timetable page and find the PDF link
         resp = requests.get(timetable_link, timeout=15, verify=False, headers=self.HEADERS)
@@ -121,6 +147,36 @@ class WrightStreetScraper(MosqueTimetableScraper):
 
         return self._parse_text(all_text)
 
+    def _detect_column_count(self, text: str) -> int:
+        """Detect the number of time columns per day in the PDF.
+
+        Standard timetable:  10 columns (fajr_start → isha_jamat)
+        Ramadan timetable:   may have extra columns for Suhoor/Imsak or Taraweeh.
+
+        Heuristic: find the first day record and count how many HH:MM values
+        appear before the next day name.
+        """
+        lines = [l.strip() for l in text.strip().split("\n") if l.strip()]
+        DAY_NAMES = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
+        TIME_RE = re.compile(r"^\d{1,2}:\d{2}$")
+
+        for idx, line in enumerate(lines):
+            if line not in DAY_NAMES:
+                continue
+            # Count time values after the date fields
+            count = 0
+            for subsequent in lines[idx + 1:]:
+                if subsequent in DAY_NAMES:
+                    break
+                if TIME_RE.match(subsequent):
+                    count += 1
+            if count >= 10:
+                logger.info("Detected %d time columns per day", count)
+                return count
+            break
+
+        return 10  # default
+
     def _parse_text(self, text: str) -> list[DailyPrayerData]:
         """Parse the extracted text from the PDF.
 
@@ -132,6 +188,9 @@ class WrightStreetScraper(MosqueTimetableScraper):
           Lines 3-12: 10 time values (fajr_start, fajr_jamat, sunrise,
                       dhuhr_start, dhuhr_jamat, asr_start, asr_jamat,
                       maghrib_jamat, isha_start, isha_jamat)
+
+        Ramadan PDFs may have extra columns (e.g. Suhoor/Imsak at the start,
+        Taraweeh at the end).  We auto-detect the column count and skip extras.
         """
         year = self._extract_year(text)
 
@@ -148,6 +207,8 @@ class WrightStreetScraper(MosqueTimetableScraper):
         days = []
         # Track which month we're in (for timetables spanning two months)
         current_month = self._detect_starting_month(text)
+        is_ramadan = "ramadan" in text[:500].lower()
+        num_columns = self._detect_column_count(text)
 
         i = 0
         while i < len(lines):
@@ -157,9 +218,8 @@ class WrightStreetScraper(MosqueTimetableScraper):
                 continue
 
             # We found a day name — now consume the record
-            # Need at least 13 more values after day name
             remaining = lines[i + 1:]
-            if len(remaining) < 12:
+            if len(remaining) < num_columns + 2:
                 break
 
             j = 0  # index into remaining
@@ -197,14 +257,14 @@ class WrightStreetScraper(MosqueTimetableScraper):
             if greg_month is not None:
                 current_month = greg_month
 
-            # Now read 10 time values
-            if j + 10 > len(remaining):
+            # Read all time values for this day
+            if j + num_columns > len(remaining):
                 break
 
             time_values = []
-            for k in range(10):
+            for k in range(num_columns):
                 time_values.append(remaining[j + k].strip())
-            j += 10
+            j += num_columns
 
             try:
                 the_date = date(year, current_month, greg_day)
@@ -213,20 +273,38 @@ class WrightStreetScraper(MosqueTimetableScraper):
                 i += 1
                 continue
 
-            # The PDF uses 12-hour format without AM/PM labels.
-            # Columns 0-2 (fajr, sunrise) are AM; 3-9 (dhuhr onward) are PM.
+            # Map columns to prayer fields.
+            # Standard PDF (10 cols): fajr_start, fajr_jamat, sunrise,
+            #   dhuhr_start, dhuhr_jamat, asr_start, asr_jamat,
+            #   maghrib_jamat, isha_start, isha_jamat
+            #
+            # Ramadan PDF (11 cols): suhoor/imsak, fajr_start, fajr_jamat, sunrise,
+            #   dhuhr_start, dhuhr_jamat, asr_start, asr_jamat,
+            #   maghrib_jamat, isha_start, isha_jamat
+            #
+            # Ramadan PDF (12 cols): same as 11 + taraweeh at end
+            if num_columns >= 12 and is_ramadan:
+                # 12+ columns: skip suhoor (col 0) and taraweeh (col 11+)
+                offset = 1
+            elif num_columns == 11 and is_ramadan:
+                # 11 columns: skip suhoor (col 0)
+                offset = 1
+            else:
+                # Standard 10 columns
+                offset = 0
+
             day_data = DailyPrayerData(
                 date=the_date,
-                fajr_start=self.parse_time(time_values[0]),
-                fajr_jamat=self.parse_time(time_values[1]),
-                sunrise=self.parse_time(time_values[2]),
-                dhuhr_start=self._ensure_pm(self.parse_time(time_values[3])),
-                dhuhr_jamat=self._ensure_pm(self.parse_time(time_values[4])),
-                asr_start=self._ensure_pm(self.parse_time(time_values[5])),
-                asr_jamat=self._ensure_pm(self.parse_time(time_values[6])),
-                maghrib_jamat=self._ensure_pm(self.parse_time(time_values[7])),
-                isha_start=self._ensure_pm(self.parse_time(time_values[8])),
-                isha_jamat=self._ensure_pm(self.parse_time(time_values[9])),
+                fajr_start=self.parse_time(time_values[offset + 0]),
+                fajr_jamat=self.parse_time(time_values[offset + 1]),
+                sunrise=self.parse_time(time_values[offset + 2]),
+                dhuhr_start=self._ensure_pm(self.parse_time(time_values[offset + 3])),
+                dhuhr_jamat=self._ensure_pm(self.parse_time(time_values[offset + 4])),
+                asr_start=self._ensure_pm(self.parse_time(time_values[offset + 5])),
+                asr_jamat=self._ensure_pm(self.parse_time(time_values[offset + 6])),
+                maghrib_jamat=self._ensure_pm(self.parse_time(time_values[offset + 7])),
+                isha_start=self._ensure_pm(self.parse_time(time_values[offset + 8])),
+                isha_jamat=self._ensure_pm(self.parse_time(time_values[offset + 9])),
             )
             days.append(day_data)
 
@@ -250,17 +328,45 @@ class WrightStreetScraper(MosqueTimetableScraper):
         return t
 
     def _detect_starting_month(self, text: str) -> int:
-        """Detect the starting Gregorian month from the PDF title."""
-        text_lower = text.lower()
+        """Detect the starting Gregorian month from the PDF title/header.
 
-        # Check for explicit month names
+        Only inspects the first few lines (title area) to avoid matching month
+        names that appear incidentally in the body or Hijri date sections.
+        For Ramadan timetables that span two months, the first Gregorian day
+        in the data determines the actual starting month (handled by the parser's
+        inline month-transition logic).
+        """
+        # Use only the first ~500 characters (title/header area)
+        header = text[:500].lower()
+
+        # "End of March" style timetables — extract the month from the name
+        end_of_match = re.search(r"end\s+of\s+(\w+)", header)
+        if end_of_match:
+            month_word = end_of_match.group(1)
+            for i, name in enumerate(MONTH_NAMES):
+                if name and name == month_word:
+                    return i
+
+        # Look for an explicit month name in the header
+        # Search in reverse order (December → January) so that if the header
+        # mentions "February / March", we pick the LATER month only if both
+        # appear.  But prefer the first standalone month name in practice.
+        found_months: list[tuple[int, int]] = []  # (position, month_index)
         for i, name in enumerate(MONTH_NAMES):
-            if name and name in text_lower:
-                return i
+            if name:
+                pos = header.find(name)
+                if pos != -1:
+                    found_months.append((pos, i))
 
-        # Ramadan 1447 starts Feb 18, 2026
-        if "ramadan" in text_lower:
-            return 2  # February
+        if found_months:
+            # Pick the month that appears first in the header text
+            found_months.sort(key=lambda x: x[0])
+            return found_months[0][1]
+
+        # Ramadan timetable without explicit Gregorian month — infer from Hijri year
+        if "ramadan" in header:
+            # Ramadan 1447 starts ~Feb 28, 2026; Ramadan 1448 starts ~Feb 17, 2027
+            return 2  # February (safe default for recent years)
 
         return date.today().month
 

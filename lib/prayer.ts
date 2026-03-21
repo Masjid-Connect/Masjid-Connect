@@ -148,7 +148,7 @@ export async function getPrayerTimes(
 export async function fetchMosquePrayerTimes(
   mosqueId: string,
   date?: Date
-): Promise<{ times: PrayerTimesData; jamaahTimes: JamaahTimesData } | null> {
+): Promise<{ times: PrayerTimesData; jamaahTimes: JamaahTimesData; hasSunrise: boolean } | null> {
   try {
     const d = date || new Date();
     const dateStr = format(d, 'yyyy-MM-dd');
@@ -178,14 +178,16 @@ function parseMosquePrayerTimesResponse(
   // Start times — use scraped values if available, otherwise use jama'ah times as approximation
   const times: PrayerTimesData = {
     fajr: response.fajr_start ? parseTimeString(response.fajr_start, dateStr) : jamaahTimes.fajr,
-    sunrise: response.sunrise ? parseTimeString(response.sunrise, dateStr) : parseTimeString('07:00', dateStr),
+    sunrise: response.sunrise ? parseTimeString(response.sunrise, dateStr) : jamaahTimes.fajr, // placeholder — overridden by Aladhan in hook
     dhuhr: response.dhuhr_start ? ensurePM(parseTimeString(response.dhuhr_start, dateStr)) : jamaahTimes.dhuhr,
     asr: response.asr_start ? ensurePM(parseTimeString(response.asr_start, dateStr)) : jamaahTimes.asr,
     maghrib: jamaahTimes.maghrib, // Maghrib start = jama'ah (prayed immediately at sunset)
     isha: response.isha_start ? ensurePM(parseTimeString(response.isha_start, dateStr)) : jamaahTimes.isha,
   };
 
-  return { times, jamaahTimes };
+  const hasSunrise = response.sunrise !== null;
+
+  return { times, jamaahTimes, hasSunrise };
 }
 
 /** Prayers that are always in the PM (after noon) */

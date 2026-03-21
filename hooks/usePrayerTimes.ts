@@ -137,13 +137,24 @@ export function usePrayerTimes(): UsePrayerTimesResult {
             await schedulePrayerReminders(mosqueResult.times, reminderMinutes, jamaahTimes);
           }
 
-          // Still fetch Aladhan for Hijri date (mosque API doesn't provide it)
+          // Fetch Aladhan for Hijri date + sunrise (mosque API may not have sunrise)
           // Islamic day starts at Maghrib, so after Maghrib we show next day's Hijri date
           try {
+            const lat = SALAFI_MASJID.latitude;
+            const lng = SALAFI_MASJID.longitude;
+            const aladhanResult = await getPrayerTimes(lat, lng, CALCULATION_METHOD_CODE, CALCULATION_METHOD_NAME, targetDate);
+
+            // Fill in sunrise from Aladhan when the mosque backend doesn't have it
+            if (!mosqueResult.hasSunrise) {
+              mosqueResult.times.sunrise = aladhanResult.times.sunrise;
+              const updatedEntries = buildPrayerEntries(mosqueResult.times, jamaahTimes);
+              setPrayers(updatedEntries);
+            }
+
             const hijri = await getCorrectHijriDate(targetDate, mosqueResult.times.maghrib);
             if (hijri) setHijriDate(hijri);
           } catch {
-            // Hijri date is nice-to-have, don't fail on it
+            // Hijri date + sunrise backfill are nice-to-have, don't fail on them
           }
 
           return;
