@@ -8,6 +8,7 @@ import {
   Platform,
   ActivityIndicator,
   useWindowDimensions,
+  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -88,6 +89,57 @@ const AnimatedButton = ({
   }));
 
   return <Animated.View style={animatedStyle}>{children}</Animated.View>;
+};
+
+/**
+ * Feature card — community value proposition with icon + text.
+ */
+const FeatureCard = ({
+  icon,
+  titleKey,
+  subtitleKey,
+  index,
+  colors,
+  isDark,
+}: {
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  titleKey: string;
+  subtitleKey: string;
+  index: number;
+  colors: ReturnType<typeof getColors>;
+  isDark: boolean;
+}) => {
+  const { t } = useTranslation();
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(16);
+
+  useEffect(() => {
+    const delay = 600 + index * 120;
+    opacity.value = withDelay(delay, withTiming(1, { duration: 400, easing: Easing.out(Easing.quad) }));
+    translateY.value = withDelay(delay, withSpring(0, springs.gentle));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }));
+
+  return (
+    <Animated.View style={[styles.featureCard, animatedStyle]}>
+      <View style={[styles.featureIconBox, { backgroundColor: isDark ? 'rgba(240, 208, 96, 0.12)' : 'rgba(191, 155, 48, 0.10)' }]}>
+        <Ionicons name={icon} size={18} color={colors.accent} />
+      </View>
+      <View style={styles.featureTextBox}>
+        <Text style={[typography.subhead, { color: colors.text, fontWeight: '600' }]}>
+          {t(titleKey)}
+        </Text>
+        <Text style={[typography.caption1, { color: colors.textSecondary, marginTop: 2 }]}>
+          {t(subtitleKey)}
+        </Text>
+      </View>
+    </Animated.View>
+  );
 };
 
 export default function WelcomeScreen() {
@@ -226,8 +278,12 @@ export default function WelcomeScreen() {
         />
       </View>
 
-      {/* ─── Zone 1: Identity (upper — brand presence with breathing room) ─── */}
-      <View style={[styles.identityZone, { paddingTop: insets.top + spacing['5xl'] }]}>
+      {/* ─── Zone 1: Identity + community framing ─── */}
+      <ScrollView
+        style={styles.identityScroll}
+        contentContainerStyle={[styles.identityZone, { paddingTop: insets.top + spacing['4xl'] }]}
+        showsVerticalScrollIndicator={false}
+      >
         <Animated.View style={logoAnimatedStyle}>
           <Image
             source={require('@/assets/images/Masjid_Logo.png')}
@@ -237,11 +293,42 @@ export default function WelcomeScreen() {
         </Animated.View>
 
         <Animated.View style={taglineAnimatedStyle}>
-          <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.lg }]}>
-            {t('welcome.tagline')}
+          <Text style={[typography.title2, { color: colors.text, textAlign: 'center', marginTop: spacing.xl }]}>
+            {t('welcome.communityHeadline')}
+          </Text>
+          <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm }]}>
+            {t('welcome.communitySubtitle')}
           </Text>
         </Animated.View>
-      </View>
+
+        {/* ─── Feature cards — community value propositions ─── */}
+        <View style={styles.featureCards}>
+          <FeatureCard
+            icon="time-outline"
+            titleKey="welcome.featurePrayer"
+            subtitleKey="welcome.featurePrayerHint"
+            index={0}
+            colors={colors}
+            isDark={isDark}
+          />
+          <FeatureCard
+            icon="megaphone-outline"
+            titleKey="welcome.featureAnnouncements"
+            subtitleKey="welcome.featureAnnouncementsHint"
+            index={1}
+            colors={colors}
+            isDark={isDark}
+          />
+          <FeatureCard
+            icon="calendar-outline"
+            titleKey="welcome.featureEvents"
+            subtitleKey="welcome.featureEventsHint"
+            index={2}
+            colors={colors}
+            isDark={isDark}
+          />
+        </View>
+      </ScrollView>
 
       {/* ─── Zone 2: Actions (bottom — frosted card with auth buttons) ─── */}
       <View
@@ -380,16 +467,40 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // ─── Zone 1: Identity (upper — generous breathing room) ────
-  identityZone: {
+  // ─── Zone 1: Identity + community framing ────
+  identityScroll: {
     flex: 1,
+  },
+  identityZone: {
     alignItems: 'center',
-    justifyContent: 'center',
     paddingHorizontal: spacing['3xl'],
+    paddingBottom: spacing.xl,
   },
   logo: {
-    width: 280,
-    height: 280 * 0.28, // fixed aspect ratio
+    width: 240,
+    height: 240 * 0.28,
+  },
+  featureCards: {
+    marginTop: spacing['2xl'],
+    width: '100%',
+    gap: spacing.md,
+  },
+  featureCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
+  },
+  featureIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  featureTextBox: {
+    flex: 1,
+    marginStart: spacing.md,
   },
 
   // ─── Zone 2: Actions (bottom — semi-transparent card) ──────

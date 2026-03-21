@@ -307,11 +307,21 @@ export default function EventsScreen() {
             opacity={isDark ? patterns.opacityDark : patterns.opacity}
             tileSize={patterns.tileSize}
           />
-          <Text style={[typography.headline, { color: colors.textSecondary, textAlign: 'center' }]}>
+          <View style={[styles.emptyIconCircle, { backgroundColor: isDark ? 'rgba(107, 171, 229, 0.10)' : 'rgba(15, 45, 82, 0.06)' }]}>
+            <Ionicons name="calendar-outline" size={32} color={colors.tint} />
+          </View>
+          <Text style={[typography.title3, { color: colors.text, textAlign: 'center', marginTop: spacing.xl }]}>
             {t('events.empty')}
           </Text>
-          <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm }]}>
+          <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm, paddingHorizontal: spacing['2xl'] }]}>
             {t('events.emptyHint')}
+          </Text>
+          <Text
+            style={[
+              typography.caption1,
+              { color: colors.textTertiary, textAlign: 'center', marginTop: spacing.xl },
+            ]}>
+            {t('events.emptyPullHint')}
           </Text>
         </View>
 
@@ -561,6 +571,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing['3xl'],
+  },
+  emptyIconCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   toolbar: {
     flexDirection: 'row',

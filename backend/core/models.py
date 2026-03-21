@@ -61,6 +61,7 @@ class Announcement(models.Model):
     class Priority(models.TextChoices):
         NORMAL = "normal", "Normal"
         URGENT = "urgent", "Urgent"
+        JANAZAH = "janazah", "Janazah"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     mosque = models.ForeignKey(Mosque, on_delete=models.CASCADE, related_name="announcements")

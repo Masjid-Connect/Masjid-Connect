@@ -47,8 +47,11 @@ function groupByTime(
     earlier: [],
   };
 
+  const priorityOrder: Record<string, number> = { janazah: 0, urgent: 1, normal: 2 };
   const sorted = [...announcements].sort((a, b) => {
-    if (a.priority !== b.priority) return a.priority === 'urgent' ? -1 : 1;
+    const pa = priorityOrder[a.priority] ?? 2;
+    const pb = priorityOrder[b.priority] ?? 2;
+    if (pa !== pb) return pa - pb;
     return new Date(b.published_at).getTime() - new Date(a.published_at).getTime();
   });
 
@@ -189,6 +192,8 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
   // ─── List ───────────────────────────────────────────────────────
   const renderItem = ({ item, index, section }: { item: Announcement; index: number; section: SectionListData<Announcement> }) => {
     const isUrgent = item.priority === 'urgent';
+    const isJanazah = item.priority === 'janazah';
+    const isHighPriority = isUrgent || isJanazah;
     const unread = isUnread(item.id);
     const mosqueName = item.expand?.mosque?.name || '';
     const timeAgo = item.published_at
@@ -196,17 +201,19 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
       : '';
     const isLast = index === section.data.length - 1;
 
+    const priorityBg = isJanazah ? alphaColors.janazahBg : isUrgent ? alphaColors.urgentBg : undefined;
+
     return (
       <Pressable
         onPress={() => handlePress(item)}
         accessibilityRole="button"
-        accessibilityLabel={`${item.title}${isUrgent ? `, ${t('announcements.urgent')}` : ''}${mosqueName ? `, ${mosqueName}` : ''}${unread ? `, ${t('announcements.unread')}` : ''}`}
+        accessibilityLabel={`${item.title}${isJanazah ? `, ${t('announcements.janazah')}` : isUrgent ? `, ${t('announcements.urgent')}` : ''}${mosqueName ? `, ${mosqueName}` : ''}${unread ? `, ${t('announcements.unread')}` : ''}`}
       >
         <Animated.View
           entering={reducedMotion ? FadeIn.duration(300) : FadeInDown.delay(Math.min(index * 40, 300)).duration(300).springify()}
           style={[
             styles.row,
-            isUrgent && { backgroundColor: alphaColors.urgentBg },
+            priorityBg ? { backgroundColor: priorityBg } : undefined,
           ]}>
           <View style={[
             styles.rowInner,
@@ -226,6 +233,23 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
             {/* Content */}
             <View style={styles.contentColumn}>
               <View style={styles.metaRow}>
+                {isJanazah && (
+                  <>
+                    <Ionicons name="moon-outline" size={12} color={colors.accent} accessibilityLabel={t('announcements.janazah')} />
+                    <Text
+                      style={[
+                        typography.caption2,
+                        { color: colors.accentText, fontWeight: '600', marginStart: spacing.xs, marginEnd: spacing.xs },
+                      ]}>
+                      {t('announcements.janazah')}
+                    </Text>
+                    {mosqueName ? (
+                      <Text style={[typography.caption2, { color: colors.accentText, fontWeight: '600' }]}>
+                        · {mosqueName.toUpperCase()}
+                      </Text>
+                    ) : null}
+                  </>
+                )}
                 {isUrgent && (
                   <>
                     <Ionicons name="alert-circle" size={12} color={colors.urgent} accessibilityLabel={t('announcements.urgent')} />
@@ -243,7 +267,7 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
                     ) : null}
                   </>
                 )}
-                {!isUrgent && mosqueName ? (
+                {!isHighPriority && mosqueName ? (
                   <Text style={[typography.categoryLabel, { color: colors.textSecondary }]}>
                     {mosqueName.toUpperCase()}
                   </Text>
@@ -318,6 +342,18 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
       <BottomSheet visible={!!expandedItem} onDismiss={handleDismissSheet}>
         {expandedItem && (
           <View>
+            {expandedItem.priority === 'janazah' && (
+              <View style={[styles.urgentBadge, { backgroundColor: alphaColors.janazahBgEmphasis }]}>
+                <Ionicons name="moon-outline" size={14} color={colors.accent} />
+                <Text
+                  style={[
+                    typography.caption2,
+                    { color: colors.accentText, fontWeight: '700', marginStart: spacing.xs },
+                  ]}>
+                  {t('announcements.janazah')}
+                </Text>
+              </View>
+            )}
             {expandedItem.priority === 'urgent' && (
               <View style={[styles.urgentBadge, { backgroundColor: alphaColors.urgentBgEmphasis }]}>
                 <Ionicons name="alert-circle" size={14} color={colors.urgent} />
@@ -332,7 +368,7 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
             )}
 
             {expandedItem.expand?.mosque?.name ? (
-              <View style={[styles.mosqueRow, { marginTop: expandedItem.priority === 'urgent' ? spacing.md : 0 }]}>
+              <View style={[styles.mosqueRow, { marginTop: expandedItem.priority !== 'normal' ? spacing.md : 0 }]}>
                 <Ionicons name="location-outline" size={14} color={colors.textSecondary} accessibilityLabel={t('announcements.location')} />
                 <Text
                   style={[
