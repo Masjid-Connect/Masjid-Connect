@@ -25,8 +25,10 @@ import { spacing, typography, borderRadius } from '@/constants/Theme';
 import { AnnouncementsContent } from '@/components/community/AnnouncementsContent';
 import { EventsContent } from '@/components/community/EventsContent';
 import { GoldBadge } from '@/components/brand/GoldBadge';
+import { AdminFAB, QuickPostSheet, EventWizardSheet } from '@/components/admin';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { useReadAnnouncements } from '@/hooks/useReadAnnouncements';
+import { useAdminStatus } from '@/hooks/useAdminStatus';
 
 type CommunitySegment = 'announcements' | 'events';
 
@@ -39,9 +41,13 @@ export default function CommunityScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [activeSegment, setActiveSegment] = useState<CommunitySegment>('announcements');
-  const { announcements } = useAnnouncements();
+  const { announcements, refresh: refreshAnnouncements } = useAnnouncements();
   const { unreadCount } = useReadAnnouncements();
   const announcementUnreadCount = unreadCount(announcements.map((a) => a.id));
+  const { isAdmin, mosqueIds } = useAdminStatus();
+  const [showQuickPost, setShowQuickPost] = useState(false);
+  const [showEventWizard, setShowEventWizard] = useState(false);
+  const adminMosqueId = mosqueIds[0] || '';
 
   // ─── Large title collapse animation ────────────────────────────
   const scrollY = useSharedValue(0);
@@ -212,6 +218,27 @@ export default function CommunityScreen() {
           />
         </Pressable>
       </View>
+
+      {/* Admin FAB — only visible to mosque administrators */}
+      {isAdmin && (
+        <AdminFAB
+          onNewAnnouncement={() => setShowQuickPost(true)}
+          onNewEvent={() => setShowEventWizard(true)}
+        />
+      )}
+
+      {/* Admin sheets */}
+      <QuickPostSheet
+        visible={showQuickPost}
+        onDismiss={() => setShowQuickPost(false)}
+        mosqueId={adminMosqueId}
+        onPublished={refreshAnnouncements}
+      />
+      <EventWizardSheet
+        visible={showEventWizard}
+        onDismiss={() => setShowEventWizard(false)}
+        mosqueId={adminMosqueId}
+      />
     </View>
   );
 }
