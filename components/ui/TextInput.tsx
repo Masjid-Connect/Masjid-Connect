@@ -11,6 +11,8 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
+  FadeIn,
+  FadeOut,
 } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
@@ -23,8 +25,6 @@ interface TextInputProps extends RNTextInputProps {
   label: string;
   error?: string;
 }
-
-const AnimatedView = Animated.createAnimatedComponent(View);
 
 export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
   ({ label, error, secureTextEntry, style, ...props }, ref) => {
@@ -125,12 +125,18 @@ export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
           )}
         </View>
         {error && (
-          <View style={styles.errorRow}>
+          <Animated.View
+            entering={FadeIn.duration(200)}
+            exiting={FadeOut.duration(150)}
+            style={styles.errorRow}
+            accessibilityRole="alert"
+            accessibilityLiveRegion="polite"
+          >
             <Ionicons name="alert-circle" size={14} color={colors.urgent} />
             <Text style={[typography.caption1, { color: colors.urgent, marginStart: spacing.xs, flex: 1 }]}>
               {error}
             </Text>
-          </View>
+          </Animated.View>
         )}
       </View>
     );
