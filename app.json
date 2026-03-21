@@ -11,7 +11,6 @@
     "primaryColor": "#0F2D52",
     "description": "Prayer times, announcements, and events from The Salafi Masjid. Stay connected with your local mosque community.",
     "githubUrl": "https://github.com/Masjid-Connect/Masjid-Connect",
-    "privacyPolicyUrl": "https://salafimasjid.app/privacy",
     "runtimeVersion": {
       "policy": "appVersion"
     },
