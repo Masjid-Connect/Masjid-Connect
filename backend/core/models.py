@@ -11,8 +11,8 @@ class User(AbstractUser):
     """Extended user with mobile-app fields. Uses email as primary login field."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255, blank=True)
-    email = models.EmailField("email address", unique=True)
+    name = models.CharField(max_length=255, blank=True, help_text="Full name as displayed in the app")
+    email = models.EmailField("email address", unique=True, help_text="Used for login and notifications")
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username", "name"]
@@ -28,22 +28,22 @@ class Mosque(models.Model):
     """A mosque/masjid location."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=255)
-    address = models.CharField(max_length=500, blank=True)
-    city = models.CharField(max_length=100, blank=True)
-    state = models.CharField(max_length=100, blank=True)
-    country = models.CharField(max_length=100, blank=True)
-    latitude = models.FloatField(default=0)
-    longitude = models.FloatField(default=0)
+    name = models.CharField(max_length=255, help_text="Official name of the mosque")
+    address = models.CharField(max_length=500, blank=True, help_text="Street address including building number")
+    city = models.CharField(max_length=100, blank=True, help_text="City or town")
+    state = models.CharField(max_length=100, blank=True, help_text="County, state, or province")
+    country = models.CharField(max_length=100, blank=True, help_text="Country name (e.g. United Kingdom)")
+    latitude = models.FloatField(default=0, help_text="GPS latitude for prayer time calculations and nearby search")
+    longitude = models.FloatField(default=0, help_text="GPS longitude for prayer time calculations and nearby search")
     calculation_method = models.IntegerField(
         default=4,
         help_text="Aladhan calculation method code (4 = Umm Al-Qura)",
     )
-    jumua_time = models.TimeField(null=True, blank=True, help_text="Jumu'ah prayer time")
-    contact_phone = models.CharField(max_length=30, blank=True)
-    contact_email = models.EmailField(blank=True)
-    website = models.URLField(blank=True)
-    photo = models.ImageField(upload_to="mosques/", blank=True)
+    jumua_time = models.TimeField(null=True, blank=True, help_text="Jumu'ah (Friday) prayer time")
+    contact_phone = models.CharField(max_length=30, blank=True, help_text="Public phone number for the mosque")
+    contact_email = models.EmailField(blank=True, help_text="Public email address for enquiries")
+    website = models.URLField(blank=True, help_text="Mosque website URL (include https://)")
+    photo = models.ImageField(upload_to="mosques/", blank=True, help_text="Photo of the mosque exterior")
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -64,18 +64,33 @@ class Announcement(models.Model):
         JANAZAH = "janazah", "Janazah"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    mosque = models.ForeignKey(Mosque, on_delete=models.CASCADE, related_name="announcements")
-    title = models.CharField(max_length=255)
-    body = models.TextField()
-    priority = models.CharField(max_length=10, choices=Priority.choices, default=Priority.NORMAL)
+    mosque = models.ForeignKey(
+        Mosque, on_delete=models.CASCADE, related_name="announcements",
+        help_text="Which mosque is this announcement for?",
+    )
+    title = models.CharField(
+        max_length=255,
+        help_text="Short, clear title (e.g. 'Eid Prayer Time Change'). Max 255 characters.",
+    )
+    body = models.TextField(
+        help_text="Full announcement text. This appears in the app feed and push notifications.",
+    )
+    priority = models.CharField(
+        max_length=10, choices=Priority.choices, default=Priority.NORMAL,
+        help_text="Normal = standard feed. Urgent = highlighted alert. Janazah = funeral prayer notice with dignified styling.",
+    )
     published_at = models.DateTimeField(auto_now_add=True)
-    expires_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text="Leave blank to keep visible indefinitely. Set a date to auto-hide after that time.",
+    )
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="announcements",
+        help_text="Who posted this announcement (auto-filled).",
     )
 
     class Meta:
@@ -101,22 +116,47 @@ class Event(models.Model):
         MONTHLY = "monthly", "Monthly"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    mosque = models.ForeignKey(Mosque, on_delete=models.CASCADE, related_name="events")
-    title = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
-    speaker = models.CharField(max_length=255, blank=True)
-    event_date = models.DateField()
-    start_time = models.TimeField()
-    end_time = models.TimeField(null=True, blank=True)
-    location = models.CharField(max_length=255, blank=True)
-    recurring = models.CharField(max_length=10, choices=Recurring.choices, blank=True)
-    category = models.CharField(max_length=20, choices=Category.choices, default=Category.LESSON)
+    mosque = models.ForeignKey(
+        Mosque, on_delete=models.CASCADE, related_name="events",
+        help_text="Which mosque is hosting this event?",
+    )
+    title = models.CharField(
+        max_length=255,
+        help_text="Event name (e.g. 'Weekly Tafseer Class'). Max 255 characters.",
+    )
+    description = models.TextField(
+        blank=True,
+        help_text="Describe what the event is about, who it's for, and what to bring.",
+    )
+    speaker = models.CharField(
+        max_length=255, blank=True,
+        help_text="Name of the speaker, teacher, or instructor (if applicable).",
+    )
+    event_date = models.DateField(help_text="Date of the event (or first occurrence if recurring).")
+    start_time = models.TimeField(help_text="Start time (e.g. 19:00 or 7:00 PM).")
+    end_time = models.TimeField(
+        null=True, blank=True,
+        help_text="End time. Leave blank if unknown.",
+    )
+    location = models.CharField(
+        max_length=255, blank=True,
+        help_text="Room or area within the mosque (e.g. 'Main Hall', 'Sisters Section').",
+    )
+    recurring = models.CharField(
+        max_length=10, choices=Recurring.choices, blank=True,
+        help_text="Leave blank for one-off events. Select weekly or monthly for repeating events.",
+    )
+    category = models.CharField(
+        max_length=20, choices=Category.choices, default=Category.LESSON,
+        help_text="Lesson = study circle. Lecture = one-off talk. Youth/Sisters = targeted audience. Community = general.",
+    )
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="events",
+        help_text="Who created this event (auto-filled).",
     )
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -136,12 +176,19 @@ class UserSubscription(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="subscriptions",
+        help_text="The app user who subscribed.",
     )
-    mosque = models.ForeignKey(Mosque, on_delete=models.CASCADE, related_name="subscribers")
-    notify_prayers = models.BooleanField(default=True)
-    notify_announcements = models.BooleanField(default=True)
-    notify_events = models.BooleanField(default=True)
-    prayer_reminder_minutes = models.IntegerField(default=15)
+    mosque = models.ForeignKey(
+        Mosque, on_delete=models.CASCADE, related_name="subscribers",
+        help_text="The mosque they subscribed to.",
+    )
+    notify_prayers = models.BooleanField(default=True, help_text="Send prayer time reminders.")
+    notify_announcements = models.BooleanField(default=True, help_text="Send announcement notifications.")
+    notify_events = models.BooleanField(default=True, help_text="Send event notifications.")
+    prayer_reminder_minutes = models.IntegerField(
+        default=15,
+        help_text="How many minutes before each prayer to send the reminder (e.g. 15).",
+    )
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -164,9 +211,10 @@ class PushToken(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="push_tokens",
+        help_text="The user this device token belongs to.",
     )
-    token = models.CharField(max_length=255, unique=True)
-    platform = models.CharField(max_length=10, choices=Platform.choices)
+    token = models.CharField(max_length=255, unique=True, help_text="Expo push token for this device.")
+    platform = models.CharField(max_length=10, choices=Platform.choices, help_text="iOS or Android.")
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -185,13 +233,20 @@ class MosqueAdmin(models.Model):
         SUPER_ADMIN = "super_admin", "Super Admin"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    mosque = models.ForeignKey(Mosque, on_delete=models.CASCADE, related_name="admins")
+    mosque = models.ForeignKey(
+        Mosque, on_delete=models.CASCADE, related_name="admins",
+        help_text="The mosque this person helps manage.",
+    )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="mosque_roles",
+        help_text="The user being granted admin access.",
     )
-    role = models.CharField(max_length=15, choices=Role.choices, default=Role.ADMIN)
+    role = models.CharField(
+        max_length=15, choices=Role.choices, default=Role.ADMIN,
+        help_text="Admin = can post announcements/events. Super Admin = full management access.",
+    )
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -223,12 +278,15 @@ class Feedback(models.Model):
         null=True,
         blank=True,
         related_name="feedback",
-        help_text="Null for guest submissions",
+        help_text="The user who submitted this. Blank for guest submissions.",
     )
-    type = models.CharField(max_length=20, choices=Type.choices)
-    category = models.CharField(max_length=50)
-    description = models.TextField(blank=True)
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.NEW)
+    type = models.CharField(max_length=20, choices=Type.choices, help_text="Bug report or feature request.")
+    category = models.CharField(max_length=50, help_text="Area of the app (e.g. prayer times, events).")
+    description = models.TextField(blank=True, help_text="Details of the bug or feature request.")
+    status = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.NEW,
+        help_text="Track progress: New → Acknowledged → In Progress → Resolved → Closed.",
+    )
     admin_notes = models.TextField(blank=True, help_text="Internal notes — not visible to user")
     device_info = models.JSONField(
         default=dict,
@@ -251,22 +309,25 @@ class MosquePrayerTime(models.Model):
     """Daily jama'ah (congregation) times for a mosque — scraped from timetable PDFs."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    mosque = models.ForeignKey(Mosque, on_delete=models.CASCADE, related_name="prayer_times")
-    date = models.DateField()
+    mosque = models.ForeignKey(
+        Mosque, on_delete=models.CASCADE, related_name="prayer_times",
+        help_text="Which mosque these prayer times are for.",
+    )
+    date = models.DateField(help_text="The date these prayer times apply to.")
 
     # Jama'ah (congregation) times — set by the mosque
-    fajr_jamat = models.TimeField()
-    dhuhr_jamat = models.TimeField()
-    asr_jamat = models.TimeField()
-    maghrib_jamat = models.TimeField()
-    isha_jamat = models.TimeField()
+    fajr_jamat = models.TimeField(help_text="Fajr congregation time set by the mosque.")
+    dhuhr_jamat = models.TimeField(help_text="Dhuhr congregation time set by the mosque.")
+    asr_jamat = models.TimeField(help_text="Asr congregation time set by the mosque.")
+    maghrib_jamat = models.TimeField(help_text="Maghrib congregation time set by the mosque.")
+    isha_jamat = models.TimeField(help_text="Isha congregation time set by the mosque.")
 
     # Prayer start times (from PDF — may differ slightly from Aladhan calculations)
-    fajr_start = models.TimeField(null=True, blank=True)
-    sunrise = models.TimeField(null=True, blank=True)
-    dhuhr_start = models.TimeField(null=True, blank=True)
-    asr_start = models.TimeField(null=True, blank=True)
-    isha_start = models.TimeField(null=True, blank=True)
+    fajr_start = models.TimeField(null=True, blank=True, help_text="Fajr start time (from timetable PDF).")
+    sunrise = models.TimeField(null=True, blank=True, help_text="Sunrise time.")
+    dhuhr_start = models.TimeField(null=True, blank=True, help_text="Dhuhr start time (from timetable PDF).")
+    asr_start = models.TimeField(null=True, blank=True, help_text="Asr start time (from timetable PDF).")
+    isha_start = models.TimeField(null=True, blank=True, help_text="Isha start time (from timetable PDF).")
 
     source_url = models.URLField(blank=True, help_text="URL of the PDF this was scraped from")
 
@@ -282,10 +343,10 @@ class StripeEvent(models.Model):
     """Tracks processed Stripe webhook events for idempotency."""
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    stripe_event_id = models.CharField(max_length=255, unique=True, db_index=True)
-    event_type = models.CharField(max_length=100)
-    processed = models.BooleanField(default=True)
-    payload = models.JSONField(default=dict, blank=True)
+    stripe_event_id = models.CharField(max_length=255, unique=True, db_index=True, help_text="Stripe event ID (e.g. evt_...).")
+    event_type = models.CharField(max_length=100, help_text="Stripe event type (e.g. checkout.session.completed).")
+    processed = models.BooleanField(default=True, help_text="Whether this event has been processed.")
+    payload = models.JSONField(default=dict, blank=True, help_text="Raw event payload from Stripe.")
     created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -384,23 +445,23 @@ class Donation(models.Model):
         max_length=255, blank=True, db_index=True,
         help_text="Stripe PaymentIntent or Invoice ID",
     )
-    stripe_customer_id = models.CharField(max_length=255, blank=True)
-    stripe_checkout_session_id = models.CharField(max_length=255, blank=True)
+    stripe_customer_id = models.CharField(max_length=255, blank=True, help_text="Stripe customer ID (cus_...).")
+    stripe_checkout_session_id = models.CharField(max_length=255, blank=True, help_text="Stripe checkout session ID.")
 
     # Donor details (from Stripe billing or manual entry)
-    donor_name = models.CharField(max_length=255, blank=True)
-    donor_email = models.EmailField(blank=True)
-    donor_address_line1 = models.CharField(max_length=255, blank=True)
-    donor_address_line2 = models.CharField(max_length=255, blank=True)
-    donor_city = models.CharField(max_length=100, blank=True)
-    donor_postcode = models.CharField(max_length=20, blank=True)
-    donor_country = models.CharField(max_length=2, blank=True, default="GB")
+    donor_name = models.CharField(max_length=255, blank=True, help_text="Donor's full name.")
+    donor_email = models.EmailField(blank=True, help_text="Donor's email address.")
+    donor_address_line1 = models.CharField(max_length=255, blank=True, help_text="House number and street.")
+    donor_address_line2 = models.CharField(max_length=255, blank=True, help_text="Second address line (optional).")
+    donor_city = models.CharField(max_length=100, blank=True, help_text="City or town.")
+    donor_postcode = models.CharField(max_length=20, blank=True, help_text="Postcode (required for Gift Aid).")
+    donor_country = models.CharField(max_length=2, blank=True, default="GB", help_text="Two-letter country code (e.g. GB).")
 
     # Payment details
-    amount_pence = models.PositiveIntegerField(help_text="Donation amount in pence")
-    currency = models.CharField(max_length=3, default="gbp")
-    frequency = models.CharField(max_length=10, choices=Frequency.choices, default=Frequency.ONE_TIME)
-    source = models.CharField(max_length=20, choices=Source.choices, default=Source.STRIPE)
+    amount_pence = models.PositiveIntegerField(help_text="Donation amount in pence (e.g. 1000 = £10.00).")
+    currency = models.CharField(max_length=3, default="gbp", help_text="Three-letter currency code (e.g. gbp).")
+    frequency = models.CharField(max_length=10, choices=Frequency.choices, default=Frequency.ONE_TIME, help_text="One-time or monthly recurring.")
+    source = models.CharField(max_length=20, choices=Source.choices, default=Source.STRIPE, help_text="How the donation was received.")
 
     # Gift Aid
     gift_aid_eligible = models.BooleanField(
@@ -420,7 +481,7 @@ class Donation(models.Model):
         help_text="Reclaimable Gift Aid = 25% of donation (amount × 25/100)",
     )
 
-    donation_date = models.DateField(help_text="Date the payment was received")
+    donation_date = models.DateField(help_text="Date the payment was received.")
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -458,12 +519,12 @@ class GiftAidDeclaration(models.Model):
 
     # Donor identity — HMRC mandatory fields
     donor_name = models.CharField(max_length=255, help_text="Full name as known to HMRC")
-    donor_email = models.EmailField(blank=True)
-    donor_address_line1 = models.CharField(max_length=255, help_text="House number/name and street")
-    donor_address_line2 = models.CharField(max_length=255, blank=True)
-    donor_city = models.CharField(max_length=100, blank=True)
-    donor_postcode = models.CharField(max_length=20, help_text="UK postcode — required by HMRC")
-    donor_country = models.CharField(max_length=2, default="GB")
+    donor_email = models.EmailField(blank=True, help_text="Donor's email for correspondence.")
+    donor_address_line1 = models.CharField(max_length=255, help_text="House number/name and street.")
+    donor_address_line2 = models.CharField(max_length=255, blank=True, help_text="Second address line (optional).")
+    donor_city = models.CharField(max_length=100, blank=True, help_text="City or town.")
+    donor_postcode = models.CharField(max_length=20, help_text="UK postcode — required by HMRC.")
+    donor_country = models.CharField(max_length=2, default="GB", help_text="Two-letter country code.")
 
     # Stripe customer ID for matching future donations
     stripe_customer_id = models.CharField(
@@ -477,8 +538,8 @@ class GiftAidDeclaration(models.Model):
         default=True,
         help_text="Covers donations in the past 4 years",
     )
-    status = models.CharField(max_length=10, choices=Status.choices, default=Status.ACTIVE)
-    cancelled_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=10, choices=Status.choices, default=Status.ACTIVE, help_text="Active or cancelled.")
+    cancelled_date = models.DateField(null=True, blank=True, help_text="Date the declaration was cancelled (if applicable).")
 
     # Charity's internal reference for this donor (HMRC requires this)
     charity_reference = models.CharField(
@@ -537,12 +598,12 @@ class GiftAidClaim(models.Model):
     )
 
     # Totals (denormalised for quick reference — recalculated on save)
-    total_donations_pence = models.PositiveIntegerField(default=0)
-    total_gift_aid_pence = models.PositiveIntegerField(default=0)
-    donation_count = models.PositiveIntegerField(default=0)
+    total_donations_pence = models.PositiveIntegerField(default=0, help_text="Auto-calculated total donation amount.")
+    total_gift_aid_pence = models.PositiveIntegerField(default=0, help_text="Auto-calculated total Gift Aid reclaimable.")
+    donation_count = models.PositiveIntegerField(default=0, help_text="Auto-calculated number of donations in this claim.")
 
-    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT)
-    submitted_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.DRAFT, help_text="Current status of the HMRC claim.")
+    submitted_date = models.DateField(null=True, blank=True, help_text="Date the claim was submitted to HMRC.")
     hmrc_response = models.TextField(blank=True, help_text="Response from HMRC after submission")
     notes = models.TextField(blank=True, help_text="Internal admin notes")
 
