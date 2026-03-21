@@ -4,6 +4,7 @@ import { getPrayerTimes, fetchMosquePrayerTimes, buildPrayerEntries, getNextPray
 import { cachePrayerTimes, getCachedPrayerTimes, getReminderMinutes, getUse24h, saveLatestJamaahTimes, getLatestJamaahTimes } from '@/lib/storage';
 import { getMosqueId, SALAFI_MASJID } from '@/constants/mosque';
 import { reschedulePrayerRemindersForToday, schedulePrayerReminders } from '@/lib/notifications';
+import { getStaticPrayerTimes } from '@/lib/staticTimetable';
 import type { PrayerTimeEntry, PrayerName, JamaahTimesData } from '@/types';
 
 /** Umm Al-Qura is the only calculation method used */
@@ -38,7 +39,7 @@ interface UsePrayerTimesResult {
   windowProgress: number;
   hijriDate: string | null;
   isLoading: boolean;
-  source: 'api' | 'offline' | 'cache' | 'mosque';
+  source: 'api' | 'offline' | 'cache' | 'mosque' | 'static';
   jamaahAvailable: boolean;
   /** True when jama'ah times are extrapolated from the last known timetable */
   isEstimated: boolean;
@@ -63,7 +64,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
   const [windowProgress, setWindowProgress] = useState(0);
   const [hijriDate, setHijriDate] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [source, setSource] = useState<'api' | 'offline' | 'cache' | 'mosque'>('cache');
+  const [source, setSource] = useState<'api' | 'offline' | 'cache' | 'mosque' | 'static'>('cache');
   const [jamaahAvailable, setJamaahAvailable] = useState(false);
   const [isEstimated, setIsEstimated] = useState(false);
   const [use24h, setUse24hState] = useState(false);
@@ -161,7 +162,35 @@ export function usePrayerTimes(): UsePrayerTimesResult {
         }
       }
 
-      // Fallback: Aladhan API (mosque has no scraped data or backend unreachable)
+      // Fallback 1: Static bundled timetable (historical mosque data, works offline)
+      const staticResult = getStaticPrayerTimes(targetDate);
+      if (staticResult) {
+        const entries = buildPrayerEntries(staticResult.times, staticResult.jamaahTimes);
+        setPrayers(entries);
+        jamaahTimesRef.current = staticResult.jamaahTimes;
+        setNextPrayer(isTodayFn(targetDate) ? getNextPrayer(staticResult.times, staticResult.jamaahTimes) : null);
+        setSource('static');
+        setJamaahAvailable(true);
+        setIsEstimated(staticResult.isEstimated);
+
+        if (isTodayFn(targetDate)) {
+          await cachePrayerTimes(staticResult.times, today, staticResult.jamaahTimes);
+          const reminderMinutes = await getReminderMinutes();
+          await schedulePrayerReminders(staticResult.times, reminderMinutes, staticResult.jamaahTimes);
+        }
+
+        // Still try Aladhan for Hijri date
+        try {
+          const hijri = await getCorrectHijriDate(targetDate, staticResult.times.maghrib);
+          if (hijri) setHijriDate(hijri);
+        } catch {
+          // Hijri date is nice-to-have
+        }
+
+        return;
+      }
+
+      // Fallback 2: Aladhan API (calculated times, no jama'ah)
       const lat = SALAFI_MASJID.latitude;
       const lng = SALAFI_MASJID.longitude;
 
