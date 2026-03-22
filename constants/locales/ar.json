@@ -495,5 +495,9 @@
     "privacyPolicy": "سياسة الخصوصية",
     "termsOfService": "شروط الخدمة",
     "lastUpdated": "آخر تحديث: مارس ٢٠٢٦"
+  },
+  "notFound": {
+    "title": "الصفحة غير موجودة",
+    "returnHome": "العودة إلى أوقات الصلاة"
   }
 }

@@ -89,6 +89,9 @@ export const SettingsRow = ({
       onPressOut={handlePressOut}
       disabled={!onPress && accessory !== 'toggle'}
       style={[styles.row, animatedStyle]}
+      accessibilityRole={accessory === 'toggle' ? 'switch' : onPress ? 'button' : undefined}
+      accessibilityLabel={value ? `${label}, ${value}` : label}
+      accessibilityState={accessory === 'toggle' ? { checked: toggleValue } : undefined}
     >
       {icon && (
         <View style={[styles.iconBox, { backgroundColor: icon.backgroundColor }]}>

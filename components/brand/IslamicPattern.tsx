@@ -11,7 +11,7 @@
  */
 
 import React from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 
 import { palette } from '@/constants/Colors';
 
@@ -144,26 +144,34 @@ export const IslamicPattern = ({
   if (!skiaStarPath) return null;
 
   return (
-    <Canvas style={[StyleSheet.absoluteFill, { width, height }]} pointerEvents="none">
-      <Group opacity={opacity}>
-        <Path
-          path={skiaStarPath}
-          color={color}
-          style="stroke"
-          strokeWidth={strokeWidth}
-          strokeCap="round"
-          strokeJoin="round"
-        />
-        {skiaConnectorPath && (
+    <View
+      accessible={false}
+      accessibilityElementsHidden={true}
+      importantForAccessibility="no-hide-descendants"
+      pointerEvents="none"
+      style={[StyleSheet.absoluteFill, { width, height }]}
+    >
+      <Canvas style={[StyleSheet.absoluteFill, { width, height }]} pointerEvents="none">
+        <Group opacity={opacity}>
           <Path
-            path={skiaConnectorPath}
+            path={skiaStarPath}
             color={color}
             style="stroke"
-            strokeWidth={strokeWidth * 0.6}
+            strokeWidth={strokeWidth}
             strokeCap="round"
+            strokeJoin="round"
           />
-        )}
-      </Group>
-    </Canvas>
+          {skiaConnectorPath && (
+            <Path
+              path={skiaConnectorPath}
+              color={color}
+              style="stroke"
+              strokeWidth={strokeWidth * 0.6}
+              strokeCap="round"
+            />
+          )}
+        </Group>
+      </Canvas>
+    </View>
   );
 };
