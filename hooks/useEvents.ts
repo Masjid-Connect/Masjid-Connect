@@ -15,6 +15,11 @@ interface UseEventsResult {
   error: string | null;
   /** Total items available on server (for pagination awareness) */
   totalItems: number;
+  /** Whether more pages are available to load */
+  hasMore: boolean;
+  /** Load next page of results (Q19: pagination support) */
+  loadMore: () => Promise<void>;
+  isLoadingMore: boolean;
   selectedCategory: EventCategory | null;
   setSelectedCategory: (cat: EventCategory | null) => void;
   refresh: () => Promise<void>;
@@ -24,8 +29,11 @@ export function useEvents(): UseEventsResult {
   const { t } = useTranslation();
   const [items, setItems] = useState<MosqueEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalItems, setTotalItems] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const pageRef = useRef(1);
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | null>(null);
   // Q13: Track whether fresh API data has arrived to prevent stale cache overwrite
   const hasFreshDataRef = useRef(false);
@@ -34,6 +42,7 @@ export function useEvents(): UseEventsResult {
     setIsLoading(true);
     setError(null);
     hasFreshDataRef.current = false;
+    pageRef.current = 1;
     try {
       const mosqueId = await getMosqueId();
       const mosqueIds = mosqueId ? [mosqueId] : [];
@@ -42,6 +51,7 @@ export function useEvents(): UseEventsResult {
       hasFreshDataRef.current = true;
       setItems(result.items);
       setTotalItems(result.totalItems);
+      setHasMore(result.hasMore);
       await setCachedData(`${CACHE_KEY}_${selectedCategory ?? 'all'}`, result.items);
     } catch (err) {
       Sentry.captureException(err);
@@ -59,6 +69,26 @@ export function useEvents(): UseEventsResult {
     }
   }, [selectedCategory]);
 
+  // Q19: Load next page and append results
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || !hasMore) return;
+    setIsLoadingMore(true);
+    try {
+      const mosqueId = await getMosqueId();
+      const mosqueIds = mosqueId ? [mosqueId] : [];
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const nextPage = pageRef.current + 1;
+      const result = await eventsApi.list(mosqueIds, today, selectedCategory ?? undefined, nextPage);
+      pageRef.current = nextPage;
+      setItems(prev => [...prev, ...result.items]);
+      setHasMore(result.hasMore);
+    } catch (err) {
+      Sentry.captureException(err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [isLoadingMore, hasMore, selectedCategory]);
+
   useEffect(() => {
     // Show cached data immediately while fetching fresh data
     const cacheKey = `${CACHE_KEY}_${selectedCategory ?? 'all'}`;
@@ -75,6 +105,9 @@ export function useEvents(): UseEventsResult {
     isLoading,
     error,
     totalItems,
+    hasMore,
+    loadMore,
+    isLoadingMore,
     selectedCategory,
     setSelectedCategory,
     refresh: loadEvents,

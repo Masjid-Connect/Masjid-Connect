@@ -487,6 +487,7 @@
     "updateLater": "Later",
     "updateRestart": "Restart",
     "networkError": "Unable to connect. Please check your internet and try again.",
+    "dismiss": "Dismiss",
     "clearFilter": "Clear filter",
     "showPassword": "Show password",
     "hidePassword": "Hide password"

@@ -252,15 +252,31 @@ This principle applies to Django admin customizations, in-app admin screens, and
 
 ### Error Handling
 - Validate at system boundaries only (API responses, user input)
-- Use try/catch around API calls and notification scheduling
+- Use try/catch around API calls and notification scheduling — always log to Sentry with context
 - Show user-friendly error states, not raw errors
 - Offline-first: gracefully degrade when network unavailable
+- **Error boundaries**: Tab navigator wrapped in `Sentry.ErrorBoundary` with `ErrorFallback` component
+- **No silent catches** — all catch blocks must either log to Sentry or have a comment justifying silence
+
+### Pagination
+- All list endpoints use DRF `PageNumberPagination` (50 items per page)
+- API client returns `{ items, totalItems, hasMore }` from paginated endpoints
+- Hooks expose `loadMore()` + `isLoadingMore` + `hasMore` for infinite scroll
+- First page loads on mount; subsequent pages append via `loadMore()`
+
+### Accessibility
+- All interactive elements (Pressable, TouchableOpacity) must have `accessibilityRole` and `accessibilityLabel`
+- Radio-style selectors use `accessibilityRole="radio"` with `accessibilityState={{ selected }}`
+- Toggle buttons include `accessibilityState={{ expanded }}` where applicable
+- FAB menu items use `accessibilityRole="menuitem"`
+- All accessibility labels use i18n `t()` calls — never hardcode English
 
 ### Offline-First Strategy
 - Prayer times: Aladhan API is the **primary source** when online; adhan-js is the **offline-only fallback** — never the primary
 - Cache prayer times, announcements, and events in AsyncStorage
 - Queue actions (subscription changes) when offline, sync when back online
 - Show stale data with "last updated" indicator rather than empty screens
+- Stale cache race condition prevented with `hasFreshDataRef` pattern in hooks
 
 ## Important Notes
 - **Primary prayer times**: Aladhan API (free, no key required) — `GET https://api.aladhan.com/v1/timings/{date}?latitude={lat}&longitude={lng}&method={method}`
@@ -273,4 +289,7 @@ This principle applies to Django admin customizations, in-app admin screens, and
 - Announcements fetched via REST API with pull-to-refresh (no realtime subscriptions)
 - Prayer reminders use local scheduled notifications (not server-pushed)
 - **API client**: `lib/api.ts` wraps all Django REST calls with token auth
+- **Error tracking**: Sentry (`@sentry/react-native`) — all catch blocks log with context metadata
+- **Rate limiting**: Content creation endpoints (announcements, events) throttled via `ContentCreationRateThrottle`; auth endpoints at 5/min; nearby at 30/min
+- **Gunicorn**: 2 workers, 2 threads, 30s timeout, 1000 max requests with jitter
 - **Admin panel**: Django admin with Unfold theme at `/admin/` (Sacred Blue brand colors)
