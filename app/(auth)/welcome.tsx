@@ -236,7 +236,6 @@ export default function WelcomeScreen() {
         redirectUri,
         scopes: ['openid', 'profile', 'email'],
         responseType: AuthSession.ResponseType.IdToken,
-        usePKCE: false, // ✅ THIS FIXES YOUR ERROR
         extraParams: { nonce },
       });
 
