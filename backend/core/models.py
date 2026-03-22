@@ -81,7 +81,7 @@ class Announcement(models.Model):
     )
     published_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(
-        null=True, blank=True,
+        null=True, blank=True, db_index=True,
         help_text="Leave blank to keep visible indefinitely. Set a date to auto-hide after that time.",
     )
     author = models.ForeignKey(
