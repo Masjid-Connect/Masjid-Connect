@@ -239,7 +239,16 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://(www\.)?salafimasjid\.app$",
 ]
 if DEBUG and not CORS_ALLOWED_ORIGINS:
-    CORS_ALLOW_ALL_ORIGINS = True
+    # Allow common local development origins instead of wildcard CORS_ALLOW_ALL_ORIGINS.
+    # Using explicit origins prevents accidental exposure if DEBUG=True leaks to production.
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:8081",
+        "http://localhost:19006",
+        "http://localhost:3000",
+        "http://127.0.0.1:8081",
+        "http://127.0.0.1:19006",
+        "http://127.0.0.1:3000",
+    ]
 
 # CSRF
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
