@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  useReducedMotion,
   withSpring,
   withDelay,
   withTiming,
@@ -73,15 +74,17 @@ const AnimatedButton = ({
   index: number;
   children: React.ReactNode;
 }) => {
-  const opacity = useSharedValue(0);
-  const translateY = useSharedValue(20);
+  const reducedMotion = useReducedMotion();
+  const opacity = useSharedValue(reducedMotion ? 1 : 0);
+  const translateY = useSharedValue(reducedMotion ? 0 : 20);
 
   useEffect(() => {
+    if (reducedMotion) return;
     const delay = timing.slow + index * (timing.staggerOffset + 20);
     opacity.value = withDelay(delay, withTiming(1, { duration: 400, easing: Easing.out(Easing.quad) }));
     translateY.value = withDelay(delay, withSpring(0, springs.gentle));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index]);
+  }, [index, reducedMotion]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
@@ -110,15 +113,17 @@ const FeatureCard = ({
   isDark: boolean;
 }) => {
   const { t } = useTranslation();
-  const opacity = useSharedValue(0);
-  const translateY = useSharedValue(16);
+  const reducedMotion = useReducedMotion();
+  const opacity = useSharedValue(reducedMotion ? 1 : 0);
+  const translateY = useSharedValue(reducedMotion ? 0 : 16);
 
   useEffect(() => {
+    if (reducedMotion) return;
     const delay = 600 + index * 120;
     opacity.value = withDelay(delay, withTiming(1, { duration: 400, easing: Easing.out(Easing.quad) }));
     translateY.value = withDelay(delay, withSpring(0, springs.gentle));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index]);
+  }, [index, reducedMotion]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
@@ -157,16 +162,18 @@ export default function WelcomeScreen() {
   const [error, setError] = useState('');
 
   // ─── Logo entrance animation ────────────────────────────
-  const logoOpacity = useSharedValue(0);
-  const logoScale = useSharedValue(0.95);
-  const taglineOpacity = useSharedValue(0);
+  const reducedMotion = useReducedMotion();
+  const logoOpacity = useSharedValue(reducedMotion ? 1 : 0);
+  const logoScale = useSharedValue(reducedMotion ? 1 : 0.95);
+  const taglineOpacity = useSharedValue(reducedMotion ? 1 : 0);
 
   useEffect(() => {
+    if (reducedMotion) return;
     logoOpacity.value = withDelay(200, withTiming(1, { duration: 600, easing: Easing.out(Easing.quad) }));
     logoScale.value = withDelay(200, withSpring(1, springs.gentle));
     taglineOpacity.value = withDelay(400, withTiming(1, { duration: 500, easing: Easing.out(Easing.quad) }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [reducedMotion]);
 
   const logoAnimatedStyle = useAnimatedStyle(() => ({
     opacity: logoOpacity.value,
@@ -522,10 +529,10 @@ const styles = StyleSheet.create({
   googleIconContainer: {
     width: 20,
     height: 20,
-    marginRight: spacing.sm,
+    marginEnd: spacing.sm,
   },
   appleIcon: {
-    marginRight: spacing.sm,
+    marginEnd: spacing.sm,
   },
   authButtonText: {
     fontSize: 15,

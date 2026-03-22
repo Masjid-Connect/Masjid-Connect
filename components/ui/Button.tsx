@@ -4,11 +4,11 @@ import {
   Text,
   TouchableOpacity,
   ActivityIndicator,
-  useColorScheme,
   type ViewStyle,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { getColors } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, borderRadius, typography, fonts, components } from '@/constants/Theme';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive';
@@ -32,8 +32,8 @@ export const Button = ({
   compact = false,
   style,
 }: ButtonProps) => {
-  const colorScheme = useColorScheme();
-  const colors = getColors(colorScheme);
+  const { effectiveScheme } = useTheme();
+  const colors = getColors(effectiveScheme);
   const isDisabled = disabled || loading;
 
   const handlePress = () => {

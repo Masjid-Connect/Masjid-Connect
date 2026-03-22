@@ -251,7 +251,7 @@ export default function PrayerTimesScreen() {
 
                 {/* Prayer time — tertiary, gold accent */}
                 <Text style={[styles.prayerTime, {
-                  color: isDark ? palette.divineGoldBright : colors.accent,
+                  color: colors.accentText,
                 }]}>
                   {formatPrayerTime(nextPrayerData.jamaahTime || nextPrayerData.time, use24h)}
                 </Text>

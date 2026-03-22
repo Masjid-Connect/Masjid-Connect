@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
   bullet: {
     ...typography.body,
     marginBottom: spacing.md,
-    paddingLeft: spacing.lg,
+    paddingStart: spacing.lg,
   },
   link: {
     ...typography.body,

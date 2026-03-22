@@ -114,6 +114,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.xs,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: spacing.sm,
+    marginStart: spacing.sm,
   },
 });

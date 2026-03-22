@@ -54,7 +54,7 @@ export default function TermsScreen() {
   const { t } = useTranslation();
 
   const bodyStyle = [typography.callout, { color: colors.textSecondary, lineHeight: 24 }];
-  const bulletStyle = [typography.callout, { color: colors.textSecondary, lineHeight: 24, paddingLeft: spacing.lg }];
+  const bulletStyle = [typography.callout, { color: colors.textSecondary, lineHeight: 24, paddingStart: spacing.lg }];
 
   return (
     <>
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
   },
   sectionSeparator: {
     height: StyleSheet.hairlineWidth,
-    marginLeft: 44,
+    marginStart: 44,
   },
   link: {
     fontWeight: '600',

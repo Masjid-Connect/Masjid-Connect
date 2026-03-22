@@ -80,7 +80,7 @@ export const GlowDot = ({
           width: canvasSize,
           height: canvasSize,
           // Center the glow so the dot aligns with where a 6px View dot would be
-          marginLeft: -(canvasSize - size * 2) / 2,
+          marginStart: -(canvasSize - size * 2) / 2,
           marginTop: -(canvasSize - size * 2) / 2,
         },
         animated && animatedContainerStyle,

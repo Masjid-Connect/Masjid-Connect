@@ -13,7 +13,7 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Dimensions, Image, Platform, StyleSheet, View } from 'react-native';
+import { Image, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -33,10 +33,8 @@ import { getAtmosphericGradient } from '@/lib/prayerGradients';
 import { IslamicPattern } from './IslamicPattern';
 import { SkiaAtmosphericGradient } from './SkiaAtmosphericGradient';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-/** Logo sizing — generous, centered */
-const LOGO_WIDTH = Math.min(SCREEN_WIDTH * 0.75, 360);
+/** Logo max width cap */
+const LOGO_MAX_WIDTH = 360;
 
 /** Timing constants (ms) */
 const PAUSE_BEFORE_REVEAL = 500;
@@ -60,6 +58,8 @@ export const AnimatedSplash = ({
 }: AnimatedSplashProps) => {
   const isWeb = Platform.OS === 'web';
   const reducedMotion = useReducedMotion();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const logoWidth = Math.min(windowWidth * 0.75, LOGO_MAX_WIDTH);
 
   // Animation shared values
   const logoOpacity = useSharedValue(0);
@@ -70,8 +70,8 @@ export const AnimatedSplash = ({
 
   // Layout dimensions (updated on mount for accuracy)
   const [dimensions, setDimensions] = useState({
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
+    width: windowWidth,
+    height: windowHeight,
   });
 
   // Default gradient — uses null prayer (neutral sky)
@@ -223,7 +223,7 @@ export const AnimatedSplash = ({
         <Animated.View style={[styles.logoContainer, logoAnimatedStyle]} accessibilityLabel="Mosque Connect">
           <Image
             source={require('@/assets/images/Masjid_Logo.png')}
-            style={styles.logo}
+            style={{ width: logoWidth, height: logoWidth * 0.6 }}
             resizeMode="contain"
           />
         </Animated.View>
@@ -248,9 +248,5 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  logo: {
-    width: LOGO_WIDTH,
-    height: LOGO_WIDTH * 0.6, // approximate aspect ratio of the logo
   },
 });

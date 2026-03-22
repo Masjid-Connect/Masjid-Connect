@@ -93,7 +93,7 @@ export const DateNavigator = ({
               backgroundColor: getAlpha(effectiveScheme).accentPill,
             }]}>
               <Text style={[styles.todayText, {
-                color: isDark ? palette.divineGoldBright : palette.divineGold,
+                color: isDark ? palette.divineGoldBright : palette.divineGoldText,
               }]}>
                 {t('prayer.today')}
               </Text>

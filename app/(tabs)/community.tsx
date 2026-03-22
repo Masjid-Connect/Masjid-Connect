@@ -203,7 +203,7 @@ export default function CommunityScreen() {
           />
           <View style={styles.shareTextCol}>
             <Text style={[typography.headline, {
-              color: isDark ? palette.divineGoldBright : palette.divineGold,
+              color: isDark ? palette.divineGoldBright : palette.divineGoldText,
             }]}>
               {t('community.shareApp')}
             </Text>

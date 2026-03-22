@@ -459,7 +459,7 @@ export default function AnnouncementsScreen() {
                 <Text
                   style={[
                     typography.caption2,
-                    { color: colors.accentText, fontWeight: '700', marginLeft: spacing.xs },
+                    { color: colors.accentText, fontWeight: '700', marginStart: spacing.xs },
                   ]}>
                   {t('announcements.janazah')}
                 </Text>
@@ -472,7 +472,7 @@ export default function AnnouncementsScreen() {
                 <Text
                   style={[
                     typography.caption2,
-                    { color: colors.urgent, fontWeight: '700', marginLeft: spacing.xs },
+                    { color: colors.urgent, fontWeight: '700', marginStart: spacing.xs },
                   ]}>
                   {t('announcements.urgent')}
                 </Text>
@@ -489,7 +489,7 @@ export default function AnnouncementsScreen() {
                     {
                       color: colors.textSecondary,
                       fontWeight: '500',
-                      marginLeft: spacing.xs,
+                      marginStart: spacing.xs,
                     },
                   ]}>
                   {expandedItem.expand.mosque.name}
@@ -627,13 +627,13 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   row: {
-    paddingLeft: spacing.lg,
+    paddingStart: spacing.lg,
   },
   rowInner: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     paddingVertical: spacing.lg,
-    paddingRight: spacing.lg,
+    paddingEnd: spacing.lg,
   },
   rowSeparator: {
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -648,7 +648,7 @@ const styles = StyleSheet.create({
   },
   chevronColumn: {
     justifyContent: 'center',
-    paddingLeft: spacing.sm,
+    paddingStart: spacing.sm,
     paddingTop: spacing.xs,
     opacity: 0.5,
   },

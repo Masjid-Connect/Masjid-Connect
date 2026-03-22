@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   sectionSeparator: {
     height: StyleSheet.hairlineWidth,
     marginTop: spacing.xl,
-    marginLeft: 44,
+    marginStart: 44,
   },
   // Footer
   footer: {
