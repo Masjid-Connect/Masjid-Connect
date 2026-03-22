@@ -195,6 +195,8 @@ export default function CommunityScreen() {
             backgroundColor: isDark ? 'rgba(229,193,75,0.08)' : 'rgba(212,175,55,0.06)',
             borderColor: isDark ? 'rgba(229,193,75,0.2)' : 'rgba(212,175,55,0.15)',
           }]}
+          accessibilityRole="button"
+          accessibilityLabel={t('community.shareApp')}
         >
           <Ionicons
             name="gift-outline"

@@ -86,6 +86,17 @@ class FeedbackRateThrottle(AnonRateThrottle):
         return super().allow_request(request, view)
 
 
+class ContentCreationRateThrottle(ScopedRateThrottle):
+    """Rate limit content creation (announcements/events) to prevent abuse from compromised admin accounts."""
+
+    scope = "content_creation"
+
+    def allow_request(self, request, view):
+        if getattr(settings, "TESTING", False):
+            return True
+        return super().allow_request(request, view)
+
+
 class DataExportRateThrottle(ScopedRateThrottle):
     """Strict rate limit on GDPR data export to prevent abuse."""
 
@@ -485,6 +496,12 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
 
     serializer_class = AnnouncementSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsMosqueAdminOrReadOnly]
+    throttle_scope = "content_creation"
+
+    def get_throttles(self):
+        if self.action in ("create", "update", "partial_update"):
+            return [ContentCreationRateThrottle()]
+        return []
 
     def get_queryset(self):
         qs = Announcement.objects.select_related("mosque", "author")
@@ -521,6 +538,12 @@ class EventViewSet(viewsets.ModelViewSet):
 
     serializer_class = EventSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsMosqueAdminOrReadOnly]
+    throttle_scope = "content_creation"
+
+    def get_throttles(self):
+        if self.action in ("create", "update", "partial_update"):
+            return [ContentCreationRateThrottle()]
+        return []
 
     def get_queryset(self):
         qs = Event.objects.select_related("mosque", "author")
@@ -617,7 +640,7 @@ class FeedbackViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
-            return Feedback.objects.filter(user=self.request.user)
+            return Feedback.objects.filter(user=self.request.user).select_related("user")
         return Feedback.objects.none()
 
     def perform_create(self, serializer):

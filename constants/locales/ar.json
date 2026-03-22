@@ -28,7 +28,10 @@
     "startTime": "البداية {{time}}",
     "upcoming": "التالية",
     "todaySchedule": "اليوم",
-    "today": "اليوم"
+    "today": "اليوم",
+    "previousDay": "اليوم السابق",
+    "nextDay": "اليوم التالي",
+    "jumpToToday": "العودة إلى اليوم"
   },
   "announcements": {
     "title": "الإعلانات",

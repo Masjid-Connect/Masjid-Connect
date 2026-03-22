@@ -7,6 +7,7 @@ import { getPrayerTimes } from '@/lib/prayer';
 import { getStaticPrayerTimes } from '@/lib/staticTimetable';
 import { getReminderMinutes } from '@/lib/storage';
 import { SALAFI_MASJID } from '@/constants/mosque';
+import { Sentry } from '@/lib/sentry';
 
 /** Configure notification handler (native only) */
 if (Platform.OS !== 'web') {
@@ -102,36 +103,44 @@ export async function schedulePrayerReminders(
       ? `${PRAYER_LABELS[prayer].ar} — Jama'ah starts soon`
       : `${PRAYER_LABELS[prayer].ar} — Time to prepare for prayer`;
 
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: `${PRAYER_LABELS[prayer].en} in ${reminderMinutes} minutes`,
-        body: reminderBody,
-        data: { type: 'prayer_reminder', prayer },
-        ...(Platform.OS === 'android' && { channelId: 'prayer-reminders' }),
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date: reminderTime,
-      },
-      identifier: `prayer-reminder-${prayer}`,
-    });
-
-    // Schedule "at athan time" notification with adhan sound
-    if (prayerStartTime > now) {
+    try {
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: `${PRAYER_LABELS[prayer].en} — ${PRAYER_LABELS[prayer].ar}`,
-          body: 'Prayer time has entered',
-          sound: 'adhan.wav',
-          data: { type: 'prayer_athan', prayer },
-          ...(Platform.OS === 'android' && { channelId: 'prayer-athan' }),
+          title: `${PRAYER_LABELS[prayer].en} in ${reminderMinutes} minutes`,
+          body: reminderBody,
+          data: { type: 'prayer_reminder', prayer },
+          ...(Platform.OS === 'android' && { channelId: 'prayer-reminders' }),
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DATE,
-          date: prayerStartTime,
+          date: reminderTime,
         },
-        identifier: `prayer-athan-${prayer}`,
+        identifier: `prayer-reminder-${prayer}`,
       });
+    } catch (err) {
+      Sentry.captureException(err, { extra: { context: 'schedule prayer reminder', prayer } });
+    }
+
+    // Schedule "at athan time" notification with adhan sound
+    if (prayerStartTime > now) {
+      try {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: `${PRAYER_LABELS[prayer].en} — ${PRAYER_LABELS[prayer].ar}`,
+            body: 'Prayer time has entered',
+            sound: 'adhan.wav',
+            data: { type: 'prayer_athan', prayer },
+            ...(Platform.OS === 'android' && { channelId: 'prayer-athan' }),
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: prayerStartTime,
+          },
+          identifier: `prayer-athan-${prayer}`,
+        });
+      } catch (err) {
+        Sentry.captureException(err, { extra: { context: 'schedule prayer athan', prayer } });
+      }
     }
   }
 }
