@@ -371,6 +371,9 @@ export const EventWizardSheet = ({
                     },
                   ]}
                   onPress={() => { setRecurring(opt.value); Haptics.selectionAsync(); }}
+                  accessibilityRole="radio"
+                  accessibilityLabel={opt.label}
+                  accessibilityState={{ selected: recurring === opt.value }}
                 >
                   <Text style={[
                     typography.caption1,
@@ -412,6 +415,7 @@ export const EventWizardSheet = ({
                   ]}
                   onPress={() => { setCategory(cat); Haptics.selectionAsync(); }}
                   accessibilityRole="radio"
+                  accessibilityLabel={t(`events.categories.${cat}`)}
                   accessibilityState={{ selected: category === cat }}
                 >
                   <View style={[styles.categoryDot, { backgroundColor: categoryColors[cat] }]} />

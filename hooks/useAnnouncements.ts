@@ -14,6 +14,11 @@ interface UseAnnouncementsResult {
   error: string | null;
   /** Total items available on server (for pagination awareness) */
   totalItems: number;
+  /** Whether more pages are available to load */
+  hasMore: boolean;
+  /** Load next page of results (Q6: pagination support) */
+  loadMore: () => Promise<void>;
+  isLoadingMore: boolean;
   refresh: () => Promise<void>;
 }
 
@@ -21,8 +26,11 @@ export function useAnnouncements(): UseAnnouncementsResult {
   const { t } = useTranslation();
   const [items, setItems] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [totalItems, setTotalItems] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const pageRef = useRef(1);
   // Q13: Track whether fresh API data has arrived to prevent stale cache overwrite
   const hasFreshDataRef = useRef(false);
 
@@ -30,6 +38,7 @@ export function useAnnouncements(): UseAnnouncementsResult {
     setIsLoading(true);
     setError(null);
     hasFreshDataRef.current = false;
+    pageRef.current = 1;
     try {
       const mosqueId = await getMosqueId();
       const mosqueIds = mosqueId ? [mosqueId] : [];
@@ -37,6 +46,7 @@ export function useAnnouncements(): UseAnnouncementsResult {
       hasFreshDataRef.current = true;
       setItems(result.items);
       setTotalItems(result.totalItems);
+      setHasMore(result.hasMore);
       await setCachedData(CACHE_KEY, result.items);
     } catch (err) {
       Sentry.captureException(err);
@@ -53,6 +63,25 @@ export function useAnnouncements(): UseAnnouncementsResult {
     }
   }, []);
 
+  // Q6: Load next page and append results
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || !hasMore) return;
+    setIsLoadingMore(true);
+    try {
+      const mosqueId = await getMosqueId();
+      const mosqueIds = mosqueId ? [mosqueId] : [];
+      const nextPage = pageRef.current + 1;
+      const result = await announcementsApi.list(mosqueIds, nextPage);
+      pageRef.current = nextPage;
+      setItems(prev => [...prev, ...result.items]);
+      setHasMore(result.hasMore);
+    } catch (err) {
+      Sentry.captureException(err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [isLoadingMore, hasMore]);
+
   useEffect(() => {
     // Show cached data immediately while fetching fresh data
     (async () => {
@@ -68,6 +97,9 @@ export function useAnnouncements(): UseAnnouncementsResult {
     isLoading,
     error,
     totalItems,
+    hasMore,
+    loadMore,
+    isLoadingMore,
     refresh: loadAnnouncements,
   };
 }

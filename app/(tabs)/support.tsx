@@ -227,6 +227,7 @@ export default function SupportScreen() {
                 ]}
                 onPress={() => handleFrequency(freq)}
                 accessibilityRole="button"
+                accessibilityLabel={t(`support.${freq === 'one-time' ? 'oneTime' : 'monthly'}`)}
                 accessibilityState={{ selected: isActive }}
               >
                 <Text

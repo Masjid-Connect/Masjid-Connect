@@ -369,6 +369,8 @@ export default function WelcomeScreen() {
               },
             ]}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={t('welcome.continueWithGoogle')}
           >
             {googleLoading ? (
               <ActivityIndicator color={googleBtnText} size="small" />
@@ -396,6 +398,8 @@ export default function WelcomeScreen() {
                 { backgroundColor: isDark ? palette.white : palette.black },
               ]}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={t('welcome.continueWithApple')}
             >
               {appleLoading ? (
                 <ActivityIndicator color={isDark ? palette.black : palette.white} size="small" />
@@ -432,6 +436,8 @@ export default function WelcomeScreen() {
               { borderColor: colors.tint },
             ]}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={t('welcome.signUpWithEmail')}
           >
             <Text style={[styles.authButtonText, { color: colors.tint }]}>
               {t('welcome.signUpWithEmail')}
@@ -445,7 +451,7 @@ export default function WelcomeScreen() {
             <Text style={[typography.subhead, { color: colors.textSecondary }]}>
               {t('welcome.haveAccount')}{' '}
             </Text>
-            <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')}>
+            <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')} accessibilityRole="button" accessibilityLabel={t('welcome.signIn')}>
               <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>
                 {t('welcome.signIn')}
               </Text>
@@ -459,6 +465,8 @@ export default function WelcomeScreen() {
             onPress={handleContinueAsGuest}
             disabled={isLoading}
             style={styles.guestLink}
+            accessibilityRole="button"
+            accessibilityLabel={t('welcome.continueAsGuest')}
           >
             <Text style={[typography.caption1, { color: colors.textTertiary, textAlign: 'center' }]}>
               {t('welcome.continueAsGuest')}

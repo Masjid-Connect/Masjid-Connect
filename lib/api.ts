@@ -245,6 +245,7 @@ export const auth = {
 
 interface PaginatedResponse<T> {
   count: number;
+  next: string | null;
   results: T[];
 }
 
@@ -315,12 +316,16 @@ function mapAnnouncement(raw: Record<string, unknown>): Announcement {
 }
 
 export const announcements = {
-  async list(mosqueIds: string[]) {
-    const params = mosqueIds.length > 0 ? `?mosque_ids=${mosqueIds.join(',')}` : '';
+  async list(mosqueIds: string[], page?: number) {
+    const parts: string[] = [];
+    if (mosqueIds.length > 0) parts.push(`mosque_ids=${mosqueIds.join(',')}`);
+    if (page && page > 1) parts.push(`page=${page}`);
+    const params = parts.length > 0 ? `?${parts.join('&')}` : '';
     const data = await request<PaginatedResponse<Record<string, unknown>>>(`/announcements/${params}`);
     return {
       items: data.results.map(mapAnnouncement),
       totalItems: data.count,
+      hasMore: data.next !== null,
     };
   },
 
@@ -377,16 +382,18 @@ function mapEvent(raw: Record<string, unknown>): MosqueEvent {
 }
 
 export const events = {
-  async list(mosqueIds: string[], fromDate?: string, category?: string) {
+  async list(mosqueIds: string[], fromDate?: string, category?: string, page?: number) {
     const parts: string[] = [];
     if (mosqueIds.length > 0) parts.push(`mosque_ids=${mosqueIds.join(',')}`);
     if (fromDate) parts.push(`from_date=${fromDate}`);
     if (category) parts.push(`category=${encodeURIComponent(category)}`);
+    if (page && page > 1) parts.push(`page=${page}`);
     const params = parts.length > 0 ? `?${parts.join('&')}` : '';
     const data = await request<PaginatedResponse<Record<string, unknown>>>(`/events/${params}`);
     return {
       items: data.results.map(mapEvent),
       totalItems: data.count,
+      hasMore: data.next !== null,
     };
   },
 

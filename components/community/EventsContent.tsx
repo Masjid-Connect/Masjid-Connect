@@ -188,13 +188,13 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
     <>
       {/* Toolbar: calendar toggle + filter */}
       <View style={[styles.toolbar, { borderBottomColor: colors.separator }]}>
-        <TouchableOpacity onPress={() => setShowCalendar(!showCalendar)} style={styles.toolbarButton}>
+        <TouchableOpacity onPress={() => setShowCalendar(!showCalendar)} style={styles.toolbarButton} accessibilityRole="button" accessibilityLabel={t('events.calendar')} accessibilityState={{ expanded: showCalendar }}>
           <Ionicons name={showCalendar ? 'calendar' : 'calendar-outline'} size={20} color={showCalendar ? colors.accent : colors.textSecondary} />
           <Text style={[typography.subhead, { color: showCalendar ? colors.accent : colors.textSecondary, marginStart: spacing.xs }]}>
             {t('events.calendar')}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setShowFilters(true)} style={styles.toolbarButton}>
+        <TouchableOpacity onPress={() => setShowFilters(true)} style={styles.toolbarButton} accessibilityRole="button" accessibilityLabel={t('events.filter')}>
           <Ionicons name="funnel-outline" size={18} color={selectedCategory ? colors.accent : colors.textSecondary} />
           <Text style={[typography.subhead, { color: selectedCategory ? colors.accent : colors.textSecondary, marginStart: spacing.xs }]}>
             {selectedCategory ? CATEGORIES.find((c) => c.key === selectedCategory)?.label : t('events.filter')}
@@ -220,7 +220,7 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
       )}
 
       {selectedDate && (
-        <Pressable onPress={() => setSelectedDate(null)}>
+        <Pressable onPress={() => setSelectedDate(null)} accessibilityRole="button" accessibilityLabel={t('common.clearFilter')}>
           <View style={[styles.dateChip, { backgroundColor: colors.tintLight }]}>
             <Text style={[typography.footnote, { color: colors.tint }]}>
               {format(new Date(selectedDate), 'EEE, MMM d')}
@@ -267,7 +267,10 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
               style={[
                 styles.filterRow,
                 { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator },
-              ]}>
+              ]}
+              accessibilityRole="radio"
+              accessibilityLabel={cat.label}
+              accessibilityState={{ selected: isActive }}>
               <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{cat.label}</Text>
               {isActive && <Ionicons name="checkmark" size={20} color={colors.tint} />}
             </TouchableOpacity>
@@ -312,6 +315,8 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
             <TouchableOpacity
               onPress={() => handleAddToCalendar(detailEvent)}
               style={[styles.addBtn, { backgroundColor: colors.tint }]}
+              accessibilityRole="button"
+              accessibilityLabel={t('events.addToCalendar')}
             >
               <Ionicons name="calendar-outline" size={18} color={colors.onPrimary} style={{ marginEnd: spacing.sm }} />
               <Text style={[typography.headline, { color: colors.onPrimary }]}>{t('events.addToCalendar')}</Text>

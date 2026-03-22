@@ -71,6 +71,8 @@ export const AdminFAB = ({ onNewAnnouncement, onNewEvent }: AdminFABProps) => {
         <Pressable
           style={StyleSheet.absoluteFill}
           onPress={toggleMenu}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.dismiss')}
         />
       )}
 
@@ -79,6 +81,8 @@ export const AdminFAB = ({ onNewAnnouncement, onNewEvent }: AdminFABProps) => {
         <Pressable
           style={[styles.menuItem, { backgroundColor: colors.card, ...getElevation('md', isDark) }]}
           onPress={() => handleOption(onNewAnnouncement)}
+          accessibilityRole="menuitem"
+          accessibilityLabel={t('admin.newAnnouncement')}
         >
           <View style={[styles.menuIcon, { backgroundColor: alphaColors.sapphireIconBg }]}>
             <Ionicons name="megaphone-outline" size={18} color={colors.tint} />
@@ -91,6 +95,8 @@ export const AdminFAB = ({ onNewAnnouncement, onNewEvent }: AdminFABProps) => {
         <Pressable
           style={[styles.menuItem, { backgroundColor: colors.card, ...getElevation('md', isDark) }]}
           onPress={() => handleOption(onNewEvent)}
+          accessibilityRole="menuitem"
+          accessibilityLabel={t('admin.newEvent')}
         >
           <View style={[styles.menuIcon, { backgroundColor: alphaColors.sapphireIconBg }]}>
             <Ionicons name="calendar-outline" size={18} color={colors.tint} />
