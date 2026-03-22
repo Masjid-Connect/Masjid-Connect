@@ -47,9 +47,9 @@ export const palette = {
   sage400: '#6BCB9B',       // Success states (dark mode)
 
   // ─── Gold: divine accent, prayer signal ─────────────────────────
-  divineGold: '#BF9B30',    // Rich matte leaf gold — accent, prayer active (3:1+ on Stone-100)
+  divineGold: '#A68523',    // Rich matte leaf gold — accent, prayer active (4.5:1+ on Stone-100 for WCAG AA)
   divineGoldBright: '#F0D060', // Brighter variant for dark mode contrast (4.5:1+ on sapphire950)
-  divineGoldGlow: 'rgba(191, 155, 48, 0.08)', // Subtle glow for active prayer
+  divineGoldGlow: 'rgba(166, 133, 35, 0.08)', // Subtle glow for active prayer
   divineGoldText: '#8A7023',        // Darker gold for text on light backgrounds (4.5:1 contrast on white)
   divineGoldTextDark: '#E0C96B',    // Lighter gold for text on dark backgrounds (4.5:1 contrast on black)
 
@@ -210,7 +210,7 @@ export const alpha = {
   },
   /** Prayer active row highlight */
   prayerActiveBg: {
-    light: 'rgba(191, 155, 48, 0.04)',
+    light: 'rgba(166, 133, 35, 0.04)',
     dark: 'rgba(240, 208, 96, 0.06)',
   },
   /** Frosted navigation / sheet backgrounds (tab bar, bottom zones) */
@@ -230,27 +230,27 @@ export const alpha = {
   },
   /** Gold-tinted pill/chip backgrounds (e.g. "Today" pill in DateNavigator) */
   accentPill: {
-    light: 'rgba(191, 155, 48, 0.12)',
+    light: 'rgba(166, 133, 35, 0.12)',
     dark: 'rgba(240, 208, 96, 0.15)',
   },
   /** Janazah announcement — respectful gold tint (not alarm red) */
   janazahBg: {
-    light: 'rgba(191, 155, 48, 0.06)',
+    light: 'rgba(166, 133, 35, 0.06)',
     dark: 'rgba(240, 208, 96, 0.08)',
   },
   /** Stronger janazah emphasis (badge fills in detail sheet) */
   janazahBgEmphasis: {
-    light: 'rgba(191, 155, 48, 0.10)',
+    light: 'rgba(166, 133, 35, 0.10)',
     dark: 'rgba(240, 208, 96, 0.14)',
   },
   /** Gold-tinted feature icon backgrounds (welcome screen, community share) */
   goldIconBg: {
-    light: 'rgba(191, 155, 48, 0.10)',
+    light: 'rgba(166, 133, 35, 0.10)',
     dark: 'rgba(240, 208, 96, 0.12)',
   },
   /** Gold-tinted empty state icon circles (announcements, community) */
   goldEmptyBg: {
-    light: 'rgba(191, 155, 48, 0.06)',
+    light: 'rgba(166, 133, 35, 0.06)',
     dark: 'rgba(240, 208, 96, 0.08)',
   },
   /** Sapphire-tinted icon backgrounds (admin FAB, events empty state) */

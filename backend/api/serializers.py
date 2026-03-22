@@ -1,5 +1,7 @@
 """DRF serializers — shaped to match existing React Native types."""
 
+import re
+
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
@@ -182,6 +184,13 @@ class PushTokenSerializer(serializers.ModelSerializer):
         model = PushToken
         fields = ["id", "token", "platform", "created", "updated"]
         read_only_fields = ["id", "created", "updated"]
+
+    def validate_token(self, value: str) -> str:
+        if not re.match(r'^ExponentPushToken\[.+\]$', value):
+            raise serializers.ValidationError(
+                "Invalid push token format. Expected: ExponentPushToken[...]"
+            )
+        return value
 
 
 # ── Mosque Admin ──────────────────────────────────────────────────────

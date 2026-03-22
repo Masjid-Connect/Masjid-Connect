@@ -49,7 +49,7 @@ export default function SignUpScreen() {
     if (!email.trim()) errs.email = t('auth.emailRequired');
     else if (!/\S+@\S+\.\S+/.test(email)) errs.email = t('auth.emailInvalid');
     if (!password) errs.password = t('auth.passwordRequired');
-    else if (password.length < 8) errs.password = t('auth.weakPasswordHint');
+    else if (password.length < 10) errs.password = t('auth.weakPasswordHint');
     if (password !== confirmPassword) errs.confirmPassword = t('auth.passwordsMismatch');
     if (!agreePrivacy || !agreeTerms) errs.consent = t('auth.consentRequired');
     setErrors(errs);
