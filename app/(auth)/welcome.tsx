@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as AuthSession from 'expo-auth-session';
-import * as Crypto from 'expo-crypto';
+
 import { useTranslation } from 'react-i18next';
 import Animated, {
   useSharedValue,
@@ -154,7 +154,7 @@ export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { t } = useTranslation();
-  const { continueAsGuest, loginWithSocial } = useAuth();
+  const { continueAsGuest, loginWithSocial, loginWithGoogleCode } = useAuth();
   const { width, height } = useWindowDimensions();
 
   const [appleLoading, setAppleLoading] = useState(false);
@@ -219,36 +219,31 @@ export default function WelcomeScreen() {
     setGoogleLoading(true);
     try {
       const redirectUri = AuthSession.makeRedirectUri({ scheme: 'salafimasjid' });
-      const nonce = await Crypto.digestStringAsync(
-        Crypto.CryptoDigestAlgorithm.SHA256,
-        Math.random().toString(36),
-      );
 
       const discovery = {
         authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
         tokenEndpoint: 'https://oauth2.googleapis.com/token',
       };
-        
-      console.log("CLIENT ID:", process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID);
-      
+
       const authRequest = new AuthSession.AuthRequest({
         clientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '',
         redirectUri,
         scopes: ['openid', 'profile', 'email'],
-        responseType: 'id_token',
-        usePKCE: false,
-        codeChallenge: undefined,
-        codeChallengeMethod: undefined,
+        responseType: AuthSession.ResponseType.Code,
+        usePKCE: true,
         extraParams: {
-          nonce,
           prompt: 'select_account',
         },
       });
 
       const result = await authRequest.promptAsync(discovery);
 
-      if (result.type === 'success' && result.params.id_token) {
-        await loginWithSocial('google', result.params.id_token);
+      if (result.type === 'success' && result.params.code) {
+        await loginWithGoogleCode(
+          result.params.code,
+          authRequest.codeVerifier!,
+          redirectUri,
+        );
       }
     } catch {
       setError(t('welcome.socialFailed'));

@@ -21,6 +21,7 @@ interface AuthContextValue {
   hasCompletedOnboarding: boolean;
   login: (email: string, password: string) => Promise<void>;
   loginWithSocial: (provider: 'apple' | 'google', token: string, name?: string) => Promise<void>;
+  loginWithGoogleCode: (code: string, codeVerifier: string, redirectUri: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<void>;
   continueAsGuest: () => Promise<void>;
   logout: () => Promise<void>;
@@ -83,6 +84,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     syncPushToken();
   }, [syncPushToken]);
 
+  const loginWithGoogleCode = useCallback(async (code: string, codeVerifier: string, redirectUri: string) => {
+    const data = await auth.googleCodeExchange(code, codeVerifier, redirectUri);
+    setUser(data.user);
+    setIsGuest(false);
+    await AsyncStorage.removeItem(GUEST_KEY);
+    syncPushToken();
+  }, [syncPushToken]);
+
   const register = useCallback(async (email: string, password: string, name: string) => {
     const data = await auth.register(email, password, name);
     setUser(data.user);
@@ -121,11 +130,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     hasCompletedOnboarding,
     login,
     loginWithSocial,
+    loginWithGoogleCode,
     register,
     continueAsGuest,
     logout,
     deleteAccount,
-  }), [user, isGuest, isLoading, hasCompletedOnboarding, login, loginWithSocial, register, continueAsGuest, logout, deleteAccount]);
+  }), [user, isGuest, isLoading, hasCompletedOnboarding, login, loginWithSocial, loginWithGoogleCode, register, continueAsGuest, logout, deleteAccount]);
 
   return (
     <AuthContext.Provider

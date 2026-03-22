@@ -320,6 +320,89 @@ def _verify_google_token(id_token: str) -> tuple[str, str]:
 
 
 @api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+@throttle_classes([AuthRateThrottle])
+def google_code_exchange(request):
+    """
+    Exchange a Google authorization code (with PKCE) for user authentication.
+    Expects: { "code": "<auth_code>", "code_verifier": "<pkce_verifier>", "redirect_uri": "<uri>" }
+    Exchanges code with Google for an id_token, verifies it, creates user if needed.
+    """
+    code = request.data.get("code")
+    code_verifier = request.data.get("code_verifier")
+    redirect_uri = request.data.get("redirect_uri")
+
+    if not code or not code_verifier or not redirect_uri:
+        return Response(
+            {"detail": "code, code_verifier, and redirect_uri are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    google_client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
+    if not google_client_id:
+        return Response(
+            {"detail": "Google login is not configured."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+
+    # Exchange authorization code for tokens with Google
+    try:
+        token_resp = requests.post(
+            "https://oauth2.googleapis.com/token",
+            data={
+                "code": code,
+                "client_id": google_client_id,
+                "code_verifier": code_verifier,
+                "redirect_uri": redirect_uri,
+                "grant_type": "authorization_code",
+            },
+            timeout=15,
+        )
+        token_resp.raise_for_status()
+        token_data = token_resp.json()
+    except requests.RequestException as e:
+        logger.warning("Google token exchange failed: %s", e)
+        return Response(
+            {"detail": "Failed to exchange code with Google."},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    id_token_str = token_data.get("id_token")
+    if not id_token_str:
+        return Response(
+            {"detail": "No id_token returned from Google."},
+            status=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    # Verify the id_token and extract user info (reuses existing logic)
+    try:
+        email, social_name = _verify_google_token(id_token_str)
+    except ValueError as e:
+        return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+
+    display_name = social_name or email.split("@")[0]
+
+    with transaction.atomic():
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                "username": email,
+                "name": display_name,
+            },
+        )
+        if created:
+            user.set_unusable_password()
+            user.save()
+
+    Token.objects.filter(user=user).delete()
+    token = Token.objects.create(user=user)
+    return Response(
+        {"token": token.key, "user": UserSerializer(user).data},
+        status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+    )
+
+
+@api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])
 def logout(request):
     """Delete the user's auth token."""

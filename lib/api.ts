@@ -198,6 +198,18 @@ export const auth = {
     return data;
   },
 
+  async googleCodeExchange(code: string, codeVerifier: string, redirectUri: string) {
+    const data = await request<{ token: string; user: AuthUser }>('/auth/google/callback/', {
+      method: 'POST',
+      body: JSON.stringify({ code, code_verifier: codeVerifier, redirect_uri: redirectUri }),
+    });
+    _token = data.token;
+    _user = data.user;
+    await secureSet(KEYS.AUTH_TOKEN, data.token);
+    await secureSet(KEYS.AUTH_USER, JSON.stringify(data.user));
+    return data;
+  },
+
   async exportData() {
     return request<{
       profile: AuthUser;

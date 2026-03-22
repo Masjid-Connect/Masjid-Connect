@@ -18,6 +18,7 @@ urlpatterns = [
     path("auth/register/", views.register, name="register"),
     path("auth/login/", views.login, name="login"),
     path("auth/social/", views.social_login, name="social-login"),
+    path("auth/google/callback/", views.google_code_exchange, name="google-code-exchange"),
     path("auth/logout/", views.logout, name="logout"),
     path("auth/me/", views.me, name="me"),
     path("auth/admin-roles/", views.admin_roles, name="admin-roles"),
