@@ -235,8 +235,14 @@ export default function WelcomeScreen() {
         clientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '',
         redirectUri,
         scopes: ['openid', 'profile', 'email'],
-        responseType: AuthSession.ResponseType.IdToken,
-        extraParams: { nonce },
+        responseType: 'id_token',
+        usePKCE: false,
+        codeChallenge: undefined,
+        codeChallengeMethod: undefined,
+        extraParams: {
+          nonce,
+          prompt: 'select_account',
+        },
       });
 
       const result = await authRequest.promptAsync(discovery);
