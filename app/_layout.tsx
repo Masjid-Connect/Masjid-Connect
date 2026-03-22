@@ -210,14 +210,6 @@ function RootLayoutNav() {
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="privacy" options={{ presentation: 'card', headerBackTitle: ' ' }} />
         <Stack.Screen name="about" options={{ presentation: 'card', headerBackTitle: ' ' }} />
-        <Stack.Screen
-          name="modal"
-          options={{
-            presentation: 'modal',
-            headerTitle: t('about.title'),
-            headerTintColor: effectiveScheme === 'dark' ? palette.divineGoldBright : palette.sapphire700,
-          }}
-        />
       </Stack>
     </ThemeProvider>
   );

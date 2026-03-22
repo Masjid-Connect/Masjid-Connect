@@ -31,7 +31,7 @@ jobs:
         run: npm run lint
 
       - name: Test
-        run: npm test -- --ci --coverage
+        run: npm test -- --ci --coverage --coverageThreshold='{"global":{"statements":40,"branches":30,"functions":35,"lines":40}}'
 
   backend:
     name: Backend (Django Tests)

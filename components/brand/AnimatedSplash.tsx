@@ -13,7 +13,7 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Image, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Image, Platform, StyleSheet, View, useColorScheme, useWindowDimensions } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -58,6 +58,8 @@ export const AnimatedSplash = ({
 }: AnimatedSplashProps) => {
   const isWeb = Platform.OS === 'web';
   const reducedMotion = useReducedMotion();
+  const systemScheme = useColorScheme();
+  const isDark = systemScheme === 'dark';
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const logoWidth = Math.min(windowWidth * 0.75, LOGO_MAX_WIDTH);
 
@@ -213,7 +215,7 @@ export const AnimatedSplash = ({
           <IslamicPattern
             width={dimensions.width}
             height={dimensions.height}
-            color={palette.sapphire700}
+            color={isDark ? palette.sapphire400 : palette.sapphire700}
             opacity={1} // Opacity controlled by Animated.View wrapper
             tileSize={patterns.tileSize}
           />
@@ -223,7 +225,10 @@ export const AnimatedSplash = ({
         <Animated.View style={[styles.logoContainer, logoAnimatedStyle]} accessibilityLabel="Mosque Connect">
           <Image
             source={require('@/assets/images/Masjid_Logo.png')}
-            style={{ width: logoWidth, height: logoWidth * 0.6 }}
+            style={[
+              { width: logoWidth, height: logoWidth * 0.6 },
+              isDark && { tintColor: palette.snow },
+            ]}
             resizeMode="contain"
           />
         </Animated.View>

@@ -102,13 +102,32 @@ export const elevation = {
  */
 type ElevationLevel = 'sm' | 'md' | 'lg';
 
-const darkBorder: ViewStyle = {
-  borderWidth: StyleSheet.hairlineWidth,
-  borderColor: '#1E3B5A', // sapphire navy — matches dark mode surfaces
+/**
+ * Dark mode elevation — distinct per level.
+ * Higher elevations get brighter borders for visual hierarchy.
+ */
+const darkElevation: Record<ElevationLevel, ViewStyle> = {
+  sm: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#1E3B5A', // sapphire navy — subtle edge
+  },
+  md: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#2A4F72', // brighter sapphire — mid-elevation
+  },
+  lg: {
+    borderWidth: 1,
+    borderColor: '#2A4F72', // full 1px border for floating surfaces
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+  },
 };
 
 export function getElevation(level: ElevationLevel, isDark: boolean): ViewStyle {
-  if (isDark) return darkBorder;
+  if (isDark) return darkElevation[level];
   return elevation[level];
 }
 
