@@ -5,6 +5,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
+import { Sentry } from '@/lib/sentry';
 import type { Mosque, Announcement, MosqueEvent, UserSubscription, MosqueAdminRole, AnnouncementCreatePayload, EventCreatePayload } from '@/types';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.salafimasjid.app/api/v1';
@@ -118,7 +119,13 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       404: 'Not found',
       429: 'Too many requests. Please try again later',
     };
-    throw new Error(messages[response.status] || `Request failed (${response.status})`);
+    const errorMsg = messages[response.status] || `Request failed (${response.status})`;
+    const apiError = new Error(errorMsg);
+    // Report server errors (5xx) and unexpected failures to Sentry
+    if (response.status >= 500) {
+      Sentry.captureException(apiError, { extra: { url, status: response.status, detail } });
+    }
+    throw apiError;
   }
 
   if (response.status === 204) return undefined as T;
@@ -351,10 +358,11 @@ function mapEvent(raw: Record<string, unknown>): MosqueEvent {
 }
 
 export const events = {
-  async list(mosqueIds: string[], fromDate?: string) {
+  async list(mosqueIds: string[], fromDate?: string, category?: string) {
     const parts: string[] = [];
     if (mosqueIds.length > 0) parts.push(`mosque_ids=${mosqueIds.join(',')}`);
     if (fromDate) parts.push(`from_date=${fromDate}`);
+    if (category) parts.push(`category=${encodeURIComponent(category)}`);
     const params = parts.length > 0 ? `?${parts.join('&')}` : '';
     const data = await request<PaginatedResponse<Record<string, unknown>>>(`/events/${params}`);
     return {
@@ -516,12 +524,12 @@ export const donations = {
 // ── Admin Roles ─────────────────────────────────────────────────────
 
 export const adminRoles = {
-  /** Fetch mosques the current user administers. Returns empty array if not an admin. */
+  /** Fetch mosques the current user administers via dedicated endpoint. */
   async list(): Promise<MosqueAdminRole[]> {
     if (!auth.isLoggedIn) return [];
     try {
-      const data = await auth.exportData();
-      return data.admin_roles.map((r) => ({
+      const data = await request<Array<{ id: string; mosque: string; user: string; role: string; created: string }>>('/auth/admin-roles/');
+      return data.map((r) => ({
         id: r.id,
         mosque: r.mosque,
         user: r.user,

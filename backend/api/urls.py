@@ -20,6 +20,7 @@ urlpatterns = [
     path("auth/social/", views.social_login, name="social-login"),
     path("auth/logout/", views.logout, name="logout"),
     path("auth/me/", views.me, name="me"),
+    path("auth/admin-roles/", views.admin_roles, name="admin-roles"),
     path("auth/export-data/", views.export_user_data, name="export-data"),
     path("auth/delete-account/", views.delete_account, name="delete-account"),
     # Push tokens

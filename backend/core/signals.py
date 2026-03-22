@@ -2,6 +2,7 @@
 
 import json
 import logging
+import threading
 
 from django.conf import settings
 from django.core.mail import send_mail
@@ -42,25 +43,60 @@ def notify_admin_on_new_feedback(sender, instance, created, **kwargs):
         logger.exception("Failed to send feedback notification email")
 
 
+def _send_announcement_push(announcement_pk, announcement_title):
+    """Background thread target for sending announcement push notifications."""
+    from django.apps import apps
+
+    try:
+        from .push import notify_announcement_subscribers
+
+        Announcement = apps.get_model("core", "Announcement")
+        instance = Announcement.objects.get(pk=announcement_pk)
+        result = notify_announcement_subscribers(instance)
+        logger.info(
+            "Push notifications for announcement '%s': %d sent, %d failed, %d pruned",
+            announcement_title,
+            result["sent"],
+            result["failed"],
+            len(result["pruned"]),
+        )
+    except Exception:
+        logger.exception("Failed to send push notifications for announcement '%s'", announcement_title)
+
+
+def _send_event_push(event_pk, event_title):
+    """Background thread target for sending event push notifications."""
+    from django.apps import apps
+
+    try:
+        from .push import notify_event_subscribers
+
+        Event = apps.get_model("core", "Event")
+        instance = Event.objects.get(pk=event_pk)
+        result = notify_event_subscribers(instance)
+        logger.info(
+            "Push notifications for event '%s': %d sent, %d failed, %d pruned",
+            event_title,
+            result["sent"],
+            result["failed"],
+            len(result["pruned"]),
+        )
+    except Exception:
+        logger.exception("Failed to send push notifications for event '%s'", event_title)
+
+
 @receiver(post_save, sender=Announcement)
 def push_notify_new_announcement(sender, instance, created, **kwargs):
     """Send push notifications to mosque subscribers when a new announcement is created."""
     if not created:
         return
 
-    try:
-        from .push import notify_announcement_subscribers
-
-        result = notify_announcement_subscribers(instance)
-        logger.info(
-            "Push notifications for announcement '%s': %d sent, %d failed, %d pruned",
-            instance.title,
-            result["sent"],
-            result["failed"],
-            len(result["pruned"]),
-        )
-    except Exception:
-        logger.exception("Failed to send push notifications for announcement '%s'", instance.title)
+    thread = threading.Thread(
+        target=_send_announcement_push,
+        args=(instance.pk, instance.title),
+        daemon=True,
+    )
+    thread.start()
 
 
 @receiver(post_save, sender=Event)
@@ -69,16 +105,9 @@ def push_notify_new_event(sender, instance, created, **kwargs):
     if not created:
         return
 
-    try:
-        from .push import notify_event_subscribers
-
-        result = notify_event_subscribers(instance)
-        logger.info(
-            "Push notifications for event '%s': %d sent, %d failed, %d pruned",
-            instance.title,
-            result["sent"],
-            result["failed"],
-            len(result["pruned"]),
-        )
-    except Exception:
-        logger.exception("Failed to send push notifications for event '%s'", instance.title)
+    thread = threading.Thread(
+        target=_send_event_push,
+        args=(instance.pk, instance.title),
+        daemon=True,
+    )
+    thread.start()

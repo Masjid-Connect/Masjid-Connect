@@ -411,10 +411,12 @@ class CharityGiftAidSettings(models.Model):
         return f"{self.charity_name} ({self.hmrc_reference})"
 
     def save(self, *args, **kwargs):
-        # Enforce singleton — delete any other rows
-        if not self.pk:
-            CharityGiftAidSettings.objects.exclude(pk=self.pk).delete()
-        super().save(*args, **kwargs)
+        # Enforce singleton — delete any other rows atomically
+        from django.db import transaction
+
+        with transaction.atomic():
+            CharityGiftAidSettings.objects.select_for_update().exclude(pk=self.pk).delete()
+            super().save(*args, **kwargs)
 
     @classmethod
     def get(cls):
