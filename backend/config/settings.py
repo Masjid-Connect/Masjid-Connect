@@ -44,6 +44,14 @@ if not DEBUG and SECRET_KEY == _INSECURE_SECRET_KEY:
     )
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 
+# Safety check: production must have explicit ALLOWED_HOSTS
+if not DEBUG and not ALLOWED_HOSTS:
+    logger = logging.getLogger("django")
+    logger.critical(
+        "ALLOWED_HOSTS is empty in production. "
+        "Set ALLOWED_HOSTS in your environment variables or .env file."
+    )
+
 INSTALLED_APPS = [
     "unfold",
     "unfold.contrib.filters",
@@ -97,7 +105,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-DATABASES = {"default": env.db()}
+DATABASES = {"default": {**env.db(), "CONN_MAX_AGE": 600}}
 
 AUTH_USER_MODEL = "core.User"
 
@@ -154,6 +162,7 @@ REST_FRAMEWORK = {
         "user": "500/hour",
         "feedback": "5/hour",
         "contact": "5/hour",
+        "data_export": "3/day",
     },
 }
 
