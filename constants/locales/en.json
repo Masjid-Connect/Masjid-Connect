@@ -461,6 +461,16 @@
       "community": "General community gatherings"
     }
   },
+  "error": {
+    "title": "Something went wrong",
+    "message": "An unexpected error occurred. Please try again.",
+    "retry": "Try Again",
+    "loadAnnouncements": "Unable to load announcements. Pull down to retry.",
+    "loadEvents": "Unable to load events. Pull down to retry.",
+    "prayerTimesUnavailable": "Prayer times unavailable",
+    "prayerTimesRetry": "We couldn't load prayer times right now. Please check your connection and pull down to refresh.",
+    "networkError": "Unable to connect. Please check your internet and try again."
+  },
   "common": {
     "loading": "Loading...",
     "error": "Something went wrong",

@@ -61,10 +61,11 @@ export async function fetchPrayerTimesFromAPI(
     const response = await fetch(url);
     if (!response.ok) return null;
 
-    const json: AladhanResponse = await response.json();
-    if (json.code !== 200) return null;
+    const json = await response.json() as Partial<AladhanResponse>;
+    if (json.code !== 200 || !json.data?.timings || !json.data?.date?.hijri) return null;
 
     const { timings } = json.data;
+    if (!timings.Fajr || !timings.Sunrise || !timings.Dhuhr || !timings.Asr || !timings.Maghrib || !timings.Isha) return null;
     const today = format(d, 'yyyy-MM-dd');
 
     return {

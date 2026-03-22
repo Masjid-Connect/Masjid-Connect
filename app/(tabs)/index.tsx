@@ -18,7 +18,6 @@ import Animated, {
   useAnimatedStyle,
   withSequence,
   withSpring,
-  withTiming,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -78,7 +77,7 @@ export default function PrayerTimesScreen() {
   const reducedMotion = useReducedMotion();
   const {
     prayers, nextPrayer, countdown, windowProgress, hijriDate,
-    isLoading, source, jamaahAvailable, isEstimated, use24h, refresh,
+    isLoading, error: prayerError, source, jamaahAvailable, isEstimated, use24h, refresh,
     selectedDate, isToday, goToNextDay, goToPrevDay, goToToday,
   } = usePrayerTimes();
 
@@ -104,10 +103,10 @@ export default function PrayerTimesScreen() {
           withSpring(1.08, springs.snappy),
           withSpring(1, springs.gentle),
         );
-        // Gold overlay flash: 0 → 0.25 → 0
+        // Gold overlay flash: 0 → 0.25 → 0 (spring-based per doctrine)
         goldPulseOpacity.value = withSequence(
-          withTiming(0.25, { duration: 200 }),
-          withTiming(0, { duration: 600 }),
+          withSpring(0.25, springs.snappy),
+          withSpring(0, springs.gentle),
         );
       }
       // Haptic feedback — Medium impact for prayer transition (sacred moment)
@@ -164,6 +163,21 @@ export default function PrayerTimesScreen() {
     return (
       <View style={[styles.root, styles.loading, { backgroundColor: colors.background, paddingTop: insets.top }]} accessibilityLabel={t('prayer.calculating')} accessibilityRole="progressbar">
         <ActivityIndicator size="large" color={colors.accent} accessibilityLabel={t('prayer.calculating')} />
+      </View>
+    );
+  }
+
+  // ─── Error state — both prayer time sources failed (R2) ────────
+  if (prayerError && prayers.length === 0) {
+    return (
+      <View style={[styles.root, styles.loading, { backgroundColor: colors.background, paddingTop: insets.top }]}>
+        <Ionicons name="cloud-offline-outline" size={48} color={colors.textTertiary} />
+        <Text style={[typography.title3, { color: colors.text, marginTop: spacing.lg, textAlign: 'center' }]}>
+          {t('error.prayerTimesUnavailable')}
+        </Text>
+        <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.sm, textAlign: 'center', paddingHorizontal: spacing['3xl'] }]}>
+          {t('error.prayerTimesRetry')}
+        </Text>
       </View>
     );
   }

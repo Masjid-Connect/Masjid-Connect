@@ -70,10 +70,28 @@ function headers(): Record<string, string> {
   return h;
 }
 
+/** Retry a fetch with exponential backoff on network failures */
+async function fetchWithRetry(url: string, init: RequestInit, retries: number = 2): Promise<Response> {
+  let lastError: Error | undefined;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fetch(url, init);
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      // Only retry on network errors (TypeError from fetch), not on successful HTTP responses
+      if (attempt < retries) {
+        const delay = Math.pow(2, attempt) * 1000; // 1s, 2s
+        await new Promise((r) => setTimeout(r, delay));
+      }
+    }
+  }
+  throw lastError;
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   await loadToken();
   const url = `${API_URL}${path}`;
-  const response = await fetch(url, {
+  const response = await fetchWithRetry(url, {
     ...options,
     headers: { ...headers(), ...(options.headers as Record<string, string>) },
   });

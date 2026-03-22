@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { announcements as announcementsApi } from '@/lib/api';
 import { getCachedData, setCachedData } from '@/lib/storage';
 import { Sentry } from '@/lib/sentry';
@@ -17,6 +18,7 @@ interface UseAnnouncementsResult {
 }
 
 export function useAnnouncements(): UseAnnouncementsResult {
+  const { t } = useTranslation();
   const [items, setItems] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +46,7 @@ export function useAnnouncements(): UseAnnouncementsResult {
         setItems(cached);
         setError(null);
       } else {
-        setError('Unable to load announcements. Pull down to retry.');
+        setError(t('error.loadAnnouncements'));
       }
     } finally {
       setIsLoading(false);
