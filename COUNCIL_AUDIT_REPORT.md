@@ -6,6 +6,18 @@
 
 ---
 
+### Post-Audit Scope Corrections (2026-03-22)
+
+Two audit assumptions were corrected after review:
+
+1. **Single-mosque app** — The app is exclusive to The Salafi Masjid. No mosque selection, discovery, or multi-mosque subscription flow exists by design. Findings about "missing onboarding/mosque selection" are **invalidated** and downgraded. A lightweight permissions-only onboarding (location + notifications) is still recommended.
+
+2. **English only for MVP** — Arabic and RTL support are **not shipping**. All findings about missing Arabic translations, RTL layout activation, Arabic typography, and Arabic locale files are **invalidated**. The `lib/rtl.ts` and `locales/ar.json` files are dead code. CLAUDE.md has been updated to reflect this.
+
+Affected findings: #1, #2, #18 (partially), plus subsidiary findings from Auditors 7, D3, D5, D10.
+
+---
+
 ## Executive Summary
 
 **24 expert auditors** conducted a ruthless, systematic audit of the Masjid Connect app across security, infrastructure, backend architecture, data privacy, frontend performance, offline resilience, internationalization, accessibility, testing, UX strategy, mobile interaction, admin flows, dark mode, prayer times domain logic, notifications, API integration, state management, edge case UI, content strategy, device responsiveness, and web presence.
@@ -63,15 +75,17 @@
 
 These are the most impactful findings across all auditors, deduplicated and prioritized.
 
-### 1. No Mosque Selection / Onboarding Flow
+### ~~1. No Mosque Selection / Onboarding Flow~~ — INVALIDATED
 **Auditors:** D5 (UX), D9 (Edge Cases)
-**Issue:** After auth, users go directly to tabs with no mosque selection, location permission, or notification permission flow. The entire app value proposition depends on knowing which mosque and where the user is.
-**Fix:** Add onboarding steps: location permission → mosque selection → notification permission.
+**Status:** **NOT APPLICABLE.** App is exclusive to The Salafi Masjid — single-mosque app with no mosque selection needed. Onboarding should focus on location permission (for prayer times) and notification permission only, not mosque discovery.
+**Original Issue:** After auth, users go direct to tabs with no mosque selection flow.
+**Revised Fix:** Add lightweight onboarding for location + notification permissions only (no mosque picker).
 
-### 2. RTL Layout Never Activated for Arabic Users
+### ~~2. RTL Layout Never Activated for Arabic Users~~ — INVALIDATED
 **Auditors:** 7 (i18n/a11y)
-**Issue:** `configureRTL()` is defined in `lib/rtl.ts` but never called anywhere. Arabic users get LTR layout.
-**Fix:** Call `configureRTL()` at app startup and on language change.
+**Status:** **NOT APPLICABLE.** Arabic is not shipping for MVP. App is English-only. RTL infrastructure (`lib/rtl.ts`, `locales/ar.json`) is dead code and can be removed.
+**Original Issue:** `configureRTL()` never called.
+**Revised Fix:** Remove dead RTL/Arabic code (`lib/rtl.ts`, `locales/ar.json`) to reduce confusion.
 
 ### 3. 401 Token Clearing Uses Wrong Storage Backend
 **Auditors:** 1 (Security), 6 (Offline), 11 (API)
@@ -148,10 +162,10 @@ These are the most impactful findings across all auditors, deduplicated and prio
 **Issue:** Most-used screen shows error with no retry button and no pull-to-refresh.
 **Fix:** Wrap error state in ScrollView with RefreshControl + retry button.
 
-### 18. Terms of Service Brand Mismatch + Not Internationalized
+### 18. Terms of Service Brand Mismatch
 **Auditors:** D10 (Content)
-**Issue:** Terms says "Mosque Connect" while app brand is "The Salafi Masjid." Entire page hardcoded English.
-**Fix:** Align brand name, extract all strings to i18n locale files.
+**Issue:** Terms says "Mosque Connect" while app brand is "The Salafi Masjid." ~~Entire page hardcoded English.~~ (English-only is correct — Arabic not shipping.)
+**Fix:** Align brand name to "The Salafi Masjid" throughout legal documents.
 
 ### 19. Missing robots.txt, sitemap.xml, and 404 Page
 **Auditors:** D12 (Web)
@@ -202,15 +216,15 @@ These are the most impactful findings across all auditors, deduplicated and prio
 | 25 | Add server-side consent recording | Legal | M |
 | 24 | Add data retention policy for donations | Legal | M |
 | 10 | Remove production migrations from CI scrape workflow | DevOps | S |
-| 18 | Fix Terms of Service brand name + internationalize | Content | M |
-| 2 | Call `configureRTL()` at startup | i18n | S |
+| 18 | Fix Terms of Service brand name | Content | S |
+| ~~2~~ | ~~Call `configureRTL()` at startup~~ — INVALIDATED (no Arabic) | ~~i18n~~ | — |
 
 ### Sprint 2: Core UX Gaps (Week 2-3)
 *These fundamentally break the user experience*
 
 | # | Finding | Category | Effort |
 |---|---------|----------|--------|
-| 1 | Add onboarding flow (location → mosque → notifications) | UX | L |
+| 1 | Add onboarding flow (location + notification permissions only — no mosque picker) | UX | M |
 | 7 | Add background task for next-day prayer scheduling | Notifications | M |
 | 5 | Add network status detection + offline indicator | Offline | M |
 | 17 | Add retry to prayer times error state | Edge Cases | S |
@@ -258,7 +272,7 @@ These are the most impactful findings across all auditors, deduplicated and prio
 **Team Bravo — Frontend & Mobile**
 - Auditor 5 (Performance): 23 findings — Skia rebuild every render, inline functions in lists, dead code
 - Auditor 6 (Offline): 18 findings — no network detection, no write queue, empty static timetable, no cache TTL
-- Auditor 7 (i18n/a11y): 30 findings — RTL never enabled, hardcoded strings, missing a11y labels, touch targets
+- Auditor 7 (i18n/a11y): 30 findings — ~~RTL never enabled~~ (invalidated, no Arabic), hardcoded strings, missing a11y labels, touch targets
 - Auditor 8 (Testing): 27 findings — 0% coverage on api.ts/notifications.ts, no E2E, smoke-only screen tests
 
 **Team Charlie — Domain & Integration**
@@ -272,18 +286,18 @@ These are the most impactful findings across all auditors, deduplicated and prio
 **Team Delta — Visual & Brand**
 - D1 (Visual): 24 findings — palette drift from spec, hardcoded colors, dark mode contrast failures
 - D2 (Brand): 15 findings — gold color mismatch web/app, splash bg mismatch, web CSS uses `ease` not springs
-- D3 (Typography): 22 findings — fontWeight '500' not in scale (15 locations), missing Arabic variants
+- D3 (Typography): 22 findings — fontWeight '500' not in scale (15 locations), ~~missing Arabic variants~~ (invalidated, no Arabic)
 - D4 (Motion): 19 findings — static GoldBadge, JS thread gestures, missing haptics on tabs/sheets
 
 **Team Echo — UX & Interaction**
-- D5 (UX Strategy): 20 findings — no onboarding, hidden tab dead deep links, no search, no forgot password
+- D5 (UX Strategy): 20 findings — ~~no onboarding~~ (revised: permissions-only onboarding needed), hidden tab dead deep links, no search, no forgot password
 - D6 (Mobile UX): 22 findings — BottomSheet scroll conflict, 8+ undersized touch targets, no Android back
 - D7 (Admin UX): 18 findings — no FAB tooltip, no publish success feedback, no edit/delete, no drafts
 - D8 (Dark Mode): 12 findings — ErrorFallback/Splash bypass theme context, theme flash on startup
 
 **Team Foxtrot — Content & Edge Cases**
 - D9 (Edge Cases): 17 findings — no retry on prayer error, no offline indicator, bare spinners (no skeletons)
-- D10 (Content): 28 findings — Terms hardcoded English, brand mismatch, inconsistent Islamic terminology
+- D10 (Content): 28 findings — ~~Terms hardcoded English~~ (English-only is correct), brand mismatch, inconsistent Islamic terminology
 - D11 (Responsive): 20 findings — no iPad maxWidth, fixed 54px countdown, unused font scaling infra
 - D12 (Web): 26 findings — missing robots/sitemap/404, dead store links, bank details in HTML, no skip nav
 
