@@ -4,6 +4,7 @@ import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
+import Constants from 'expo-constants';
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography, borderRadius, getElevation } from '@/constants/Theme';
@@ -50,7 +51,7 @@ export default function AboutScreen() {
           />
           <View style={[styles.versionPill, { backgroundColor: isDark ? colors.backgroundGrouped : colors.background }]}>
             <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: '500' }]}>
-              {t('about.version')} 1.0.0
+              {t('about.version')} {Constants.expoConfig?.version ?? '1.0.0'}
             </Text>
           </View>
         </View>

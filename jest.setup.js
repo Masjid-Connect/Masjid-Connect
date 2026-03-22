@@ -81,10 +81,148 @@ jest.mock('expo-location', () => ({
 
 // Mock react-native-reanimated
 jest.mock('react-native-reanimated', () => {
-  const Reanimated = require('react-native-reanimated/mock');
-  Reanimated.default.call = () => {};
-  return Reanimated;
+  const RN = require('react-native');
+  return {
+    __esModule: true,
+    default: {
+      call: jest.fn(),
+      createAnimatedComponent: (component) => component || RN.View,
+      addWhitelistedNativeProps: jest.fn(),
+      addWhitelistedUIProps: jest.fn(),
+      View: RN.View,
+      Text: RN.Text,
+      Image: RN.Image,
+      ScrollView: RN.ScrollView,
+    },
+    useSharedValue: jest.fn((init) => ({ value: init })),
+    useAnimatedStyle: jest.fn(() => ({})),
+    useAnimatedProps: jest.fn(() => ({})),
+    useDerivedValue: jest.fn((fn) => ({ value: fn() })),
+    useAnimatedGestureHandler: jest.fn(),
+    useAnimatedScrollHandler: jest.fn(),
+    useAnimatedRef: jest.fn(() => ({ current: null })),
+    withTiming: jest.fn((val) => val),
+    withSpring: jest.fn((val) => val),
+    withDelay: jest.fn((_, val) => val),
+    withSequence: jest.fn((...vals) => vals[vals.length - 1]),
+    withRepeat: jest.fn((val) => val),
+    withDecay: jest.fn((val) => val),
+    cancelAnimation: jest.fn(),
+    Easing: {
+      linear: jest.fn(),
+      ease: jest.fn(),
+      bezier: jest.fn(() => jest.fn()),
+      in: jest.fn(),
+      out: jest.fn(),
+      inOut: jest.fn(),
+    },
+    interpolate: jest.fn(),
+    Extrapolation: { CLAMP: 'clamp', EXTEND: 'extend', IDENTITY: 'identity' },
+    runOnJS: jest.fn((fn) => fn),
+    runOnUI: jest.fn((fn) => fn),
+    FadeIn: { duration: jest.fn().mockReturnThis(), delay: jest.fn().mockReturnThis(), springify: jest.fn().mockReturnThis() },
+    FadeOut: { duration: jest.fn().mockReturnThis(), delay: jest.fn().mockReturnThis() },
+    FadeInDown: { duration: jest.fn().mockReturnThis(), delay: jest.fn().mockReturnThis(), springify: jest.fn().mockReturnThis() },
+    FadeInUp: { duration: jest.fn().mockReturnThis(), delay: jest.fn().mockReturnThis(), springify: jest.fn().mockReturnThis() },
+    FadeOutUp: { duration: jest.fn().mockReturnThis(), delay: jest.fn().mockReturnThis() },
+    FadeOutDown: { duration: jest.fn().mockReturnThis(), delay: jest.fn().mockReturnThis() },
+    SlideInRight: { duration: jest.fn().mockReturnThis(), delay: jest.fn().mockReturnThis(), springify: jest.fn().mockReturnThis() },
+    SlideOutLeft: { duration: jest.fn().mockReturnThis(), delay: jest.fn().mockReturnThis() },
+    SlideInDown: { duration: jest.fn().mockReturnThis(), delay: jest.fn().mockReturnThis(), springify: jest.fn().mockReturnThis() },
+    SlideOutDown: { duration: jest.fn().mockReturnThis(), delay: jest.fn().mockReturnThis() },
+    ZoomIn: { duration: jest.fn().mockReturnThis(), delay: jest.fn().mockReturnThis(), springify: jest.fn().mockReturnThis() },
+    ZoomOut: { duration: jest.fn().mockReturnThis(), delay: jest.fn().mockReturnThis() },
+    Layout: { duration: jest.fn().mockReturnThis(), springify: jest.fn().mockReturnThis() },
+    LinearTransition: { duration: jest.fn().mockReturnThis(), springify: jest.fn().mockReturnThis() },
+    SequencedTransition: { duration: jest.fn().mockReturnThis() },
+    EntryExitTransition: jest.fn(),
+    combineTransition: jest.fn(),
+    measure: jest.fn(() => ({ x: 0, y: 0, width: 0, height: 0, pageX: 0, pageY: 0 })),
+    scrollTo: jest.fn(),
+    makeMutable: jest.fn((init) => ({ value: init })),
+    enableLayoutAnimations: jest.fn(),
+    createWorkletRuntime: jest.fn(),
+    useReducedMotion: jest.fn(() => false),
+  };
 });
+
+// Mock react-native-safe-area-context
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
+  SafeAreaProvider: ({ children }) => children,
+  SafeAreaView: ({ children }) => children,
+}));
+
+// Mock expo-constants
+jest.mock('expo-constants', () => ({
+  __esModule: true,
+  default: {
+    expoConfig: { version: '1.0.0' },
+  },
+}));
+
+// Mock react-native-gesture-handler
+jest.mock('react-native-gesture-handler', () => {
+  const gestureInstance = {
+    onUpdate: jest.fn().mockReturnThis(),
+    onEnd: jest.fn().mockReturnThis(),
+    onStart: jest.fn().mockReturnThis(),
+    onFinalize: jest.fn().mockReturnThis(),
+    enabled: jest.fn().mockReturnThis(),
+  };
+  return {
+    Gesture: {
+      Pan: () => gestureInstance,
+    },
+    GestureDetector: ({ children }) => children,
+    GestureHandlerRootView: ({ children }) => children,
+  };
+});
+
+// Mock @shopify/react-native-skia
+jest.mock('@shopify/react-native-skia', () => ({
+  Canvas: ({ children }) => children,
+  Path: () => null,
+  Group: ({ children }) => children,
+  Rect: () => null,
+  LinearGradient: () => null,
+  vec: jest.fn(() => ({ x: 0, y: 0 })),
+  Skia: {
+    Path: { MakeFromSVGString: jest.fn(() => 'mock-path') },
+    Color: jest.fn(() => 0),
+  },
+  useFont: jest.fn(),
+  usePaint: jest.fn(),
+}));
+
+// Mock expo-linear-gradient
+jest.mock('expo-linear-gradient', () => ({
+  LinearGradient: 'LinearGradient',
+}));
+
+// Mock expo-apple-authentication
+jest.mock('expo-apple-authentication', () => ({
+  isAvailableAsync: jest.fn(() => Promise.resolve(false)),
+  signInAsync: jest.fn(),
+  AppleAuthenticationButton: 'AppleAuthenticationButton',
+  AppleAuthenticationButtonType: {},
+  AppleAuthenticationButtonStyle: {},
+  AppleAuthenticationScope: {},
+}));
+
+// Mock expo-auth-session
+jest.mock('expo-auth-session', () => ({
+  makeRedirectUri: jest.fn(() => 'mock-redirect-uri'),
+  useAuthRequest: jest.fn(() => [null, null, jest.fn()]),
+  ResponseType: {},
+}));
+
+// Mock expo-crypto
+jest.mock('expo-crypto', () => ({
+  digestStringAsync: jest.fn(() => Promise.resolve('mock-hash')),
+  CryptoDigestAlgorithm: { SHA256: 'SHA-256' },
+  randomUUID: jest.fn(() => 'mock-uuid'),
+}));
 
 // Silence console.warn in tests (reanimated etc.)
 const originalWarn = console.warn;

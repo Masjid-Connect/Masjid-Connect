@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import Constants from 'expo-constants';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -447,7 +448,7 @@ export default function SettingsScreen() {
       {/* ── Footer ── */}
       <View style={styles.footer}>
         <Text style={[typography.caption1, { color: colors.textTertiary, textAlign: 'center' }]}>
-          {t('settings.version', { version: '1.0.0' })}
+          {t('settings.version', { version: Constants.expoConfig?.version ?? '1.0.0' })}
         </Text>
         <Text style={[typography.caption1, { color: colors.textTertiary, textAlign: 'center', marginTop: spacing.xs }]}>
           {t('settings.prayerSource')}
