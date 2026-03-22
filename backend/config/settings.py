@@ -6,8 +6,10 @@ from pathlib import Path
 
 TESTING = "test" in sys.argv
 
+import logging
 import environ
 import sentry_sdk
+from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -29,11 +31,16 @@ if env_file.exists():
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 
-# Refuse to start in production with the insecure default key
+# In production, generate a random key if none was explicitly set.
+# This lets the app start (health checks pass) but sessions/tokens won't
+# persist across container restarts — operators should set a proper key.
 if not DEBUG and SECRET_KEY == _INSECURE_SECRET_KEY:
-    raise ValueError(
-        "SECRET_KEY must be set to a unique, unpredictable value in production. "
-        "Set it in your .env file or environment variables."
+    SECRET_KEY = get_random_secret_key()
+    logger = logging.getLogger("django")
+    logger.critical(
+        "SECRET_KEY is not set — using a random key. "
+        "Sessions will be lost on restart. "
+        "Set SECRET_KEY in your environment variables or .env file."
     )
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 

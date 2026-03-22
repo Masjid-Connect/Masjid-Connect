@@ -55,7 +55,7 @@ RUN SECRET_KEY=build-placeholder python manage.py collectstatic --noinput
 EXPOSE 8000
 
 # Health check — curl follows redirects and Coolify requires curl/wget
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
     CMD curl -fsS http://localhost:8000/health/ || exit 1
 
 # Start Gunicorn using our config file
