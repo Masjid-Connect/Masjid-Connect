@@ -243,6 +243,81 @@ export const alpha = {
     light: 'rgba(191, 155, 48, 0.10)',
     dark: 'rgba(240, 208, 96, 0.14)',
   },
+  /** Gold-tinted feature icon backgrounds (welcome screen, community share) */
+  goldIconBg: {
+    light: 'rgba(191, 155, 48, 0.10)',
+    dark: 'rgba(240, 208, 96, 0.12)',
+  },
+  /** Gold-tinted empty state icon circles (announcements, community) */
+  goldEmptyBg: {
+    light: 'rgba(191, 155, 48, 0.06)',
+    dark: 'rgba(240, 208, 96, 0.08)',
+  },
+  /** Sapphire-tinted icon backgrounds (admin FAB, events empty state) */
+  sapphireIconBg: {
+    light: 'rgba(15, 45, 82, 0.08)',
+    dark: 'rgba(107, 171, 229, 0.15)',
+  },
+  /** Sapphire-tinted empty state icon circles (events) */
+  sapphireEmptyBg: {
+    light: 'rgba(15, 45, 82, 0.06)',
+    dark: 'rgba(107, 171, 229, 0.10)',
+  },
+  /** Active prayer row highlight (prayer times screen) */
+  prayerActiveRowBg: {
+    light: 'rgba(212, 175, 55, 0.08)',
+    dark: 'rgba(229, 193, 75, 0.10)',
+  },
+  /** Prayer progress bar fill */
+  prayerProgressFill: {
+    light: 'rgba(212, 175, 55, 0.30)',
+    dark: 'rgba(229, 193, 75, 0.35)',
+  },
+  /** Community share card background */
+  communityShareBg: {
+    light: 'rgba(212, 175, 55, 0.06)',
+    dark: 'rgba(229, 193, 75, 0.08)',
+  },
+  /** Community share card border */
+  communityShareBorder: {
+    light: 'rgba(212, 175, 55, 0.15)',
+    dark: 'rgba(229, 193, 75, 0.20)',
+  },
+  /** Sage-tinted option card backgrounds (gift aid) */
+  sageBg: {
+    light: 'rgba(45, 106, 79, 0.06)',
+    dark: 'rgba(45, 106, 79, 0.12)',
+  },
+  /** Sage-tinted subtle background (gift aid unchecked) */
+  sageBgSubtle: {
+    light: 'rgba(45, 106, 79, 0.03)',
+    dark: 'rgba(45, 106, 79, 0.06)',
+  },
+  /** Sage-tinted border */
+  sageBorder: {
+    light: 'rgba(45, 106, 79, 0.12)',
+    dark: 'rgba(45, 106, 79, 0.20)',
+  },
+  /** Sapphire-tinted option card backgrounds (cover fees) */
+  sapphireBg: {
+    light: 'rgba(15, 45, 82, 0.06)',
+    dark: 'rgba(15, 45, 82, 0.12)',
+  },
+  /** Sapphire-tinted subtle background (cover fees unchecked) */
+  sapphireBgSubtle: {
+    light: 'rgba(15, 45, 82, 0.03)',
+    dark: 'rgba(15, 45, 82, 0.06)',
+  },
+  /** Sapphire-tinted border */
+  sapphireBorder: {
+    light: 'rgba(15, 45, 82, 0.12)',
+    dark: 'rgba(91, 155, 213, 0.20)',
+  },
+  /** Sapphire hadith card border */
+  sapphireHadithBorder: {
+    light: 'rgba(15, 45, 82, 0.08)',
+    dark: 'rgba(91, 155, 213, 0.12)',
+  },
 } as const;
 
 export type ColorScheme = 'light' | 'dark';
@@ -265,6 +340,21 @@ export function getAlpha(scheme: string | null | undefined) {
     accentPill: alpha.accentPill[key],
     janazahBg: alpha.janazahBg[key],
     janazahBgEmphasis: alpha.janazahBgEmphasis[key],
+    goldIconBg: alpha.goldIconBg[key],
+    goldEmptyBg: alpha.goldEmptyBg[key],
+    sapphireIconBg: alpha.sapphireIconBg[key],
+    sapphireEmptyBg: alpha.sapphireEmptyBg[key],
+    prayerActiveRowBg: alpha.prayerActiveRowBg[key],
+    prayerProgressFill: alpha.prayerProgressFill[key],
+    communityShareBg: alpha.communityShareBg[key],
+    communityShareBorder: alpha.communityShareBorder[key],
+    sageBg: alpha.sageBg[key],
+    sageBgSubtle: alpha.sageBgSubtle[key],
+    sageBorder: alpha.sageBorder[key],
+    sapphireBg: alpha.sapphireBg[key],
+    sapphireBgSubtle: alpha.sapphireBgSubtle[key],
+    sapphireBorder: alpha.sapphireBorder[key],
+    sapphireHadithBorder: alpha.sapphireHadithBorder[key],
   };
 }
 

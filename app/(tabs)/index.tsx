@@ -347,9 +347,7 @@ export default function PrayerTimesScreen() {
                   isNext && [
                     styles.activeRow,
                     {
-                      backgroundColor: isDark
-                        ? 'rgba(229,193,75,0.10)'
-                        : 'rgba(212,175,55,0.08)',
+                      backgroundColor: alphaColors.prayerActiveRowBg,
                     },
                   ],
                 ]}
@@ -429,9 +427,7 @@ export default function PrayerTimesScreen() {
                         styles.progressBarFill,
                         {
                           width: `${Math.round(windowProgress * 100)}%`,
-                          backgroundColor: isDark
-                            ? 'rgba(229,193,75,0.35)'
-                            : 'rgba(212,175,55,0.30)',
+                          backgroundColor: alphaColors.prayerProgressFill,
                         } as ViewStyle,
                       ]}
                     />

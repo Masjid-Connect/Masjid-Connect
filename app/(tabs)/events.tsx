@@ -30,7 +30,7 @@ import { Calendar, DateData } from 'react-native-calendars';
 
 import { useTranslation } from 'react-i18next';
 
-import { getColors, palette } from '@/constants/Colors';
+import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, getElevation, borderRadius, typography, components } from '@/constants/Theme';
 import { patterns } from '@/lib/layoutGrid';
@@ -54,6 +54,7 @@ export default function EventsScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
+  const alphaColors = getAlpha(effectiveScheme);
   const { t, i18n } = useTranslation();
   const dateLocale = i18n.language === 'ar' ? ar : undefined;
   const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = useWindowDimensions();
@@ -306,7 +307,7 @@ export default function EventsScreen() {
             opacity={isDark ? patterns.opacityDark : patterns.opacity}
             tileSize={patterns.tileSize}
           />
-          <View style={[styles.emptyIconCircle, { backgroundColor: isDark ? 'rgba(107, 171, 229, 0.10)' : 'rgba(15, 45, 82, 0.06)' }]}>
+          <View style={[styles.emptyIconCircle, { backgroundColor: alphaColors.sapphireEmptyBg }]}>
             <Ionicons name="calendar-outline" size={32} color={colors.tint} />
           </View>
           <Text style={[typography.title3, { color: colors.text, textAlign: 'center', marginTop: spacing.xl }]}>

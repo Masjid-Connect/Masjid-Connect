@@ -39,7 +39,7 @@ import {
 } from '@/lib/storage';
 import { reschedulePrayerRemindersForToday } from '@/lib/notifications';
 import { subscriptions as subscriptionsApi } from '@/lib/api';
-import i18n from '@/lib/i18n';
+import { i18n } from '@/lib/i18n';
 import {
   ProfileCard,
   SettingsSection,

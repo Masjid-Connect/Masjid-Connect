@@ -15,7 +15,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Image, Platform, StyleSheet, View, useColorScheme, useWindowDimensions } from 'react-native';
 import Animated, {
-  Easing,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -108,22 +107,9 @@ export const AnimatedSplash = ({
 
 
     // Phase 2: Haptic + logo fades in with gentle scale
-    logoOpacity.value = withDelay(
-      PAUSE_BEFORE_REVEAL,
-      withTiming(1, {
-        duration: LOGO_FADE_DURATION,
-        easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-      })
-    );
-
-    logoScale.value = withDelay(
-      PAUSE_BEFORE_REVEAL,
-      withSpring(1, {
-        ...springs.gentle,
-        stiffness: 80,
-        damping: 20,
-      })
-    );
+    const logoSpring = { ...springs.gentle, stiffness: 80, damping: 20 };
+    logoOpacity.value = withDelay(PAUSE_BEFORE_REVEAL, withSpring(1, logoSpring));
+    logoScale.value = withDelay(PAUSE_BEFORE_REVEAL, withSpring(1, logoSpring));
 
     // Trigger haptic at the start of reveal
     const hapticTimeout = setTimeout(() => {
@@ -132,22 +118,10 @@ export const AnimatedSplash = ({
 
     // Phase 3: Hold, then splash fades out and content fades in
     const contentDelay = PAUSE_BEFORE_REVEAL + LOGO_FADE_DURATION + HOLD_DURATION;
+    const fadeSpring = { ...springs.gentle, stiffness: 60, damping: 18 };
 
-    splashOpacity.value = withDelay(
-      contentDelay,
-      withTiming(0, {
-        duration: CONTENT_FADE_DURATION,
-        easing: Easing.bezier(0.4, 0, 0.2, 1),
-      })
-    );
-
-    contentOpacity.value = withDelay(
-      contentDelay,
-      withTiming(1, {
-        duration: CONTENT_FADE_DURATION,
-        easing: Easing.bezier(0.4, 0, 0.2, 1),
-      })
-    );
+    splashOpacity.value = withDelay(contentDelay, withSpring(0, fadeSpring));
+    contentOpacity.value = withDelay(contentDelay, withSpring(1, fadeSpring));
 
     // Notify completion
     const completeTimeout = setTimeout(() => {

@@ -228,7 +228,7 @@ export default function AnnouncementsScreen() {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
           }>
-          <View style={[styles.emptyIconCircle, { backgroundColor: isDark ? 'rgba(240, 208, 96, 0.08)' : 'rgba(191, 155, 48, 0.06)' }]}>
+          <View style={[styles.emptyIconCircle, { backgroundColor: alphaColors.goldEmptyBg }]}>
             <Ionicons name="megaphone-outline" size={32} color={colors.accent} />
           </View>
           <Text

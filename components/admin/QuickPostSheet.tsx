@@ -16,7 +16,7 @@ import { BottomSheet } from '@/components/ui/BottomSheet';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
 import { PreviewCard } from './PreviewCard';
-import { getColors, palette } from '@/constants/Colors';
+import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography, borderRadius } from '@/constants/Theme';
 import { announcements as announcementsApi } from '@/lib/api';
@@ -51,6 +51,7 @@ export const QuickPostSheet = ({
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
+  const alphaColors = getAlpha(effectiveScheme);
   const { t } = useTranslation();
 
   const [title, setTitle] = useState('');
@@ -239,7 +240,7 @@ export const QuickPostSheet = ({
                     styles.optionCard,
                     {
                       backgroundColor: priority === opt.value
-                        ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)')
+                        ? alphaColors.actionBg
                         : 'transparent',
                       borderColor: priority === opt.value ? opt.color : colors.cardBorder,
                     },
