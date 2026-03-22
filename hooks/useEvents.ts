@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 import { events as eventsApi } from '@/lib/api';
 import { getCachedData, setCachedData } from '@/lib/storage';
 import { Sentry } from '@/lib/sentry';
@@ -20,6 +21,7 @@ interface UseEventsResult {
 }
 
 export function useEvents(): UseEventsResult {
+  const { t } = useTranslation();
   const [items, setItems] = useState<MosqueEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +52,7 @@ export function useEvents(): UseEventsResult {
         setItems(cached);
         setError(null);
       } else {
-        setError('Unable to load events. Pull down to retry.');
+        setError(t('error.loadEvents'));
       }
     } finally {
       setIsLoading(false);

@@ -39,6 +39,8 @@ interface UsePrayerTimesResult {
   windowProgress: number;
   hijriDate: string | null;
   isLoading: boolean;
+  /** Error message when both prayer time sources fail */
+  error: string | null;
   source: 'static' | 'api' | 'offline';
   jamaahAvailable: boolean;
   /** True when jama'ah times are estimated (e.g. same day from last year) */
@@ -64,6 +66,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
   const [windowProgress, setWindowProgress] = useState(0);
   const [hijriDate, setHijriDate] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [source, setSource] = useState<'static' | 'api' | 'offline'>('static');
   const [jamaahAvailable, setJamaahAvailable] = useState(false);
   const [isEstimated, setIsEstimated] = useState(false);
@@ -95,6 +98,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
   const loadPrayerTimes = useCallback(async (dateOverride?: Date) => {
     const targetDate = dateOverride ?? selectedDateRef.current;
     setIsLoading(true);
+    setError(null);
 
     // Load 24h preference
     const h24 = await getUse24h();
@@ -156,8 +160,12 @@ export function usePrayerTimes(): UsePrayerTimesResult {
         const reminderMinutes = await getReminderMinutes();
         await schedulePrayerReminders(result.times, reminderMinutes);
       }
-    } catch (error) {
-      console.error('Failed to load prayer times:', error);
+    } catch (err) {
+      console.error('Failed to load prayer times:', err);
+      // R2: Surface error so the UI can show a fallback instead of a blank screen
+      if (mountedRef.current) {
+        setError('Unable to load prayer times. Pull down to retry.');
+      }
     } finally {
       if (mountedRef.current) setIsLoading(false);
     }
@@ -259,6 +267,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     windowProgress,
     hijriDate,
     isLoading,
+    error,
     source,
     jamaahAvailable,
     isEstimated,

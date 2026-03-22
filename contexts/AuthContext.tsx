@@ -46,9 +46,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     (async () => {
       try {
         await auth.hydrate();
+        if (cancelled) return;
         if (auth.isLoggedIn && auth.user) {
           setUser(auth.user);
           syncPushToken();
@@ -59,12 +61,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setIsGuest(true);
           }
         }
-      } catch {
-        // Token invalid or expired — stay logged out
+      } catch (err) {
+        if (cancelled) return;
+        // Q20: Distinguish network error from invalid token
+        const isNetworkError = err instanceof TypeError || (err instanceof Error && err.message.includes('network'));
+        if (isNetworkError) {
+          // Network failure — preserve any cached user state, don't log out
+          // User may still have a valid token but no connectivity
+          console.warn('Auth hydration network error — preserving cached state');
+        }
+        // Invalid token / other error — stay logged out (default state)
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     })();
+    return () => { cancelled = true; };
   }, [syncPushToken]);
 
   const login = useCallback(async (email: string, password: string) => {
