@@ -114,5 +114,38 @@ export async function markAnnouncementRead(id: string): Promise<Set<string>> {
   return new Set(arr);
 }
 
+// ── Offline API response cache ──────────────────────────────────────
+
+const CACHE_PREFIX = 'api_cache_';
+const DEFAULT_TTL_MS = 15 * 60 * 1000; // 15 minutes
+
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+/**
+ * Get cached API data. Returns null if expired or missing.
+ * When `allowStale` is true, returns data even if TTL has expired.
+ */
+export async function getCachedData<T>(
+  key: string,
+  ttlMs: number = DEFAULT_TTL_MS,
+  allowStale = false,
+): Promise<T | null> {
+  const raw = await AsyncStorage.getItem(CACHE_PREFIX + key);
+  if (!raw) return null;
+  const entry: CacheEntry<T> = JSON.parse(raw);
+  const isFresh = Date.now() - entry.timestamp < ttlMs;
+  if (isFresh || allowStale) return entry.data;
+  return null;
+}
+
+/** Store API response data with a timestamp. */
+export async function setCachedData<T>(key: string, data: T): Promise<void> {
+  const entry: CacheEntry<T> = { data, timestamp: Date.now() };
+  await AsyncStorage.setItem(CACHE_PREFIX + key, JSON.stringify(entry));
+}
+
 /** Hardcoded fallback coordinates — The Salafi Masjid, Birmingham, UK */
 export const DEFAULT_LOCATION = { latitude: 52.4694, longitude: -1.8712 };

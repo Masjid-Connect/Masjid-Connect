@@ -337,6 +337,14 @@ def me(request):
 
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
+def admin_roles(request):
+    """Return mosques the authenticated user administers."""
+    roles = MosqueAdmin.objects.filter(user=request.user).select_related("mosque")
+    return Response(MosqueAdminSerializer(roles, many=True).data)
+
+
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
 def export_user_data(request):
     """GDPR-compliant data export — return all data associated with the authenticated user."""
     user = request.user
