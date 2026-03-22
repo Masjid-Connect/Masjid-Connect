@@ -2,7 +2,7 @@
   <br>
   <sub>بسم الله الرحمن الرحيم</sub>
   <br><br>
-  <img src="assets/images/Masjid_Logo.png" alt="The Salafi Masjid" width="320" />
+  <img src="assets/images/icon.png" alt="The Salafi Masjid" width="180" />
   <br><br>
   Mosque Connect
   <br>
@@ -26,6 +26,30 @@
 
 <p align="center">
   <code>god-tier, not SaaS</code> — rooted in Islamic geometric art and calligraphic tradition
+</p>
+
+---
+
+## Screenshots
+
+<p align="center">
+  <img src="assets/store-screenshots/05-prayer-times-light.png" alt="Prayer Times — Light Mode" width="200" />
+  &nbsp;&nbsp;
+  <img src="assets/store-screenshots/01-prayer-times-dark.png" alt="Prayer Times — Dark Mode" width="200" />
+  &nbsp;&nbsp;
+  <img src="assets/store-screenshots/03-support-masjid-dark.png" alt="Support Your Masjid — Donations" width="200" />
+  &nbsp;&nbsp;
+  <img src="assets/store-screenshots/04-settings-dark.png" alt="Settings" width="200" />
+</p>
+
+<p align="center">
+  <img src="assets/store-screenshots/06-community-light.png" alt="Community — Light Mode" width="200" />
+  &nbsp;&nbsp;
+  <img src="assets/store-screenshots/02-community-dark.png" alt="Community — Dark Mode" width="200" />
+</p>
+
+<p align="center">
+  <sub>Left to right: Prayer times with atmospheric sky gradients, Stripe donations with Gift Aid, settings, and community hub. Both light and dark modes shown.</sub>
 </p>
 
 ---
