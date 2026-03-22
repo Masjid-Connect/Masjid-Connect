@@ -218,7 +218,7 @@ export default function WelcomeScreen() {
     setError('');
     setGoogleLoading(true);
     try {
-      const redirectUri = AuthSession.makeRedirectUri({ scheme: 'masjidconnect' });
+      const redirectUri = AuthSession.makeRedirectUri({ scheme: 'salafimasjid' });
       const nonce = await Crypto.digestStringAsync(
         Crypto.CryptoDigestAlgorithm.SHA256,
         Math.random().toString(36),
