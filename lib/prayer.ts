@@ -237,13 +237,32 @@ export function formatTimeString(timeStr: string, use24h: boolean = false): stri
   return `${displayHours}:${minutesStr} ${period}`;
 }
 
-/** Parse "HH:mm" or "HH:mm:ss" or "HH:mm (timezone)" string to Date */
+/**
+ * Parse "HH:mm" or "HH:mm:ss" or "HH:mm (timezone)" string to Date.
+ *
+ * Aladhan returns times in the timezone of the queried coordinates.
+ * We parse into the device's local timezone, which is correct when the
+ * user is at the mosque location. If the device timezone differs from the
+ * coordinates' timezone (e.g. user traveling), times may be offset — but
+ * this is acceptable for a single-mosque app where the user is local.
+ *
+ * The timezone abbreviation (e.g. "BST", "GMT") from Aladhan is stripped
+ * since JavaScript Date doesn't support arbitrary tz abbreviations.
+ * For DST transitions, the Aladhan API returns the correct local time
+ * and the device timezone handles DST automatically.
+ */
 function parseTimeString(timeStr: string, dateStr: string): Date {
-  // Aladhan returns "HH:mm (TZ)" format — strip timezone part
+  // Aladhan returns "HH:mm (TZ)" format — strip timezone abbreviation
   const clean = timeStr.split(' ')[0];
-  const [hours, minutes] = clean.split(':').map(Number);
-  // Use explicit year/month/day to avoid UTC vs local timezone mismatch
-  // (new Date("YYYY-MM-DD") creates UTC midnight, but setHours is local)
+  const parts = clean.split(':').map(Number);
+  const hours = parts[0];
+  const minutes = parts[1];
+  if (isNaN(hours) || isNaN(minutes)) {
+    // Fallback: return noon if time string is malformed
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d, 12, 0, 0, 0);
+  }
+  // Construct date using local timezone components to avoid UTC offset issues
   const [y, m, d] = dateStr.split('-').map(Number);
   const date = new Date(y, m - 1, d, hours, minutes, 0, 0);
   return date;

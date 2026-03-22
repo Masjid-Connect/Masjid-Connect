@@ -9,7 +9,8 @@
 import React from 'react';
 import { StyleSheet, View, Text, ViewStyle } from 'react-native';
 
-import { palette } from '@/constants/Colors';
+import { palette, getColors } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { spacing } from '@/constants/Theme';
 
 interface GoldBadgeProps {
@@ -28,10 +29,13 @@ interface GoldBadgeProps {
 export const GoldBadge = ({
   count,
   size = 18,
-  color = palette.divineGold,
+  color,
   textColor = palette.white,
   style,
 }: GoldBadgeProps) => {
+  const { effectiveScheme } = useTheme();
+  const defaultColor = effectiveScheme === 'dark' ? palette.divineGoldBright : palette.divineGold;
+  const badgeColor = color ?? defaultColor;
   const showCount = count !== undefined && count > 0;
   const dotSize = showCount ? Math.max(size, 18) : 10;
   const displayCount = count !== undefined && count > 99 ? '99+' : count;
@@ -41,7 +45,7 @@ export const GoldBadge = ({
       style={[
         styles.badge,
         {
-          backgroundColor: color,
+          backgroundColor: badgeColor,
           width: showCount ? undefined : dotSize,
           height: dotSize,
           minWidth: dotSize,

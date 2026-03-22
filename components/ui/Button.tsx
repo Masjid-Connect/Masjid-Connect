@@ -64,7 +64,7 @@ export const Button = ({
         style,
       ]}>
       {loading ? (
-        <ActivityIndicator color={variantStyles.text} size="small" />
+        <ActivityIndicator color={variantStyles.text} size="small" style={styles.spinner} />
       ) : (
         <Text style={[styles.label, { color: variantStyles.text, fontFamily: fonts.body }]}>
           {title}
@@ -106,8 +106,12 @@ const styles = StyleSheet.create({
   outlined: {
     borderWidth: 1.5,
   },
+  spinner: {
+    height: typography.callout.lineHeight,
+  },
   label: {
     fontSize: typography.callout.fontSize,
     fontWeight: '600',
+    lineHeight: typography.callout.lineHeight,
   },
 });

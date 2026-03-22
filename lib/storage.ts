@@ -118,6 +118,7 @@ export async function markAnnouncementRead(id: string): Promise<Set<string>> {
 
 const CACHE_PREFIX = 'api_cache_';
 const DEFAULT_TTL_MS = 15 * 60 * 1000; // 15 minutes
+const MAX_STALE_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days — hard cap for allowStale mode
 
 interface CacheEntry<T> {
   data: T;
@@ -136,8 +137,11 @@ export async function getCachedData<T>(
   const raw = await AsyncStorage.getItem(CACHE_PREFIX + key);
   if (!raw) return null;
   const entry: CacheEntry<T> = JSON.parse(raw);
-  const isFresh = Date.now() - entry.timestamp < ttlMs;
-  if (isFresh || allowStale) return entry.data;
+  const age = Date.now() - entry.timestamp;
+  const isFresh = age < ttlMs;
+  if (isFresh) return entry.data;
+  // Stale data allowed but capped at 7 days to prevent serving months-old data
+  if (allowStale && age < MAX_STALE_AGE_MS) return entry.data;
   return null;
 }
 

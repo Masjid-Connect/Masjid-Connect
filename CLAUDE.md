@@ -61,7 +61,7 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
 
 The app uses the **Masjid_Logo.png** (The Salafi Masjid logo with transparent background) as the primary brand mark. It appears on the welcome screen, auth screens, and splash screen. No custom SVG brand mark — the logo PNG is the identity.
 
-**Notification Badge:** Divine Gold circle, never red.
+**Notification Badge:** Divine Gold circle, never red. `GoldBadge` auto-selects `divineGoldBright` in dark mode for contrast.
 
 **Typography:** Prayer time numerals use `tabular-nums` font variant with confident weight.
 
@@ -107,6 +107,7 @@ The app uses the **Masjid_Logo.png** (The Salafi Masjid logo with transparent ba
 - 3-tier elevation system: none/sm/md/lg (black shadows only, Apple convention)
 - RTL-native from day one via `I18nManager.forceRTL()`
 - Spring-based animations (Reanimated `springs.gentle/snappy/bouncy`), no linear easing
+- **Button component** — 4 variants: primary, secondary, ghost, destructive. Loading spinner matches text height to prevent layout jank. Compact variant available.
 - **BottomSheet pattern** — spring-animated, gesture-dismissible sheets replace all centered modals
 - Haptic feedback on meaningful interactions (prayer transitions)
 - **Ionicons** (outline/filled pairs) for tab bar and UI icons — no FontAwesome
@@ -170,7 +171,7 @@ GET  /admin/                         # Django admin (Unfold theme)
 ### Django Models
 - **User** — UUID PK, extends AbstractUser with `name` field
 - **Mosque** — name, address, city, state, country, lat/lng, calculation_method, jumua_time, contact info, photo
-- **Announcement** — mosque FK, title, body, priority (normal/urgent), published_at, expires_at, author FK
+- **Announcement** — mosque FK, title, body, priority (normal/urgent/janazah), published_at, expires_at (indexed), author FK
 - **Event** — mosque FK, title, description, speaker, event_date, start/end_time, recurring (weekly/monthly), category (lesson/lecture/quran_circle/youth/sisters/community)
 - **UserSubscription** — user FK, mosque FK, notify_prayers/announcements/events, prayer_reminder_minutes
 - **PushToken** — user FK, token (unique), platform (ios/android)
@@ -276,12 +277,13 @@ This principle applies to Django admin customizations, in-app admin screens, and
 - Cache prayer times, announcements, and events in AsyncStorage
 - Queue actions (subscription changes) when offline, sync when back online
 - Show stale data with "last updated" indicator rather than empty screens
+- **Stale cache capped at 7 days** — `allowStale` mode in `getCachedData()` enforces `MAX_STALE_AGE_MS` to prevent serving months-old data
 - Stale cache race condition prevented with `hasFreshDataRef` pattern in hooks
 
 ## Important Notes
 - **Primary prayer times**: Aladhan API (free, no key required) — `GET https://api.aladhan.com/v1/timings/{date}?latitude={lat}&longitude={lng}&method={method}`
 - **Offline fallback only**: adhan-js calculates locally from coordinates when network is unavailable — never used as primary source
-- **All times respect user's local timezone** and 12h/24h device locale
+- **All times respect user's local timezone** and 12h/24h device locale — `parseTimeString` validates input and falls back gracefully on malformed Aladhan responses
 - **Django backend** is self-hosted on Digital Ocean (same pattern as Orphanages project)
 - **Expo managed workflow** — no native code ejection for MVP
 - **Never hardcode prayer times** — always calculate from coordinates + date + method
