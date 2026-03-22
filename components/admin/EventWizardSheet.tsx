@@ -7,10 +7,13 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
+import { format } from 'date-fns';
 
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { TextInput } from '@/components/ui/TextInput';
@@ -57,6 +60,9 @@ export const EventWizardSheet = ({
   const [eventDate, setEventDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showStartTimePicker, setShowStartTimePicker] = useState(false);
+  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
   const [location, setLocation] = useState('');
   const [category, setCategory] = useState<EventCategory>('lesson');
   const [recurring, setRecurring] = useState<RecurringOption>(null);
@@ -77,6 +83,9 @@ export const EventWizardSheet = ({
     setCategory('lesson');
     setRecurring(null);
     setErrors({});
+    setShowDatePicker(false);
+    setShowStartTimePicker(false);
+    setShowEndTimePicker(false);
   }, []);
 
   const handleDismiss = useCallback(() => {
@@ -242,29 +251,102 @@ export const EventWizardSheet = ({
         {/* Step 1: Date & Time */}
         {step === 1 && (
           <>
-            <TextInput
-              label={t('admin.eventDate')}
-              value={eventDate}
-              onChangeText={(text) => { setEventDate(text); if (errors.eventDate) setErrors(({ eventDate: _, ...rest }) => rest); }}
-              placeholder="YYYY-MM-DD"
-              error={errors.eventDate}
-              keyboardType="numbers-and-punctuation"
-            />
-            <TextInput
-              label={t('admin.eventStartTime')}
-              value={startTime}
-              onChangeText={(text) => { setStartTime(text); if (errors.startTime) setErrors(({ startTime: _, ...rest }) => rest); }}
-              placeholder="HH:MM (e.g. 19:30)"
-              error={errors.startTime}
-              keyboardType="numbers-and-punctuation"
-            />
-            <TextInput
-              label={t('admin.eventEndTime')}
-              value={endTime}
-              onChangeText={setEndTime}
-              placeholder="HH:MM (optional)"
-              keyboardType="numbers-and-punctuation"
-            />
+            {/* Date picker trigger */}
+            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: '500', marginBottom: spacing.xs }]}>
+              {t('admin.eventDate')}
+            </Text>
+            <TouchableOpacity
+              style={[styles.pickerTrigger, { backgroundColor: colors.backgroundGrouped, borderColor: errors.eventDate ? colors.urgent : colors.cardBorder }]}
+              onPress={() => { setShowDatePicker(true); if (errors.eventDate) setErrors(({ eventDate: _, ...rest }) => rest); }}
+              accessibilityRole="button"
+              accessibilityLabel={t('admin.eventDate')}
+            >
+              <Ionicons name="calendar-outline" size={18} color={eventDate ? colors.text : colors.textTertiary} />
+              <Text style={[typography.body, { color: eventDate ? colors.text : colors.textTertiary, flex: 1, marginStart: spacing.sm }]}>
+                {eventDate || 'YYYY-MM-DD'}
+              </Text>
+            </TouchableOpacity>
+            {errors.eventDate && (
+              <Text style={[typography.caption1, { color: colors.urgent, marginTop: spacing.xs }]}>{errors.eventDate}</Text>
+            )}
+            {showDatePicker && (
+              <DateTimePicker
+                value={eventDate ? new Date(eventDate) : new Date()}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                minimumDate={new Date()}
+                onChange={(_, selectedDate) => {
+                  setShowDatePicker(Platform.OS === 'ios');
+                  if (selectedDate) {
+                    setEventDate(format(selectedDate, 'yyyy-MM-dd'));
+                  }
+                }}
+                themeVariant={effectiveScheme}
+              />
+            )}
+
+            {/* Start time picker trigger */}
+            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: '500', marginBottom: spacing.xs, marginTop: spacing.md }]}>
+              {t('admin.eventStartTime')}
+            </Text>
+            <TouchableOpacity
+              style={[styles.pickerTrigger, { backgroundColor: colors.backgroundGrouped, borderColor: errors.startTime ? colors.urgent : colors.cardBorder }]}
+              onPress={() => { setShowStartTimePicker(true); if (errors.startTime) setErrors(({ startTime: _, ...rest }) => rest); }}
+              accessibilityRole="button"
+              accessibilityLabel={t('admin.eventStartTime')}
+            >
+              <Ionicons name="time-outline" size={18} color={startTime ? colors.text : colors.textTertiary} />
+              <Text style={[typography.body, { color: startTime ? colors.text : colors.textTertiary, flex: 1, marginStart: spacing.sm }]}>
+                {startTime || 'HH:MM'}
+              </Text>
+            </TouchableOpacity>
+            {errors.startTime && (
+              <Text style={[typography.caption1, { color: colors.urgent, marginTop: spacing.xs }]}>{errors.startTime}</Text>
+            )}
+            {showStartTimePicker && (
+              <DateTimePicker
+                value={startTime ? (() => { const [h, m] = startTime.split(':'); const d = new Date(); d.setHours(Number(h), Number(m)); return d; })() : new Date()}
+                mode="time"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={(_, selectedDate) => {
+                  setShowStartTimePicker(Platform.OS === 'ios');
+                  if (selectedDate) {
+                    setStartTime(format(selectedDate, 'HH:mm'));
+                  }
+                }}
+                themeVariant={effectiveScheme}
+              />
+            )}
+
+            {/* End time picker trigger */}
+            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: '500', marginBottom: spacing.xs, marginTop: spacing.md }]}>
+              {t('admin.eventEndTime')}
+            </Text>
+            <TouchableOpacity
+              style={[styles.pickerTrigger, { backgroundColor: colors.backgroundGrouped, borderColor: colors.cardBorder }]}
+              onPress={() => setShowEndTimePicker(true)}
+              accessibilityRole="button"
+              accessibilityLabel={t('admin.eventEndTime')}
+            >
+              <Ionicons name="time-outline" size={18} color={endTime ? colors.text : colors.textTertiary} />
+              <Text style={[typography.body, { color: endTime ? colors.text : colors.textTertiary, flex: 1, marginStart: spacing.sm }]}>
+                {endTime || t('admin.eventEndTimePlaceholder', 'HH:MM (optional)')}
+              </Text>
+            </TouchableOpacity>
+            {showEndTimePicker && (
+              <DateTimePicker
+                value={endTime ? (() => { const [h, m] = endTime.split(':'); const d = new Date(); d.setHours(Number(h), Number(m)); return d; })() : new Date()}
+                mode="time"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={(_, selectedDate) => {
+                  setShowEndTimePicker(Platform.OS === 'ios');
+                  if (selectedDate) {
+                    setEndTime(format(selectedDate, 'HH:mm'));
+                  }
+                }}
+                themeVariant={effectiveScheme}
+              />
+            )}
             <TextInput
               label={t('admin.eventLocation')}
               value={location}
@@ -457,5 +539,14 @@ const styles = StyleSheet.create({
   buttonRow: {
     flexDirection: 'row',
     gap: spacing.md,
+  },
+  pickerTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1,
+    marginBottom: spacing.xs,
   },
 });

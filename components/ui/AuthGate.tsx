@@ -1,15 +1,16 @@
 import React, { useEffect } from 'react';
 import {
-  Dimensions,
   Image,
   Pressable,
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withDelay,
   withSpring,
@@ -23,8 +24,6 @@ import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { borderRadius, components, layout, spacing, springs, typography } from '@/constants/Theme';
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
-
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface ValueProp {
   icon: keyof typeof Ionicons.glyphMap;
@@ -59,6 +58,8 @@ export const AuthGate = ({ variant }: AuthGateProps) => {
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
   const router = useRouter();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const reducedMotion = useReducedMotion();
 
   const headlineKey = variant === 'announcements'
     ? 'gate.announcements.headline'
@@ -68,14 +69,15 @@ export const AuthGate = ({ variant }: AuthGateProps) => {
     : 'gate.events.subtitle';
 
   // ─── Staggered entrance animations ────────────────────
-  const logoOpacity = useSharedValue(0);
-  const logoScale = useSharedValue(0.92);
-  const contentOpacity = useSharedValue(0);
-  const contentTranslateY = useSharedValue(16);
-  const ctaOpacity = useSharedValue(0);
-  const ctaTranslateY = useSharedValue(12);
+  const logoOpacity = useSharedValue(reducedMotion ? 1 : 0);
+  const logoScale = useSharedValue(reducedMotion ? 1 : 0.92);
+  const contentOpacity = useSharedValue(reducedMotion ? 1 : 0);
+  const contentTranslateY = useSharedValue(reducedMotion ? 0 : 16);
+  const ctaOpacity = useSharedValue(reducedMotion ? 1 : 0);
+  const ctaTranslateY = useSharedValue(reducedMotion ? 0 : 12);
 
   useEffect(() => {
+    if (reducedMotion) return;
     logoOpacity.value = withDelay(100, withTiming(1, { duration: 500, easing: Easing.out(Easing.quad) }));
     logoScale.value = withDelay(100, withSpring(1, springs.gentle));
     contentOpacity.value = withDelay(300, withTiming(1, { duration: 450, easing: Easing.out(Easing.quad) }));
@@ -83,7 +85,7 @@ export const AuthGate = ({ variant }: AuthGateProps) => {
     ctaOpacity.value = withDelay(500, withTiming(1, { duration: 400, easing: Easing.out(Easing.quad) }));
     ctaTranslateY.value = withDelay(500, withSpring(0, springs.gentle));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [reducedMotion]);
 
   const logoStyle = useAnimatedStyle(() => ({
     opacity: logoOpacity.value,
@@ -107,8 +109,8 @@ export const AuthGate = ({ variant }: AuthGateProps) => {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Subtle Islamic pattern background */}
       <IslamicPattern
-        width={SCREEN_WIDTH}
-        height={SCREEN_HEIGHT}
+        width={screenWidth}
+        height={screenHeight}
         color={isDark ? palette.sapphire400 : palette.sapphire700}
         opacity={0.03}
         tileSize={56}

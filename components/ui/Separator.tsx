@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, View, useColorScheme, type ViewStyle } from 'react-native';
+import { StyleSheet, View, type ViewStyle } from 'react-native';
 import { getColors } from '@/constants/Colors';
+import { useTheme } from '@/contexts/ThemeContext';
 import { spacing } from '@/constants/Theme';
 
 interface SeparatorProps {
@@ -14,8 +15,8 @@ interface SeparatorProps {
  * Respects theme: warm stone in light mode, sapphire navy in dark mode.
  */
 export const Separator = ({ inset = 0, style }: SeparatorProps) => {
-  const colorScheme = useColorScheme();
-  const colors = getColors(colorScheme);
+  const { effectiveScheme } = useTheme();
+  const colors = getColors(effectiveScheme);
 
   return (
     <View

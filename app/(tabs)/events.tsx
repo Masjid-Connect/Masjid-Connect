@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Dimensions,
   StyleSheet,
   View,
   Text,
@@ -11,6 +10,7 @@ import {
   Pressable,
   Linking,
   Alert,
+  useWindowDimensions,
 } from 'react-native';
 import Animated, {
   FadeInDown,
@@ -43,8 +43,6 @@ import { EVENT_CATEGORY_COLORS, EVENT_CATEGORY_COLORS_DARK } from '@/types';
 import { formatTimeString } from '@/lib/prayer';
 import { getUse24h } from '@/lib/storage';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-
 const CATEGORY_KEYS: (EventCategory | null)[] = [null, 'lesson', 'lecture', 'quran_school', 'youth', 'sisters', 'community'];
 
 const HEADER_HEIGHT = 44;
@@ -58,6 +56,7 @@ export default function EventsScreen() {
   const isDark = effectiveScheme === 'dark';
   const { t, i18n } = useTranslation();
   const dateLocale = i18n.language === 'ar' ? ar : undefined;
+  const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = useWindowDimensions();
   const insets = useSafeAreaInsets();
 
   // ─── Large title collapse animation ────────────────────────────
@@ -262,13 +261,13 @@ export default function EventsScreen() {
         <View style={[styles.toolbar, { borderBottomColor: colors.separator }]}>
           <TouchableOpacity onPress={() => setShowCalendar(!showCalendar)} style={styles.toolbarButton}>
             <Ionicons name={showCalendar ? 'calendar' : 'calendar-outline'} size={20} color={showCalendar ? colors.accent : colors.textSecondary} />
-            <Text style={[typography.subhead, { color: showCalendar ? colors.accent : colors.textSecondary, marginLeft: spacing.xs }]}>
+            <Text style={[typography.subhead, { color: showCalendar ? colors.accent : colors.textSecondary, marginStart: spacing.xs }]}>
               {t('events.calendar')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setShowFilters(true)} style={styles.toolbarButton}>
             <Ionicons name="funnel-outline" size={18} color={selectedCategory ? colors.accent : colors.textSecondary} />
-            <Text style={[typography.subhead, { color: selectedCategory ? colors.accent : colors.textSecondary, marginLeft: spacing.xs }]}>
+            <Text style={[typography.subhead, { color: selectedCategory ? colors.accent : colors.textSecondary, marginStart: spacing.xs }]}>
               {selectedCategory ? CATEGORIES.find((c) => c.key === selectedCategory)?.label : t('events.filter')}
             </Text>
           </TouchableOpacity>
@@ -295,7 +294,7 @@ export default function EventsScreen() {
               <Text style={[typography.footnote, { color: colors.tint }]}>
                 {format(new Date(selectedDate), 'EEE, MMM d')}
               </Text>
-              <Ionicons name="close-circle" size={16} color={colors.tint} style={{ marginLeft: spacing.xs }} />
+              <Ionicons name="close-circle" size={16} color={colors.tint} style={{ marginStart: spacing.xs }} />
             </View>
           </Pressable>
         )}

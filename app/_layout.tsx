@@ -2,9 +2,11 @@ import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import * as Updates from 'expo-updates';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, AppState, Platform } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 
@@ -122,20 +124,22 @@ function RootLayout() {
   }
 
   return (
-    <Sentry.ErrorBoundary fallback={({ error, resetError }) => (
-      <ErrorFallback error={error} resetError={resetError} />
-    )}>
-      <AuthProvider>
-        <AnimatedSplash isVisible={showSplash} onAnimationComplete={handleSplashComplete}>
-          <AppThemeProvider>
-            <ToastProvider>
-              <RootLayoutNav />
-              <InAppToast />
-            </ToastProvider>
-          </AppThemeProvider>
-        </AnimatedSplash>
-      </AuthProvider>
-    </Sentry.ErrorBoundary>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Sentry.ErrorBoundary fallback={({ error, resetError }) => (
+        <ErrorFallback error={error} resetError={resetError} />
+      )}>
+        <AuthProvider>
+          <AnimatedSplash isVisible={showSplash} onAnimationComplete={handleSplashComplete}>
+            <AppThemeProvider>
+              <ToastProvider>
+                <RootLayoutNav />
+                <InAppToast />
+              </ToastProvider>
+            </AppThemeProvider>
+          </AnimatedSplash>
+        </AuthProvider>
+      </Sentry.ErrorBoundary>
+    </GestureHandlerRootView>
   );
 }
 
@@ -200,6 +204,7 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={effectiveScheme === 'dark' ? MosqueDark : MosqueLight}>
+      <StatusBar style={effectiveScheme === 'dark' ? 'light' : 'dark'} />
       <Stack screenOptions={{ animation: 'ios_from_right' }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'none' }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
