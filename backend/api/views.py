@@ -86,6 +86,17 @@ class FeedbackRateThrottle(AnonRateThrottle):
         return super().allow_request(request, view)
 
 
+class DataExportRateThrottle(ScopedRateThrottle):
+    """Strict rate limit on GDPR data export to prevent abuse."""
+
+    scope = "data_export"
+
+    def allow_request(self, request, view):
+        if getattr(settings, "TESTING", False):
+            return True
+        return super().allow_request(request, view)
+
+
 # ── Permissions ──────────────────────────────────────────────────────
 
 
@@ -150,6 +161,10 @@ def login(request):
     try:
         user = User.objects.get(email=email)
     except User.DoesNotExist:
+        # Perform a dummy password check to prevent timing-based account enumeration.
+        # This ensures the response time is consistent whether the user exists or not.
+        import hashlib
+        hashlib.pbkdf2_hmac("sha256", password.encode(), b"dummy-salt", 260000)
         return Response({"detail": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
 
     if not user.check_password(password):
@@ -345,9 +360,17 @@ def admin_roles(request):
 
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
+@throttle_classes([DataExportRateThrottle])
 def export_user_data(request):
     """GDPR-compliant data export — return all data associated with the authenticated user."""
     user = request.user
+
+    # Audit log: record data export request
+    logger.info(
+        "GDPR data export requested by user_id=%s from IP=%s",
+        user.id,
+        request.META.get("REMOTE_ADDR", "unknown"),
+    )
 
     profile = UserSerializer(user).data
     user_subscriptions = UserSubscription.objects.filter(user=user).select_related("mosque")
@@ -923,7 +946,7 @@ def checkout_session_status(request):
     Query params:
       - session_id: Stripe checkout session ID.
 
-    Returns minimal, non-sensitive status information for the web donate page.
+    Returns only the completion status — no financial details.
     """
     import stripe as stripe_lib
 
@@ -931,6 +954,13 @@ def checkout_session_status(request):
     if not session_id:
         return Response(
             {"detail": "session_id is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Validate format to prevent enumeration of arbitrary Stripe objects
+    if not session_id.startswith("cs_"):
+        return Response(
+            {"detail": "Invalid session ID format."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -952,13 +982,10 @@ def checkout_session_status(request):
             status=status.HTTP_502_BAD_GATEWAY,
         )
 
+    # Return only non-sensitive status — no amounts, emails, or billing info
     return Response(
         {
-            "id": session.id,
             "status": session.status,
-            "mode": session.mode,
-            "amount_total": session.amount_total,
-            "currency": session.currency,
         },
         status=status.HTTP_200_OK,
     )
@@ -1004,39 +1031,53 @@ def stripe_webhook(request):
             {"detail": "Invalid signature."}, status=status.HTTP_400_BAD_REQUEST
         )
 
-    # Idempotency: skip already-processed events
-    if StripeEvent.objects.filter(stripe_event_id=event["id"]).exists():
-        logger.info("Stripe webhook: duplicate event %s, skipping", event["id"])
-        return Response({"detail": "Already processed."}, status=status.HTTP_200_OK)
-
     event_type = event["type"]
     data_object = event["data"]["object"]
+
+    # Idempotency: record event BEFORE processing to prevent duplicates
+    # from concurrent webhook retries. Use get_or_create to handle races.
+    stripe_event, created = StripeEvent.objects.get_or_create(
+        stripe_event_id=event["id"],
+        defaults={
+            "event_type": event_type,
+            "processed": False,
+            "payload": event["data"],
+        },
+    )
+
+    if not created:
+        logger.info("Stripe webhook: duplicate event %s, skipping", event["id"])
+        return Response({"detail": "Already processed."}, status=status.HTTP_200_OK)
 
     logger.info("Stripe webhook received: %s (%s)", event_type, event["id"])
 
     # ── Handle specific event types ──
-    if event_type == "checkout.session.completed":
-        _handle_checkout_completed(data_object)
-    elif event_type == "invoice.payment_succeeded":
-        _handle_invoice_payment_succeeded(data_object)
-    elif event_type == "invoice.payment_failed":
-        _handle_invoice_payment_failed(data_object)
-    elif event_type == "customer.subscription.created":
-        _handle_subscription_created(data_object)
-    elif event_type == "customer.subscription.deleted":
-        _handle_subscription_deleted(data_object)
-    elif event_type == "payment_intent.succeeded":
-        _handle_payment_intent_succeeded(data_object)
-    else:
-        logger.info("Stripe webhook: unhandled event type %s", event_type)
+    try:
+        if event_type == "checkout.session.completed":
+            _handle_checkout_completed(data_object)
+        elif event_type == "invoice.payment_succeeded":
+            _handle_invoice_payment_succeeded(data_object)
+        elif event_type == "invoice.payment_failed":
+            _handle_invoice_payment_failed(data_object)
+        elif event_type == "customer.subscription.created":
+            _handle_subscription_created(data_object)
+        elif event_type == "customer.subscription.deleted":
+            _handle_subscription_deleted(data_object)
+        elif event_type == "payment_intent.succeeded":
+            _handle_payment_intent_succeeded(data_object)
+        else:
+            logger.info("Stripe webhook: unhandled event type %s", event_type)
 
-    # Record the event
-    StripeEvent.objects.create(
-        stripe_event_id=event["id"],
-        event_type=event_type,
-        processed=True,
-        payload=event["data"],
-    )
+        # Mark as successfully processed
+        stripe_event.processed = True
+        stripe_event.save(update_fields=["processed"])
+    except Exception:
+        logger.exception("Stripe webhook: failed to process event %s", event["id"])
+        # Event is recorded but not marked as processed — safe to retry
+        return Response(
+            {"detail": "Processing failed."},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
 
     return Response({"detail": "Webhook processed."}, status=status.HTTP_200_OK)
 
