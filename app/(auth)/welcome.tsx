@@ -236,6 +236,7 @@ export default function WelcomeScreen() {
         redirectUri,
         scopes: ['openid', 'profile', 'email'],
         responseType: AuthSession.ResponseType.IdToken,
+        usePKCE: false,
         extraParams: { nonce },
       });
 
