@@ -79,7 +79,9 @@ function RootLayout() {
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') reschedulePrayerRemindersForToday().catch(() => {});
+      if (state === 'active') reschedulePrayerRemindersForToday().catch((err) => {
+          Sentry.captureException(err, { extra: { context: 'prayer reminder reschedule' } });
+        });
     });
     return () => sub.remove();
   }, []);
@@ -102,8 +104,9 @@ function RootLayout() {
             ],
           );
         }
-      } catch {
-        // Silently fail — update check is best-effort
+      } catch (err) {
+        // Update check is best-effort, but log to Sentry for visibility
+        Sentry.captureException(err, { extra: { context: 'OTA update check' } });
       }
     }
 

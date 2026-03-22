@@ -28,7 +28,10 @@
     "startTime": "Start {{time}}",
     "upcoming": "Next",
     "todaySchedule": "Today",
-    "today": "Today"
+    "today": "Today",
+    "previousDay": "Previous day",
+    "nextDay": "Next day",
+    "jumpToToday": "Jump to today"
   },
   "announcements": {
     "title": "Announcements",

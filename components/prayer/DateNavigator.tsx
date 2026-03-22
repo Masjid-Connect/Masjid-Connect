@@ -61,6 +61,8 @@ export const DateNavigator = ({
         onPress={handlePrev}
         style={styles.arrowButton}
         hitSlop={12}
+        accessibilityRole="button"
+        accessibilityLabel={t('prayer.previousDay')}
       >
         <Ionicons
           name="chevron-back"
@@ -89,9 +91,14 @@ export const DateNavigator = ({
 
         {!isTodayDate && (
           <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)}>
-            <Pressable onPress={handleToday} style={[styles.todayPill, {
-              backgroundColor: getAlpha(effectiveScheme).accentPill,
-            }]}>
+            <Pressable
+              onPress={handleToday}
+              style={[styles.todayPill, {
+                backgroundColor: getAlpha(effectiveScheme).accentPill,
+              }]}
+              accessibilityRole="button"
+              accessibilityLabel={t('prayer.jumpToToday')}
+            >
               <Text style={[styles.todayText, {
                 color: isDark ? palette.divineGoldBright : palette.divineGoldText,
               }]}>
@@ -106,6 +113,8 @@ export const DateNavigator = ({
         onPress={handleNext}
         style={styles.arrowButton}
         hitSlop={12}
+        accessibilityRole="button"
+        accessibilityLabel={t('prayer.nextDay')}
       >
         <Ionicons
           name="chevron-forward"

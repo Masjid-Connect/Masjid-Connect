@@ -6,8 +6,10 @@ import { useTranslation } from 'react-i18next';
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { AmbientTabBar } from '@/components/navigation/AmbientTabIndicator';
+import { Sentry } from '@/lib/sentry';
+import { ErrorFallback } from '@/components/ui/ErrorFallback';
 
-export default function TabLayout() {
+function TabLayoutInner() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
@@ -77,5 +79,15 @@ export default function TabLayout() {
       <Tabs.Screen name="announcements" options={{ href: null, tabBarItemStyle: { display: 'none' } }} />
       <Tabs.Screen name="events" options={{ href: null, tabBarItemStyle: { display: 'none' } }} />
     </Tabs>
+  );
+}
+
+export default function TabLayout() {
+  return (
+    <Sentry.ErrorBoundary fallback={({ error, resetError }) => (
+      <ErrorFallback error={error} resetError={resetError} />
+    )}>
+      <TabLayoutInner />
+    </Sentry.ErrorBoundary>
   );
 }

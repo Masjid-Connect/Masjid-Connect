@@ -21,7 +21,7 @@ threads = 2
 # ------------------------------------------------------------------
 # Timeouts
 # ------------------------------------------------------------------
-timeout = 120           # Kill a worker if it takes more than 120 seconds
+timeout = 30            # Kill a worker if it takes more than 30 seconds (prevents slow-loris DoS)
 graceful_timeout = 30   # Time to finish requests before forced shutdown
 keepalive = 5           # Keep connections open for 5 seconds
 

@@ -126,7 +126,7 @@ export const BottomSheet = ({ visible, onDismiss, children, maxHeight }: BottomS
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      <Pressable style={StyleSheet.absoluteFill} onPress={animateOut}>
+      <Pressable style={StyleSheet.absoluteFill} onPress={animateOut} accessibilityRole="button" accessibilityLabel="Dismiss">
         <Animated.View
           style={[
             styles.backdrop,

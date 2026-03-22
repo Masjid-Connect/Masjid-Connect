@@ -86,18 +86,26 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     setSelectedDate(new Date());
   }, []);
 
+  // Guard against setState on unmounted component (Q5: memory leak fix)
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    return () => { mountedRef.current = false; };
+  }, []);
+
   const loadPrayerTimes = useCallback(async (dateOverride?: Date) => {
     const targetDate = dateOverride ?? selectedDateRef.current;
     setIsLoading(true);
 
     // Load 24h preference
     const h24 = await getUse24h();
+    if (!mountedRef.current) return;
     setUse24hState(h24);
 
     try {
       // 1. Static bundled timetable — primary source (has start + jama'ah times)
       const staticResult = getStaticPrayerTimes(targetDate);
       if (staticResult) {
+        if (!mountedRef.current) return;
         const entries = buildPrayerEntries(staticResult.times, staticResult.jamaahTimes);
         setPrayers(entries);
         setNextPrayer(isTodayFn(targetDate) ? getNextPrayer(staticResult.times, staticResult.jamaahTimes) : null);
@@ -113,18 +121,19 @@ export function usePrayerTimes(): UsePrayerTimesResult {
         // Fetch Aladhan for Hijri date only
         try {
           const hijri = await getCorrectHijriDate(targetDate, staticResult.times.maghrib);
-          if (hijri) setHijriDate(hijri);
+          if (hijri && mountedRef.current) setHijriDate(hijri);
         } catch {
           // Hijri date is nice-to-have
         }
 
-        setIsLoading(false);
+        if (mountedRef.current) setIsLoading(false);
         return;
       }
 
       // 2. Aladhan API fallback (calculated start times, no jama'ah)
       const { latitude: lat, longitude: lng } = SALAFI_MASJID;
       const result = await getPrayerTimes(lat, lng, CALCULATION_METHOD_CODE, CALCULATION_METHOD_NAME, targetDate);
+      if (!mountedRef.current) return;
       const entries = buildPrayerEntries(result.times);
 
       setPrayers(entries);
@@ -136,10 +145,10 @@ export function usePrayerTimes(): UsePrayerTimesResult {
       // Hijri date from the Aladhan response
       try {
         const hijri = await getCorrectHijriDate(targetDate, result.times.maghrib);
-        if (hijri) setHijriDate(hijri);
+        if (hijri && mountedRef.current) setHijriDate(hijri);
       } catch {
         if (result.hijriDate && result.hijriMonth && result.hijriYear) {
-          setHijriDate(`${result.hijriDate} ${result.hijriMonth} ${result.hijriYear}`);
+          if (mountedRef.current) setHijriDate(`${result.hijriDate} ${result.hijriMonth} ${result.hijriYear}`);
         }
       }
 
@@ -150,7 +159,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     } catch (error) {
       console.error('Failed to load prayer times:', error);
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current) setIsLoading(false);
     }
   }, []);
 
@@ -233,15 +242,15 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     };
   }, [prayers]);
 
-  // Initial load
+  // Load prayer times on mount and when selected date changes (Q8: single effect)
+  const initialLoadRef = useRef(true);
   useEffect(() => {
-    loadPrayerTimes();
-  }, [loadPrayerTimes]);
-
-  // Reload when selected date changes
-  useEffect(() => {
+    // Skip redundant initial load — selectedDate is already set on mount
+    if (initialLoadRef.current) {
+      initialLoadRef.current = false;
+    }
     loadPrayerTimes(selectedDate);
-  }, [selectedDate]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedDate, loadPrayerTimes]);
 
   return {
     prayers,
