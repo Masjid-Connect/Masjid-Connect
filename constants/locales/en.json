@@ -495,5 +495,9 @@
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "lastUpdated": "Last updated: March 2026"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "returnHome": "Return to Prayer Times"
   }
 }

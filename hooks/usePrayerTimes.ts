@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { format, addDays, isSameDay, isToday as isTodayFn } from 'date-fns';
 import { getPrayerTimes, buildPrayerEntries, getNextPrayer, getCountdown } from '@/lib/prayer';
 import { getReminderMinutes, getUse24h } from '@/lib/storage';
@@ -60,6 +61,7 @@ interface UsePrayerTimesResult {
 }
 
 export function usePrayerTimes(): UsePrayerTimesResult {
+  const { t } = useTranslation();
   const [prayers, setPrayers] = useState<PrayerTimeEntry[]>([]);
   const [nextPrayer, setNextPrayer] = useState<PrayerName | null>(null);
   const [countdown, setCountdown] = useState('');
@@ -164,7 +166,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
       console.error('Failed to load prayer times:', err);
       // R2: Surface error so the UI can show a fallback instead of a blank screen
       if (mountedRef.current) {
-        setError('Unable to load prayer times. Pull down to retry.');
+        setError(t('error.prayerTimesRetry'));
       }
     } finally {
       if (mountedRef.current) setIsLoading(false);

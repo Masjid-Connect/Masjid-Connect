@@ -1,5 +1,6 @@
 import { Link, Stack } from 'expo-router';
 import { StyleSheet, View, Text } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -8,14 +9,15 @@ import { spacing, typography } from '@/constants/Theme';
 export default function NotFoundScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
+  const { t } = useTranslation();
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Not Found' }} />
+      <Stack.Screen options={{ title: t('notFound.title') }} />
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <Text style={[typography.title2, { color: colors.text }]}>Page not found</Text>
-        <Link href="/" style={styles.link}>
-          <Text style={[typography.callout, { color: colors.accent }]}>Return to Prayer Times</Text>
+        <Text style={[typography.title2, { color: colors.text }]}>{t('notFound.title')}</Text>
+        <Link href="/" style={styles.link} accessibilityRole="link" accessibilityLabel={t('notFound.returnHome')}>
+          <Text style={[typography.callout, { color: colors.accent }]}>{t('notFound.returnHome')}</Text>
         </Link>
       </View>
     </>
