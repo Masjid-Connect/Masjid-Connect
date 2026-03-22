@@ -1,5 +1,5 @@
 import { I18nManager } from 'react-native';
-import i18n from '@/lib/i18n';
+import { i18n } from '@/lib/i18n';
 
 const RTL_LANGUAGES = ['ar', 'fa', 'ur', 'he'];
 

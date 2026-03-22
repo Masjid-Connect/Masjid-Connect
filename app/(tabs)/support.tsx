@@ -22,7 +22,7 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { getColors, palette } from '@/constants/Colors';
+import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, borderRadius, typography, getElevation } from '@/constants/Theme';
 import { AmountSelector, BankDetailsSheet } from '@/components/support';
@@ -49,6 +49,7 @@ export default function SupportScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
+  const alphaColors = getAlpha(effectiveScheme);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
@@ -266,11 +267,11 @@ export default function SupportScreen() {
               styles.optionCard,
               {
                 backgroundColor: giftAid
-                  ? (isDark ? 'rgba(45, 106, 79, 0.12)' : 'rgba(45, 106, 79, 0.06)')
-                  : (isDark ? colors.backgroundGrouped : 'rgba(45, 106, 79, 0.03)'),
+                  ? alphaColors.sageBg
+                  : (isDark ? colors.backgroundGrouped : alphaColors.sageBgSubtle),
                 borderColor: giftAid
                   ? palette.sage600
-                  : (isDark ? 'rgba(45, 106, 79, 0.2)' : 'rgba(45, 106, 79, 0.12)'),
+                  : alphaColors.sageBorder,
               },
             ]}
             onPress={() => {
@@ -315,11 +316,11 @@ export default function SupportScreen() {
               styles.optionCard,
               {
                 backgroundColor: coverFees
-                  ? (isDark ? 'rgba(15, 45, 82, 0.12)' : 'rgba(15, 45, 82, 0.06)')
-                  : (isDark ? colors.backgroundGrouped : 'rgba(15, 45, 82, 0.03)'),
+                  ? alphaColors.sapphireBg
+                  : (isDark ? colors.backgroundGrouped : alphaColors.sapphireBgSubtle),
                 borderColor: coverFees
                   ? colors.tint
-                  : (isDark ? 'rgba(91, 155, 213, 0.2)' : 'rgba(15, 45, 82, 0.12)'),
+                  : alphaColors.sapphireBorder,
               },
             ]}
             onPress={() => {
@@ -473,7 +474,7 @@ export default function SupportScreen() {
 
         {/* Hadith */}
         <Animated.View entering={FadeInDown.delay(550).duration(400)}>
-          <View style={[styles.hadithCard, { backgroundColor: isDark ? colors.backgroundGrouped : 'rgba(15, 45, 82, 0.03)', borderColor: isDark ? 'rgba(91, 155, 213, 0.12)' : 'rgba(15, 45, 82, 0.08)' }]}>
+          <View style={[styles.hadithCard, { backgroundColor: isDark ? colors.backgroundGrouped : alphaColors.sapphireBgSubtle, borderColor: alphaColors.sapphireHadithBorder }]}>
             <Text style={[typography.callout, { color: colors.text, fontStyle: 'italic', lineHeight: 24 }]}>
               &ldquo;{hadith.text}&rdquo;
             </Text>

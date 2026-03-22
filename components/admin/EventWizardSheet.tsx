@@ -19,7 +19,7 @@ import { BottomSheet } from '@/components/ui/BottomSheet';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
 import { PreviewCard } from './PreviewCard';
-import { getColors } from '@/constants/Colors';
+import { getColors, getAlpha } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography, borderRadius } from '@/constants/Theme';
 import { events as eventsApi } from '@/lib/api';
@@ -48,6 +48,7 @@ export const EventWizardSheet = ({
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
+  const alphaColors = getAlpha(effectiveScheme);
   const { t } = useTranslation();
 
   // Wizard step (0-indexed: 0=Basics, 1=DateTime, 2=Details/Preview)
@@ -404,7 +405,7 @@ export const EventWizardSheet = ({
                     styles.categoryCard,
                     {
                       backgroundColor: category === cat
-                        ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)')
+                        ? alphaColors.actionBg
                         : 'transparent',
                       borderColor: category === cat ? categoryColors[cat] : colors.cardBorder,
                     },

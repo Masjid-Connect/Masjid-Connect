@@ -8,13 +8,11 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import Animated, {
-  Easing,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
   withDelay,
   withSpring,
-  withTiming,
 } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
@@ -78,11 +76,11 @@ export const AuthGate = ({ variant }: AuthGateProps) => {
 
   useEffect(() => {
     if (reducedMotion) return;
-    logoOpacity.value = withDelay(100, withTiming(1, { duration: 500, easing: Easing.out(Easing.quad) }));
+    logoOpacity.value = withDelay(100, withSpring(1, springs.gentle));
     logoScale.value = withDelay(100, withSpring(1, springs.gentle));
-    contentOpacity.value = withDelay(300, withTiming(1, { duration: 450, easing: Easing.out(Easing.quad) }));
+    contentOpacity.value = withDelay(300, withSpring(1, springs.gentle));
     contentTranslateY.value = withDelay(300, withSpring(0, springs.gentle));
-    ctaOpacity.value = withDelay(500, withTiming(1, { duration: 400, easing: Easing.out(Easing.quad) }));
+    ctaOpacity.value = withDelay(500, withSpring(1, springs.gentle));
     ctaTranslateY.value = withDelay(500, withSpring(0, springs.gentle));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reducedMotion]);

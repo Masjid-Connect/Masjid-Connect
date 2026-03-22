@@ -15,7 +15,7 @@ import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
-import { getColors, palette } from '@/constants/Colors';
+import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography, borderRadius, springs, getElevation } from '@/constants/Theme';
 
@@ -28,6 +28,7 @@ export const AdminFAB = ({ onNewAnnouncement, onNewEvent }: AdminFABProps) => {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
+  const alphaColors = getAlpha(effectiveScheme);
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -79,7 +80,7 @@ export const AdminFAB = ({ onNewAnnouncement, onNewEvent }: AdminFABProps) => {
           style={[styles.menuItem, { backgroundColor: colors.card, ...getElevation('md', isDark) }]}
           onPress={() => handleOption(onNewAnnouncement)}
         >
-          <View style={[styles.menuIcon, { backgroundColor: isDark ? 'rgba(107,171,229,0.15)' : 'rgba(15,45,82,0.08)' }]}>
+          <View style={[styles.menuIcon, { backgroundColor: alphaColors.sapphireIconBg }]}>
             <Ionicons name="megaphone-outline" size={18} color={colors.tint} />
           </View>
           <Text style={[typography.subhead, { color: colors.text, fontWeight: '600' }]}>
@@ -91,7 +92,7 @@ export const AdminFAB = ({ onNewAnnouncement, onNewEvent }: AdminFABProps) => {
           style={[styles.menuItem, { backgroundColor: colors.card, ...getElevation('md', isDark) }]}
           onPress={() => handleOption(onNewEvent)}
         >
-          <View style={[styles.menuIcon, { backgroundColor: isDark ? 'rgba(107,171,229,0.15)' : 'rgba(15,45,82,0.08)' }]}>
+          <View style={[styles.menuIcon, { backgroundColor: alphaColors.sapphireIconBg }]}>
             <Ionicons name="calendar-outline" size={18} color={colors.tint} />
           </View>
           <Text style={[typography.subhead, { color: colors.text, fontWeight: '600' }]}>

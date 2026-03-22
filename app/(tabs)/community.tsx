@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 
-import { getColors, palette } from '@/constants/Colors';
+import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography, borderRadius } from '@/constants/Theme';
 import { AnnouncementsContent } from '@/components/community/AnnouncementsContent';
@@ -38,6 +38,7 @@ const LARGE_TITLE_HEIGHT = 52;
 export default function CommunityScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
+  const alphaColors = getAlpha(effectiveScheme);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [activeSegment, setActiveSegment] = useState<CommunitySegment>('announcements');
@@ -192,8 +193,8 @@ export default function CommunityScreen() {
         <Pressable
           onPress={handleShareReward}
           style={[styles.shareCard, {
-            backgroundColor: isDark ? 'rgba(229,193,75,0.08)' : 'rgba(212,175,55,0.06)',
-            borderColor: isDark ? 'rgba(229,193,75,0.2)' : 'rgba(212,175,55,0.15)',
+            backgroundColor: alphaColors.communityShareBg,
+            borderColor: alphaColors.communityShareBorder,
           }]}
           accessibilityRole="button"
           accessibilityLabel={t('community.shareApp')}

@@ -23,8 +23,6 @@ import Animated, {
   useReducedMotion,
   withSpring,
   withDelay,
-  withTiming,
-  Easing,
 } from 'react-native-reanimated';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
@@ -81,7 +79,7 @@ const AnimatedButton = ({
   useEffect(() => {
     if (reducedMotion) return;
     const delay = timing.slow + index * (timing.staggerOffset + 20);
-    opacity.value = withDelay(delay, withTiming(1, { duration: 400, easing: Easing.out(Easing.quad) }));
+    opacity.value = withDelay(delay, withSpring(1, springs.gentle));
     translateY.value = withDelay(delay, withSpring(0, springs.gentle));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, reducedMotion]);
@@ -120,7 +118,7 @@ const FeatureCard = ({
   useEffect(() => {
     if (reducedMotion) return;
     const delay = 600 + index * 120;
-    opacity.value = withDelay(delay, withTiming(1, { duration: 400, easing: Easing.out(Easing.quad) }));
+    opacity.value = withDelay(delay, withSpring(1, springs.gentle));
     translateY.value = withDelay(delay, withSpring(0, springs.gentle));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, reducedMotion]);
@@ -132,7 +130,7 @@ const FeatureCard = ({
 
   return (
     <Animated.View style={[styles.featureCard, animatedStyle]}>
-      <View style={[styles.featureIconBox, { backgroundColor: isDark ? 'rgba(240, 208, 96, 0.12)' : 'rgba(191, 155, 48, 0.10)' }]}>
+      <View style={[styles.featureIconBox, { backgroundColor: getAlpha(isDark ? 'dark' : 'light').goldIconBg }]}>
         <Ionicons name={icon} size={18} color={colors.accent} />
       </View>
       <View style={styles.featureTextBox}>
@@ -169,9 +167,9 @@ export default function WelcomeScreen() {
 
   useEffect(() => {
     if (reducedMotion) return;
-    logoOpacity.value = withDelay(200, withTiming(1, { duration: 600, easing: Easing.out(Easing.quad) }));
+    logoOpacity.value = withDelay(200, withSpring(1, springs.gentle));
     logoScale.value = withDelay(200, withSpring(1, springs.gentle));
-    taglineOpacity.value = withDelay(400, withTiming(1, { duration: 500, easing: Easing.out(Easing.quad) }));
+    taglineOpacity.value = withDelay(400, withSpring(1, springs.gentle));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reducedMotion]);
 
