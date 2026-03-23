@@ -33,7 +33,8 @@ class RegisterSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
 
     def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
+        value = value.lower()
+        if User.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError("Unable to complete registration. Please try again.")
         return value
 

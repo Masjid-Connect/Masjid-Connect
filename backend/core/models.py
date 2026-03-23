@@ -89,6 +89,7 @@ class Announcement(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     mosque = models.ForeignKey(
         Mosque, on_delete=models.CASCADE, related_name="announcements",
+        db_index=True,
         help_text="Which mosque is this announcement for?",
     )
     title = models.CharField(
@@ -141,6 +142,7 @@ class Event(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     mosque = models.ForeignKey(
         Mosque, on_delete=models.CASCADE, related_name="events",
+        db_index=True,
         help_text="Which mosque is hosting this event?",
     )
     title = models.CharField(
@@ -155,7 +157,7 @@ class Event(models.Model):
         max_length=255, blank=True,
         help_text="Name of the speaker, teacher, or instructor (if applicable).",
     )
-    event_date = models.DateField(help_text="Date of the event (or first occurrence if recurring).")
+    event_date = models.DateField(db_index=True, help_text="Date of the event (or first occurrence if recurring).")
     start_time = models.TimeField(help_text="Start time (e.g. 19:00 or 7:00 PM).")
     end_time = models.TimeField(
         null=True, blank=True,
@@ -199,6 +201,7 @@ class UserSubscription(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="subscriptions",
+        db_index=True,
         help_text="The app user who subscribed.",
     )
     mosque = models.ForeignKey(

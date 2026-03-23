@@ -57,38 +57,47 @@ echo ""
 # -----------------------------------------------------------
 # Step 3: Preview database migrations
 # -----------------------------------------------------------
-echo "Step 3/7: Checking pending database migrations..."
+echo "Step 3/8: Checking pending database migrations..."
 docker compose -f "$COMPOSE_FILE" run --rm web python manage.py migrate --plan 2>&1 || true
 echo ""
 
 # -----------------------------------------------------------
-# Step 4: Run database migrations
+# Step 4: Pre-migration database backup
 # -----------------------------------------------------------
-echo "Step 4/7: Running database migrations..."
+echo "Step 4/8: Backing up database before migration..."
+"$BACKEND_DIR/scripts/backup.sh" || {
+    echo "WARNING: Backup failed. Continuing with deploy — check backup script."
+}
+echo ""
+
+# -----------------------------------------------------------
+# Step 5: Run database migrations
+# -----------------------------------------------------------
+echo "Step 5/8: Running database migrations..."
 docker compose -f "$COMPOSE_FILE" run --rm web python manage.py migrate --noinput
 echo "Done."
 echo ""
 
 # -----------------------------------------------------------
-# Step 5: Collect static files
+# Step 6: Collect static files
 # -----------------------------------------------------------
-echo "Step 5/7: Collecting static files..."
+echo "Step 6/8: Collecting static files..."
 docker compose -f "$COMPOSE_FILE" run --rm web python manage.py collectstatic --noinput
 echo "Done."
 echo ""
 
 # -----------------------------------------------------------
-# Step 6: Restart containers
+# Step 7: Restart containers
 # -----------------------------------------------------------
-echo "Step 6/7: Restarting containers..."
+echo "Step 7/8: Restarting containers..."
 docker compose -f "$COMPOSE_FILE" up -d
 echo "Done."
 echo ""
 
 # -----------------------------------------------------------
-# Step 7: Health check (with automatic rollback)
+# Step 8: Health check (with automatic rollback)
 # -----------------------------------------------------------
-echo "Step 7/7: Checking that everything is working..."
+echo "Step 8/8: Checking that everything is working..."
 echo "Waiting for the app to start (up to 30 seconds)..."
 
 HEALTH="FAILED"
@@ -109,7 +118,7 @@ if echo "$HEALTH" | grep -q "ok"; then
     echo "   $(date)"
     echo "============================================"
     # Clean up old images (keep last 2 for rollback safety)
-    docker image prune -f --filter "until=48h" 2>/dev/null || true
+    docker image prune -f --filter "until=168h" 2>/dev/null || true
 else
     echo ""
     echo "============================================"

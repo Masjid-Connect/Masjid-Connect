@@ -1151,6 +1151,8 @@ def stripe_webhook(request):
                 _handle_subscription_deleted(data_object)
             elif event_type == "payment_intent.succeeded":
                 _handle_payment_intent_succeeded(data_object)
+            elif event_type == "charge.refunded":
+                _handle_charge_refunded(data_object)
             else:
                 logger.info("Stripe webhook: unhandled event type %s", event_type)
 
@@ -1364,6 +1366,29 @@ def _handle_payment_intent_succeeded(payment_intent):
         payment_intent.get("amount"), payment_intent.get("currency"),
         metadata.get("frequency", "unknown"), metadata.get("donor_email", "unknown"),
     )
+
+
+def _handle_charge_refunded(charge):
+    """Handle charge.refunded — mark donation as refunded so it's excluded from Gift Aid claims."""
+    from core.models import Donation
+
+    payment_intent_id = charge.get("payment_intent", "")
+    if not payment_intent_id:
+        logger.warning("charge.refunded: no payment_intent in charge %s", charge.get("id"))
+        return
+
+    donations = Donation.objects.filter(stripe_payment_intent_id=payment_intent_id)
+    updated = donations.update(gift_aid_eligible=False, gift_aid_amount_pence=0)
+    if updated:
+        logger.info(
+            "charge.refunded: marked %d donation(s) as ineligible for Gift Aid (pi: %s)",
+            updated, payment_intent_id,
+        )
+    else:
+        logger.warning(
+            "charge.refunded: no matching donation for payment_intent %s",
+            payment_intent_id,
+        )
 
 
 # ── Gift Aid Summary (admin-only) ────────────────────────────────────
