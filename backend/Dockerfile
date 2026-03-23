@@ -40,6 +40,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy installed Python packages from builder stage
 COPY --from=builder /install /usr/local
 
+# Prevent Python from writing .pyc files (keeps read-only rootfs clean)
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
 # Create a non-root user (security best practice)
 RUN useradd --create-home --shell /bin/bash mosque
 USER mosque

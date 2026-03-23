@@ -4,7 +4,26 @@ import uuid
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.db import models
+
+
+def validate_image_file(value):
+    """Validate uploaded images: max 5 MB, must be JPEG/PNG/WebP."""
+    max_size = 5 * 1024 * 1024  # 5 MB
+    allowed_types = {"image/jpeg", "image/png", "image/webp"}
+
+    if value.size > max_size:
+        raise ValidationError(
+            f"Image file too large (max 5 MB, got {value.size / 1024 / 1024:.1f} MB)."
+        )
+
+    # Check content type from the uploaded file
+    content_type = getattr(value, "content_type", None)
+    if content_type and content_type not in allowed_types:
+        raise ValidationError(
+            f"Unsupported image format '{content_type}'. Use JPEG, PNG, or WebP."
+        )
 
 
 class User(AbstractUser):
@@ -43,7 +62,11 @@ class Mosque(models.Model):
     contact_phone = models.CharField(max_length=30, blank=True, help_text="Public phone number for the mosque")
     contact_email = models.EmailField(blank=True, help_text="Public email address for enquiries")
     website = models.URLField(blank=True, help_text="Mosque website URL (include https://)")
-    photo = models.ImageField(upload_to="mosques/", blank=True, help_text="Photo of the mosque exterior")
+    photo = models.ImageField(
+        upload_to="mosques/", blank=True,
+        validators=[validate_image_file],
+        help_text="Photo of the mosque exterior (JPEG, PNG, or WebP, max 5 MB)",
+    )
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
