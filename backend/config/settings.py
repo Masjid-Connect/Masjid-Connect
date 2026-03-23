@@ -2,6 +2,7 @@
 
 import os
 import sys
+from datetime import timedelta
 from pathlib import Path
 
 TESTING = "test" in sys.argv
@@ -140,6 +141,9 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Auth token expiration — tokens older than this are rejected on use
+TOKEN_TTL = timedelta(days=30)
 
 # DRF
 REST_FRAMEWORK = {
