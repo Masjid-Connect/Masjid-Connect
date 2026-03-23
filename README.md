@@ -3,10 +3,7 @@
   <sub>بسم الله الرحمن الرحيم</sub>
   <br><br>
   <img src="assets/images/icon.png" alt="The Salafi Masjid" width="180" />
-  <br><br>
-  Mosque Connect
   <br>
-  <sup><sub>صِلَة المسجد</sub></sup>
 </h1>
 
 <p align="center">
@@ -24,9 +21,6 @@
   <img src="https://img.shields.io/badge/License-MIT-C8A951?style=flat-square" alt="MIT License" />
 </p>
 
-<p align="center">
-  <code>god-tier, not SaaS</code> — rooted in Islamic geometric art and calligraphic tradition
-</p>
 
 ---
 
