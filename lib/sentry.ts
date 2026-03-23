@@ -26,6 +26,21 @@ export function initSentry(): void {
       }
       return event;
     },
+    // Strip auth tokens from HTTP breadcrumbs to prevent leaking to Sentry
+    beforeBreadcrumb(breadcrumb) {
+      if (breadcrumb.category === 'http' || breadcrumb.category === 'fetch' || breadcrumb.category === 'xhr') {
+        if (breadcrumb.data) {
+          delete breadcrumb.data['Authorization'];
+          delete breadcrumb.data['authorization'];
+          // Strip from request headers if present
+          if (breadcrumb.data['request_headers']) {
+            delete breadcrumb.data['request_headers']['Authorization'];
+            delete breadcrumb.data['request_headers']['authorization'];
+          }
+        }
+      }
+      return breadcrumb;
+    },
   });
 }
 

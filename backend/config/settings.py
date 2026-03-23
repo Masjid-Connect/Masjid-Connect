@@ -2,6 +2,7 @@
 
 import os
 import sys
+from datetime import timedelta
 from pathlib import Path
 
 TESTING = "test" in sys.argv
@@ -67,12 +68,14 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_filters",
     "drf_spectacular",
+    "axes",
     # Local
     "core",
     "api",
 ]
 
 MIDDLEWARE = [
+    "config.middleware.RequestCorrelationMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -83,6 +86,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "config.middleware.ContentSecurityPolicyMiddleware",
+    "axes.middleware.AxesMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -140,6 +144,9 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Auth token expiration — tokens older than this are rejected
+TOKEN_TTL = timedelta(days=30)
 
 # DRF
 REST_FRAMEWORK = {
@@ -227,6 +234,9 @@ FEEDBACK_NOTIFY_EMAIL = env("FEEDBACK_NOTIFY_EMAIL", default="info@salafimasjid.
 # Resend — email service for contact form
 RESEND_API_KEY = env("RESEND_API_KEY", default="")
 CONTACT_TO_EMAIL = env("CONTACT_TO_EMAIL", default="info@salafimasjid.app")
+
+# Cloudflare Turnstile — server-side validation for contact/donate forms
+TURNSTILE_SECRET_KEY = env("TURNSTILE_SECRET_KEY", default="")
 
 # Stripe
 STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="")
@@ -367,6 +377,16 @@ UNFOLD = {
         ],
     },
 }
+
+# ── django-axes — brute-force login protection ─────────────────────────
+AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+AXES_FAILURE_LIMIT = 5  # Lock after 5 failed attempts
+AXES_COOLOFF_TIME = timedelta(minutes=30)  # 30 minute lockout
+AXES_LOCKOUT_PARAMETERS = ["ip_address"]  # Lock by IP
+AXES_RESET_ON_SUCCESS = True  # Reset counter on successful login
 
 # ── Sentry — error tracking ──────────────────────────────────────────
 SENTRY_DSN_BACKEND = env("SENTRY_DSN_BACKEND", default="")

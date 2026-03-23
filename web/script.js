@@ -3,6 +3,36 @@
  * Scroll reveal, navbar state, mobile nav toggle.
  */
 
+// ─── Sentry Browser Error Tracking ─────────────────────────
+// Lightweight init — captures unhandled errors and rejections.
+// DSN is only set in production builds; no-ops if absent.
+(function () {
+  var SENTRY_DSN = ''; // Set to your Sentry Browser DSN in production
+  if (!SENTRY_DSN) return;
+
+  var sentryScript = document.createElement('script');
+  sentryScript.src = 'https://browser.sentry-cdn.com/8.0.0/bundle.tracing.min.js';
+  sentryScript.crossOrigin = 'anonymous';
+  sentryScript.onload = function () {
+    if (window.Sentry) {
+      window.Sentry.init({
+        dsn: SENTRY_DSN,
+        tracesSampleRate: 0.1,
+        environment: window.location.hostname === 'salafimasjid.app' ? 'production' : 'staging',
+        beforeSend: function (event) {
+          // Strip PII
+          if (event.user) {
+            delete event.user.email;
+            delete event.user.ip_address;
+          }
+          return event;
+        },
+      });
+    }
+  };
+  document.head.appendChild(sentryScript);
+})();
+
 (function () {
   'use strict';
 

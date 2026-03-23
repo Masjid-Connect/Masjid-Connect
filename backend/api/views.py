@@ -688,6 +688,33 @@ def contact_submit(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     data = serializer.validated_data
+
+    # Verify Cloudflare Turnstile token if secret is configured
+    turnstile_secret = getattr(settings, "TURNSTILE_SECRET_KEY", "")
+    turnstile_token = data.pop("cf_turnstile_response", "")
+    if turnstile_secret:
+        if not turnstile_token:
+            return Response(
+                {"detail": "Please complete the security check."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            verify_resp = requests.post(
+                "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+                data={"secret": turnstile_secret, "response": turnstile_token},
+                timeout=5,
+            )
+            verify_data = verify_resp.json()
+            if not verify_data.get("success"):
+                logger.warning("Turnstile verification failed: %s", verify_data)
+                return Response(
+                    {"detail": "Security check failed. Please try again."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        except requests.RequestException:
+            logger.exception("Turnstile verification request failed")
+            # Fail open — don't block legitimate users if Cloudflare is down
+
     api_key = getattr(settings, "RESEND_API_KEY", "")
 
     if not api_key:
