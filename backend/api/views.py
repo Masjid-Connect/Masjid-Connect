@@ -471,7 +471,7 @@ class MosqueViewSet(viewsets.ReadOnlyModelViewSet):
             radius = 50
         radius = min(radius, 500)  # cap at 500 km
 
-        # Haversine formula executed at the DB level (works with SQLite and PostgreSQL)
+        # Haversine formula executed at the DB level (PostgreSQL)
         lat_rad = math.radians(lat)
         lng_rad = math.radians(lng)
         qs = Mosque.objects.annotate(
