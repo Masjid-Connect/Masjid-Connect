@@ -227,21 +227,18 @@ export default function WelcomeScreen() {
         tokenEndpoint: 'https://oauth2.googleapis.com/token',
       };
         
-      console.log("CLIENT ID:", process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID);
-      
       const authRequest = new AuthSession.AuthRequest({
         clientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '',
         redirectUri,
         scopes: ['openid', 'profile', 'email'],
-        responseType: AuthSession.ResponseType.IdToken,
-        usePKCE: false, // ✅ THIS FIXES YOUR ERROR
+        responseType: AuthSession.ResponseType.Code,
         extraParams: { nonce },
       });
 
       const result = await authRequest.promptAsync(discovery);
 
-      if (result.type === 'success' && result.params.id_token) {
-        await loginWithSocial('google', result.params.id_token);
+      if (result.type === 'success' && result.params.code) {
+        await loginWithSocial('google', result.params.code);
       }
     } catch {
       setError(t('welcome.socialFailed'));

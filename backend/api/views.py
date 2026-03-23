@@ -23,8 +23,10 @@ logger = logging.getLogger(__name__)
 
 from core.models import (
     Announcement,
+    Donation,
     Event,
     Feedback,
+    GiftAidDeclaration,
     Mosque,
     MosqueAdmin,
     MosquePrayerTime,
@@ -34,9 +36,11 @@ from core.models import (
 
 from .serializers import (
     AnnouncementSerializer,
+    DonationSerializer,
     EventSerializer,
     FeedbackCreateSerializer,
     FeedbackSerializer,
+    GiftAidDeclarationSerializer,
     MosqueAdminSerializer,
     MosqueListSerializer,
     MosquePrayerTimeSerializer,
@@ -390,6 +394,10 @@ def export_user_data(request):
     user_announcements = Announcement.objects.filter(author=user).select_related("mosque")
     user_events = Event.objects.filter(author=user).select_related("mosque")
     user_admin_roles = MosqueAdmin.objects.filter(user=user).select_related("mosque")
+    user_feedback = Feedback.objects.filter(user=user)
+    # Donations matched by email (donors may not have app accounts)
+    user_donations = Donation.objects.filter(donor_email=user.email)
+    user_gift_aid = GiftAidDeclaration.objects.filter(donor_email=user.email)
 
     return Response({
         "profile": profile,
@@ -398,6 +406,9 @@ def export_user_data(request):
         "announcements": AnnouncementSerializer(user_announcements, many=True).data,
         "events": EventSerializer(user_events, many=True).data,
         "admin_roles": MosqueAdminSerializer(user_admin_roles, many=True).data,
+        "feedback": FeedbackSerializer(user_feedback, many=True).data,
+        "donations": DonationSerializer(user_donations, many=True).data,
+        "gift_aid_declarations": GiftAidDeclarationSerializer(user_gift_aid, many=True).data,
         "exported_at": timezone.now().isoformat(),
     })
 
@@ -419,6 +430,15 @@ def delete_account(request):
                 {"detail": "Password confirmation required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+    # Audit log: record account deletion before destroying data
+    logger.info(
+        "Account deletion: user_id=%s email=%s at %s from IP=%s",
+        user.id,
+        user.email,
+        timezone.now().isoformat(),
+        request.META.get("HTTP_CF_CONNECTING_IP", request.META.get("REMOTE_ADDR", "unknown")),
+    )
 
     with transaction.atomic():
         # Delete auth token
@@ -1218,8 +1238,14 @@ def _link_gift_aid_declaration(donation):
         ).first()
 
     if not declaration:
-        # Generate next charity reference
-        last = GiftAidDeclaration.objects.order_by("-charity_reference").first()
+        # Generate next charity reference — use select_for_update to prevent
+        # duplicate references from concurrent Stripe webhooks.
+        last = (
+            GiftAidDeclaration.objects
+            .select_for_update()
+            .order_by("-charity_reference")
+            .first()
+        )
         if last and last.charity_reference.startswith("GA-"):
             try:
                 seq = int(last.charity_reference.split("-")[1]) + 1
