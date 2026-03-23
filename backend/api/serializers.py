@@ -261,10 +261,7 @@ class ContactSerializer(serializers.Serializer):
     email = serializers.EmailField()
     subject = serializers.ChoiceField(choices=SUBJECT_CHOICES)
     message = serializers.CharField(max_length=5000)
-    cf_turnstile_response = serializers.CharField(
-        required=False, allow_blank=True, write_only=True,
-        help_text="Cloudflare Turnstile token for spam protection.",
-    )
+    turnstile_token = serializers.CharField(write_only=True, required=False, default="")
 
     def validate_name(self, value):
         return strip_tags(value).strip()

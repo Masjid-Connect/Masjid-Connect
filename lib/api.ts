@@ -80,7 +80,8 @@ async function fetchWithRetry(url: string, init: RequestInit, retries: number = 
       lastError = err instanceof Error ? err : new Error(String(err));
       // Only retry on network errors (TypeError from fetch), not on successful HTTP responses
       if (attempt < retries) {
-        const delay = Math.pow(2, attempt) * 1000 * (0.5 + Math.random()); // jitter to avoid thundering herd
+        const baseDelay = Math.pow(2, attempt) * 1000; // 1s, 2s
+        const delay = baseDelay * (0.5 + Math.random()); // jitter to avoid thundering herd
         await new Promise((r) => setTimeout(r, delay));
       }
     }

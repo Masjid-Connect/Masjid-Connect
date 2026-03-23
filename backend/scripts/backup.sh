@@ -36,13 +36,12 @@ KEEP_DAILY=30       # Last 30 days
 KEEP_WEEKLY=12      # Last 12 weeks (Sundays)
 KEEP_MONTHLY=12     # Last 12 months (1st of month)
 
-# Offsite backup (DigitalOcean Spaces / S3-compatible)
-# Set these environment variables to enable offsite sync:
-#   BACKUP_S3_BUCKET   — e.g. s3://masjid-backups
-#   BACKUP_S3_ENDPOINT — e.g. https://lon1.digitaloceanspaces.com
-# Credentials: configure via ~/.aws/credentials or AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY
+# Offsite sync (DigitalOcean Spaces / S3-compatible)
+# Set these environment variables to enable offsite backup:
+#   BACKUP_S3_BUCKET  — e.g. "s3://masjid-backups"
+#   AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY (or use Spaces credentials)
+#   AWS_ENDPOINT_URL  — e.g. "https://lon1.digitaloceanspaces.com"
 BACKUP_S3_BUCKET="${BACKUP_S3_BUCKET:-}"
-BACKUP_S3_ENDPOINT="${BACKUP_S3_ENDPOINT:-}"
 
 # -----------------------------------------------------------
 # Create backup directory if it doesn't exist
@@ -110,43 +109,22 @@ find "$BACKUP_DIR/weekly" -name "*.sql.gz" -mtime +$((KEEP_WEEKLY * 7)) -delete 
 find "$BACKUP_DIR/monthly" -name "*.sql.gz" -mtime +$((KEEP_MONTHLY * 30)) -delete 2>/dev/null || true
 
 # -----------------------------------------------------------
-# Upload to offsite storage (S3-compatible)
+# Sync to offsite storage (DigitalOcean Spaces / S3)
 # -----------------------------------------------------------
 if [ -n "$BACKUP_S3_BUCKET" ]; then
-    echo "Uploading to offsite storage: $BACKUP_S3_BUCKET"
-    S3_ARGS=""
-    if [ -n "$BACKUP_S3_ENDPOINT" ]; then
-        S3_ARGS="--endpoint-url $BACKUP_S3_ENDPOINT"
-    fi
-
-    # Upload the daily backup
-    if aws s3 cp "$DAILY_PATH" "$BACKUP_S3_BUCKET/daily/$FILENAME" $S3_ARGS; then
-        echo "Offsite upload successful: daily/$FILENAME"
+    echo "Syncing backups to offsite storage ($BACKUP_S3_BUCKET)..."
+    if command -v aws &>/dev/null; then
+        aws s3 sync "$BACKUP_DIR/" "$BACKUP_S3_BUCKET/" \
+            --exclude "*.tmp" \
+            --only-show-errors \
+            ${AWS_ENDPOINT_URL:+--endpoint-url "$AWS_ENDPOINT_URL"}
+        echo "Offsite sync complete."
     else
-        echo "WARNING: Offsite upload failed! Local backup is still safe at $DAILY_PATH"
+        echo "WARNING: 'aws' CLI not found. Install with: apt install awscli"
+        echo "Offsite sync skipped."
     fi
-
-    # Upload weekly/monthly copies if they were created
-    if [ "$DAY_OF_WEEK" -eq 7 ]; then
-        aws s3 cp "$DAILY_PATH" "$BACKUP_S3_BUCKET/weekly/$FILENAME" $S3_ARGS || true
-    fi
-    if [ "$DAY_OF_MONTH" -eq 1 ]; then
-        aws s3 cp "$DAILY_PATH" "$BACKUP_S3_BUCKET/monthly/$FILENAME" $S3_ARGS || true
-    fi
-
-    # Clean up old offsite backups (mirror local retention policy)
-    CUTOFF_DAILY=$(date -d "-${KEEP_DAILY} days" +%Y-%m-%d 2>/dev/null || date -v-${KEEP_DAILY}d +%Y-%m-%d)
-    echo "Cleaning offsite backups older than $CUTOFF_DAILY..."
-    aws s3 ls "$BACKUP_S3_BUCKET/daily/" $S3_ARGS 2>/dev/null | while read -r line; do
-        FILE_DATE=$(echo "$line" | grep -oP 'masjid_connect_\K\d{4}-\d{2}-\d{2}' || true)
-        if [ -n "$FILE_DATE" ] && [[ "$FILE_DATE" < "$CUTOFF_DAILY" ]]; then
-            FILE_NAME=$(echo "$line" | awk '{print $NF}')
-            aws s3 rm "$BACKUP_S3_BUCKET/daily/$FILE_NAME" $S3_ARGS || true
-        fi
-    done
 else
-    echo "Offsite backup: SKIPPED (BACKUP_S3_BUCKET not set)"
-    echo "  To enable, set BACKUP_S3_BUCKET and BACKUP_S3_ENDPOINT environment variables."
+    echo "NOTE: No offsite backup configured. Set BACKUP_S3_BUCKET to enable."
 fi
 
 # -----------------------------------------------------------

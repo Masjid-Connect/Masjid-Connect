@@ -689,31 +689,31 @@ def contact_submit(request):
 
     data = serializer.validated_data
 
-    # Verify Cloudflare Turnstile token if secret is configured
+    # Validate Turnstile token (skip if no secret key configured)
     turnstile_secret = getattr(settings, "TURNSTILE_SECRET_KEY", "")
-    turnstile_token = data.pop("cf_turnstile_response", "")
-    if turnstile_secret:
-        if not turnstile_token:
-            return Response(
-                {"detail": "Please complete the security check."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+    turnstile_token = data.get("turnstile_token", "")
+    if turnstile_secret and turnstile_token:
         try:
-            verify_resp = requests.post(
+            turnstile_resp = requests.post(
                 "https://challenges.cloudflare.com/turnstile/v0/siteverify",
                 data={"secret": turnstile_secret, "response": turnstile_token},
                 timeout=5,
             )
-            verify_data = verify_resp.json()
-            if not verify_data.get("success"):
-                logger.warning("Turnstile verification failed: %s", verify_data)
+            result = turnstile_resp.json()
+            if not result.get("success"):
+                logger.warning("Turnstile verification failed: %s", result)
                 return Response(
-                    {"detail": "Security check failed. Please try again."},
-                    status=status.HTTP_400_BAD_REQUEST,
+                    {"detail": "Bot verification failed. Please try again."},
+                    status=status.HTTP_403_FORBIDDEN,
                 )
         except requests.RequestException:
             logger.exception("Turnstile verification request failed")
-            # Fail open — don't block legitimate users if Cloudflare is down
+            # Fail open — don't block legitimate users if Turnstile is down
+    elif turnstile_secret and not turnstile_token:
+        return Response(
+            {"detail": "Bot verification required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     api_key = getattr(settings, "RESEND_API_KEY", "")
 
