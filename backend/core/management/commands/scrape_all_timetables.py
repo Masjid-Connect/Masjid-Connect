@@ -40,6 +40,11 @@ class Command(BaseCommand):
             default=0,
             help="Only process PDFs from the last N months (0 = all)",
         )
+        parser.add_argument(
+            "--dry-run",
+            action="store_true",
+            help="Preview what would be imported without writing to the database",
+        )
 
     @staticmethod
     def _pdf_url_date(url: str) -> date | None:
@@ -60,6 +65,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         mosque_key = options["mosque"]
         months_limit = options["months"]
+        dry_run = options["dry_run"]
 
         if mosque_key not in SCRAPERS:
             raise CommandError(
@@ -86,6 +92,9 @@ class Command(BaseCommand):
                 f"(last {months_limit} months, cutoff {cutoff})"
             )
 
+        if dry_run:
+            self.stdout.write(self.style.WARNING("DRY RUN — no data will be written\n"))
+
         self.stdout.write(f"Processing {len(pdf_urls)} PDFs\n")
 
         total_saved = 0
@@ -93,6 +102,11 @@ class Command(BaseCommand):
 
         for i, pdf_url in enumerate(pdf_urls, 1):
             self.stdout.write(f"[{i}/{len(pdf_urls)}] {pdf_url}")
+            if dry_run:
+                self.stdout.write(
+                    self.style.WARNING("  → dry run, skipped")
+                )
+                continue
             try:
                 saved = scraper.run(pdf_url=pdf_url)
                 total_saved += saved

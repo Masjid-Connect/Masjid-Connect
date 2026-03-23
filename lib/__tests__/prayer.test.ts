@@ -69,3 +69,53 @@ describe('formatPrayerTime', () => {
     expect(formatPrayerTime(date, true)).toBe('14:30');
   });
 });
+
+describe('DST transition handling', () => {
+  it('handles spring-forward DST correctly (last Sunday of March)', () => {
+    // UK clocks spring forward: 1:00 AM → 2:00 AM on last Sunday of March.
+    // Prayer times should still be valid Date objects with correct hours.
+    // 2026-03-29 is last Sunday of March (spring forward)
+    const springForwardTimes: PrayerTimesData = {
+      fajr: new Date(2026, 2, 29, 5, 12),
+      sunrise: new Date(2026, 2, 29, 6, 45),
+      dhuhr: new Date(2026, 2, 29, 13, 5),
+      asr: new Date(2026, 2, 29, 16, 32),
+      maghrib: new Date(2026, 2, 29, 19, 28),
+      isha: new Date(2026, 2, 29, 20, 55),
+    };
+
+    const entries = buildPrayerEntries(springForwardTimes);
+    expect(entries).toHaveLength(6);
+    // All times should be valid and in ascending order
+    for (let i = 0; i < entries.length - 1; i++) {
+      expect(entries[i].time.getTime()).toBeLessThan(entries[i + 1].time.getTime());
+    }
+  });
+
+  it('handles autumn-fallback DST correctly (last Sunday of October)', () => {
+    // UK clocks fall back: 2:00 AM → 1:00 AM on last Sunday of October.
+    // 2026-10-25 is last Sunday of October (fall back)
+    const fallBackTimes: PrayerTimesData = {
+      fajr: new Date(2026, 9, 25, 5, 48),
+      sunrise: new Date(2026, 9, 25, 7, 22),
+      dhuhr: new Date(2026, 9, 25, 12, 45),
+      asr: new Date(2026, 9, 25, 15, 10),
+      maghrib: new Date(2026, 9, 25, 17, 52),
+      isha: new Date(2026, 9, 25, 19, 18),
+    };
+
+    const entries = buildPrayerEntries(fallBackTimes);
+    expect(entries).toHaveLength(6);
+    for (let i = 0; i < entries.length - 1; i++) {
+      expect(entries[i].time.getTime()).toBeLessThan(entries[i + 1].time.getTime());
+    }
+
+    // Formatted times should still produce valid strings
+    entries.forEach((entry) => {
+      const formatted12 = formatPrayerTime(entry.time, false);
+      const formatted24 = formatPrayerTime(entry.time, true);
+      expect(formatted12).toMatch(/\d{1,2}:\d{2}\s[AP]M/);
+      expect(formatted24).toMatch(/\d{1,2}:\d{2}/);
+    });
+  });
+});

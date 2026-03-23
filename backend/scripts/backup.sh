@@ -102,6 +102,26 @@ find "$BACKUP_DIR/weekly" -name "*.sql.gz" -mtime +$((KEEP_WEEKLY * 7)) -delete 
 find "$BACKUP_DIR/monthly" -name "*.sql.gz" -mtime +$((KEEP_MONTHLY * 30)) -delete 2>/dev/null || true
 
 # -----------------------------------------------------------
+# Sync to offsite storage (DigitalOcean Spaces / S3-compatible)
+# -----------------------------------------------------------
+# Set DO_SPACES_BUCKET in your environment to enable offsite sync.
+# Example: DO_SPACES_BUCKET=s3://masjid-backups
+# Requires: s3cmd or aws-cli configured with Spaces credentials.
+if [ -n "${DO_SPACES_BUCKET:-}" ]; then
+    echo "Syncing to offsite storage: $DO_SPACES_BUCKET"
+    if command -v s3cmd &>/dev/null; then
+        s3cmd sync "$DAILY_PATH" "$DO_SPACES_BUCKET/daily/" && echo "Offsite sync complete." || echo "WARNING: Offsite sync failed!"
+    elif command -v aws &>/dev/null; then
+        aws s3 cp "$DAILY_PATH" "$DO_SPACES_BUCKET/daily/$FILENAME" --endpoint-url "${DO_SPACES_ENDPOINT:-https://ams3.digitaloceanspaces.com}" && echo "Offsite sync complete." || echo "WARNING: Offsite sync failed!"
+    else
+        echo "WARNING: Neither s3cmd nor aws-cli found. Skipping offsite sync."
+        echo "Install with: apt install s3cmd  OR  pip install awscli"
+    fi
+else
+    echo "Offsite sync skipped (DO_SPACES_BUCKET not set)."
+fi
+
+# -----------------------------------------------------------
 # Summary
 # -----------------------------------------------------------
 echo ""

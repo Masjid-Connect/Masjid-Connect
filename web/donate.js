@@ -434,7 +434,22 @@
     });
   }
 
+  // ─── Donation funnel tracking (Sentry breadcrumbs) ──────────
+  function trackDonationStep(step, data) {
+    if (window.Sentry && window.Sentry.addBreadcrumb) {
+      window.Sentry.addBreadcrumb({
+        category: 'donation',
+        message: step,
+        level: 'info',
+        data: data || {},
+      });
+    }
+  }
+
   // ─── Wire up the Donate Now button ──────────────────────────
+  cardBtn.addEventListener('click', function () {
+    trackDonationStep('checkout_started', { amount: selectedAmount, frequency: frequency });
+  });
   cardBtn.addEventListener('click', initEmbeddedCheckout);
 
   // ─── Bank Transfer (Bottom Sheet) ───────────────────────────
@@ -546,6 +561,7 @@
   }
 
   if (donation === 'success') {
+    trackDonationStep('donation_success');
     var sessionId = params.get('session_id');
     window.history.replaceState({}, '', window.location.pathname);
 
@@ -570,6 +586,7 @@
       showSuccess();
     }
   } else if (donation === 'cancelled') {
+    trackDonationStep('donation_cancelled');
     showError('Donation was cancelled. You can try again whenever you\u2019re ready.');
     window.history.replaceState({}, '', window.location.pathname);
   } else if (donation === 'error') {
