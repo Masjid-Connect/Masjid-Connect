@@ -25,7 +25,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, borderRadius, typography, getElevation } from '@/constants/Theme';
-import { AmountSelector, BankDetailsSheet } from '@/components/support';
+import { AmountSelector, BankDetailsSheet, DonationConfirmationSheet } from '@/components/support';
 import { donations } from '@/lib/api';
 
 // Fee calculation: blended 2.5% + 20p estimate
@@ -58,6 +58,8 @@ export default function SupportScreen() {
   const [amount, setAmount] = useState<number | null>(25);
   const [isLoading, setIsLoading] = useState(false);
   const [showBankDetails, setShowBankDetails] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmedAmount, setConfirmedAmount] = useState(0);
   const [giftAid, setGiftAid] = useState(false);
   const [coverFees, setCoverFees] = useState(false);
 
@@ -138,6 +140,9 @@ export default function SupportScreen() {
           dismissButtonStyle: 'close',
           presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
         });
+        // Show confirmation after returning from Stripe checkout
+        setConfirmedAmount(totalAmount);
+        setShowConfirmation(true);
       }
     } catch (err) {
       const message = err instanceof Error && err.message
@@ -495,6 +500,14 @@ export default function SupportScreen() {
       <BankDetailsSheet
         visible={showBankDetails}
         onDismiss={() => setShowBankDetails(false)}
+      />
+
+      {/* Donation Confirmation */}
+      <DonationConfirmationSheet
+        visible={showConfirmation}
+        onDismiss={() => setShowConfirmation(false)}
+        amount={confirmedAmount}
+        frequency={frequency}
       />
     </View>
   );

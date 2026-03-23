@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import { events as eventsApi } from '@/lib/api';
-import { getCachedData, setCachedData } from '@/lib/storage';
+import { getCachedData, setCachedData, evictCachedData } from '@/lib/storage';
 import { Sentry } from '@/lib/sentry';
 import { getMosqueId } from '@/constants/mosque';
 import type { MosqueEvent, EventCategory } from '@/types';
@@ -23,6 +23,8 @@ interface UseEventsResult {
   selectedCategory: EventCategory | null;
   setSelectedCategory: (cat: EventCategory | null) => void;
   refresh: () => Promise<void>;
+  /** Evict cache then re-fetch — use after mutations (create/update/delete). */
+  invalidate: () => Promise<void>;
 }
 
 export function useEvents(): UseEventsResult {
@@ -100,6 +102,16 @@ export function useEvents(): UseEventsResult {
     loadEvents();
   }, [loadEvents]);
 
+  /** Invalidate all event category caches and re-fetch current view. */
+  const invalidate = useCallback(async () => {
+    // Evict cache for current category and the "all" view
+    await evictCachedData(`${CACHE_KEY}_${selectedCategory ?? 'all'}`);
+    if (selectedCategory !== null) {
+      await evictCachedData(`${CACHE_KEY}_all`);
+    }
+    await loadEvents();
+  }, [selectedCategory, loadEvents]);
+
   return {
     events: items,
     isLoading,
@@ -111,5 +123,6 @@ export function useEvents(): UseEventsResult {
     selectedCategory,
     setSelectedCategory,
     refresh: loadEvents,
+    invalidate,
   };
 }

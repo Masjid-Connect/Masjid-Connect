@@ -24,6 +24,7 @@ import Constants from 'expo-constants';
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdminStatus } from '@/hooks/useAdminStatus';
 import { spacing, typography } from '@/constants/Theme';
 import {
   getReminderMinutes,
@@ -63,6 +64,7 @@ export default function SettingsScreen() {
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
   const { user, isAuthenticated, isGuest, logout, deleteAccount } = useAuth();
+  const { isAdmin } = useAdminStatus();
   const insets = useSafeAreaInsets();
 
   // ─── Large title collapse animation ────────────────────────────
@@ -289,6 +291,8 @@ export default function SettingsScreen() {
           variant="authenticated"
           name={user.name || user.email}
           email={user.email}
+          memberSince={user.date_joined}
+          isAdmin={isAdmin}
           onPress={() => {/* TODO: Account details screen */}}
         />
       ) : (

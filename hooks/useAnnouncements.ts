@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { announcements as announcementsApi } from '@/lib/api';
-import { getCachedData, setCachedData } from '@/lib/storage';
+import { getCachedData, setCachedData, evictCachedData } from '@/lib/storage';
 import { Sentry } from '@/lib/sentry';
 import { getMosqueId } from '@/constants/mosque';
 import type { Announcement } from '@/types';
@@ -20,6 +20,8 @@ interface UseAnnouncementsResult {
   loadMore: () => Promise<void>;
   isLoadingMore: boolean;
   refresh: () => Promise<void>;
+  /** Evict cache then re-fetch — use after mutations (create/update/delete). */
+  invalidate: () => Promise<void>;
 }
 
 export function useAnnouncements(): UseAnnouncementsResult {
@@ -92,6 +94,12 @@ export function useAnnouncements(): UseAnnouncementsResult {
     loadAnnouncements();
   }, [loadAnnouncements]);
 
+  /** Invalidate cache and re-fetch — call after create/update/delete mutations. */
+  const invalidate = useCallback(async () => {
+    await evictCachedData(CACHE_KEY);
+    await loadAnnouncements();
+  }, [loadAnnouncements]);
+
   return {
     announcements: items,
     isLoading,
@@ -101,5 +109,7 @@ export function useAnnouncements(): UseAnnouncementsResult {
     loadMore,
     isLoadingMore,
     refresh: loadAnnouncements,
+    /** Evict cache then re-fetch — use after mutations (create/update/delete). */
+    invalidate,
   };
 }

@@ -120,13 +120,20 @@ const CACHE_PREFIX = 'api_cache_';
 const DEFAULT_TTL_MS = 15 * 60 * 1000; // 15 minutes
 const MAX_STALE_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days — hard cap for allowStale mode
 
+/**
+ * Cache version — bump this when the CacheEntry schema changes.
+ * Entries with a mismatched version are treated as missing.
+ */
+const CACHE_VERSION = 1;
+
 interface CacheEntry<T> {
   data: T;
   timestamp: number;
+  version: number;
 }
 
 /**
- * Get cached API data. Returns null if expired or missing.
+ * Get cached API data. Returns null if expired, missing, or version mismatched.
  * When `allowStale` is true, returns data even if TTL has expired.
  */
 export async function getCachedData<T>(
@@ -137,6 +144,11 @@ export async function getCachedData<T>(
   const raw = await AsyncStorage.getItem(CACHE_PREFIX + key);
   if (!raw) return null;
   const entry: CacheEntry<T> = JSON.parse(raw);
+  // Reject entries from older cache versions
+  if (entry.version !== CACHE_VERSION) {
+    await AsyncStorage.removeItem(CACHE_PREFIX + key);
+    return null;
+  }
   const age = Date.now() - entry.timestamp;
   const isFresh = age < ttlMs;
   if (isFresh) return entry.data;
@@ -145,10 +157,24 @@ export async function getCachedData<T>(
   return null;
 }
 
-/** Store API response data with a timestamp. */
+/** Store API response data with a timestamp and version tag. */
 export async function setCachedData<T>(key: string, data: T): Promise<void> {
-  const entry: CacheEntry<T> = { data, timestamp: Date.now() };
+  const entry: CacheEntry<T> = { data, timestamp: Date.now(), version: CACHE_VERSION };
   await AsyncStorage.setItem(CACHE_PREFIX + key, JSON.stringify(entry));
+}
+
+/** Evict a single cache key. */
+export async function evictCachedData(key: string): Promise<void> {
+  await AsyncStorage.removeItem(CACHE_PREFIX + key);
+}
+
+/** Evict all API cache entries (keys matching the cache prefix). */
+export async function evictAllCachedData(): Promise<void> {
+  const allKeys = await AsyncStorage.getAllKeys();
+  const cacheKeys = allKeys.filter((k: string) => k.startsWith(CACHE_PREFIX));
+  if (cacheKeys.length > 0) {
+    await AsyncStorage.multiRemove(cacheKeys);
+  }
 }
 
 /** Hardcoded fallback coordinates — The Salafi Masjid, Birmingham, UK */
