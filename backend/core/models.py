@@ -478,7 +478,7 @@ class Donation(models.Model):
 
     # Donor details (from Stripe billing or manual entry)
     donor_name = models.CharField(max_length=255, blank=True, help_text="Donor's full name.")
-    donor_email = models.EmailField(blank=True, help_text="Donor's email address.")
+    donor_email = models.EmailField(blank=True, db_index=True, help_text="Donor's email address.")
     donor_address_line1 = models.CharField(max_length=255, blank=True, help_text="House number and street.")
     donor_address_line2 = models.CharField(max_length=255, blank=True, help_text="Second address line (optional).")
     donor_city = models.CharField(max_length=100, blank=True, help_text="City or town.")
@@ -509,7 +509,7 @@ class Donation(models.Model):
         help_text="Reclaimable Gift Aid = 25% of donation (amount × 25/100)",
     )
 
-    donation_date = models.DateField(help_text="Date the payment was received.")
+    donation_date = models.DateField(db_index=True, help_text="Date the payment was received.")
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 

@@ -387,10 +387,17 @@ class GiftAidDeclarationSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_total_donated_pounds(self, obj):
-        return f"{obj.total_donated_pence / 100:.2f}"
+        # Use annotated value if available (avoids N+1), fall back to property
+        pence = getattr(obj, "_total_donated_pence", None)
+        if pence is None:
+            pence = obj.total_donated_pence
+        return f"{(pence or 0) / 100:.2f}"
 
     def get_total_gift_aid_pounds(self, obj):
-        return f"{obj.total_gift_aid_pence / 100:.2f}"
+        pence = getattr(obj, "_total_gift_aid_pence", None)
+        if pence is None:
+            pence = obj.total_gift_aid_pence
+        return f"{(pence or 0) / 100:.2f}"
 
 
 class GiftAidClaimSerializer(serializers.ModelSerializer):

@@ -10,6 +10,7 @@ import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.models import Sum as models_Sum
 from django.db.models.expressions import RawSQL
 from django.utils import timezone
 from django.utils.dateparse import parse_date
@@ -397,7 +398,10 @@ def export_user_data(request):
     user_feedback = Feedback.objects.filter(user=user)
     # Donations matched by email (donors may not have app accounts)
     user_donations = Donation.objects.filter(donor_email=user.email)
-    user_gift_aid = GiftAidDeclaration.objects.filter(donor_email=user.email)
+    user_gift_aid = GiftAidDeclaration.objects.filter(donor_email=user.email).annotate(
+        _total_donated_pence=models_Sum("donations__amount_pence"),
+        _total_gift_aid_pence=models_Sum("donations__gift_aid_amount_pence"),
+    )
 
     return Response({
         "profile": profile,

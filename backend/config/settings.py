@@ -104,7 +104,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-DATABASES = {"default": {**env.db(), "CONN_MAX_AGE": 600}}
+DATABASES = {"default": {**env.db(), "CONN_MAX_AGE": 600, "CONN_HEALTH_CHECKS": True}}
 
 AUTH_USER_MODEL = "core.User"
 
