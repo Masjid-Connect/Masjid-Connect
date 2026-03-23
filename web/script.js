@@ -42,7 +42,9 @@
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   if ('IntersectionObserver' in window && !prefersReducedMotion) {
-    const revealObserver = new IntersectionObserver(
+    // Default observer for most elements (60% visible triggers reveal)
+    var defaultThreshold = 0.6;
+    var revealObserver = new IntersectionObserver(
       function (entries) {
         entries.forEach(function (entry) {
           if (entry.isIntersecting) {
@@ -51,11 +53,28 @@
           }
         });
       },
-      { threshold: 0.6, rootMargin: '0px 0px -60px 0px' }
+      { threshold: defaultThreshold, rootMargin: '0px 0px -60px 0px' }
+    );
+
+    // Low-threshold observer for tall elements (legal pages, long content)
+    var lowThresholdObserver = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            lowThresholdObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.05, rootMargin: '0px 0px -60px 0px' }
     );
 
     revealElements.forEach(function (el) {
-      revealObserver.observe(el);
+      if (el.dataset.revealThreshold) {
+        lowThresholdObserver.observe(el);
+      } else {
+        revealObserver.observe(el);
+      }
     });
   } else {
     revealElements.forEach(function (el) {
