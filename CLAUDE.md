@@ -3,7 +3,7 @@
 > **Governing Doctrine**: See [DOCTRINE.md](./DOCTRINE.md) for non-negotiable project rules. All development must comply.
 
 ## Project Overview
-Mosque Connect is a premium mobile app serving local mosque communities with prayer time notifications, event/lesson listings, and community announcements. The design philosophy is **god-tier, not SaaS** — a serene, premium experience rooted in Islamic geometric art and calligraphic tradition.
+Mosque Connect is a premium mobile app **exclusively for The Salafi Masjid** community, providing prayer time notifications, event/lesson listings, and community announcements. This is a **single-mosque app** — there is no mosque selection, discovery, or multi-mosque subscription flow. The design philosophy is **god-tier, not SaaS** — a serene, premium experience rooted in Islamic geometric art and calligraphic tradition.
 
 ## Tech Stack
 - **Framework**: React Native + Expo (SDK 55, managed workflow, TypeScript)
@@ -18,7 +18,7 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
 - **Haptics**: expo-haptics (meaningful interactions)
 - **Icons**: @expo/vector-icons/Ionicons (outline/filled pairs)
 - **Date Handling**: date-fns
-- **i18n**: i18next + react-i18next (English + Arabic, RTL-ready)
+- **i18n**: i18next + react-i18next (English only — Arabic not shipping for MVP)
 - **Language**: TypeScript (strict mode)
 - **CI/CD**: GitHub Actions (TypeScript check, ESLint, Jest, Django tests)
 
@@ -46,12 +46,10 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
   /prayer.ts            # Aladhan API + adhan-js offline fallback
   /notifications.ts     # Push notification logic
   /storage.ts           # Offline cache (AsyncStorage)
-  /i18n.ts              # i18next initialization (en + ar)
-  /rtl.ts               # RTL layout configuration
+  /i18n.ts              # i18next initialization (English only)
 /hooks                  # Custom React hooks
 /constants              # App constants, enums
   /locales/en.json      # English translations (100+ keys)
-  /locales/ar.json      # Arabic translations (100+ keys)
 /assets                 # Fonts, images, patterns
   /fonts                # SpaceMono (system fonts used for all other text)
   /patterns             # Islamic geometric SVG patterns
@@ -97,7 +95,6 @@ The app uses the **Masjid_Logo.png** (The Salafi Masjid logo with transparent ba
 - **System fonts** — SF Pro (iOS) / Roboto (Android) with weight variation, no custom font loading
 - **14 named styles**: largeTitle (34/700), title1 (28/700), title2 (22/700), title3 (20/600), headline (17/600), body (17/400), callout (16/400), subhead (15/400), footnote (13/400), caption1 (12/400), caption2 (11/400)
 - **Special purpose**: prayerCountdown (54/200, ultralight), prayerTime (17/600), sectionHeader (13/600, uppercase + letter-spacing)
-- **Arabic**: System Arabic fonts (SF Arabic / Noto) with mirrored scale
 - `tabular-nums` font variant for prayer times
 - SpaceMono for technical accents only
 
@@ -105,14 +102,14 @@ The app uses the **Masjid_Logo.png** (The Salafi Masjid logo with transparent ba
 - **Apple HIG influence** — system fonts, SF-style type scale, grouped list patterns, checkmarks over radio buttons
 - Generous whitespace — 32px screen-edge insets (`spacing['3xl']`)
 - 3-tier elevation system: none/sm/md/lg (black shadows only, Apple convention)
-- RTL-native from day one via `I18nManager.forceRTL()`
+- LTR only (Arabic/RTL not shipping for MVP)
 - Spring-based animations (Reanimated `springs.gentle/snappy/bouncy`), no linear easing
 - **Button component** — 4 variants: primary, secondary, ghost, destructive. Loading spinner matches text height to prevent layout jank. Compact variant available.
 - **BottomSheet pattern** — spring-animated, gesture-dismissible sheets replace all centered modals
 - Haptic feedback on meaningful interactions (prayer transitions)
 - **Ionicons** (outline/filled pairs) for tab bar and UI icons — no FontAwesome
 - Notification badges are Divine Gold, never red — a glint, not an error
-- **i18n throughout** — all user-facing strings via `t()` calls, English + Arabic locale files
+- **i18n throughout** — all user-facing strings via `t()` calls, English locale file
 
 ## Backend — Django REST Framework
 
@@ -236,7 +233,7 @@ This principle applies to Django admin customizations, in-app admin screens, and
 - Named exports (not default exports) for components
 - Use `const` arrow functions for components: `export const PrayerCard = () => {}`
 - Colocate styles with components using StyleSheet.create()
-- All user-facing strings via i18n `t()` calls — never hardcode display text (English + Arabic)
+- All user-facing strings via i18n `t()` calls — never hardcode display text (English only for MVP)
 
 ### Naming
 - Components: PascalCase (`PrayerTimeCard.tsx`)
