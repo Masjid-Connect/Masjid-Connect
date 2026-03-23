@@ -188,12 +188,21 @@
   }
 
   function showError(msg) {
+    hideSuccess();
     if (errorText) errorText.textContent = msg;
     if (errorEl) errorEl.hidden = false;
   }
 
   function hideError() {
     if (errorEl) errorEl.hidden = true;
+  }
+
+  function hideSuccess() {
+    if (successEl) {
+      successEl.hidden = true;
+      successEl.classList.remove('donate__status--enter');
+    }
+    if (formCard) formCard.classList.remove('donate__form-card--locked');
   }
 
   // ─── Loading state ──────────────────────────────────────────
@@ -277,6 +286,7 @@
       if (errorEl) errorEl.classList.remove('status--checkout-hidden');
 
       hideError();
+      hideSuccess();
       destroyCheckout();
 
       // Scroll back to top of form
@@ -328,6 +338,7 @@
 
     setLoading(true);
     hideError();
+    hideSuccess();
 
     createSession('embedded')
       .then(function (data) {
@@ -518,10 +529,11 @@
   }
 
   // ─── Check for return from checkout ─────────────────────────
-  const params = new URLSearchParams(window.location.search);
-  const donation = params.get('donation');
+  var params = new URLSearchParams(window.location.search);
+  var donation = params.get('donation');
 
-  if (donation === 'success') {
+  function showSuccess() {
+    hideError();
     if (formCard) formCard.classList.add('donate__form-card--locked');
     if (successEl) {
       successEl.hidden = false;
@@ -531,12 +543,37 @@
       });
       successEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+  }
+
+  if (donation === 'success') {
+    var sessionId = params.get('session_id');
     window.history.replaceState({}, '', window.location.pathname);
+
+    if (sessionId) {
+      // Verify the session actually completed before showing success
+      fetch('/api/v1/donate/session-status/?session_id=' + encodeURIComponent(sessionId))
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data.status === 'complete') {
+            showSuccess();
+          } else {
+            // Session not complete — user likely cancelled or payment failed
+            showError('Donation was not completed. You can try again whenever you\u2019re ready.');
+          }
+        })
+        .catch(function () {
+          // Can't verify — show success to avoid hiding a real donation
+          showSuccess();
+        });
+    } else {
+      // No session_id — likely a hosted checkout redirect, show success
+      showSuccess();
+    }
   } else if (donation === 'cancelled') {
-    showError('Donation was cancelled. You can try again whenever you\'re ready.');
+    showError('Donation was cancelled. You can try again whenever you\u2019re ready.');
     window.history.replaceState({}, '', window.location.pathname);
   } else if (donation === 'error') {
-    const msg = params.get('msg') || 'Something went wrong. Please try again.';
+    var msg = params.get('msg') || 'Something went wrong. Please try again.';
     showError(msg);
     window.history.replaceState({}, '', window.location.pathname);
   }
