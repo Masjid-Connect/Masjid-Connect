@@ -153,6 +153,9 @@
     "deleteAccountButton": "حذف حسابي",
     "deleteAccountHint": "سيتم حذف حسابك وجميع البيانات نهائياً",
     "ummAlQura": "أم القرى (مكة)",
+    "memberSince": "عضو منذ {{date}}",
+    "admin": "مسؤول",
+    "profileButton": "تفاصيل الحساب",
     "dangerZone": "إجراءات الحساب",
     "shareMessage": "جرب تطبيق المسجد السلفي — أوقات الصلاة والإعلانات والفعاليات من مسجدك المحلي.",
     "calculationMethods": {
@@ -274,6 +277,7 @@
   "gate": {
     "createAccount": "إنشاء حساب مجاني",
     "alreadyHaveAccount": "لديك حساب بالفعل؟ سجل الدخول",
+    "continueAsGuest": "المتابعة كضيف",
     "announcements": {
       "headline": "ابقَ على تواصل مع مسجدك",
       "subtitle": "أنشئ حسابًا مجانيًا للوصول إلى الإعلانات وآخر أخبار المجتمع",
@@ -342,6 +346,9 @@
     "donateNow": "تبرع الآن",
     "donateNowHint": "بطاقة، Apple Pay، Google Pay أو PayPal",
     "totalLabel": "الإجمالي: £{{total}}",
+    "confirmationTitle": "جزاكم الله خيراً!",
+    "confirmationMessage": "يتم الآن معالجة تبرعك {{frequency}} بقيمة {{amount}}.",
+    "confirmationHint": "ستصلك إيصال عبر البريد الإلكتروني قريباً.",
     "secureNote": "جميع المدفوعات آمنة ومشفرة",
     "impactTitle": "أين يذهب تبرعك",
     "impactSubtitle": "جميع التبرعات تذهب مباشرة إلى المسجد السلفي، برمنغهام",

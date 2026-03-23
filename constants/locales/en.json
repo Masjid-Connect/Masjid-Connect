@@ -153,6 +153,9 @@
     "deleteAccountButton": "Delete My Account",
     "deleteAccountHint": "This will permanently delete your account and all data",
     "ummAlQura": "Umm Al-Qura (Makkah)",
+    "memberSince": "Member since {{date}}",
+    "admin": "Admin",
+    "profileButton": "Account details",
     "dangerZone": "Account Actions",
     "shareMessage": "Check out The Salafi Masjid App — prayer times, announcements, and events from your local masjid.",
     "calculationMethods": {
@@ -274,6 +277,7 @@
   "gate": {
     "createAccount": "Create free account",
     "alreadyHaveAccount": "Already have an account? Sign in",
+    "continueAsGuest": "Continue as guest",
     "announcements": {
       "headline": "Stay connected with your masjid",
       "subtitle": "Create a free account to access announcements and community updates",
@@ -342,6 +346,9 @@
     "donateNow": "Donate Now",
     "donateNowHint": "Card, Apple Pay, Google Pay or PayPal",
     "totalLabel": "Total: £{{total}}",
+    "confirmationTitle": "JazakAllahu Khairan!",
+    "confirmationMessage": "Your {{frequency}} donation of {{amount}} is being processed.",
+    "confirmationHint": "You'll receive a receipt by email shortly.",
     "secureNote": "All payments are secure and encrypted",
     "impactTitle": "Where your donation goes",
     "impactSubtitle": "All donations go directly to The Salafi Masjid, Birmingham",

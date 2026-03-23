@@ -212,6 +212,19 @@ export const typography: Record<string, TextStyle> = {
     letterSpacing: 0.07,
     lineHeight: 13,
   },
+  // Weight variants
+  bodyBold: {
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: -0.41,
+    lineHeight: 22,
+  },
+  subheadMedium: {
+    fontSize: 15,
+    fontWeight: '500',
+    letterSpacing: -0.24,
+    lineHeight: 20,
+  },
   // Special purpose
   prayerCountdown: {
     fontSize: 54,

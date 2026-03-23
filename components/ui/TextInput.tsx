@@ -24,10 +24,14 @@ import { spacing, borderRadius, typography, fonts, layout, timing } from '@/cons
 interface TextInputProps extends RNTextInputProps {
   label: string;
   error?: string;
+  /** Helper text shown below the input (hidden when error is present) */
+  helperText?: string;
+  /** Maximum character count — displays counter below input */
+  maxCharCount?: number;
 }
 
 export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
-  ({ label, error, secureTextEntry, style, ...props }, ref) => {
+  ({ label, error, helperText, maxCharCount, secureTextEntry, style, ...props }, ref) => {
     const { effectiveScheme } = useTheme();
     const colors = getColors(effectiveScheme);
     const { t } = useTranslation();
@@ -138,6 +142,32 @@ export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
             </Text>
           </Animated.View>
         )}
+        {/* Helper text + character count row */}
+        {((!error && helperText) || maxCharCount !== undefined) && (
+          <View style={styles.metaRow}>
+            {!error && helperText ? (
+              <Text style={[typography.caption1, { color: colors.textTertiary, flex: 1 }]}>
+                {helperText}
+              </Text>
+            ) : (
+              <View style={{ flex: 1 }} />
+            )}
+            {maxCharCount !== undefined && (
+              <Text
+                style={[
+                  typography.caption1,
+                  {
+                    color: (props.value?.length ?? 0) > maxCharCount
+                      ? colors.urgent
+                      : colors.textTertiary,
+                  },
+                ]}
+              >
+                {props.value?.length ?? 0}/{maxCharCount}
+              </Text>
+            )}
+          </View>
+        )}
       </View>
     );
   }
@@ -171,6 +201,12 @@ const styles = StyleSheet.create({
   },
   errorRow: {
     flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.xs,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: spacing.xs,
   },
