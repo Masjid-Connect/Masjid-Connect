@@ -503,4 +503,283 @@ The account deletion TODO. A user will try to delete their account, nothing will
 
 ---
 
-*Batch 5 (Fix Plan + Priority Matrix + Release Readiness) follows in next commit.*
+## 5. FIX PLAN IN MANAGEABLE CHUNKS
+
+---
+
+### Chunk 1: Immediate Risk Containment (1-2 days)
+
+**Objective:** Eliminate the issues that could cause data loss, legal exposure, or store rejection today.
+
+| # | Task | Difficulty | Dependencies |
+|---|------|------------|--------------|
+| 1.1 | Set up offsite backup sync to DigitalOcean Spaces or Backblaze B2. Modify `backup.sh` to upload after local backup. | Easy (2 hrs) | DO Spaces account |
+| 1.2 | Configure mobile Sentry DSN — generate DSN, set `EXPO_PUBLIC_SENTRY_DSN` in `.env`, verify errors appear in Sentry dashboard. | Easy (30 min) | Sentry account |
+| 1.3 | Fix privacy policy — add Sentry to third-party services list with honest description of what data is sent and what is scrubbed. | Easy (30 min) | None |
+| 1.4 | Wire account deletion button in `settings.tsx` to `api.deleteAccount()` with confirmation dialog and password input. | Easy (2 hrs) | None |
+| 1.5 | Add explicit `TOKEN_TTL = timedelta(days=30)` to Django `settings.py`. | Trivial (5 min) | None |
+
+**Who should lead:** Founder / sole developer
+**What success looks like:** Backups sync offsite hourly. Sentry captures mobile errors. Privacy policy is accurate. Account deletion works.
+**What must not be skipped:** 1.1 (offsite backups) — this is the single highest-ROI fix in the entire audit.
+
+---
+
+### Chunk 2: Security and Privacy Hardening (2-3 days)
+
+**Objective:** Close the security gaps that could be exploited by a motivated attacker or flagged by a regulator.
+
+| # | Task | Difficulty | Dependencies |
+|---|------|------------|--------------|
+| 2.1 | Add Sentry `beforeBreadcrumb` handler to scrub `Authorization` headers from request breadcrumbs. | Easy (30 min) | None |
+| 2.2 | Validate Cloudflare Turnstile token server-side in the contact form endpoint. Add `requests.post()` to Turnstile verify API. | Medium (1 hr) | Turnstile secret key in env |
+| 2.3 | Install `django-axes` for Django admin brute-force protection. Configure 5 failed attempts → 30 min lockout. | Easy (1 hr) | None |
+| 2.4 | Add CSP headers to website via Cloudflare Pages `_headers` file. | Easy (30 min) | None |
+| 2.5 | Add consent checkboxes on sign-up screen — "I agree to Privacy Policy and Terms of Service" with links, required before registration. | Medium (2 hrs) | None |
+| 2.6 | Add database connectivity check to `/health/` endpoint. | Easy (15 min) | None |
+| 2.7 | Add request correlation ID middleware (generate UUID, attach to all log entries). | Medium (1 hr) | None |
+| 2.8 | Register with ICO (UK data protection registration, £40/year). | Easy (admin task) | Organisation details |
+
+**Who should lead:** Backend developer + founder for ICO registration
+**What success looks like:** Admin login is protected, auth tokens don't leak to Sentry, contact form is spam-resistant, app store consent requirements met.
+
+---
+
+### Chunk 3: Product and UX Friction Removal (3-5 days)
+
+**Objective:** Fix the user journey gaps that cause confusion, churn, and compliance failures.
+
+| # | Task | Difficulty | Dependencies |
+|---|------|------------|--------------|
+| 3.1 | Build 3-step onboarding flow: mosque selection → notification setup → prayer times preview. | Hard (2-3 days) | Mosque list API |
+| 3.2 | Implement password reset via email — Django `PasswordResetView` + Resend for delivery. Add "Forgot password?" link on sign-in screen. | Medium (4 hrs) | Resend API key |
+| 3.3 | Add empty states for announcements, events, and subscriptions screens. | Easy (2 hrs) | None |
+| 3.4 | Add "Export My Data" button in settings that calls `/api/v1/auth/export-data/`. | Easy (1 hr) | None |
+| 3.5 | Link Terms of Service in settings screen. | Trivial (15 min) | None |
+| 3.6 | Show warning when language change requires app restart. | Easy (30 min) | None |
+| 3.7 | Add donation data retention clause to privacy policy (HMRC 6-year requirement). | Easy (15 min) | None |
+
+**Who should lead:** Mobile developer
+**What success looks like:** New users understand the app within 60 seconds. GDPR rights are exercisable from the app. No dead-end screens.
+
+---
+
+### Chunk 4: Architecture and Performance Stabilisation (2-3 days)
+
+**Objective:** Fix the race conditions and performance issues that cause intermittent bugs.
+
+| # | Task | Difficulty | Dependencies |
+|---|------|------------|--------------|
+| 4.1 | Fix `hasFreshDataRef` race condition in `useAnnouncements` and `useEvents` — implement monotonic request counter pattern. | Medium (2 hrs) | None |
+| 4.2 | Fix `ensurePM()` to be prayer-name-aware — only apply to Dhuhr/Asr/Maghrib/Isha, never Fajr/Sunrise. | Easy (1 hr) | None |
+| 4.3 | Fix token hydration race — use Promise deduplication for concurrent `loadToken()` calls. | Easy (30 min) | None |
+| 4.4 | Merge dual intervals in `usePrayerTimes` into single interval with both calculations. | Easy (1 hr) | None |
+| 4.5 | Add FlatList virtualization for announcements and events lists. | Medium (2 hrs) | None |
+| 4.6 | Add jitter to API client exponential backoff: `delay * (0.5 + Math.random())`. | Trivial (10 min) | None |
+| 4.7 | Add `--dry-run` flag to scraper management command. Update GitHub Actions workflow to use it for validation. | Medium (2 hrs) | None |
+
+**Who should lead:** Mobile developer
+**What success looks like:** No more intermittent "data disappeared" bugs. Prayer times are always correct. Lists scroll smoothly with 200+ items.
+
+---
+
+### Chunk 5: Observability, Analytics, and QA (3-5 days)
+
+**Objective:** Stop flying blind. Know what's happening in production.
+
+| # | Task | Difficulty | Dependencies |
+|---|------|------------|--------------|
+| 5.1 | Add centralized logging — Betterstack (free tier) or self-hosted Loki. | Medium (2 hrs) | Account setup |
+| 5.2 | Install Plausible analytics on website ($9/month, no cookies). | Easy (30 min) | Plausible account |
+| 5.3 | Add basic donation funnel events on website: page viewed, amount selected, checkout started, completed. | Medium (2 hrs) | Analytics tool |
+| 5.4 | Add Sentry browser SDK to website for error tracking. | Easy (30 min) | Sentry account |
+| 5.5 | Increase test coverage thresholds to 60% statements / 50% branches. Write tests to meet new thresholds. | Hard (2-3 days) | None |
+| 5.6 | Add network failure tests with Mock Service Worker (msw). | Medium (3 hrs) | None |
+| 5.7 | Add empty state test fixtures. | Easy (1 hr) | None |
+| 5.8 | Add DST transition test case for prayer times. | Medium (1 hr) | None |
+
+**Who should lead:** Full-stack developer
+**What success looks like:** You can see website traffic, mobile crashes, donation funnel, and production errors in dashboards. Test suite catches real bugs.
+
+---
+
+### Chunk 6: Scalability and Operational Readiness (2-3 days)
+
+**Objective:** Prepare infrastructure for growth beyond the first 100 users.
+
+| # | Task | Difficulty | Dependencies |
+|---|------|------------|--------------|
+| 6.1 | Add staging environment — separate docker-compose with its own database. | Medium (3 hrs) | Coolify or second droplet |
+| 6.2 | Increase deploy health check grace period to 30 seconds with 3 retries. | Easy (15 min) | None |
+| 6.3 | Restrict `.env.prod` file permissions (`chmod 600`). | Trivial (5 min) | SSH access |
+| 6.4 | Add CPU limits to docker-compose.prod.yml containers. | Easy (15 min) | None |
+| 6.5 | Document Coolify manual restart procedure for Traefik failure. | Easy (30 min) | None |
+| 6.6 | Add automated backup validation (weekly restore test to staging DB). | Medium (2 hrs) | 6.1 (staging) |
+| 6.7 | Keep last 2 Docker images for rollback safety in deploy.sh. | Easy (30 min) | None |
+| 6.8 | Enable GitHub branch protection: require 1 approval + passing CI before merge. | Easy (15 min) | GitHub admin |
+
+**Who should lead:** DevOps / founder
+**What success looks like:** Deployments are tested in staging first. Backups are validated weekly. Infrastructure can survive a Coolify failure.
+
+---
+
+### Chunk 7: Polish, Trust, and Conversion Improvement (ongoing)
+
+**Objective:** Maximise the product's ability to acquire and retain users.
+
+| # | Task | Difficulty | Dependencies |
+|---|------|------------|--------------|
+| 7.1 | Add social proof to download page (user count, testimonials). | Easy (1 hr) | User data |
+| 7.2 | Add CSS minification to web build pipeline. | Easy (1 hr) | None |
+| 7.3 | Fix disabled button contrast for WCAG accessibility. | Easy (30 min) | None |
+| 7.4 | Add WhatsApp sharing for prayer times. | Medium (3 hrs) | None |
+| 7.5 | Add in-app donation prompt (tasteful, non-intrusive). | Medium (2 hrs) | None |
+| 7.6 | Test `tabular-nums` font variant on budget Android devices. | Easy (1 hr) | Physical device |
+| 7.7 | Add Maestro e2e tests for 5 critical flows. | Hard (2 days) | Maestro setup |
+| 7.8 | Update DOCTRINE.md to acknowledge donation feature exception. | Trivial (15 min) | None |
+| 7.9 | Sign Sentry DPA and reference in privacy policy. | Easy (admin task) | Sentry account |
+
+**Who should lead:** Product / design lead
+**What success looks like:** Website converts visitors to downloads. App retains users. Accessibility is WCAG 2.1 compliant.
+
+---
+
+## 6. PRIORITY MATRIX
+
+### Do Now (This Week)
+
+| Issue | Why now |
+|-------|---------|
+| Offsite backup sync | Single point of failure for all data |
+| Configure mobile Sentry DSN | Flying blind on app crashes |
+| Fix privacy policy (Sentry disclosure) | Active legal misrepresentation |
+| Wire account deletion button | GDPR violation + store rejection |
+| Add consent checkboxes on sign-up | Hard store rejection blocker |
+| Add Sentry token scrubbing | Active token leakage vector |
+
+### Do Next (This Month)
+
+| Issue | Why next |
+|-------|----------|
+| Build onboarding flow | Highest-leverage growth fix |
+| Fix ensurePM() Fajr corruption | Core feature correctness |
+| Fix cache race condition | Intermittent data bugs |
+| Validate Turnstile server-side | Contact form abuse vector |
+| Install django-axes | Admin brute-force protection |
+| Add centralized logging | Operational blind spot |
+| Implement password reset | User retention blocker |
+| Add website CSP headers | XSS prevention |
+| Real EAS credentials + app store metadata | Launch blocker |
+
+### Do Later (Next Quarter)
+
+| Issue | Why later |
+|-------|----------|
+| Staging environment | Important but not blocking |
+| Increase test coverage to 60% | Ongoing improvement |
+| Add Plausible analytics | Growth optimization |
+| Maestro e2e tests | Quality assurance maturity |
+| FlatList virtualization | Performance at scale |
+| ICO registration | Compliance (low enforcement risk short-term) |
+| Sentry DPA | Compliance completeness |
+| Donation funnel tracking | Revenue optimization |
+
+### Watch Carefully
+
+| Issue | Why watch |
+|-------|-----------|
+| Gunicorn worker saturation (4 concurrent requests max) | Monitor response times; upgrade when p99 > 2s |
+| DST transitions affecting prayer times | Test manually on last Sunday of March and October |
+| Docker image cleanup vs rollback safety | Monitor that rollback images exist after cleanup |
+| Coolify stability | Document manual restart procedure; test quarterly |
+| Stripe SDK breaking changes | Monitor Stripe changelog monthly |
+
+---
+
+## 7. IF I HAD TO FIX ONLY 5 THINGS
+
+These five fixes were chosen for **maximum leverage** — each one either prevents a catastrophe, unblocks a launch, or fixes a class of problems rather than a single instance.
+
+### 1. Implement offsite backups (2 hours)
+**Why:** Prevents the single highest-consequence failure in the system. Without this, a disk failure destroys everything with no recovery. Every other fix is meaningless if the data can disappear.
+
+### 2. Fix privacy policy + add Sentry disclosure + consent checkboxes (3 hours)
+**Why:** Fixes three compliance issues in one session: legal misrepresentation (Sentry), store rejection (consent), and regulatory exposure (ICO). These compound into a single trust-destroying scenario if any one triggers scrutiny.
+
+### 3. Wire account deletion + add Sentry DSN (2 hours)
+**Why:** Account deletion is a GDPR hard requirement and app store requirement. Sentry DSN gives you visibility into every other bug. Together, they make the app legally compliant and observable.
+
+### 4. Fix ensurePM() + cache race condition (3 hours)
+**Why:** These are the two bugs that will generate the most user-facing issues. Wrong prayer times destroy trust in a prayer app. Disappearing announcements destroy trust in a communications app. Both are the app's core value proposition.
+
+### 5. Build onboarding flow (2-3 days)
+**Why:** Every other fix is pointless if users download the app, get confused, and never return. Onboarding is the gateway to all other features. Without it, you're optimizing a product that users abandon on first launch.
+
+**Total estimated effort: ~4-5 days for all 5.**
+
+---
+
+## 8. RELEASE READINESS VERDICT
+
+### Website: **Conditionally Ready**
+
+The website is functional, well-designed, and privacy-respecting. It can serve users today.
+
+**Conditions for Production-Ready:**
+- [ ] Fix privacy policy to disclose Sentry usage
+- [ ] Add CSP headers via Cloudflare Pages `_headers` file
+- [ ] Validate Turnstile token server-side in contact endpoint
+- [ ] Add basic error tracking (Sentry browser SDK)
+- [ ] Add donation data retention clause to privacy policy
+- [ ] Enable CSS/JS minification
+
+### React Native App: **Not Ready**
+
+Multiple hard blockers prevent store submission.
+
+**What must be true for Conditionally Ready:**
+- [ ] Replace all placeholder EAS credentials with real values
+- [ ] Add consent checkboxes on sign-up screen
+- [ ] Wire account deletion button to API
+- [ ] Configure Sentry DSN
+- [ ] Fix ensurePM() Fajr time corruption
+- [ ] Test on real iOS and Android devices
+- [ ] Add app store metadata (description, keywords, screenshots, age rating)
+
+**What must be true for Production-Ready (beyond Conditionally Ready):**
+- [ ] Build onboarding flow
+- [ ] Implement password reset
+- [ ] Fix cache race condition in useAnnouncements/useEvents
+- [ ] Add empty states for all list screens
+- [ ] Increase test coverage to 60%
+- [ ] Test DST transition handling
+- [ ] Add accessibility roles to prayer times and settings screens
+- [ ] Achieve 5 Maestro e2e tests passing
+
+### Django Backend: **Conditionally Ready**
+
+The backend is the strongest layer and could serve production traffic today.
+
+**Conditions for Production-Ready:**
+- [ ] Offsite backup sync implemented
+- [ ] Centralized logging operational
+- [ ] Sentry DSN configured for frontend
+- [ ] `django-axes` installed for admin protection
+- [ ] Health check includes database connectivity
+- [ ] Request correlation IDs in place
+- [ ] Staging environment operational
+- [ ] Turnstile validation on contact endpoint
+
+---
+
+## CLOSING STATEMENT
+
+This is a well-intentioned project with genuine security awareness that is uncommon at this stage. The backend is production-grade. The design system is thoughtful. The privacy-first stance is admirable.
+
+But the system is **not ready for real users** due to a cluster of compliance, observability, and UX gaps that interact dangerously. The good news: none of these are architectural — they're all fixable in days, not months.
+
+The single most important action is **getting offsite backups working today**. Everything else can be sequenced. Data loss cannot be undone.
+
+---
+
+*End of Council of 12 Expert Audit — 2026-03-23*
