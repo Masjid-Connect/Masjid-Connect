@@ -89,6 +89,7 @@ class Announcement(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     mosque = models.ForeignKey(
         Mosque, on_delete=models.CASCADE, related_name="announcements",
+        db_index=True,
         help_text="Which mosque is this announcement for?",
     )
     title = models.CharField(
@@ -141,6 +142,7 @@ class Event(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     mosque = models.ForeignKey(
         Mosque, on_delete=models.CASCADE, related_name="events",
+        db_index=True,
         help_text="Which mosque is hosting this event?",
     )
     title = models.CharField(
@@ -155,7 +157,7 @@ class Event(models.Model):
         max_length=255, blank=True,
         help_text="Name of the speaker, teacher, or instructor (if applicable).",
     )
-    event_date = models.DateField(help_text="Date of the event (or first occurrence if recurring).")
+    event_date = models.DateField(db_index=True, help_text="Date of the event (or first occurrence if recurring).")
     start_time = models.TimeField(help_text="Start time (e.g. 19:00 or 7:00 PM).")
     end_time = models.TimeField(
         null=True, blank=True,
@@ -199,6 +201,7 @@ class UserSubscription(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="subscriptions",
+        db_index=True,
         help_text="The app user who subscribed.",
     )
     mosque = models.ForeignKey(
@@ -475,7 +478,7 @@ class Donation(models.Model):
 
     # Donor details (from Stripe billing or manual entry)
     donor_name = models.CharField(max_length=255, blank=True, help_text="Donor's full name.")
-    donor_email = models.EmailField(blank=True, help_text="Donor's email address.")
+    donor_email = models.EmailField(blank=True, db_index=True, help_text="Donor's email address.")
     donor_address_line1 = models.CharField(max_length=255, blank=True, help_text="House number and street.")
     donor_address_line2 = models.CharField(max_length=255, blank=True, help_text="Second address line (optional).")
     donor_city = models.CharField(max_length=100, blank=True, help_text="City or town.")
@@ -506,7 +509,7 @@ class Donation(models.Model):
         help_text="Reclaimable Gift Aid = 25% of donation (amount × 25/100)",
     )
 
-    donation_date = models.DateField(help_text="Date the payment was received.")
+    donation_date = models.DateField(db_index=True, help_text="Date the payment was received.")
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 

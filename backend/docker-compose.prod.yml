@@ -84,7 +84,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 384M    # ~128M per Gunicorn worker × 3 workers
+          memory: 512M    # ~150M per Gunicorn worker × 3 workers + 4 threads each
 
 networks:
   traefik:

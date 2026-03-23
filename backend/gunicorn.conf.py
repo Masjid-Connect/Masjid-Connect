@@ -11,12 +11,11 @@ bind = "0.0.0.0:8000"
 # ------------------------------------------------------------------
 # Workers
 # ------------------------------------------------------------------
-# Shared droplet (regimeflex-prod, 4 GB RAM with other services).
-# 2 workers keeps memory footprint low (~250 MB total).
-# If Masjid Connect gets its own droplet, increase to 3 or 2×CPU+1.
-workers = 2
+# 3 workers × 4 threads = 12 concurrent requests (~60 req/s capacity).
+# Memory footprint ~450 MB — fits within 512M Docker limit.
+workers = 3
 worker_class = "gthread"
-threads = 2
+threads = 4
 
 # ------------------------------------------------------------------
 # Timeouts
