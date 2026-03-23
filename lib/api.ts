@@ -132,16 +132,24 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     } catch {
       // Response wasn't JSON
     }
+    // Sanitize: only pass through known safe detail strings for 400s.
+    // Drop anything that looks like a stack trace, SQL, or internal path.
+    const isSafeDetail = detail
+      && detail.length < 200
+      && !/traceback|exception|sql|\/home\//i.test(detail);
     const messages: Record<number, string> = {
-      400: detail || 'Invalid request',
+      400: (isSafeDetail ? detail : '') || 'Invalid request',
       401: 'Please sign in again',
       403: 'You do not have permission',
       404: 'Not found',
       429: 'Too many requests. Please try again later',
+      500: 'Something went wrong. Please try again later',
+      502: 'Service temporarily unavailable',
+      503: 'Service temporarily unavailable',
     };
-    const errorMsg = messages[response.status] || `Request failed (${response.status})`;
+    const errorMsg = messages[response.status] || `Request failed. Please try again later`;
     const apiError = new Error(errorMsg);
-    // Report server errors (5xx) and unexpected failures to Sentry
+    // Report server errors (5xx) and unexpected failures to Sentry — include raw detail for debugging
     if (response.status >= 500) {
       Sentry.captureException(apiError, { extra: { url, status: response.status, detail } });
     }
