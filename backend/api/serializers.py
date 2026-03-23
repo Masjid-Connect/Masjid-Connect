@@ -3,6 +3,8 @@
 import re
 
 from django.contrib.auth import get_user_model
+from django.utils import timezone
+from django.utils.html import strip_tags
 from rest_framework import serializers
 
 from core.models import (
@@ -113,6 +115,17 @@ class AnnouncementSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "published_at", "author"]
 
+    def validate_title(self, value):
+        return strip_tags(value).strip()
+
+    def validate_body(self, value):
+        return strip_tags(value).strip()
+
+    def validate_expires_at(self, value):
+        if value and value <= timezone.now():
+            raise serializers.ValidationError("Expiry date must be in the future.")
+        return value
+
 
 # ── Event ─────────────────────────────────────────────────────────────
 
@@ -140,6 +153,24 @@ class EventSerializer(serializers.ModelSerializer):
             "updated",
         ]
         read_only_fields = ["id", "author", "created", "updated"]
+
+    def validate_title(self, value):
+        return strip_tags(value).strip()
+
+    def validate_description(self, value):
+        return strip_tags(value).strip()
+
+    def validate_speaker(self, value):
+        return strip_tags(value).strip()
+
+    def validate(self, attrs):
+        end_time = attrs.get("end_time") or (self.instance and self.instance.end_time)
+        start_time = attrs.get("start_time") or (self.instance and self.instance.start_time)
+        if end_time and start_time and end_time <= start_time:
+            raise serializers.ValidationError(
+                {"end_time": "End time must be after start time."}
+            )
+        return attrs
 
 
 # ── Subscription ──────────────────────────────────────────────────────
@@ -231,6 +262,12 @@ class ContactSerializer(serializers.Serializer):
     subject = serializers.ChoiceField(choices=SUBJECT_CHOICES)
     message = serializers.CharField(max_length=5000)
 
+    def validate_name(self, value):
+        return strip_tags(value).strip()
+
+    def validate_message(self, value):
+        return strip_tags(value).strip()
+
 
 # ── Feedback ─────────────────────────────────────────────────────────
 
@@ -241,6 +278,12 @@ class FeedbackCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feedback
         fields = ["type", "category", "description", "device_info"]
+
+    def validate_category(self, value):
+        return strip_tags(value).strip()
+
+    def validate_description(self, value):
+        return strip_tags(value).strip()
 
 
 class FeedbackSerializer(serializers.ModelSerializer):

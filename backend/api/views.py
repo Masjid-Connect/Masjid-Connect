@@ -154,8 +154,9 @@ def register(request):
     """Register a new user and return auth token."""
     serializer = RegisterSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    user = serializer.save()
-    token, _ = Token.objects.get_or_create(user=user)
+    with transaction.atomic():
+        user = serializer.save()
+        token, _ = Token.objects.get_or_create(user=user)
     return Response(
         {"token": token.key, "user": UserSerializer(user).data},
         status=status.HTTP_201_CREATED,
@@ -238,9 +239,9 @@ def social_login(request):
             user.set_unusable_password()
             user.save()
 
-    # Rotate token on each social login to limit token lifetime
-    Token.objects.filter(user=user).delete()
-    token = Token.objects.create(user=user)
+        # Rotate token on each social login to limit token lifetime
+        Token.objects.filter(user=user).delete()
+        token = Token.objects.create(user=user)
     return Response(
         {"token": token.key, "user": UserSerializer(user).data},
         status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
@@ -457,7 +458,18 @@ class MosqueViewSet(viewsets.ReadOnlyModelViewSet):
                 {"detail": "lat and lng query params are required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        radius = float(request.query_params.get("radius", 50))
+
+        if not (-90 <= lat <= 90) or not (-180 <= lng <= 180):
+            return Response(
+                {"detail": "lat must be between -90 and 90, lng between -180 and 180."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            radius = float(request.query_params.get("radius", 50))
+        except (ValueError, TypeError):
+            radius = 50
+        radius = min(radius, 500)  # cap at 500 km
 
         # Haversine formula executed at the DB level (works with SQLite and PostgreSQL)
         lat_rad = math.radians(lat)
@@ -601,11 +613,12 @@ def register_push_token(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    push_token, created = PushToken.objects.update_or_create(
-        user=request.user,
-        token=token_str,
-        defaults={"platform": platform},
-    )
+    with transaction.atomic():
+        push_token, created = PushToken.objects.update_or_create(
+            user=request.user,
+            token=token_str,
+            defaults={"platform": platform},
+        )
     return Response(
         PushTokenSerializer(push_token).data,
         status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
@@ -1075,25 +1088,29 @@ def stripe_webhook(request):
     logger.info("Stripe webhook received: %s (%s)", event_type, event["id"])
 
     # ── Handle specific event types ──
+    # Wrap handler + processed flag update in a transaction so partial
+    # writes (e.g. donation created but Gift Aid linking fails) are rolled back.
     try:
-        if event_type == "checkout.session.completed":
-            _handle_checkout_completed(data_object)
-        elif event_type == "invoice.payment_succeeded":
-            _handle_invoice_payment_succeeded(data_object)
-        elif event_type == "invoice.payment_failed":
-            _handle_invoice_payment_failed(data_object)
-        elif event_type == "customer.subscription.created":
-            _handle_subscription_created(data_object)
-        elif event_type == "customer.subscription.deleted":
-            _handle_subscription_deleted(data_object)
-        elif event_type == "payment_intent.succeeded":
-            _handle_payment_intent_succeeded(data_object)
-        else:
-            logger.info("Stripe webhook: unhandled event type %s", event_type)
+        with transaction.atomic():
+            if event_type == "checkout.session.completed":
+                _handle_checkout_completed(data_object)
+            elif event_type == "invoice.payment_succeeded":
+                _handle_invoice_payment_succeeded(data_object)
+            elif event_type == "invoice.payment_failed":
+                _handle_invoice_payment_failed(data_object)
+            elif event_type == "customer.subscription.created":
+                _handle_subscription_created(data_object)
+            elif event_type == "customer.subscription.deleted":
+                _handle_subscription_deleted(data_object)
+            elif event_type == "payment_intent.succeeded":
+                _handle_payment_intent_succeeded(data_object)
+            else:
+                logger.info("Stripe webhook: unhandled event type %s", event_type)
 
-        # Mark as successfully processed
-        stripe_event.processed = True
-        stripe_event.save(update_fields=["processed"])
+            # Mark as successfully processed (inside transaction so it only
+            # commits if the handler succeeded)
+            stripe_event.processed = True
+            stripe_event.save(update_fields=["processed"])
     except Exception:
         logger.exception("Stripe webhook: failed to process event %s", event["id"])
         # Event is recorded but not marked as processed — safe to retry

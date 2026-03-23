@@ -15,18 +15,25 @@ class ContentSecurityPolicyMiddleware:
         "img-src": "'self' data:",
         "font-src": "'self' data:",
         "connect-src": "'self'",
+        "object-src": "'none'",
         "frame-ancestors": "'none'",
         "base-uri": "'self'",
         "form-action": "'self'",
+        "upgrade-insecure-requests": "",
     }
 
     def __init__(self, get_response):
         self.get_response = get_response
-        self.csp_header = "; ".join(
-            f"{directive} {value}" for directive, value in self.CSP_DIRECTIVES.items()
-        )
+        parts = []
+        for directive, value in self.CSP_DIRECTIVES.items():
+            parts.append(f"{directive} {value}".strip())
+        self.csp_header = "; ".join(parts)
 
     def __call__(self, request):
         response = self.get_response(request)
         response["Content-Security-Policy"] = self.csp_header
+        response["Permissions-Policy"] = (
+            "camera=(), microphone=(), geolocation=(), payment=()"
+        )
+        response["Referrer-Policy"] = "strict-origin-when-cross-origin"
         return response
