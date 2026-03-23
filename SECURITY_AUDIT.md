@@ -322,4 +322,134 @@ The privacy policy contradiction about crash reporting. If a regulator (ICO) or 
 
 ---
 
-*Batch 3 (Experts 9-12) follows in next commit.*
+### EXPERT 9: DevOps, Infrastructure, and Scalability Engineer
+
+#### Diagnosis
+
+The infrastructure is **well-designed for a single-developer, single-service project**. Docker containerisation, Traefik reverse proxy, automated deployment with rollback, and structured logging are all present. But the operational maturity has critical gaps that would turn a bad day into a catastrophe.
+
+#### Findings
+
+| Issue | Severity | Details |
+|-------|----------|--------|
+| **No offsite backups** | Critical | `backup.sh` stores all backups in `/home/mosque/backups/` on the same DigitalOcean droplet. If the droplet's disk fails, you lose the database AND all backups simultaneously. Multi-tier retention (30 daily, 12 weekly, 12 monthly) is meaningless if they're all on the same disk. **Fix:** Add S3-compatible backup sync (DigitalOcean Spaces, Backblaze B2, or AWS S3) as a post-backup step. Cost: ~$1/month. |
+| **No centralized logging** | High | Docker logs use `json-file` driver with 100MB rotation. Logs are lost on container restart and inaccessible remotely without SSH. No alerting on error patterns. You cannot answer "what happened at 3am when the API went down?" after the fact. **Fix:** Add Loki + Grafana (free, self-hosted) or Betterstack (free tier). |
+| **Deploy health check grace period too short** | Medium | `deploy.sh` waits 10 seconds before health-checking. A cold-start Django app with migrations can take 15-20 seconds. If the health check fails, rollback triggers unnecessarily. **Fix:** Increase to 30 seconds with retry: `for i in 1 2 3; do sleep 10; curl -sf localhost:8000/health/ && break; done`. |
+| **No staging environment** | High | There is no staging or preview deployment. All testing happens in production. Database migrations are run directly against production data. If a migration fails, the only recovery is `restore.sh` (manual SSH required). **Fix:** Add a staging compose file that uses a separate database. Or use Coolify's preview deployment feature. |
+| **Production secrets stored as plaintext files** | Medium | `.env.prod` sits on the server filesystem unencrypted. Anyone with SSH access to the droplet can read all secrets. **Fix:** Use DigitalOcean's environment variable injection, or at minimum, restrict file permissions: `chmod 600 .env.prod && chown root:root .env.prod`. |
+| **GitHub Actions SSH key for deployment** | Medium | CI/CD uses `appleboy/ssh-action` with an SSH private key stored as a GitHub Secret. If the GitHub org is compromised, the attacker gets shell access to the production server. **Fix:** Migrate to OIDC-based authentication or use a deployment-specific user with restricted sudo. |
+| **No CPU limits on containers** | Low | `docker-compose.prod.yml` sets memory limits (384MB web, 200MB db) but no CPU limits. A runaway process could starve the other container. **Fix:** Add `cpus: "0.8"` for web and `cpus: "0.5"` for db. |
+| **Coolify as single point of failure** | Medium | Traefik is managed by Coolify. If the Coolify daemon crashes, Traefik stops, and the app becomes unreachable. No documented fallback procedure. **Fix:** Document manual Traefik restart procedure: `docker restart coolify-proxy`. |
+| **No automated backup validation** | Medium | Backups are gzipped SQL dumps. No automated restore test validates they're not corrupted. A backup could silently fail for weeks. **Fix:** Weekly cron job that restores the latest backup to a test database and verifies row counts. |
+| **Rollback can fail if cleanup ran** | Low | `deploy.sh` cleans up old Docker images after 24 hours. If a deployment fails after the previous image was cleaned, rollback has nothing to roll back to. **Fix:** Keep the last 2 tagged images regardless of age: `docker tag app:latest app:rollback-1 && docker tag app:rollback app:rollback-2`. |
+
+#### What will break first under scale
+
+The single DigitalOcean droplet. At ~500 concurrent users, 2 Gunicorn workers with 2 threads each (4 total concurrent requests) will saturate. Response times will spike, and with no autoscaling, the only fix is manual intervention.
+
+#### Recommended fix order
+1. Implement offsite backup sync (S3/Spaces) — hours of work, prevents disaster
+2. Add centralized logging — Betterstack free tier takes 30 minutes
+3. Increase deploy health check to 30 seconds
+4. Add staging environment
+5. Restrict `.env.prod` file permissions
+
+---
+
+### EXPERT 10: Analytics, Tracking, and Experimentation Specialist
+
+#### Diagnosis
+
+This is the **biggest blind spot** in the entire ecosystem. There is literally zero analytics anywhere — no web analytics, no mobile analytics, no funnel tracking, no event tracking, no conversion measurement. The privacy-first philosophy has been taken to an extreme that prevents the team from understanding their own product.
+
+#### Findings
+
+| Issue | Severity | Details |
+|-------|----------|--------|
+| **Zero analytics on website** | High | No Google Analytics, Plausible, Fathom, or any other analytics tool. You cannot answer: How many people visit the site? Which pages are popular? Where do visitors come from? What's the bounce rate? What % of visitors download the app? **Fix:** Install Plausible or Fathom (privacy-friendly, no cookies, GDPR-compliant without consent banner). Cost: ~$9/month. |
+| **Zero analytics in mobile app** | High | No event tracking whatsoever. You cannot answer: How many users open the app daily? Which tab is most used? Do users scroll past 3 announcements? How many people enable notifications? What's the retention curve? **Fix:** Implement lightweight, privacy-respecting event tracking. Options: (a) Self-hosted Posthog, (b) Expo's built-in analytics, (c) Custom events to your own API endpoint. |
+| **No donation funnel tracking** | High | The donate page has a well-designed flow (amount → frequency → checkout) but no tracking. You can't answer: How many people start the flow? Where do they drop off? What's the average donation? How many use Gift Aid? Stripe Dashboard shows completed donations but not abandonment. **Fix:** Add basic funnel events: `donate_page_viewed`, `amount_selected`, `checkout_started`, `checkout_completed`. |
+| **No download attribution** | Medium | App Store and Google Play links exist but no UTM parameters or attribution tracking. You can't answer: Do downloads come from the website, social media, or word of mouth? **Fix:** Add UTM parameters to store links and use App Store Connect / Google Play Console attribution data. |
+| **No error tracking on website** | Medium | Backend has Sentry. Mobile app has Sentry (DSN unconfigured). Website has nothing. A broken donation flow would be invisible. **Fix:** Add Sentry browser SDK to the website. |
+| **No A/B testing infrastructure** | Low | No experimentation framework. For current stage this is fine, but when optimizing donation conversion, you'll need it. Not urgent. |
+
+#### The paradox
+
+The privacy policy proudly states "no analytics or tracking SDKs" as a feature. But this creates a different problem: **you're building a product blind**. Privacy-respecting analytics (Plausible, Fathom, self-hosted Posthog) exist precisely for this use case — they provide aggregate insights without tracking individuals.
+
+#### Recommended fix order
+1. Install Plausible on website (30 minutes, $9/month, no cookies needed)
+2. Configure mobile Sentry DSN (15 minutes)
+3. Add basic donation funnel events on website (2 hours)
+4. Add UTM parameters to store links (30 minutes)
+5. Plan mobile analytics strategy (self-hosted for privacy compliance)
+
+---
+
+### EXPERT 11: Growth, Conversion, and Trust Optimisation Strategist
+
+#### Diagnosis
+
+The website and app have a **trust-first design** that aligns with the mosque community audience. The "no tracking" stance builds credibility. But conversion paths are weak, and the growth strategy relies entirely on word-of-mouth with no way to measure or optimise it.
+
+#### Findings
+
+| Issue | Severity | Details |
+|-------|----------|--------|
+| **Download page has no urgency or social proof** | Medium | `download.html` shows App Store and Google Play badges but no download counts, user testimonials, or community size. Mosque communities are trust-driven — "500 families already use this app" would dramatically increase conversion. **Fix:** Add a simple counter or testimonial section. Even "Serving the community since 2026" adds credibility. |
+| **No app onboarding drives early churn** | High | Users download the app, see prayer times for an unknown location, have no mosque selected, and no context. First-session experience is confusing. **Fix:** Build a 3-step onboarding: (1) Select your mosque, (2) Enable notifications, (3) See your prayer times. This is the single highest-leverage growth fix. |
+| **Donation page is well-designed but buried** | Medium | The donate page is accessible from the navbar but not promoted within the app. No in-app donation prompt, no "Support your masjid" card on the home screen. **Fix:** Add a tasteful donation card in the app (not intrusive — aligned with the serene design philosophy). |
+| **No referral or sharing mechanism** | Low | No way for users to share the app with other community members. No "Invite a friend" flow, no shareable prayer time cards for WhatsApp (the dominant messaging app in UK mosque communities). **Fix:** Add "Share Prayer Times" button that generates a formatted image/text for WhatsApp sharing. |
+| **Contact form has no auto-response** | Low | Users submit the contact form and see a success message, but receive no email confirmation. They don't know if their message was received. **Fix:** Send an auto-acknowledgment email via Resend when a contact form submission is created. |
+| **No password reset flow** | Medium | There is no "Forgot password" functionality anywhere. Users who forget their password cannot recover their account. They must create a new account, losing all subscriptions. **Fix:** Implement password reset via email (Django's built-in `PasswordResetView` + Resend for email delivery). |
+
+#### What will create trust issues
+
+The missing password reset flow. When a user can't log in and there's no recovery option, they lose trust in the app. This is especially problematic for the target demographic (older community members who frequently forget passwords).
+
+#### Recommended fix order
+1. Build onboarding flow (highest growth leverage)
+2. Implement password reset
+3. Add social proof to download page
+4. Add in-app donation prompt
+5. Add WhatsApp sharing for prayer times
+
+---
+
+### EXPERT 12: QA, Edge Cases, and Failure Testing Lead
+
+#### Diagnosis
+
+The testing infrastructure exists but provides **false confidence**. 40% coverage thresholds, no integration tests, no end-to-end tests, and several confirmed race conditions that unit tests cannot catch.
+
+#### Findings
+
+| Issue | Severity | Details |
+|-------|----------|--------|
+| **Account deletion is a TODO stub** | Critical | `settings.tsx` has a "Delete Account" button with `onPress: () => { // TODO: Implement account deletion API call }`. This is a **functional bug** that violates GDPR and will cause app store rejection. The backend endpoint exists (`DELETE /api/v1/auth/delete-account/`) but the frontend never calls it. **Fix:** Wire the button to `api.deleteAccount()` with confirmation dialog and password verification. |
+| **Cache race condition produces intermittent bugs** | High | `useAnnouncements` and `useEvents` hooks have a race condition where `hasFreshDataRef` can be reset by concurrent refresh calls. This produces an intermittent bug where old data replaces new data. Unit tests won't catch this because they don't test concurrent execution. **Fix:** Use monotonic request counter or AbortController. Write a concurrent execution test. |
+| **ensurePM() corrupts Fajr time** | High | If Aladhan API returns Fajr as "4:30" (without AM/PM suffix), `ensurePM()` converts it to "16:30". Users would see Fajr at 4:30 PM. The bug only triggers with certain Aladhan response formats, making it hard to catch in testing. **Fix:** Make ensurePM prayer-name-aware. Add test case with known Aladhan response formats. |
+| **No end-to-end tests** | Medium | No Detox, Maestro, or Appium tests. The entire UI is validated only by manual testing (which hasn't happened on real devices per LAUNCH_READINESS). **Fix:** Add Maestro (simplest for Expo) with 5 critical flows: launch, sign-up, view prayer times, view announcements, change settings. |
+| **Empty states not tested** | Medium | What happens when a mosque has zero announcements? Zero events? When the API returns an empty paginated list? When the user has no subscriptions? These states are likely untested and may show blank screens or broken layouts. **Fix:** Add test fixtures for empty API responses and verify UI renders empty state components. |
+| **Network failure states not tested** | Medium | What happens when the API is unreachable? When it returns 500? When a request times out? The retry logic exists in `fetchWithRetry()` but its interaction with the UI hooks is untested. **Fix:** Add Jest tests with `msw` (Mock Service Worker) simulating network failures, 500s, and timeouts. |
+| **Timezone edge cases** | Medium | Prayer times assume device timezone matches the user's location. A user who travels (e.g., visiting a UK mosque from a US timezone device) will see incorrect prayer times. No warning is shown. **Fix:** Detect timezone mismatch between device and mosque location. Show warning: "Your device timezone doesn't match this mosque's location." |
+| **DST transition not tested** | Medium | The UK moves to BST (British Summer Time) on the last Sunday of March. Prayer times that cross this boundary (e.g., cached times from Saturday rendered on Sunday) will be off by 1 hour. **Fix:** Add test case for DST transition dates. Ensure prayer times are always calculated fresh on DST change days. |
+| **Notification scheduling across midnight** | Low | If a user opens the app at 11:55 PM, prayer reminders scheduled for the next day's Fajr may not fire if the scheduling logic assumes "today." **Fix:** Always schedule next 24 hours of reminders regardless of current time. |
+| **Test coverage is security theater** | Medium | 40% statement / 30% branch coverage means 60-70% of code paths are untested. The most dangerous bugs (race conditions, timezone handling, DST transitions) are in the untested portion. **Fix:** Increase thresholds to 60% statements / 50% branches as a start. Target 80% within 3 months. |
+
+#### What will break first in production
+
+The account deletion TODO. A user will try to delete their account, nothing will happen, they'll file an app store complaint or ICO complaint, and you'll have a compliance incident.
+
+#### Recommended fix order
+1. Wire account deletion button to API (Critical — hours of work)
+2. Fix ensurePM() Fajr corruption
+3. Fix cache race condition
+4. Add empty state tests
+5. Add network failure tests
+6. Add Maestro e2e tests for 5 critical flows
+7. Increase coverage thresholds
+
+---
+
+*Batch 4 (Cross-Disciplinary Risks + Red Flag Register) follows in next commit.*
