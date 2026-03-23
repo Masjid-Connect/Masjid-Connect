@@ -127,10 +127,19 @@ export default function SettingsScreen() {
   };
 
   const handleLanguageChange = useCallback(async (lang: string) => {
+    const isRTLChange = (lang === 'ar') !== (currentLanguage === 'ar');
     setCurrentLanguage(lang);
     await persistLanguage(lang);
     await i18n.changeLanguage(lang);
-  }, []);
+    if (isRTLChange) {
+      Alert.alert(
+        lang === 'ar' ? 'إعادة تشغيل مطلوبة' : 'Restart Required',
+        lang === 'ar'
+          ? 'يرجى إعادة تشغيل التطبيق لتطبيق تخطيط اللغة العربية.'
+          : 'Please restart the app to apply the right-to-left layout for Arabic.',
+      );
+    }
+  }, [currentLanguage]);
 
   const handleReminderChange = useCallback(async (minutes: number) => {
     setReminderMin(minutes);

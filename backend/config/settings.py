@@ -68,12 +68,14 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_filters",
     "drf_spectacular",
+    "axes",
     # Local
     "core",
     "api",
 ]
 
 MIDDLEWARE = [
+    "config.middleware.RequestCorrelationMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -84,6 +86,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "config.middleware.ContentSecurityPolicyMiddleware",
+    "axes.middleware.AxesMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -232,6 +235,9 @@ FEEDBACK_NOTIFY_EMAIL = env("FEEDBACK_NOTIFY_EMAIL", default="info@salafimasjid.
 RESEND_API_KEY = env("RESEND_API_KEY", default="")
 CONTACT_TO_EMAIL = env("CONTACT_TO_EMAIL", default="info@salafimasjid.app")
 
+# Cloudflare Turnstile — server-side validation for contact/donate forms
+TURNSTILE_SECRET_KEY = env("TURNSTILE_SECRET_KEY", default="")
+
 # Stripe
 STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="")
 STRIPE_PUBLISHABLE_KEY = env("STRIPE_PUBLISHABLE_KEY", default="")
@@ -371,6 +377,16 @@ UNFOLD = {
         ],
     },
 }
+
+# ── django-axes — brute-force login protection ─────────────────────────
+AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+AXES_FAILURE_LIMIT = 5  # Lock after 5 failed attempts
+AXES_COOLOFF_TIME = timedelta(minutes=30)  # 30 minute lockout
+AXES_LOCKOUT_PARAMETERS = ["ip_address"]  # Lock by IP
+AXES_RESET_ON_SUCCESS = True  # Reset counter on successful login
 
 # ── Sentry — error tracking ──────────────────────────────────────────
 SENTRY_DSN_BACKEND = env("SENTRY_DSN_BACKEND", default="")

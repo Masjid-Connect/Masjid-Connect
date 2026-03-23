@@ -89,10 +89,17 @@ echo ""
 # Step 7: Health check (with automatic rollback)
 # -----------------------------------------------------------
 echo "Step 7/7: Checking that everything is working..."
-echo "Waiting 10 seconds for the app to start..."
-sleep 10
+echo "Waiting for the app to start (up to 30 seconds)..."
 
-HEALTH=$(curl -sf http://localhost:8000/health/ 2>/dev/null || echo "FAILED")
+HEALTH="FAILED"
+for i in 1 2 3; do
+    sleep 10
+    HEALTH=$(curl -sf http://localhost:8000/health/ 2>/dev/null || echo "FAILED")
+    if echo "$HEALTH" | grep -q "ok"; then
+        break
+    fi
+    echo "  Attempt $i/3: not ready yet..."
+done
 
 if echo "$HEALTH" | grep -q "ok"; then
     echo ""
@@ -101,8 +108,8 @@ if echo "$HEALTH" | grep -q "ok"; then
     echo "   App is running and healthy."
     echo "   $(date)"
     echo "============================================"
-    # Clean up old images
-    docker system prune -f --filter "until=24h" 2>/dev/null || true
+    # Clean up old images (keep last 2 for rollback safety)
+    docker image prune -f --filter "until=48h" 2>/dev/null || true
 else
     echo ""
     echo "============================================"

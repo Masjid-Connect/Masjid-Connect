@@ -33,18 +33,26 @@ export function initSentry(): void {
     },
     // Strip auth tokens from breadcrumbs (e.g. HTTP request breadcrumbs)
     beforeBreadcrumb(breadcrumb) {
-      if (breadcrumb.data) {
-        // Remove Authorization headers from request breadcrumbs
-        if (breadcrumb.data.headers) {
-          delete breadcrumb.data.headers.Authorization;
-          delete breadcrumb.data.headers.authorization;
-        }
-        // Scrub tokens from URL query strings if present
-        if (typeof breadcrumb.data.url === 'string') {
-          breadcrumb.data.url = breadcrumb.data.url.replace(
-            /token=[^&]+/gi,
-            'token=[REDACTED]',
-          );
+      if (breadcrumb.category === 'http' || breadcrumb.category === 'fetch' || breadcrumb.category === 'xhr') {
+        if (breadcrumb.data) {
+          delete breadcrumb.data['Authorization'];
+          delete breadcrumb.data['authorization'];
+          // Strip from request headers if present
+          if (breadcrumb.data['request_headers']) {
+            delete breadcrumb.data['request_headers']['Authorization'];
+            delete breadcrumb.data['request_headers']['authorization'];
+          }
+          if (breadcrumb.data.headers) {
+            delete breadcrumb.data.headers.Authorization;
+            delete breadcrumb.data.headers.authorization;
+          }
+          // Scrub tokens from URL query strings if present
+          if (typeof breadcrumb.data.url === 'string') {
+            breadcrumb.data.url = breadcrumb.data.url.replace(
+              /token=[^&]+/gi,
+              'token=[REDACTED]',
+            );
+          }
         }
       }
       return breadcrumb;
