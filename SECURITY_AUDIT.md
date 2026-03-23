@@ -452,4 +452,55 @@ The account deletion TODO. A user will try to delete their account, nothing will
 
 ---
 
-*Batch 4 (Cross-Disciplinary Risks + Red Flag Register) follows in next commit.*
+## 3. COMPOUND RISKS — Problems That Amplify Each Other
+
+### Compound Risk 1: Privacy Policy Contradiction + Sentry Token Leakage
+**Interaction:** The privacy policy says "no crash reporting tools" (Expert 8), but Sentry is installed and auth tokens may leak to Sentry (Expert 7).
+**Consequence:** If a user or regulator discovers tokens are being sent to a US-based crash reporting service that the privacy policy explicitly denies exists, the credibility damage is compounded. It's not just "you forgot to update the policy" — it's "you lied about privacy AND leaked auth tokens."
+**Fix both together:** Update privacy policy AND add token scrubbing in one commit.
+
+### Compound Risk 2: No Observability + No Offsite Backups
+**Interaction:** No centralized logging (Expert 9) + no offsite backups (Expert 9) + no mobile Sentry (Expert 4).
+**Consequence:** If the droplet fails at 3am, you lose: (a) the database, (b) all backups, (c) all logs of what happened. You won't even know it happened until users complain, because mobile Sentry isn't configured. By the time you investigate, there's nothing to investigate.
+**This is the highest-consequence compound risk in the system.**
+
+### Compound Risk 3: Account Deletion TODO + GDPR Export Missing in App
+**Interaction:** Account deletion is a dead button (Expert 12) + no "Export My Data" button in app (Expert 8).
+**Consequence:** A user who wants to exercise GDPR rights (deletion + portability) has zero working options in the app. Both rights are required under UK GDPR. A single ICO complaint from a frustrated user creates regulatory exposure disproportionate to the fix effort (a few hours of work).
+
+### Compound Risk 4: No Analytics + No Onboarding + No Password Reset
+**Interaction:** Zero analytics (Expert 10) + no onboarding (Expert 11) + no password reset (Expert 11).
+**Consequence:** Users download the app, get confused (no onboarding), forget their password (no reset), create a new account, and you have no data showing this pattern (no analytics). You'll see growing user registrations and think the app is succeeding, while actual retention is near zero. Growth metrics become misleading.
+
+### Compound Risk 5: Cache Race Condition + No E2E Tests + Low Coverage
+**Interaction:** `hasFreshDataRef` race (Expert 4) + no end-to-end tests (Expert 12) + 40% coverage (Expert 12).
+**Consequence:** The race condition exists in production, no test catches it, and the coverage threshold is too low to force anyone to write the test. The bug will manifest as intermittent "my announcements disappeared" reports that cannot be reproduced in development because single-threaded test execution doesn't trigger the race.
+
+### Compound Risk 6: ensurePM() Bug + No Timezone Validation + No DST Testing
+**Interaction:** Fajr time corruption (Expert 4) + device timezone assumption (Expert 12) + no DST test (Expert 12).
+**Consequence:** During DST transitions, Aladhan API responses may use different time formats. If `ensurePM()` receives an ambiguous time during a DST boundary, it could silently corrupt prayer times for millions of daily prayer calculations. For a religious app, **showing wrong prayer times is the single most trust-destroying bug possible.**
+
+### Compound Risk 7: Good Security Posture + No Admin Brute-Force Protection
+**Interaction:** Strong API security (Expert 6) + no `django-axes` on admin login (Expert 7).
+**Consequence:** The API is well-protected, but the Django admin at `/admin/` (which has full database access) can be brute-forced. An attacker who fails to breach the API could pivot to the admin panel. The strong API security creates a false sense of overall security.
+
+---
+
+## 4. RED FLAG REGISTER — Things That Could Turn Into Disasters
+
+| # | Red Flag | Likelihood | Impact | Urgency | Owner |
+|---|----------|------------|--------|---------|-------|
+| 1 | **Droplet failure causes total data loss** (no offsite backups) | Medium (disk failures happen) | Catastrophic — all user data, all mosques, all subscriptions gone | **Immediate** | DevOps / Founder |
+| 2 | **App store rejection** (no consent checkboxes, placeholder EAS credentials, account deletion TODO) | High (Apple/Google enforce these) | High — blocks entire launch | **Immediate** | Mobile Dev |
+| 3 | **ICO complaint from privacy policy contradiction** (claims no crash reporting, Sentry installed) | Low-Medium (requires motivated complainant) | High — regulatory investigation, fine up to £8.7M or 2% revenue | **This week** | Legal / Founder |
+| 4 | **Wrong prayer times displayed** (ensurePM bug + DST + timezone assumptions) | Medium (edge case but real) | Catastrophic for trust — prayer times are the core feature | **Before launch** | Mobile Dev |
+| 5 | **Invisible app crashes** (no Sentry DSN configured) | Certain (crashes will happen) | Medium — users churn silently, bugs compound | **This week** | Mobile Dev |
+| 6 | **Auth token leaked to Sentry** (no header scrubbing) | Medium (requires Sentry error with request context) | High — token compromise enables account takeover | **This week** | Security / Mobile Dev |
+| 7 | **Production database corrupted by scraper** (no dry-run mode, no staging) | Low (scraper is tested, but PDFs change) | High — corrupted prayer times for all users | **Before launch** | Backend Dev |
+| 8 | **Admin panel brute-forced** (no django-axes, no 2FA) | Low (requires targeted attack) | Catastrophic — full database access, can post fake announcements | **This month** | Backend Dev |
+| 9 | **Donation flow breaks silently** (no web error tracking, no analytics) | Medium (Stripe SDK updates, browser changes) | Medium — lost donations with no visibility | **This month** | Web Dev |
+| 10 | **Scale beyond 4 concurrent requests** (2 workers × 2 threads) | Depends on growth | High — response timeouts, cascading failures | **Monitor quarterly** | DevOps |
+
+---
+
+*Batch 5 (Fix Plan + Priority Matrix + Release Readiness) follows in next commit.*
