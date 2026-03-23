@@ -10,7 +10,6 @@ TESTING = "test" in sys.argv
 import logging
 import environ
 import sentry_sdk
-from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -32,16 +31,12 @@ if env_file.exists():
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 
-# In production, generate a random key if none was explicitly set.
-# This lets the app start (health checks pass) but sessions/tokens won't
-# persist across container restarts — operators should set a proper key.
+# In production, refuse to start without an explicit SECRET_KEY.
+# A random key per container start would silently invalidate all tokens/sessions.
 if not DEBUG and SECRET_KEY == _INSECURE_SECRET_KEY:
-    SECRET_KEY = get_random_secret_key()
-    logger = logging.getLogger("django")
-    logger.critical(
-        "SECRET_KEY is not set — using a random key. "
-        "Sessions will be lost on restart. "
-        "Set SECRET_KEY in your environment variables or .env file."
+    raise RuntimeError(
+        "SECRET_KEY is not set. Refusing to start in production with the insecure "
+        "default key. Set SECRET_KEY in your environment variables or .env file."
     )
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 
@@ -249,11 +244,15 @@ SPECTACULAR_SETTINGS = {
 
 # CORS
 CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS")
-# Allow Cloudflare Pages preview deployments (unique subdomains per deploy)
+# Only allow known production and preview origins — no wildcard subdomains.
+# Add specific preview URLs here as needed rather than allowing any subdomain,
+# which would let attackers deploy on *.masjid-connect.pages.dev.
 CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://[a-z0-9]+\.masjid-connect\.pages\.dev$",
     r"^https://(www\.)?salafimasjid\.app$",
 ]
+# Explicit Cloudflare Pages origins (add known preview deployments here)
+_CF_PAGES_ORIGINS = env.list("CORS_CF_PAGES_ORIGINS", default=[])
+CORS_ALLOWED_ORIGINS = list(CORS_ALLOWED_ORIGINS) + _CF_PAGES_ORIGINS
 if DEBUG and not CORS_ALLOWED_ORIGINS:
     # Allow common local development origins instead of wildcard CORS_ALLOW_ALL_ORIGINS.
     # Using explicit origins prevents accidental exposure if DEBUG=True leaks to production.
@@ -375,12 +374,23 @@ UNFOLD = {
     },
 }
 
+# ── Proxy IP resolution ──────────────────────────────────────────────
+# Behind Cloudflare → Traefik → Gunicorn: 2 proxies before Django.
+# NUM_PROXIES tells DRF throttling to trust the correct X-Forwarded-For hop.
+NUM_PROXIES = env.int("NUM_PROXIES", default=2)
+
 # ── django-axes — admin brute-force protection ──────────────────────
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 0.5  # 30 minutes
 AXES_LOCKOUT_PARAMETERS = ["ip_address", "username"]
 AXES_RESET_ON_SUCCESS = True
 AXES_ONLY_ADMIN_SITE = True  # Only protect /admin/ login
+# Use Cloudflare's real client IP header for accurate lockout
+AXES_META_PRECEDENCE_ORDER = [
+    "HTTP_CF_CONNECTING_IP",
+    "HTTP_X_FORWARDED_FOR",
+    "REMOTE_ADDR",
+]
 
 AUTHENTICATION_BACKENDS = [
     "axes.backends.AxesStandaloneBackend",

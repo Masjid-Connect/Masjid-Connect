@@ -1,8 +1,10 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Sentry from '@sentry/react-native';
 import { auth, pushTokens } from '@/lib/api';
 import { registerForPushNotifications } from '@/lib/notifications';
+import { evictAllCachedData } from '@/lib/storage';
 
 const GUEST_KEY = 'has_chosen_guest';
 
@@ -34,14 +36,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isGuest, setIsGuest] = useState(false);
 
-  const syncPushToken = useCallback(async () => {
+  const syncPushToken = useCallback(async (retryCount = 0) => {
     try {
       const token = await registerForPushNotifications();
       if (token && (Platform.OS === 'ios' || Platform.OS === 'android')) {
         await pushTokens.register(token, Platform.OS);
       }
-    } catch {
-      // Non-critical — push registration can fail silently
+    } catch (err) {
+      Sentry.captureException(err, { tags: { context: 'push_token_registration', retry: retryCount } });
+      if (retryCount < 2) {
+        setTimeout(() => syncPushToken(retryCount + 1), 5000 * (retryCount + 1));
+      }
     }
   }, []);
 
@@ -108,6 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
+    await evictAllCachedData();
     await auth.logout();
     setUser(null);
     setIsGuest(false);
@@ -115,6 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const deleteAccount = useCallback(async (password?: string) => {
+    await evictAllCachedData();
     await auth.deleteAccount(password);
     setUser(null);
     setIsGuest(false);
