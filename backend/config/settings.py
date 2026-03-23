@@ -135,6 +135,10 @@ STORAGES = {
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Limit uploaded file size to 10 MB (prevents memory exhaustion from large uploads)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # DRF
@@ -150,7 +154,7 @@ REST_FRAMEWORK = {
         "rest_framework.filters.SearchFilter",
         "rest_framework.filters.OrderingFilter",
     ],
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_PAGINATION_CLASS": "api.pagination.AppPageNumberPagination",
     "PAGE_SIZE": 50,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_CLASSES": [] if TESTING else [
@@ -168,6 +172,8 @@ REST_FRAMEWORK = {
 }
 
 # Logging
+_LOG_FORMATTER = "json" if not DEBUG else "verbose"
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -176,11 +182,14 @@ LOGGING = {
             "format": "[{asctime}] {levelname} {name} {message}",
             "style": "{",
         },
+        "json": {
+            "()": "config.logging_formatter.JSONFormatter",
+        },
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "verbose",
+            "formatter": _LOG_FORMATTER,
         },
     },
     "root": {
