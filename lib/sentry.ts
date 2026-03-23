@@ -24,11 +24,6 @@ export function initSentry(): void {
         delete event.user.email;
         delete event.user.ip_address;
       }
-      // Scrub auth tokens from request data attached to error events
-      if (event.request?.headers) {
-        delete event.request.headers.Authorization;
-        delete event.request.headers.authorization;
-      }
       return event;
     },
     // Strip auth tokens from breadcrumbs (e.g. HTTP request breadcrumbs)

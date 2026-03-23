@@ -62,3 +62,23 @@ class ContentSecurityPolicyMiddleware:
         )
         response["Referrer-Policy"] = "strict-origin-when-cross-origin"
         return response
+
+
+class RequestIDMiddleware:
+    """Attach a unique X-Request-ID to every request/response for tracing.
+
+    If the client sends an X-Request-ID header, it is reused; otherwise a
+    new UUID4 is generated. The ID is stored on the request object and
+    returned in the response header.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        import uuid
+        request_id = request.META.get("HTTP_X_REQUEST_ID") or str(uuid.uuid4())
+        request.request_id = request_id
+        response = self.get_response(request)
+        response["X-Request-ID"] = request_id
+        return response

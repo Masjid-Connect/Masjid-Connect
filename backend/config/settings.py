@@ -75,7 +75,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    "config.middleware.RequestCorrelationMiddleware",
+    "config.middleware.RequestIDMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -144,9 +144,6 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-# Auth token expiration — tokens older than this are rejected on use
-TOKEN_TTL = timedelta(days=30)
 
 # DRF
 REST_FRAMEWORK = {
@@ -235,7 +232,7 @@ FEEDBACK_NOTIFY_EMAIL = env("FEEDBACK_NOTIFY_EMAIL", default="info@salafimasjid.
 RESEND_API_KEY = env("RESEND_API_KEY", default="")
 CONTACT_TO_EMAIL = env("CONTACT_TO_EMAIL", default="info@salafimasjid.app")
 
-# Cloudflare Turnstile — server-side validation for contact/donate forms
+# Cloudflare Turnstile — anti-bot for contact form
 TURNSTILE_SECRET_KEY = env("TURNSTILE_SECRET_KEY", default="")
 
 # Stripe
@@ -378,15 +375,20 @@ UNFOLD = {
     },
 }
 
-# ── django-axes — brute-force login protection ─────────────────────────
+# ── django-axes — admin brute-force protection ──────────────────────
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = 0.5  # 30 minutes
+AXES_LOCKOUT_PARAMETERS = ["ip_address", "username"]
+AXES_RESET_ON_SUCCESS = True
+AXES_ONLY_ADMIN_SITE = True  # Only protect /admin/ login
+
 AUTHENTICATION_BACKENDS = [
     "axes.backends.AxesStandaloneBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
-AXES_FAILURE_LIMIT = 5  # Lock after 5 failed attempts
-AXES_COOLOFF_TIME = timedelta(minutes=30)  # 30 minute lockout
-AXES_LOCKOUT_PARAMETERS = ["ip_address"]  # Lock by IP
-AXES_RESET_ON_SUCCESS = True  # Reset counter on successful login
+
+# ── Token authentication TTL ─────────────────────────────────────────
+TOKEN_TTL = timedelta(days=30)
 
 # ── Sentry — error tracking ──────────────────────────────────────────
 SENTRY_DSN_BACKEND = env("SENTRY_DSN_BACKEND", default="")
