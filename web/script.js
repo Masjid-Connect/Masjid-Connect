@@ -299,6 +299,7 @@
       })
         .then(function (res) {
           if (!res.ok) throw new Error('Failed');
+          formErrorEl.hidden = true;
           formSuccessEl.hidden = false;
           contactForm.reset();
           turnstileTokens.contact = null;
@@ -306,6 +307,7 @@
           if (window.turnstile) window.turnstile.reset();
         })
         .catch(function () {
+          formSuccessEl.hidden = true;
           formErrorText.innerHTML = 'Something went wrong. Please email us directly at <a href="mailto:info@salafimasjid.app">info@salafimasjid.app</a>';
           formErrorEl.hidden = false;
         })
