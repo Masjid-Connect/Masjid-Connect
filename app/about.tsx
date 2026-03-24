@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, ScrollView, Text, View, Image } from 'react-native';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -43,7 +44,7 @@ export default function AboutScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Hero — logo IS the identity, no redundant text */}
-        <View style={styles.hero}>
+        <Animated.View entering={FadeIn.duration(400)} style={styles.hero}>
           <Image
             source={require('@/assets/images/Masjid_Logo.png')}
             style={[styles.logo, isDark && { tintColor: colors.text }]}
@@ -54,22 +55,22 @@ export default function AboutScreen() {
               {t('about.version')} {Constants.expoConfig?.version ?? '1.0.0'}
             </Text>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Tagline — pull-quote style */}
-        <View style={styles.taglineSection}>
+        <Animated.View entering={FadeIn.duration(400)} style={styles.taglineSection}>
           <GoldRule color={colors.accent} />
           <Text style={[styles.tagline, { color: colors.text }]}>
             {t('about.tagline')}
           </Text>
           <GoldRule color={colors.accent} />
-        </View>
+        </Animated.View>
 
         {/* Sections */}
         <View style={styles.sections}>
 
           {/* 01 — About the Masjid */}
-          <View style={[styles.section, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
+          <Animated.View entering={FadeInDown.delay(0).duration(300).springify()} style={[styles.section, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
             <View style={styles.sectionHeader}>
               <SectionNumber n="01" color={colors.accent} />
               <Text style={[typography.title3, { color: colors.text, flex: 1 }]}>
@@ -80,10 +81,10 @@ export default function AboutScreen() {
             <Text style={[typography.callout, styles.sectionBody, { color: colors.textSecondary }]}>
               {t('about.aboutMasjid')}
             </Text>
-          </View>
+          </Animated.View>
 
           {/* 02 — About the App */}
-          <View style={[styles.section, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
+          <Animated.View entering={FadeInDown.delay(60).duration(300).springify()} style={[styles.section, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
             <View style={styles.sectionHeader}>
               <SectionNumber n="02" color={colors.accent} />
               <Text style={[typography.title3, { color: colors.text, flex: 1 }]}>
@@ -94,10 +95,10 @@ export default function AboutScreen() {
             <Text style={[typography.callout, styles.sectionBody, { color: colors.textSecondary }]}>
               {t('about.aboutApp')}
             </Text>
-          </View>
+          </Animated.View>
 
           {/* 03 — Acknowledgements */}
-          <View style={[styles.section, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
+          <Animated.View entering={FadeInDown.delay(120).duration(300).springify()} style={[styles.section, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
             <View style={styles.sectionHeader}>
               <SectionNumber n="03" color={colors.accent} />
               <Text style={[typography.title3, { color: colors.text, flex: 1 }]}>
@@ -108,7 +109,7 @@ export default function AboutScreen() {
             <Text style={[typography.callout, styles.sectionBody, { color: colors.textSecondary }]}>
               {t('about.credits')}
             </Text>
-          </View>
+          </Animated.View>
         </View>
 
         {/* Footer dua */}
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
     fontSize: typography.footnote.fontSize,
     fontWeight: fontWeight.bold,
     letterSpacing: 1.5,
-    fontFamily: 'SpaceMono',
+    fontVariant: ['tabular-nums'],
   },
   sectionDivider: {
     height: StyleSheet.hairlineWidth,

@@ -240,6 +240,36 @@ export const typography: Record<string, TextStyle> = {
     letterSpacing: -0.24,
     lineHeight: 20,
   },
+  subheadSemiBold: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    letterSpacing: -0.24,
+    lineHeight: 20,
+  },
+  caption1Medium: {
+    fontSize: 12,
+    fontWeight: '500' as const,
+    letterSpacing: 0,
+    lineHeight: 16,
+  },
+  caption1SemiBold: {
+    fontSize: 12,
+    fontWeight: '600' as const,
+    letterSpacing: 0,
+    lineHeight: 16,
+  },
+  caption2SemiBold: {
+    fontSize: 11,
+    fontWeight: '600' as const,
+    letterSpacing: 0.07,
+    lineHeight: 13,
+  },
+  footnoteMedium: {
+    fontSize: 13,
+    fontWeight: '500' as const,
+    letterSpacing: -0.08,
+    lineHeight: 18,
+  },
   // Special purpose
   prayerCountdown: {
     fontSize: 54,
@@ -321,6 +351,9 @@ export const components = {
     size: 64,
     opacity: 0.08,
   },
+  emptyState: {
+    iconSize: 72,
+  },
 } as const;
 
 /**
@@ -349,6 +382,12 @@ export const springs = {
 export const layout = {
   /** Minimum interactive touch target (Apple HIG) */
   minTouchTarget: 44,
+  /** Standard gap between content sections */
+  sectionGap: 24,
+  /** Bottom padding for scrollable content */
+  screenBottomPad: 64,
+  /** Screen edge horizontal inset */
+  screenInset: 32,
 } as const;
 
 /**

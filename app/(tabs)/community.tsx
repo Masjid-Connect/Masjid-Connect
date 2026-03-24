@@ -29,6 +29,7 @@ import { spacing, typography, borderRadius, fontWeight, springs, getElevation } 
 import { AnnouncementsContent } from '@/components/community/AnnouncementsContent';
 import { EventsContent } from '@/components/community/EventsContent';
 import { GoldBadge } from '@/components/brand/GoldBadge';
+import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { AdminFAB, QuickPostSheet, EventWizardSheet } from '@/components/admin';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { useReadAnnouncements } from '@/hooks/useReadAnnouncements';
@@ -124,6 +125,11 @@ export default function CommunityScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Subtle Islamic pattern — sacred identity */}
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <IslamicPattern opacity={0.02} color={isDark ? palette.divineGoldBright : palette.sapphire700} />
+      </View>
+
       {/* Inline header — appears when large title scrolls away */}
       <View style={[styles.inlineHeader, { paddingTop: insets.top, height: insets.top + HEADER_HEIGHT, backgroundColor: colors.background }]}>
         <Animated.Text
@@ -341,8 +347,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: spacing['3xl'],
-    marginTop: spacing.xl,
-    marginBottom: spacing['3xl'],
+    marginTop: spacing.lg,
+    marginBottom: spacing.xl,
     padding: spacing.lg,
     borderRadius: borderRadius.md,
     borderWidth: 1,

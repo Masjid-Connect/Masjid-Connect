@@ -7,7 +7,6 @@ import {
   SectionListData,
   ScrollView,
   RefreshControl,
-  ActivityIndicator,
   Pressable,
   Share,
   Platform,
@@ -25,6 +24,7 @@ import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { useReadAnnouncements } from '@/hooks/useReadAnnouncements';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { GoldBadge } from '@/components/brand/GoldBadge';
+import { ListSkeleton } from '@/components/ui/ListSkeleton';
 import type { Announcement } from '@/types';
 
 // ─── Time grouping ──────────────────────────────────────────────────
@@ -131,11 +131,7 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
 
   // ─── Loading ────────────────────────────────────────────────────
   if (isLoading && announcements.length === 0) {
-    return (
-      <View style={[styles.centered, { flex: 1 }]}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </View>
-    );
+    return <ListSkeleton rows={4} />;
   }
 
   // ─── Error ──────────────────────────────────────────────────────

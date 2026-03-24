@@ -5,7 +5,6 @@ import {
   Text,
   ScrollView,
   RefreshControl,
-  ActivityIndicator,
   PanResponder,
   useWindowDimensions,
   type ViewStyle,
@@ -28,6 +27,7 @@ import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography, borderRadius, getElevation, springs, fontWeight } from '@/constants/Theme';
 import { layout, patterns } from '@/lib/layoutGrid';
+import { PrayerSkeleton } from '@/components/ui/PrayerSkeleton';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { formatPrayerTime } from '@/lib/prayer';
 import { getAtmosphericGradient } from '@/lib/prayerGradients';
@@ -160,11 +160,7 @@ export default function PrayerTimesScreen() {
 
   // ─── Loading state ──────────────────────────────────────────────
   if (isLoading && prayers.length === 0) {
-    return (
-      <View style={[styles.root, styles.loading, { backgroundColor: colors.background, paddingTop: insets.top }]} accessibilityLabel={t('prayer.calculating')} accessibilityRole="progressbar">
-        <ActivityIndicator size="large" color={colors.accent} accessibilityLabel={t('prayer.calculating')} />
-      </View>
-    );
+    return <PrayerSkeleton />;
   }
 
   // ─── Error state — both prayer time sources failed (R2) ────────

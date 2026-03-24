@@ -7,12 +7,12 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  ActivityIndicator,
   Pressable,
   Linking,
   Alert,
+  LayoutAnimation,
 } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { format } from 'date-fns';
 import { Calendar, DateData } from 'react-native-calendars';
@@ -26,6 +26,7 @@ import { BottomSheet } from '@/components/ui/BottomSheet';
 import { Card } from '@/components/ui/Card';
 import type { MosqueEvent, EventCategory } from '@/types';
 import { EVENT_CATEGORY_COLORS, EVENT_CATEGORY_COLORS_DARK } from '@/types';
+import { ListSkeleton } from '@/components/ui/ListSkeleton';
 import { formatTimeString } from '@/lib/prayer';
 import { getUse24h } from '@/lib/storage';
 
@@ -162,11 +163,7 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
 
   // ─── Loading ────────────────────────────────────────────────────
   if (isLoading && events.length === 0) {
-    return (
-      <View style={[styles.centered, { flex: 1 }]}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </View>
-    );
+    return <ListSkeleton rows={3} showAccentBar />;
   }
 
   // ─── Error ──────────────────────────────────────────────────────
@@ -188,7 +185,7 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
     <>
       {/* Toolbar: calendar toggle + filter */}
       <View style={[styles.toolbar, { borderBottomColor: colors.separator }]}>
-        <TouchableOpacity onPress={() => setShowCalendar(!showCalendar)} style={styles.toolbarButton} accessibilityRole="button" accessibilityLabel={t('events.calendar')} accessibilityState={{ expanded: showCalendar }}>
+        <TouchableOpacity onPress={() => { LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); setShowCalendar(!showCalendar); }} style={styles.toolbarButton} accessibilityRole="button" accessibilityLabel={t('events.calendar')} accessibilityState={{ expanded: showCalendar }}>
           <Ionicons name={showCalendar ? 'calendar' : 'calendar-outline'} size={20} color={showCalendar ? colors.accent : colors.textSecondary} />
           <Text style={[typography.subhead, { color: showCalendar ? colors.accent : colors.textSecondary, marginStart: spacing.xs }]}>
             {t('events.calendar')}
@@ -203,6 +200,7 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
       </View>
 
       {showCalendar && (
+        <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(100)}>
         <Calendar
           markedDates={markedDates}
           onDayPress={(day: DateData) => setSelectedDate(day.dateString === selectedDate ? null : day.dateString)}
@@ -217,6 +215,7 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
             textDisabledColor: colors.textTertiary,
           }}
         />
+        </Animated.View>
       )}
 
       {selectedDate && (

@@ -256,9 +256,9 @@ export default function WelcomeScreen() {
   const isLoading = appleLoading || googleLoading;
 
   // Google button colors per official branding guidelines (Dec 2025)
-  const googleBtnBg = isDark ? '#131314' : palette.white;
-  const googleBtnBorder = isDark ? '#8E918F' : '#747775';
-  const googleBtnText = isDark ? '#E3E3E3' : '#1F1F1F';
+  const googleBtnBg = isDark ? palette.googleBgDark : palette.googleBgLight;
+  const googleBtnBorder = isDark ? palette.googleBorderDark : palette.googleBorderLight;
+  const googleBtnText = isDark ? palette.googleTextDark : palette.googleTextLight;
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
