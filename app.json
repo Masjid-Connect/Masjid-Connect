@@ -69,7 +69,12 @@
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "The Salafi Masjid",
+      "shortName": "Salafi Masjid",
+      "description": "Prayer times, announcements, and events from The Salafi Masjid.",
+      "themeColor": "#0F2D52",
+      "backgroundColor": "#F9F7F2"
     },
     "plugins": [
       "@sentry/react-native/expo",
