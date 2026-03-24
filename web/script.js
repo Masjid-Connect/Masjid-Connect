@@ -42,8 +42,12 @@
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   if ('IntersectionObserver' in window && !prefersReducedMotion) {
-    // Default observer for most elements (60% visible triggers reveal)
-    var defaultThreshold = 0.6;
+    // Mobile-friendly threshold — use lower threshold on small screens
+    // so tall elements (hero, feature grids) actually trigger
+    var isMobile = window.innerWidth <= 768;
+    var defaultThreshold = isMobile ? 0.15 : 0.4;
+    var defaultRootMargin = isMobile ? '0px 0px -20px 0px' : '0px 0px -40px 0px';
+
     var revealObserver = new IntersectionObserver(
       function (entries) {
         entries.forEach(function (entry) {
@@ -53,7 +57,7 @@
           }
         });
       },
-      { threshold: defaultThreshold, rootMargin: '0px 0px -60px 0px' }
+      { threshold: defaultThreshold, rootMargin: defaultRootMargin }
     );
 
     // Low-threshold observer for tall elements (legal pages, long content)
@@ -66,11 +70,14 @@
           }
         });
       },
-      { threshold: 0.05, rootMargin: '0px 0px -60px 0px' }
+      { threshold: 0.05, rootMargin: '0px 0px -20px 0px' }
     );
 
     revealElements.forEach(function (el) {
-      if (el.dataset.revealThreshold) {
+      // Hero elements should appear immediately — no scroll trigger needed
+      if (el.closest('.hero')) {
+        el.classList.add('is-visible');
+      } else if (el.dataset.revealThreshold) {
         lowThresholdObserver.observe(el);
       } else {
         revealObserver.observe(el);
