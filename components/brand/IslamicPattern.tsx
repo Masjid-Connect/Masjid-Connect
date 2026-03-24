@@ -12,6 +12,7 @@
 
 import React from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
+import Svg, { Path as SvgPath, G } from 'react-native-svg';
 
 import { palette } from '@/constants/Colors';
 
@@ -113,10 +114,6 @@ export const IslamicPattern = ({
   tileSize = 48,
   strokeWidth = 0.8,
 }: IslamicPatternProps) => {
-  if (Platform.OS === 'web') return null;
-
-  const { Canvas, Path, Group, Skia } = require('@shopify/react-native-skia');
-
   // Calculate grid
   const cols = Math.ceil(width / tileSize) + 1;
   const rows = Math.ceil(height / tileSize) + 1;
@@ -135,6 +132,43 @@ export const IslamicPattern = ({
 
   const combinedStarPath = starPaths.join(' ');
   const connectorPath = buildConnectorPaths(cols, rows, tileSize, offsetX, offsetY);
+
+  // Web fallback — use react-native-svg instead of Skia
+  if (Platform.OS === 'web') {
+    return (
+      <View
+        accessible={false}
+        accessibilityElementsHidden={true}
+        importantForAccessibility="no-hide-descendants"
+        pointerEvents="none"
+        style={[StyleSheet.absoluteFill, { width, height }]}
+      >
+        <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
+          <G opacity={opacity}>
+            <SvgPath
+              d={combinedStarPath}
+              stroke={color}
+              strokeWidth={strokeWidth}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+            {connectorPath ? (
+              <SvgPath
+                d={connectorPath}
+                stroke={color}
+                strokeWidth={strokeWidth * 0.6}
+                strokeLinecap="round"
+                fill="none"
+              />
+            ) : null}
+          </G>
+        </Svg>
+      </View>
+    );
+  }
+
+  const { Canvas, Path, Group, Skia } = require('@shopify/react-native-skia');
 
   const skiaStarPath = Skia.Path.MakeFromSVGString(combinedStarPath);
   const skiaConnectorPath = connectorPath

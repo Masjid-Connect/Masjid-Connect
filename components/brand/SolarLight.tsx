@@ -16,7 +16,7 @@
  */
 
 import React from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 
 import type { PrayerName } from '@/types';
 
@@ -101,18 +101,36 @@ export const SolarLight = ({
 }: SolarLightProps) => {
   const config = prayer ? LIGHT_CONFIGS[prayer] : null;
 
-  // No light for isha, unknown prayer, or web
-  if (Platform.OS === 'web' || !config || config.opacity === 0 || width === 0 || height === 0) {
+  if (!config || config.opacity === 0 || width === 0 || height === 0) {
     return null;
   }
-
-  const { Canvas, Circle, RadialGradient, vec } = require('@shopify/react-native-skia');
 
   const centerX = width * config.x;
   const centerY = height * config.y;
   const diagonal = Math.sqrt(width * width + height * height);
   const radius = diagonal * config.radiusScale;
   const opacity = isDark ? config.opacity * 0.5 : config.opacity;
+
+  // Web fallback — CSS radial gradient
+  if (Platform.OS === 'web') {
+    return (
+      <View
+        pointerEvents="none"
+        style={[
+          StyleSheet.absoluteFill,
+          {
+            width,
+            height,
+            opacity,
+            // @ts-expect-error — web-only CSS property
+            background: `radial-gradient(circle at ${centerX}px ${centerY}px, ${config.color} 0%, transparent ${radius}px)`,
+          },
+        ]}
+      />
+    );
+  }
+
+  const { Canvas, Circle, RadialGradient, vec } = require('@shopify/react-native-skia');
 
   return (
     <Canvas

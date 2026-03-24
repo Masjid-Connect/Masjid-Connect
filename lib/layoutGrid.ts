@@ -35,7 +35,7 @@ export const layout = {
   sectionSpacing: 32,
 
   /** Tab bar height per platform */
-  tabBarHeight: Platform.OS === 'ios' ? 83 : 64,
+  tabBarHeight: Platform.OS === 'ios' ? 83 : Platform.OS === 'web' ? 56 : 64,
 
   /** Minimum touch target (Apple HIG / Material) */
   minTouchTarget: 44,

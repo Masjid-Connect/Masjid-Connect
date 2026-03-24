@@ -14,6 +14,7 @@ import { palette } from '@/constants/Colors';
 import { AnimatedSplash } from '@/components/brand/AnimatedSplash';
 import { InAppToast } from '@/components/ui/InAppToast';
 import { ErrorFallback } from '@/components/ui/ErrorFallback';
+import { WebContainer } from '@/components/ui/WebContainer';
 import { ThemeProvider as AppThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ToastProvider, useToast } from '@/contexts/ToastContext';
@@ -128,20 +129,22 @@ function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Sentry.ErrorBoundary fallback={({ error, resetError }) => (
-        <ErrorFallback error={error} resetError={resetError} />
-      )}>
-        <AuthProvider>
-          <AnimatedSplash isVisible={showSplash} onAnimationComplete={handleSplashComplete}>
-            <AppThemeProvider>
-              <ToastProvider>
-                <RootLayoutNav />
-                <InAppToast />
-              </ToastProvider>
-            </AppThemeProvider>
-          </AnimatedSplash>
-        </AuthProvider>
-      </Sentry.ErrorBoundary>
+      <WebContainer>
+        <Sentry.ErrorBoundary fallback={({ error, resetError }) => (
+          <ErrorFallback error={error} resetError={resetError} />
+        )}>
+          <AuthProvider>
+            <AnimatedSplash isVisible={showSplash} onAnimationComplete={handleSplashComplete}>
+              <AppThemeProvider>
+                <ToastProvider>
+                  <RootLayoutNav />
+                  <InAppToast />
+                </ToastProvider>
+              </AppThemeProvider>
+            </AnimatedSplash>
+          </AuthProvider>
+        </Sentry.ErrorBoundary>
+      </WebContainer>
     </GestureHandlerRootView>
   );
 }

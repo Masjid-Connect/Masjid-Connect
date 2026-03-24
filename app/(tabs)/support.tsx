@@ -7,6 +7,7 @@ import {
   ScrollView,
   Alert,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -55,6 +56,7 @@ export default function SupportScreen() {
   const alphaColors = getAlpha(effectiveScheme);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   // State
   const [frequency, setFrequency] = useState<Frequency>('one-time');
@@ -170,7 +172,7 @@ export default function SupportScreen() {
     <View style={[styles.root, { backgroundColor: colors.backgroundSecondary }]}>
       {/* Subtle Islamic pattern — sacred identity */}
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <IslamicPattern opacity={0.02} color={isDark ? palette.divineGoldBright : palette.divineGold} />
+        <IslamicPattern width={windowWidth} height={windowHeight} opacity={0.02} color={isDark ? palette.divineGoldBright : palette.divineGold} />
       </View>
 
       {/* Inline header */}

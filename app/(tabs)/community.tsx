@@ -7,6 +7,7 @@ import {
   Share,
   Platform,
   LayoutChangeEvent,
+  useWindowDimensions,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Animated, {
@@ -46,6 +47,7 @@ export default function CommunityScreen() {
   const alphaColors = getAlpha(effectiveScheme);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const [activeSegment, setActiveSegment] = useState<CommunitySegment>('announcements');
   const { announcements, refresh: refreshAnnouncements } = useAnnouncements();
   const { unreadCount } = useReadAnnouncements();
@@ -127,7 +129,7 @@ export default function CommunityScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Subtle Islamic pattern — sacred identity */}
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <IslamicPattern opacity={0.02} color={isDark ? palette.divineGoldBright : palette.sapphire700} />
+        <IslamicPattern width={windowWidth} height={windowHeight} opacity={0.02} color={isDark ? palette.divineGoldBright : palette.sapphire700} />
       </View>
 
       {/* Inline header — appears when large title scrolls away */}
