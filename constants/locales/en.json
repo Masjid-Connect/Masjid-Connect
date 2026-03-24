@@ -342,6 +342,7 @@
     "coverFeesHint": "Payment providers charge a small fee per transaction. Covering this means 100% of your donation goes to the masjid.",
     "howOften": "How often?",
     "howMuch": "How much?",
+    "enhanceGift": "Enhance your gift",
     "paymentMethod": "Payment method",
     "donateNow": "Donate Now",
     "donateNowHint": "Card, Apple Pay, Google Pay or PayPal",
