@@ -19,7 +19,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography, fonts, layout, timing } from '@/constants/Theme';
+import { spacing, borderRadius, typography, fonts, layout, timing, fontWeight } from '@/constants/Theme';
 
 interface TextInputProps extends RNTextInputProps {
   label: string;
@@ -87,7 +87,7 @@ export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
             {
               color: error ? colors.urgent : colors.textSecondary,
               marginBottom: spacing.xs,
-              fontWeight: '500',
+              fontWeight: fontWeight.medium,
             },
           ]}>
           {label}

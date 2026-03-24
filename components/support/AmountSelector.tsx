@@ -10,11 +10,17 @@ import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography, getElevation } from '@/constants/Theme';
+import { spacing, borderRadius, typography, getElevation, fontWeight as fw } from '@/constants/Theme';
 
-const PRESET_AMOUNTS = [5, 10, 25, 50, 100];
+const PRESET_AMOUNTS = [
+  { value: 5 },
+  { value: 10 },
+  { value: 25, suggested: true },
+  { value: 50 },
+  { value: 100 },
+];
 
 interface AmountSelectorProps {
   selectedAmount: number | null;
@@ -29,11 +35,11 @@ export const AmountSelector = ({ selectedAmount, onAmountChange }: AmountSelecto
   const [isCustom, setIsCustom] = useState(false);
   const [customText, setCustomText] = useState('');
 
-  const handlePreset = (amount: number) => {
+  const handlePreset = (val: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setIsCustom(false);
     setCustomText('');
-    onAmountChange(amount);
+    onAmountChange(val);
   };
 
   const handleCustomPress = () => {
@@ -53,30 +59,38 @@ export const AmountSelector = ({ selectedAmount, onAmountChange }: AmountSelecto
     <View style={styles.container}>
       <View style={styles.grid}>
         {PRESET_AMOUNTS.map((amount) => {
-          const isSelected = !isCustom && selectedAmount === amount;
+          const isSelected = !isCustom && selectedAmount === amount.value;
+          const suggested = amount.suggested ?? false;
+          const goldColor = isDark ? palette.divineGoldBright : palette.divineGold;
           return (
             <Pressable
-              key={amount}
+              key={amount.value}
               style={[
                 styles.amountButton,
                 {
                   backgroundColor: isSelected ? colors.tint : colors.card,
-                  borderColor: isSelected ? colors.tint : colors.separator,
+                  borderColor: isSelected ? colors.tint : (suggested ? goldColor : colors.separator),
+                  borderWidth: suggested && !isSelected ? 1 : StyleSheet.hairlineWidth,
                   ...(!isSelected ? getElevation('sm', isDark) : {}),
                 },
               ]}
-              onPress={() => handlePreset(amount)}
-              accessibilityLabel={`Donate ${amount} pounds`}
+              onPress={() => handlePreset(amount.value)}
+              accessibilityLabel={`Donate ${amount.value} pounds`}
               accessibilityRole="button"
               accessibilityState={{ selected: isSelected }}
             >
+              {suggested && (
+                <View style={[styles.popularPill, { backgroundColor: goldColor }]}>
+                  <Text style={styles.popularText}>Popular</Text>
+                </View>
+              )}
               <Text
                 style={[
                   typography.headline,
                   { color: isSelected ? colors.onPrimary : colors.text },
                 ]}
               >
-                £{amount}
+                £{amount.value}
               </Text>
               {isSelected && (
                 <Ionicons
@@ -171,6 +185,18 @@ const styles = StyleSheet.create({
   },
   checkmark: {
     marginStart: spacing['2xs'],
+  },
+  popularPill: {
+    position: 'absolute',
+    top: spacing.xs,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 1,
+    borderRadius: borderRadius.full,
+  },
+  popularText: {
+    color: 'white',
+    fontSize: (typography.caption2.fontSize as number) - 2,
+    fontWeight: fw.semibold,
   },
   customInputContainer: {
     flexDirection: 'row',

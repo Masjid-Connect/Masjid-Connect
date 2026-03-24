@@ -14,6 +14,19 @@ export const fonts = {
 } as const;
 
 /**
+ * Font weight tokens — centralized weight constants.
+ * Prevents raw string proliferation ('300', '400', etc.) across the codebase.
+ * Usage: fontWeight.semibold instead of '600'.
+ */
+export const fontWeight = {
+  light: '300' as const,
+  regular: '400' as const,
+  medium: '500' as const,
+  semibold: '600' as const,
+  bold: '700' as const,
+} as const;
+
+/**
  * Spacing scale — expanded from 8pt grid.
  * Screen edge insets: spacing['3xl'] (32px).
  * Prayer row height target: 52px.
@@ -132,6 +145,8 @@ export function getElevation(level: ElevationLevel, isDark: boolean): ViewStyle 
 }
 
 export const borderRadius = {
+  '2xs': 2,  // Hairline decorative radii (accent bars, progress bars, gold rules)
+  '3xs': 4,  // Small decorative radii (dots, checkboxes, category indicators)
   xs: 6,
   sm: 10,
   md: 14,
@@ -225,6 +240,36 @@ export const typography: Record<string, TextStyle> = {
     letterSpacing: -0.24,
     lineHeight: 20,
   },
+  subheadSemiBold: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    letterSpacing: -0.24,
+    lineHeight: 20,
+  },
+  caption1Medium: {
+    fontSize: 12,
+    fontWeight: '500' as const,
+    letterSpacing: 0,
+    lineHeight: 16,
+  },
+  caption1SemiBold: {
+    fontSize: 12,
+    fontWeight: '600' as const,
+    letterSpacing: 0,
+    lineHeight: 16,
+  },
+  caption2SemiBold: {
+    fontSize: 11,
+    fontWeight: '600' as const,
+    letterSpacing: 0.07,
+    lineHeight: 13,
+  },
+  footnoteMedium: {
+    fontSize: 13,
+    fontWeight: '500' as const,
+    letterSpacing: -0.08,
+    lineHeight: 18,
+  },
   // Special purpose
   prayerCountdown: {
     fontSize: 54,
@@ -306,6 +351,9 @@ export const components = {
     size: 64,
     opacity: 0.08,
   },
+  emptyState: {
+    iconSize: 72,
+  },
 } as const;
 
 /**
@@ -334,6 +382,12 @@ export const springs = {
 export const layout = {
   /** Minimum interactive touch target (Apple HIG) */
   minTouchTarget: 44,
+  /** Standard gap between content sections */
+  sectionGap: 24,
+  /** Bottom padding for scrollable content */
+  screenBottomPad: 64,
+  /** Screen edge horizontal inset */
+  screenInset: 32,
 } as const;
 
 /**

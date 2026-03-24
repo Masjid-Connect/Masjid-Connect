@@ -15,6 +15,8 @@ import Animated, {
   interpolate,
   Extrapolation,
   FadeInDown,
+  FadeIn,
+  ZoomIn,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -24,8 +26,9 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography, getElevation } from '@/constants/Theme';
-import { AmountSelector, BankDetailsSheet, DonationConfirmationSheet } from '@/components/support';
+import { spacing, borderRadius, typography, getElevation, fontWeight } from '@/constants/Theme';
+import { AmountSelector, BankDetailsSheet, DonationConfirmationSheet, TrustBadge } from '@/components/support';
+import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { donations } from '@/lib/api';
 
 // Fee calculation: blended 2.5% + 20p estimate
@@ -165,6 +168,11 @@ export default function SupportScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.backgroundSecondary }]}>
+      {/* Subtle Islamic pattern — sacred identity */}
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <IslamicPattern opacity={0.02} color={isDark ? palette.divineGoldBright : palette.divineGold} />
+      </View>
+
       {/* Inline header */}
       <View style={[styles.inlineHeader, { paddingTop: insets.top, height: insets.top + HEADER_HEIGHT, backgroundColor: colors.backgroundSecondary }]}>
         <Animated.Text
@@ -298,11 +306,13 @@ export default function SupportScreen() {
               ]}
             >
               {giftAid && (
-                <Ionicons name="checkmark" size={14} color={palette.white} />
+                <Animated.View entering={ZoomIn.duration(200).springify()}>
+                  <Ionicons name="checkmark" size={16} color={palette.white} />
+                </Animated.View>
               )}
             </View>
             <View style={styles.optionText}>
-              <Text style={[typography.subhead, { fontWeight: '600', color: palette.sage600 }]}>
+              <Text style={[typography.subhead, { fontWeight: fontWeight.semibold, color: palette.sage600 }]}>
                 {t('support.giftAid')}
               </Text>
               <Text style={[typography.footnote, { color: colors.textSecondary }]}>
@@ -347,11 +357,13 @@ export default function SupportScreen() {
               ]}
             >
               {coverFees && (
-                <Ionicons name="checkmark" size={14} color={palette.white} />
+                <Animated.View entering={ZoomIn.duration(200).springify()}>
+                  <Ionicons name="checkmark" size={16} color={palette.white} />
+                </Animated.View>
               )}
             </View>
             <View style={styles.optionText}>
-              <Text style={[typography.subhead, { fontWeight: '600', color: colors.tint }]}>
+              <Text style={[typography.subhead, { fontWeight: fontWeight.semibold, color: colors.tint }]}>
                 {t('support.coverFees')}
               </Text>
               <Text style={[typography.footnote, { color: colors.textSecondary }]}>
@@ -443,11 +455,8 @@ export default function SupportScreen() {
         </Animated.View>
 
         {/* Security note */}
-        <Animated.View entering={FadeInDown.delay(470).duration(400)} style={styles.secureRow}>
-          <Ionicons name="shield-checkmark-outline" size={14} color={colors.textTertiary} />
-          <Text style={[typography.caption1, { color: colors.textTertiary }]}>
-            {t('support.secureNote')}
-          </Text>
+        <Animated.View entering={FadeInDown.delay(470).duration(400)}>
+          <TrustBadge />
         </Animated.View>
 
         {/* Where your donation goes */}
@@ -470,7 +479,7 @@ export default function SupportScreen() {
                   <Ionicons name={item.icon} size={18} color={colors.tint} />
                 </View>
                 <View style={styles.impactText}>
-                  <Text style={[typography.subhead, { fontWeight: '600', color: colors.text }]}>{item.title}</Text>
+                  <Text style={[typography.subhead, { fontWeight: fontWeight.semibold, color: colors.text }]}>{item.title}</Text>
                   <Text style={[typography.caption1, { color: colors.textSecondary }]}>{item.desc}</Text>
                 </View>
               </View>
@@ -568,9 +577,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   optionCheck: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
+    width: 24,
+    height: 24,
+    borderRadius: borderRadius.sm,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
@@ -605,14 +614,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,
-  },
-  secureRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    marginTop: spacing.lg,
-    marginBottom: spacing['2xl'],
   },
   impactCard: {
     padding: spacing.lg,

@@ -103,6 +103,14 @@ export const palette = {
   emerald700: '#0F2D52',
   emerald600: '#2D6A4F',
   emerald400: '#6BABE5',
+
+  // ─── External brand colors (mandated by third parties) ───
+  googleBgLight: '#FFFFFF',
+  googleBgDark: '#131314',
+  googleBorderLight: '#747775',
+  googleBorderDark: '#8E918F',
+  googleTextLight: '#1F1F1F',
+  googleTextDark: '#E3E3E3',
 } as const;
 
 /**

@@ -11,7 +11,7 @@ import { StyleSheet, View, Text, ViewStyle } from 'react-native';
 
 import { palette, getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing } from '@/constants/Theme';
+import { spacing, fontWeight } from '@/constants/Theme';
 
 interface GoldBadgeProps {
   /** Number to display inside the badge. If undefined, shows a dot. */
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    fontWeight: '600',
+    fontWeight: fontWeight.semibold,
     textAlign: 'center',
   },
 });

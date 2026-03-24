@@ -26,7 +26,7 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 
 import { palette } from '@/constants/Colors';
-import { springs } from '@/constants/Theme';
+import { springs, borderRadius } from '@/constants/Theme';
 import { patterns } from '@/lib/layoutGrid';
 import { breath, breathEasing } from '@/lib/breathMotion';
 import { IslamicPattern } from './IslamicPattern';
@@ -382,6 +382,6 @@ const styles = StyleSheet.create({
   shimmerClip: {
     position: 'absolute',
     overflow: 'hidden',
-    borderRadius: 8,
+    borderRadius: borderRadius.sm,
   },
 });

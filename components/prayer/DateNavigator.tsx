@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography } from '@/constants/Theme';
+import { spacing, typography, borderRadius, fontWeight } from '@/constants/Theme';
 
 interface DateNavigatorProps {
   selectedDate: Date;
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   arrowButton: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -159,11 +159,11 @@ const styles = StyleSheet.create({
   todayPill: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    borderRadius: 12,
+    borderRadius: borderRadius.md,
   },
   todayText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: typography.caption1.fontSize,
+    fontWeight: fontWeight.semibold,
     letterSpacing: 0.3,
   },
 });

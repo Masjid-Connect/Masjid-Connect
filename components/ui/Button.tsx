@@ -9,7 +9,7 @@ import {
 import * as Haptics from 'expo-haptics';
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography, fonts, components } from '@/constants/Theme';
+import { spacing, borderRadius, typography, fonts, components, fontWeight } from '@/constants/Theme';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive';
 
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: typography.callout.fontSize,
-    fontWeight: '600',
+    fontWeight: fontWeight.semibold,
     lineHeight: typography.callout.lineHeight,
   },
 });

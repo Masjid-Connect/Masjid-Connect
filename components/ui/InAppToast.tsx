@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
   dot: {
     width: 8,
     height: 8,
-    borderRadius: 4,
+    borderRadius: borderRadius['3xs'],
     marginEnd: spacing.md,
   },
   textContainer: {

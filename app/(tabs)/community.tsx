@@ -6,6 +6,7 @@ import {
   Pressable,
   Share,
   Platform,
+  LayoutChangeEvent,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Animated, {
@@ -14,6 +15,9 @@ import Animated, {
   useAnimatedStyle,
   interpolate,
   Extrapolation,
+  withSpring,
+  FadeIn,
+  FadeOut,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -21,10 +25,11 @@ import * as Haptics from 'expo-haptics';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius } from '@/constants/Theme';
+import { spacing, typography, borderRadius, fontWeight, springs, getElevation } from '@/constants/Theme';
 import { AnnouncementsContent } from '@/components/community/AnnouncementsContent';
 import { EventsContent } from '@/components/community/EventsContent';
 import { GoldBadge } from '@/components/brand/GoldBadge';
+import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { AdminFAB, QuickPostSheet, EventWizardSheet } from '@/components/admin';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { useReadAnnouncements } from '@/hooks/useReadAnnouncements';
@@ -79,10 +84,33 @@ export default function CommunityScreen() {
 
   const isDark = effectiveScheme === 'dark';
 
+  // ─── Animated segment indicator ─────────────────────────────
+  const segmentIndicatorX = useSharedValue(0);
+  const segmentWidth = useSharedValue(0);
+  const SEGMENT_PADDING = 2;
+
+  const handleSegmentLayout = useCallback((event: LayoutChangeEvent) => {
+    const width = event.nativeEvent.layout.width;
+    segmentWidth.value = (width - SEGMENT_PADDING * 2) / 2;
+    // Set initial position without animation
+    if (activeSegment === 'events') {
+      segmentIndicatorX.value = (width - SEGMENT_PADDING * 2) / 2;
+    }
+  }, [activeSegment, segmentIndicatorX, segmentWidth]);
+
+  const indicatorStyle = useAnimatedStyle(() => ({
+    width: segmentWidth.value,
+    transform: [{ translateX: segmentIndicatorX.value }],
+  }));
+
   const handleSegmentChange = useCallback((segment: CommunitySegment) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setActiveSegment(segment);
-  }, []);
+    segmentIndicatorX.value = withSpring(
+      segment === 'announcements' ? 0 : segmentWidth.value,
+      springs.snappy,
+    );
+  }, [segmentIndicatorX, segmentWidth]);
 
   const handleShareReward = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -97,6 +125,11 @@ export default function CommunityScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      {/* Subtle Islamic pattern — sacred identity */}
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <IslamicPattern opacity={0.02} color={isDark ? palette.divineGoldBright : palette.sapphire700} />
+      </View>
+
       {/* Inline header — appears when large title scrolls away */}
       <View style={[styles.inlineHeader, { paddingTop: insets.top, height: insets.top + HEADER_HEIGHT, backgroundColor: colors.background }]}>
         <Animated.Text
@@ -125,17 +158,24 @@ export default function CommunityScreen() {
           </Text>
         </Animated.View>
 
-        {/* Segmented control */}
+        {/* Segmented control with spring-animated sliding indicator */}
         <View style={[styles.segmentContainer, { paddingHorizontal: spacing['3xl'] }]}>
-          <View style={[styles.segmentControl, { backgroundColor: colors.backgroundGrouped }]}>
-            <Pressable
+          <View
+            style={[styles.segmentControl, { backgroundColor: colors.backgroundGrouped }]}
+            onLayout={handleSegmentLayout}
+          >
+            {/* Animated sliding indicator */}
+            <Animated.View
               style={[
-                styles.segmentButton,
-                activeSegment === 'announcements' && [
-                  styles.segmentButtonActive,
-                  { backgroundColor: colors.card },
-                ],
+                styles.segmentIndicator,
+                { backgroundColor: colors.card, ...getElevation('sm', isDark) },
+                indicatorStyle,
               ]}
+            />
+
+            {/* Announcements tab */}
+            <Pressable
+              style={styles.segmentButton}
               onPress={() => handleSegmentChange('announcements')}
               accessibilityRole="tab"
               accessibilityState={{ selected: activeSegment === 'announcements' }}
@@ -146,7 +186,7 @@ export default function CommunityScreen() {
                   typography.subhead,
                   {
                     color: activeSegment === 'announcements' ? colors.text : colors.textSecondary,
-                    fontWeight: activeSegment === 'announcements' ? '600' : '400',
+                    fontWeight: activeSegment === 'announcements' ? fontWeight.semibold : fontWeight.regular,
                   },
                 ]}>
                   {t('community.announcements')}
@@ -156,14 +196,10 @@ export default function CommunityScreen() {
                 )}
               </View>
             </Pressable>
+
+            {/* Events tab */}
             <Pressable
-              style={[
-                styles.segmentButton,
-                activeSegment === 'events' && [
-                  styles.segmentButtonActive,
-                  { backgroundColor: colors.card },
-                ],
-              ]}
+              style={styles.segmentButton}
               onPress={() => handleSegmentChange('events')}
               accessibilityRole="tab"
               accessibilityState={{ selected: activeSegment === 'events' }}
@@ -173,7 +209,7 @@ export default function CommunityScreen() {
                 typography.subhead,
                 {
                   color: activeSegment === 'events' ? colors.text : colors.textSecondary,
-                  fontWeight: activeSegment === 'events' ? '600' : '400',
+                  fontWeight: activeSegment === 'events' ? fontWeight.semibold : fontWeight.regular,
                 },
               ]}>
                 {t('community.events')}
@@ -182,11 +218,15 @@ export default function CommunityScreen() {
           </View>
         </View>
 
-        {/* Segment content */}
+        {/* Segment content with crossfade */}
         {activeSegment === 'announcements' ? (
-          <AnnouncementsContent onScroll={onScroll} />
+          <Animated.View style={styles.segmentContent} entering={FadeIn.duration(200)} exiting={FadeOut.duration(100)}>
+            <AnnouncementsContent onScroll={onScroll} />
+          </Animated.View>
         ) : (
-          <EventsContent onScroll={onScroll} />
+          <Animated.View style={styles.segmentContent} entering={FadeIn.duration(200)} exiting={FadeOut.duration(100)}>
+            <EventsContent onScroll={onScroll} />
+          </Animated.View>
         )}
 
         {/* Share the App — prominent CTA */}
@@ -282,6 +322,13 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.sm,
     padding: 2,
   },
+  segmentIndicator: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    bottom: 2,
+    borderRadius: borderRadius.sm - 2,
+  },
   segmentButton: {
     flex: 1,
     alignItems: 'center',
@@ -293,21 +340,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  segmentButtonActive: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+  segmentContent: {
+    flex: 1,
   },
   shareCard: {
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: spacing['3xl'],
-    marginTop: spacing.xl,
-    marginBottom: spacing['3xl'],
+    marginTop: spacing.lg,
+    marginBottom: spacing.xl,
     padding: spacing.lg,
-    borderRadius: 12,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
     gap: spacing.md,
   },

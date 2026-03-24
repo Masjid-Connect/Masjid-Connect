@@ -5,7 +5,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography } from '@/constants/Theme';
+import { spacing, borderRadius, typography, components } from '@/constants/Theme';
 import { Button } from '@/components/ui/Button';
 
 interface EmptyStateProps {
@@ -88,9 +88,9 @@ const styles = StyleSheet.create({
     paddingVertical: spacing['4xl'],
   },
   iconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: components.emptyState.iconSize,
+    height: components.emptyState.iconSize,
+    borderRadius: borderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
   },

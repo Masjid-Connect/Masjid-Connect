@@ -17,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, springs, getElevation } from '@/constants/Theme';
+import { spacing, typography, borderRadius, springs, getElevation, fontWeight } from '@/constants/Theme';
 
 interface AdminFABProps {
   onNewAnnouncement: () => void;
@@ -87,7 +87,7 @@ export const AdminFAB = ({ onNewAnnouncement, onNewEvent }: AdminFABProps) => {
           <View style={[styles.menuIcon, { backgroundColor: alphaColors.sapphireIconBg }]}>
             <Ionicons name="megaphone-outline" size={18} color={colors.tint} />
           </View>
-          <Text style={[typography.subhead, { color: colors.text, fontWeight: '600' }]}>
+          <Text style={[typography.subhead, { color: colors.text, fontWeight: fontWeight.semibold }]}>
             {t('admin.newAnnouncement')}
           </Text>
         </Pressable>
@@ -101,7 +101,7 @@ export const AdminFAB = ({ onNewAnnouncement, onNewEvent }: AdminFABProps) => {
           <View style={[styles.menuIcon, { backgroundColor: alphaColors.sapphireIconBg }]}>
             <Ionicons name="calendar-outline" size={18} color={colors.tint} />
           </View>
-          <Text style={[typography.subhead, { color: colors.text, fontWeight: '600' }]}>
+          <Text style={[typography.subhead, { color: colors.text, fontWeight: fontWeight.semibold }]}>
             {t('admin.newEvent')}
           </Text>
         </Pressable>
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   fab: {
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   menuIcon: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography } from '@/constants/Theme';
+import { spacing, typography, borderRadius } from '@/constants/Theme';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { Button } from '@/components/ui/Button';
 
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   iconCircle: {
     width: 80,
     height: 80,
-    borderRadius: 40,
+    borderRadius: borderRadius.full,
     justifyContent: 'center',
     alignItems: 'center',
   },

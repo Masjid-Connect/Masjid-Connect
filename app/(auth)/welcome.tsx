@@ -27,7 +27,7 @@ import Animated, {
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography, springs, components, timing, layout } from '@/constants/Theme';
+import { spacing, borderRadius, typography, springs, components, timing, layout, fontWeight } from '@/constants/Theme';
 import { patterns } from '@/lib/layoutGrid';
 import { useAuth } from '@/contexts/AuthContext';
 import { SkiaAtmosphericGradient, IslamicPattern, SolarLight } from '@/components/brand';
@@ -134,7 +134,7 @@ const FeatureCard = ({
         <Ionicons name={icon} size={18} color={colors.accent} />
       </View>
       <View style={styles.featureTextBox}>
-        <Text style={[typography.subhead, { color: colors.text, fontWeight: '600' }]}>
+        <Text style={[typography.subhead, { color: colors.text, fontWeight: fontWeight.semibold }]}>
           {t(titleKey)}
         </Text>
         <Text style={[typography.caption1, { color: colors.textSecondary, marginTop: 2 }]}>
@@ -256,9 +256,9 @@ export default function WelcomeScreen() {
   const isLoading = appleLoading || googleLoading;
 
   // Google button colors per official branding guidelines (Dec 2025)
-  const googleBtnBg = isDark ? '#131314' : palette.white;
-  const googleBtnBorder = isDark ? '#8E918F' : '#747775';
-  const googleBtnText = isDark ? '#E3E3E3' : '#1F1F1F';
+  const googleBtnBg = isDark ? palette.googleBgDark : palette.googleBgLight;
+  const googleBtnBorder = isDark ? palette.googleBorderDark : palette.googleBorderLight;
+  const googleBtnText = isDark ? palette.googleTextDark : palette.googleTextLight;
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
@@ -449,7 +449,7 @@ export default function WelcomeScreen() {
               {t('welcome.haveAccount')}{' '}
             </Text>
             <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')} accessibilityRole="button" accessibilityLabel={t('welcome.signIn')}>
-              <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>
+              <Text style={[typography.subhead, { color: colors.tint, fontWeight: fontWeight.semibold }]}>
                 {t('welcome.signIn')}
               </Text>
             </TouchableOpacity>
@@ -541,8 +541,8 @@ const styles = StyleSheet.create({
     marginEnd: spacing.sm,
   },
   authButtonText: {
-    fontSize: 15,
-    fontWeight: '500',
+    fontSize: typography.subhead.fontSize,
+    fontWeight: fontWeight.medium,
     letterSpacing: -0.1,
     marginStart: spacing.sm,
   },

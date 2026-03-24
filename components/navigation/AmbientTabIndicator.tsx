@@ -26,7 +26,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { getColors, getAlpha } from '@/constants/Colors';
-import { springs, spacing, typography, components } from '@/constants/Theme';
+import { springs, spacing, typography, components, fontWeight } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { layout } from '@/lib/layoutGrid';
 
@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: typography.caption2.fontSize,
-    fontWeight: '500',
+    fontWeight: fontWeight.medium,
     marginTop: spacing['2xs'],
   },
   glowContainer: {
