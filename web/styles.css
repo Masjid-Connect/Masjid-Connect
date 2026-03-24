@@ -2469,6 +2469,11 @@ ul {
   color: var(--crimson-600);
 }
 
+/* Ensure hidden attribute works despite display:flex above */
+.donate__status--error[hidden] {
+  display: none;
+}
+
 .donate__status--error svg {
   flex-shrink: 0;
   stroke: var(--crimson-600);
