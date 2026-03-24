@@ -1895,31 +1895,62 @@ ul {
 
 /* Hadith hero — spiritual framing above form */
 .donate__hadith-hero {
-  padding: 0 0 var(--sp-xl);
+  padding: 64px 0 48px;
 }
 
 .donate__hadith--hero {
-  max-width: 640px;
+  max-width: 600px;
   margin: 0 auto;
   text-align: center;
-  padding: var(--sp-2xl) var(--sp-3xl);
-  background: var(--alpha-prayer-active-bg);
-  border: 1px solid var(--separator);
-  border-radius: var(--radius-sm);
+  padding: 40px 48px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  position: relative;
+}
+
+/* Decorative quotation marks */
+.donate__hadith--hero::before {
+  content: "\201C";
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 72px;
+  line-height: 1;
+  color: var(--divine-gold);
+  opacity: 0.35;
+  font-family: Georgia, "Times New Roman", serif;
+  pointer-events: none;
+}
+
+/* Subtle gold rule beneath */
+.donate__hadith--hero::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 2px;
+  background: var(--divine-gold);
+  opacity: 0.5;
+  margin: 24px auto 0;
+  border-radius: 1px;
 }
 
 .donate__hadith--hero p {
-  font-size: 17px;
+  font-size: 18px;
   font-style: italic;
-  line-height: 1.6;
+  line-height: 1.7;
   color: var(--text-primary);
-  margin: 0 0 var(--sp-sm);
+  margin: 0 0 var(--sp-md);
+  letter-spacing: 0.01em;
 }
 
 .donate__hadith--hero cite {
   font-size: 13px;
   color: var(--text-tertiary);
   font-style: normal;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 /* Step divider */
@@ -2015,9 +2046,13 @@ ul {
   border-width: 1.5px;
 }
 
-[data-theme="dark"] .donate__hadith--hero {
-  background: rgba(91, 155, 213, 0.06);
-  border-color: rgba(91, 155, 213, 0.12);
+[data-theme="dark"] .donate__hadith--hero::before {
+  color: var(--divine-gold-bright);
+  opacity: 0.3;
+}
+[data-theme="dark"] .donate__hadith--hero::after {
+  background: var(--divine-gold-bright);
+  opacity: 0.35;
 }
 
 [data-theme="dark"] .donate__trust-badge {
