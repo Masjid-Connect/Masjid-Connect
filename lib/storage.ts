@@ -15,7 +15,13 @@ const KEYS = {
 /** User location */
 export async function getUserLocation(): Promise<{ latitude: number; longitude: number } | null> {
   const raw = await AsyncStorage.getItem(KEYS.USER_LOCATION);
-  return raw ? JSON.parse(raw) : null;
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    await AsyncStorage.removeItem(KEYS.USER_LOCATION);
+    return null;
+  }
 }
 
 export async function setUserLocation(latitude: number, longitude: number): Promise<void> {
@@ -102,7 +108,12 @@ const READ_ANNOUNCEMENTS_KEY = 'read_announcement_ids';
 export async function getReadAnnouncementIds(): Promise<Set<string>> {
   const raw = await AsyncStorage.getItem(READ_ANNOUNCEMENTS_KEY);
   if (!raw) return new Set();
-  return new Set(JSON.parse(raw) as string[]);
+  try {
+    return new Set(JSON.parse(raw) as string[]);
+  } catch {
+    await AsyncStorage.removeItem(READ_ANNOUNCEMENTS_KEY);
+    return new Set();
+  }
 }
 
 export async function markAnnouncementRead(id: string): Promise<Set<string>> {
@@ -143,7 +154,13 @@ export async function getCachedData<T>(
 ): Promise<T | null> {
   const raw = await AsyncStorage.getItem(CACHE_PREFIX + key);
   if (!raw) return null;
-  const entry: CacheEntry<T> = JSON.parse(raw);
+  let entry: CacheEntry<T>;
+  try {
+    entry = JSON.parse(raw);
+  } catch {
+    await AsyncStorage.removeItem(CACHE_PREFIX + key);
+    return null;
+  }
   // Reject entries from older cache versions
   if (entry.version !== CACHE_VERSION) {
     await AsyncStorage.removeItem(CACHE_PREFIX + key);

@@ -1340,6 +1340,11 @@ def _handle_checkout_completed(session):
     # Auto-create or link Gift Aid declaration
     if wants_gift_aid and customer_email:
         _link_gift_aid_declaration(donation)
+    elif wants_gift_aid and not customer_email:
+        logger.warning(
+            "Gift Aid opted in but no email on checkout %s — cannot create declaration",
+            session.get("id"),
+        )
 
     # Send donation receipt email
     from core.email import send_donation_receipt_email
@@ -1349,6 +1354,9 @@ def _handle_checkout_completed(session):
 def _link_gift_aid_declaration(donation):
     """Find or create a GiftAidDeclaration for this donor and link it."""
     from datetime import date
+
+    from django.db import IntegrityError as DjangoIntegrityError
+    from django.db.models import Max
 
     from core.models import GiftAidDeclaration
 
@@ -1367,36 +1375,45 @@ def _link_gift_aid_declaration(donation):
         ).first()
 
     if not declaration:
-        # Generate next charity reference — use select_for_update to prevent
-        # duplicate references from concurrent Stripe webhooks.
-        last = (
-            GiftAidDeclaration.objects
-            .select_for_update()
-            .order_by("-charity_reference")
-            .first()
-        )
-        if last and last.charity_reference.startswith("GA-"):
-            try:
-                seq = int(last.charity_reference.split("-")[1]) + 1
-            except (ValueError, IndexError):
+        # Generate next charity reference with retry on unique constraint violation.
+        # select_for_update locks scanned rows, but when the table is empty no rows
+        # are locked — two concurrent transactions can both generate the same ref.
+        # Retry once on IntegrityError to handle this race.
+        for attempt in range(2):
+            max_ref = (
+                GiftAidDeclaration.objects
+                .select_for_update()
+                .aggregate(max_ref=Max("charity_reference"))
+            )["max_ref"]
+            if max_ref and max_ref.startswith("GA-"):
+                try:
+                    seq = int(max_ref.split("-")[1]) + 1
+                except (ValueError, IndexError):
+                    seq = 1
+            else:
                 seq = 1
-        else:
-            seq = 1
-        ref = f"GA-{seq:06d}"
+            ref = f"GA-{seq:06d}"
 
-        declaration = GiftAidDeclaration.objects.create(
-            donor_name=donation.donor_name,
-            donor_email=donation.donor_email,
-            donor_address_line1=donation.donor_address_line1,
-            donor_address_line2=donation.donor_address_line2,
-            donor_city=donation.donor_city,
-            donor_postcode=donation.donor_postcode,
-            donor_country=donation.donor_country,
-            stripe_customer_id=donation.stripe_customer_id,
-            declaration_date=date.today(),
-            charity_reference=ref,
-        )
-        logger.info("Gift Aid declaration created: %s for %s", ref, donation.donor_email)
+            try:
+                declaration = GiftAidDeclaration.objects.create(
+                    donor_name=donation.donor_name,
+                    donor_email=donation.donor_email,
+                    donor_address_line1=donation.donor_address_line1,
+                    donor_address_line2=donation.donor_address_line2,
+                    donor_city=donation.donor_city,
+                    donor_postcode=donation.donor_postcode,
+                    donor_country=donation.donor_country,
+                    stripe_customer_id=donation.stripe_customer_id,
+                    declaration_date=date.today(),
+                    charity_reference=ref,
+                )
+                logger.info("Gift Aid declaration created: %s for %s", ref, donation.donor_email)
+                break
+            except DjangoIntegrityError:
+                if attempt == 0:
+                    logger.warning("Gift Aid ref %s conflict, retrying", ref)
+                    continue
+                raise
 
     donation.gift_aid_declaration = declaration
     donation.save(update_fields=["gift_aid_declaration", "updated"])
@@ -1607,6 +1624,8 @@ class MosquePrayerTimeViewSet(viewsets.ReadOnlyModelViewSet):
             parsed = parse_date(single_date)
             if parsed:
                 return qs.filter(date=parsed)
+            # Invalid date format — return empty rather than all times
+            return qs.none()
 
         # Date range filter
         from_date = self.request.query_params.get("from_date")

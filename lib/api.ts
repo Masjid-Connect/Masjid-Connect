@@ -61,7 +61,15 @@ async function loadToken() {
   if (_token) return;
   _token = await secureGet(KEYS.AUTH_TOKEN);
   const raw = await secureGet(KEYS.AUTH_USER);
-  if (raw) _user = JSON.parse(raw);
+  if (raw) {
+    try {
+      _user = JSON.parse(raw);
+    } catch {
+      // Corrupted user data — clear it so the app doesn't crash on every startup
+      await secureDelete(KEYS.AUTH_USER);
+      _user = null;
+    }
+  }
 }
 
 function headers(): Record<string, string> {
@@ -70,13 +78,24 @@ function headers(): Record<string, string> {
   return h;
 }
 
+/** Default request timeout — 30 seconds */
+const REQUEST_TIMEOUT_MS = 30_000;
+
 /** Retry a fetch with exponential backoff on network failures */
 async function fetchWithRetry(url: string, init: RequestInit, retries: number = 2): Promise<Response> {
   let lastError: Error | undefined;
   for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
     try {
-      return await fetch(url, init);
+      const response = await fetch(url, {
+        ...init,
+        signal: init.signal ?? controller.signal,
+      });
+      clearTimeout(timeoutId);
+      return response;
     } catch (err) {
+      clearTimeout(timeoutId);
       lastError = err instanceof Error ? err : new Error(String(err));
       // Only retry on network errors (TypeError from fetch), not on successful HTTP responses
       if (attempt < retries) {
@@ -509,19 +528,31 @@ export const donations = {
     const returnUrl = 'https://salafimasjid.app/donate';
     const url = `${API_URL}/donate/checkout/`;
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        amount: amountPence,
-        currency,
-        frequency,
-        return_url: returnUrl,
-        gift_aid: options?.giftAid ? 'yes' : 'no',
-        cover_fees: options?.coverFees ? 'yes' : 'no',
-      }),
-      redirect: 'manual',
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: amountPence,
+          currency,
+          frequency,
+          return_url: returnUrl,
+          gift_aid: options?.giftAid ? 'yes' : 'no',
+          cover_fees: options?.coverFees ? 'yes' : 'no',
+        }),
+        redirect: 'manual',
+        signal: controller.signal,
+      });
+    } catch (err) {
+      clearTimeout(timeoutId);
+      const error = err instanceof Error ? err : new Error(String(err));
+      Sentry.captureException(error, { extra: { url } });
+      throw new Error('Unable to connect to payment service. Please try again.');
+    }
+    clearTimeout(timeoutId);
 
     // Backend returns 303 with Location header pointing to Stripe
     if (response.status >= 300 && response.status < 400) {

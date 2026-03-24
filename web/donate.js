@@ -373,7 +373,6 @@
         if (err instanceof TypeError && err.message === 'Failed to fetch') {
           showError('Unable to connect. Please check your internet connection and try again.');
         } else {
-          console.error('Embedded checkout failed:', err.message);
           showError(err.message || 'Something went wrong. Please try again.');
           setTimeout(formPostFallback, 2000);
         }
