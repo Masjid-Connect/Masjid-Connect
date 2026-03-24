@@ -81,11 +81,21 @@
   --sp-5xl: 64px;
 
   /* Border radius */
+  --radius-2xs: 2px;
+  --radius-3xs: 4px;
   --radius-xs: 6px;
   --radius-sm: 10px;
   --radius-md: 14px;
   --radius-lg: 20px;
   --radius-xl: 28px;
+  --radius-full: 9999px;
+
+  /* Font weights */
+  --fw-light: 300;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
 
   /* Shadows (Apple convention) */
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
@@ -1881,6 +1891,143 @@ ul {
 .donate__secure svg {
   flex-shrink: 0;
   opacity: 0.5;
+}
+
+/* Hadith hero — spiritual framing above form */
+.donate__hadith-hero {
+  padding: 0 0 var(--sp-xl);
+}
+
+.donate__hadith--hero {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+  padding: var(--sp-2xl) var(--sp-3xl);
+  background: var(--alpha-prayer-active-bg);
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-sm);
+}
+
+.donate__hadith--hero p {
+  font-size: 17px;
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--text-primary);
+  margin: 0 0 var(--sp-sm);
+}
+
+.donate__hadith--hero cite {
+  font-size: 13px;
+  color: var(--text-tertiary);
+  font-style: normal;
+}
+
+/* Step divider */
+.donate__step-divider {
+  height: 1px;
+  background: var(--separator);
+  margin: var(--sp-2xl) 0 var(--sp-lg);
+}
+
+/* Enhance label */
+.donate__step-label--enhance {
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.8px;
+  color: var(--text-secondary);
+  margin-bottom: var(--sp-md);
+  display: block;
+}
+
+/* Trust badge — replaces old secure note */
+.donate__trust-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  margin-top: var(--sp-lg);
+  padding: var(--sp-md) var(--sp-lg);
+  background: var(--surface-card);
+  border: 1px solid var(--separator);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+}
+
+.donate__trust-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: var(--alpha-action-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.donate__trust-icon svg {
+  color: var(--status-success);
+}
+
+.donate__trust-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.donate__trust-text strong {
+  font-size: 13px;
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+}
+
+.donate__trust-text span {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.donate__trust-shield {
+  color: var(--status-success);
+  flex-shrink: 0;
+}
+
+/* Popular pill on suggested amount */
+.donate__popular-pill {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--divine-gold);
+  color: #fff;
+  font-size: 9px;
+  font-weight: var(--fw-bold);
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.donate__amount--suggested {
+  position: relative;
+  border-color: var(--divine-gold) !important;
+  border-width: 1.5px;
+}
+
+[data-theme="dark"] .donate__hadith--hero {
+  background: rgba(91, 155, 213, 0.06);
+  border-color: rgba(91, 155, 213, 0.12);
+}
+
+[data-theme="dark"] .donate__trust-badge {
+  background: var(--onyx-850);
+  border-color: rgba(255,255,255,0.06);
+}
+
+[data-theme="dark"] .donate__popular-pill {
+  background: var(--divine-gold-bright);
+  color: #0A1628;
 }
 
 /* Embedded Checkout ────────────────────────────────────────── */
