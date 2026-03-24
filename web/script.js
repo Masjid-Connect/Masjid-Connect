@@ -368,7 +368,7 @@
   }
 
   // ─── Donate form spam protection ──────────────────────────────
-  const donateSubmit = document.getElementById('donate-submit');
+  const donateSubmit = document.getElementById('pay-card');
 
   if (donateSubmit) {
     donateSubmit.addEventListener('click', function (e) {
