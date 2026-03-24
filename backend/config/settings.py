@@ -227,6 +227,9 @@ FEEDBACK_NOTIFY_EMAIL = env("FEEDBACK_NOTIFY_EMAIL", default="info@salafimasjid.
 RESEND_API_KEY = env("RESEND_API_KEY", default="")
 CONTACT_TO_EMAIL = env("CONTACT_TO_EMAIL", default="info@salafimasjid.app")
 
+# Frontend URL — used for password reset links
+FRONTEND_URL = env("FRONTEND_URL", default="https://salafimasjid.app")
+
 # Cloudflare Turnstile — anti-bot for contact form
 TURNSTILE_SECRET_KEY = env("TURNSTILE_SECRET_KEY", default="")
 

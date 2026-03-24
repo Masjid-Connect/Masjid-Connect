@@ -365,6 +365,35 @@ class MosquePrayerTime(models.Model):
         return f"{self.mosque.name} — {self.date}"
 
 
+class PasswordResetToken(models.Model):
+    """Time-limited token for password reset via email."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="password_reset_tokens",
+    )
+    token = models.CharField(max_length=64, unique=True, db_index=True)
+    created = models.DateTimeField(auto_now_add=True)
+    used = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-created"]
+
+    def __str__(self):
+        return f"Reset token for {self.user.email}"
+
+    def is_expired(self):
+        """Token expires after 1 hour."""
+        from django.utils import timezone
+        from datetime import timedelta
+        return timezone.now() > self.created + timedelta(hours=1)
+
+    def is_valid(self):
+        return not self.used and not self.is_expired()
+
+
 class StripeEvent(models.Model):
     """Tracks processed Stripe webhook events for idempotency."""
 

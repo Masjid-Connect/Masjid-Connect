@@ -23,6 +23,8 @@ urlpatterns = [
     path("auth/admin-roles/", views.admin_roles, name="admin-roles"),
     path("auth/export-data/", views.export_user_data, name="export-data"),
     path("auth/delete-account/", views.delete_account, name="delete-account"),
+    path("auth/password-reset/", views.request_password_reset, name="password-reset"),
+    path("auth/password-reset/confirm/", views.confirm_password_reset, name="password-reset-confirm"),
     # Push tokens
     path("push-tokens/", views.register_push_token, name="push-token"),
     # Router-generated CRUD (must come before nested routes to avoid shadowing detail views)

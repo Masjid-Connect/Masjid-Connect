@@ -162,6 +162,11 @@ def register(request):
     with transaction.atomic():
         user = serializer.save()
         token, _ = Token.objects.get_or_create(user=user)
+
+    # Fire-and-forget welcome email (outside transaction)
+    from core.email import send_welcome_email
+    send_welcome_email(user)
+
     return Response(
         {"token": token.key, "user": UserSerializer(user).data},
         status=status.HTTP_201_CREATED,
@@ -247,6 +252,12 @@ def social_login(request):
         # Rotate token on each social login to limit token lifetime
         Token.objects.filter(user=user).delete()
         token = Token.objects.create(user=user)
+
+    # Fire-and-forget welcome email for new users (outside transaction)
+    if created:
+        from core.email import send_welcome_email
+        send_welcome_email(user)
+
     return Response(
         {"token": token.key, "user": UserSerializer(user).data},
         status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
@@ -444,6 +455,10 @@ def delete_account(request):
         request.META.get("HTTP_CF_CONNECTING_IP", request.META.get("REMOTE_ADDR", "unknown")),
     )
 
+    # Capture email and name before deletion
+    user_email = user.email
+    user_name = user.name
+
     with transaction.atomic():
         # Delete auth token
         if hasattr(user, "auth_token"):
@@ -452,7 +467,111 @@ def delete_account(request):
         # Orphan authored content (SET_NULL on announcements/events)
         user.delete()
 
+    # Send confirmation email after successful deletion (outside transaction)
+    from core.email import send_account_deletion_email
+    send_account_deletion_email(user_email, user_name)
+
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# ── Password Reset ──────────────────────────────────────────────────
+
+
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+@throttle_classes([AuthRateThrottle])
+def request_password_reset(request):
+    """Request a password reset email.
+
+    Always returns 200 to prevent email enumeration — even if the email
+    doesn't exist. The actual email is only sent if a matching user is found.
+    """
+    from core.email import generate_password_reset_token, send_password_reset_email
+    from core.models import PasswordResetToken
+
+    email = request.data.get("email", "").strip().lower()
+    if not email:
+        return Response(
+            {"detail": "Email is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Always return success to prevent enumeration
+    success_msg = {"detail": "If an account exists with that email, a reset link has been sent."}
+
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return Response(success_msg, status=status.HTTP_200_OK)
+
+    # Social-only accounts can't reset passwords
+    if not user.has_usable_password():
+        return Response(success_msg, status=status.HTTP_200_OK)
+
+    # Invalidate any existing unused tokens for this user
+    PasswordResetToken.objects.filter(user=user, used=False).update(used=True)
+
+    # Create new token
+    token_value = generate_password_reset_token()
+    PasswordResetToken.objects.create(user=user, token=token_value)
+
+    # Build reset URL (frontend handles the actual reset form)
+    frontend_url = getattr(settings, "FRONTEND_URL", "https://salafimasjid.app")
+    reset_url = f"{frontend_url}/reset-password?token={token_value}"
+
+    send_password_reset_email(user, reset_url)
+    return Response(success_msg, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+@throttle_classes([AuthRateThrottle])
+def confirm_password_reset(request):
+    """Confirm a password reset — validate token and set new password."""
+    from core.models import PasswordResetToken
+
+    token_value = request.data.get("token", "")
+    new_password = request.data.get("password", "")
+
+    if not token_value or not new_password:
+        return Response(
+            {"detail": "Token and password are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if len(new_password) < 8:
+        return Response(
+            {"detail": "Password must be at least 8 characters."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        reset_token = PasswordResetToken.objects.select_related("user").get(token=token_value)
+    except PasswordResetToken.DoesNotExist:
+        return Response(
+            {"detail": "Invalid or expired reset link."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not reset_token.is_valid():
+        return Response(
+            {"detail": "Invalid or expired reset link."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    with transaction.atomic():
+        user = reset_token.user
+        user.set_password(new_password)
+        user.save()
+
+        # Mark token as used
+        reset_token.used = True
+        reset_token.save(update_fields=["used"])
+
+        # Invalidate all existing auth tokens (force re-login)
+        Token.objects.filter(user=user).delete()
+
+    return Response({"detail": "Password has been reset. Please log in with your new password."})
 
 
 # ── Mosques ──────────────────────────────────────────────────────────
@@ -1222,6 +1341,10 @@ def _handle_checkout_completed(session):
     if wants_gift_aid and customer_email:
         _link_gift_aid_declaration(donation)
 
+    # Send donation receipt email
+    from core.email import send_donation_receipt_email
+    send_donation_receipt_email(donation)
+
 
 def _link_gift_aid_declaration(donation):
     """Find or create a GiftAidDeclaration for this donor and link it."""
@@ -1324,6 +1447,10 @@ def _handle_invoice_payment_succeeded(invoice):
 
     if wants_gift_aid and customer_email:
         _link_gift_aid_declaration(donation)
+
+    # Send donation receipt email for recurring payment
+    from core.email import send_donation_receipt_email
+    send_donation_receipt_email(donation)
 
 
 def _handle_invoice_payment_failed(invoice):
