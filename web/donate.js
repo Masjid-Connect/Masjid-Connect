@@ -18,7 +18,8 @@
   'use strict';
 
   // ─── Config ──────────────────────────────────────────────────
-  const CHECKOUT_URL = '/api/v1/donate/checkout/';
+  const API_BASE = 'https://api.salafimasjid.app';
+  const CHECKOUT_URL = API_BASE + '/api/v1/donate/checkout/';
 
   // ─── State ───────────────────────────────────────────────────
   let selectedAmount = 25;
@@ -567,7 +568,7 @@
 
     if (sessionId) {
       // Verify the session actually completed before showing success
-      fetch('/api/v1/donate/session-status/?session_id=' + encodeURIComponent(sessionId))
+      fetch(API_BASE + '/api/v1/donate/session-status/?session_id=' + encodeURIComponent(sessionId))
         .then(function (res) { return res.json(); })
         .then(function (data) {
           if (data.status === 'complete') {
