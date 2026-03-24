@@ -21,7 +21,7 @@
   const CHECKOUT_URL = '/api/v1/donate/checkout/';
 
   // ─── State ───────────────────────────────────────────────────
-  let selectedAmount = 50;
+  let selectedAmount = 25;
   let frequency = 'one-time';
   let checkoutInstance = null;
 
