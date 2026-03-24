@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography } from '@/constants/Theme';
+import { spacing, borderRadius, typography, fontWeight } from '@/constants/Theme';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -136,7 +136,7 @@ export default function SignInScreen() {
               {t('auth.noAccountQuestion')}{' '}
             </Text>
             <TouchableOpacity onPress={() => router.push('/(auth)/sign-up')}>
-              <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>
+              <Text style={[typography.subhead, { color: colors.tint, fontWeight: fontWeight.semibold }]}>
                 {t('auth.signUp')}
               </Text>
             </TouchableOpacity>

@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/Button';
 import { PreviewCard } from './PreviewCard';
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius } from '@/constants/Theme';
+import { spacing, typography, borderRadius, fontWeight } from '@/constants/Theme';
 import { announcements as announcementsApi } from '@/lib/api';
 import type { AnnouncementCreatePayload } from '@/types';
 
@@ -229,7 +229,7 @@ export const QuickPostSheet = ({
             </Text>
 
             {/* Priority selector */}
-            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: '500', marginBottom: spacing.xs }]}>
+            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: fontWeight.medium, marginBottom: spacing.xs }]}>
               {t('admin.priority')}
             </Text>
             <View style={styles.optionGroup}>
@@ -255,7 +255,7 @@ export const QuickPostSheet = ({
                     color={priority === opt.value ? opt.color : colors.textSecondary}
                   />
                   <View style={styles.optionText}>
-                    <Text style={[typography.subhead, { color: priority === opt.value ? opt.color : colors.text, fontWeight: '600' }]}>
+                    <Text style={[typography.subhead, { color: priority === opt.value ? opt.color : colors.text, fontWeight: fontWeight.semibold }]}>
                       {opt.label}
                     </Text>
                     <Text style={[typography.caption1, { color: colors.textSecondary }]}>
@@ -270,7 +270,7 @@ export const QuickPostSheet = ({
             </View>
 
             {/* Expiry selector */}
-            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: '500', marginTop: spacing.lg, marginBottom: spacing.xs }]}>
+            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: fontWeight.medium, marginTop: spacing.lg, marginBottom: spacing.xs }]}>
               {t('admin.expiresAt')}
             </Text>
             <View style={styles.chipRow}>
@@ -288,7 +288,7 @@ export const QuickPostSheet = ({
                   <Text style={[
                     typography.caption1,
                     {
-                      fontWeight: '600',
+                      fontWeight: fontWeight.semibold,
                       color: expiry === opt.value ? colors.onPrimary : colors.textSecondary,
                     },
                   ]}>

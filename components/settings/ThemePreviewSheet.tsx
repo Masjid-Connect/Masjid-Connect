@@ -228,7 +228,7 @@ const styles = StyleSheet.create({
   },
   previewLine: {
     height: 4,
-    borderRadius: 2,
+    borderRadius: borderRadius['2xs'],
   },
   previewRow: {
     flexDirection: 'row',

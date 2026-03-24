@@ -20,7 +20,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, getElevation, borderRadius, typography, components } from '@/constants/Theme';
+import { spacing, getElevation, borderRadius, typography, components, fontWeight } from '@/constants/Theme';
 import { useEvents } from '@/hooks/useEvents';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { Card } from '@/components/ui/Card';
@@ -149,7 +149,7 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
                 </Text>
               ) : null}
               {item.recurring && (
-                <Text style={[typography.caption1, { color: colors.success, marginTop: spacing.xs, fontWeight: '500' }]}>
+                <Text style={[typography.caption1, { color: colors.success, marginTop: spacing.xs, fontWeight: fontWeight.medium }]}>
                   {t('events.repeats', { frequency: item.recurring })}
                 </Text>
               )}
@@ -308,7 +308,7 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
               </Text>
             ) : null}
             {detailEvent.recurring && (
-              <Text style={[typography.footnote, { color: colors.success, marginTop: spacing.xs, fontWeight: '500' }]}>
+              <Text style={[typography.footnote, { color: colors.success, marginTop: spacing.xs, fontWeight: fontWeight.medium }]}>
                 {t('events.repeats', { frequency: detailEvent.recurring })}
               </Text>
             )}

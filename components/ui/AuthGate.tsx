@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
   propIcon: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: borderRadius.lg,
     justifyContent: 'center',
     alignItems: 'center',
     marginEnd: spacing.lg,

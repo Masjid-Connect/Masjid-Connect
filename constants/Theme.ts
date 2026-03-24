@@ -14,6 +14,19 @@ export const fonts = {
 } as const;
 
 /**
+ * Font weight tokens — centralized weight constants.
+ * Prevents raw string proliferation ('300', '400', etc.) across the codebase.
+ * Usage: fontWeight.semibold instead of '600'.
+ */
+export const fontWeight = {
+  light: '300' as const,
+  regular: '400' as const,
+  medium: '500' as const,
+  semibold: '600' as const,
+  bold: '700' as const,
+} as const;
+
+/**
  * Spacing scale — expanded from 8pt grid.
  * Screen edge insets: spacing['3xl'] (32px).
  * Prayer row height target: 52px.
@@ -132,6 +145,8 @@ export function getElevation(level: ElevationLevel, isDark: boolean): ViewStyle 
 }
 
 export const borderRadius = {
+  '2xs': 2,  // Hairline decorative radii (accent bars, progress bars, gold rules)
+  '3xs': 4,  // Small decorative radii (dots, checkboxes, category indicators)
   xs: 6,
   sm: 10,
   md: 14,

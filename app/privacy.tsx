@@ -6,7 +6,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, getElevation } from '@/constants/Theme';
+import { spacing, typography, borderRadius, getElevation, fontWeight } from '@/constants/Theme';
 
 interface PolicySectionProps {
   number: string;
@@ -141,8 +141,8 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
   },
   headerLabel: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: typography.caption2.fontSize,
+    fontWeight: fontWeight.semibold,
     letterSpacing: 1.5,
     marginBottom: spacing.sm,
   },
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     height: 2,
     width: 40,
     marginTop: spacing.lg,
-    borderRadius: 1,
+    borderRadius: borderRadius['2xs'],
   },
   // Intro
   introSection: {
@@ -179,8 +179,8 @@ const styles = StyleSheet.create({
     paddingTop: 2,
   },
   sectionNumber: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: typography.footnote.fontSize,
+    fontWeight: fontWeight.bold,
     letterSpacing: 1.5,
     fontFamily: 'SpaceMono',
   },
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing['3xl'],
   },
   footerText: {
-    fontWeight: '500',
+    fontWeight: fontWeight.medium,
     letterSpacing: 0.5,
   },
 });

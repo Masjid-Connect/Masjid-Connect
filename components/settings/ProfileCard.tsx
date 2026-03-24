@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, getElevation, typography, springs, components } from '@/constants/Theme';
+import { spacing, borderRadius, getElevation, typography, springs, components, fontWeight } from '@/constants/Theme';
 import { format } from 'date-fns';
 
 interface ProfileCardAuthProps {
@@ -88,7 +88,7 @@ export const ProfileCard = (props: ProfileCardProps) => {
               {props.isAdmin && (
                 <View style={[styles.adminBadge, { backgroundColor: isDark ? colors.backgroundGrouped : palette.sapphireLight }]}>
                   <Ionicons name="shield-checkmark" size={10} color={colors.tint} />
-                  <Text style={[typography.caption2, { color: colors.tint, fontWeight: '600', marginStart: 2 }]}>
+                  <Text style={[typography.caption2, { color: colors.tint, fontWeight: fontWeight.semibold, marginStart: 2 }]}>
                     {t('settings.admin')}
                   </Text>
                 </View>
@@ -132,7 +132,7 @@ export const ProfileCard = (props: ProfileCardProps) => {
           onPress={props.onSignIn}
           style={[styles.signInButton, { backgroundColor: colors.tint }]}
         >
-          <Text style={[typography.subhead, { color: colors.onPrimary, fontWeight: '600' }]}>
+          <Text style={[typography.subhead, { color: colors.onPrimary, fontWeight: fontWeight.semibold }]}>
             {t('settings.signIn')}
           </Text>
         </Pressable>

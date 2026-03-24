@@ -7,7 +7,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import Constants from 'expo-constants';
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, getElevation } from '@/constants/Theme';
+import { spacing, typography, borderRadius, getElevation, fontWeight } from '@/constants/Theme';
 
 const GoldRule = ({ color }: { color: string }) => (
   <View style={styles.ruleContainer}>
@@ -50,7 +50,7 @@ export default function AboutScreen() {
             resizeMode="contain"
           />
           <View style={[styles.versionPill, { backgroundColor: isDark ? colors.backgroundGrouped : colors.background }]}>
-            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: '500' }]}>
+            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: fontWeight.medium }]}>
               {t('about.version')} {Constants.expoConfig?.version ?? '1.0.0'}
             </Text>
           </View>
@@ -153,8 +153,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tagline: {
-    fontSize: 19,
-    fontWeight: '300',
+    fontSize: typography.title3.fontSize,
+    fontWeight: fontWeight.light,
     fontStyle: 'italic',
     lineHeight: 28,
     textAlign: 'center',
@@ -193,8 +193,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   sectionNumber: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: typography.footnote.fontSize,
+    fontWeight: fontWeight.bold,
     letterSpacing: 1.5,
     fontFamily: 'SpaceMono',
   },
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing['4xl'],
   },
   footer: {
-    fontSize: 13,
+    fontSize: typography.footnote.fontSize,
     fontStyle: 'italic',
     lineHeight: 20,
     textAlign: 'center',

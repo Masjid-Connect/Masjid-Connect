@@ -26,7 +26,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, getElevation, springs } from '@/constants/Theme';
+import { spacing, typography, borderRadius, getElevation, springs, fontWeight } from '@/constants/Theme';
 import { layout, patterns } from '@/lib/layoutGrid';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { formatPrayerTime } from '@/lib/prayer';
@@ -256,7 +256,7 @@ export default function PrayerTimesScreen() {
                     <Text style={[
                       styles.countdown,
                       { color: colors.text },
-                      isLandscape && { fontSize: 32, lineHeight: 38 },
+                      isLandscape && { fontSize: typography.largeTitle.fontSize - 2, lineHeight: 38 },
                     ]}>
                       {countdown}
                     </Text>
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
     marginTop: spacing.md, // 12
     textAlign: 'center',
-    fontWeight: '600',
+    fontWeight: fontWeight.semibold,
   },
 
   // Gradient fade from hero to content
@@ -523,7 +523,7 @@ const styles = StyleSheet.create({
     top: spacing.sm,    // 8
     bottom: spacing.sm,  // 8
     width: 3,
-    borderRadius: 2,
+    borderRadius: borderRadius['2xs'],
   },
   dotCol: {
     width: spacing.xl, // 20
@@ -546,6 +546,6 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: 2,
-    borderRadius: 1,
+    borderRadius: borderRadius['2xs'],
   },
 });

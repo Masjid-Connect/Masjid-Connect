@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, getElevation } from '@/constants/Theme';
+import { spacing, typography, borderRadius, getElevation, fontWeight } from '@/constants/Theme';
 import type { EventCategory } from '@/types';
 import { EVENT_CATEGORY_COLORS, EVENT_CATEGORY_COLORS_DARK } from '@/types';
 
@@ -60,7 +60,7 @@ export const PreviewCard = (props: PreviewCardProps) => {
             <Text style={[
               typography.caption1,
               {
-                fontWeight: '700',
+                fontWeight: fontWeight.bold,
                 letterSpacing: 0.5,
                 color: props.priority === 'janazah'
                   ? (isDark ? palette.divineGoldBright : palette.divineGoldText)
@@ -107,7 +107,7 @@ export const PreviewCard = (props: PreviewCardProps) => {
       {/* Category accent */}
       <View style={[styles.categoryRow, { marginTop: spacing.sm }]}>
         <View style={[styles.categoryDot, { backgroundColor: categoryColor }]} />
-        <Text style={[typography.caption1, { color: categoryColor, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 }]}>
+        <Text style={[typography.caption1, { color: categoryColor, fontWeight: fontWeight.semibold, textTransform: 'uppercase', letterSpacing: 0.5 }]}>
           {t(`events.categories.${props.category}`)}
         </Text>
       </View>
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   categoryDot: {
     width: 8,
     height: 8,
-    borderRadius: 4,
+    borderRadius: borderRadius['3xs'],
   },
   metaRow: {
     flexDirection: 'row',

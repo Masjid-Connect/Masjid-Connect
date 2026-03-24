@@ -24,7 +24,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography, getElevation } from '@/constants/Theme';
+import { spacing, borderRadius, typography, getElevation, fontWeight } from '@/constants/Theme';
 import { AmountSelector, BankDetailsSheet, DonationConfirmationSheet } from '@/components/support';
 import { donations } from '@/lib/api';
 
@@ -302,7 +302,7 @@ export default function SupportScreen() {
               )}
             </View>
             <View style={styles.optionText}>
-              <Text style={[typography.subhead, { fontWeight: '600', color: palette.sage600 }]}>
+              <Text style={[typography.subhead, { fontWeight: fontWeight.semibold, color: palette.sage600 }]}>
                 {t('support.giftAid')}
               </Text>
               <Text style={[typography.footnote, { color: colors.textSecondary }]}>
@@ -351,7 +351,7 @@ export default function SupportScreen() {
               )}
             </View>
             <View style={styles.optionText}>
-              <Text style={[typography.subhead, { fontWeight: '600', color: colors.tint }]}>
+              <Text style={[typography.subhead, { fontWeight: fontWeight.semibold, color: colors.tint }]}>
                 {t('support.coverFees')}
               </Text>
               <Text style={[typography.footnote, { color: colors.textSecondary }]}>
@@ -470,7 +470,7 @@ export default function SupportScreen() {
                   <Ionicons name={item.icon} size={18} color={colors.tint} />
                 </View>
                 <View style={styles.impactText}>
-                  <Text style={[typography.subhead, { fontWeight: '600', color: colors.text }]}>{item.title}</Text>
+                  <Text style={[typography.subhead, { fontWeight: fontWeight.semibold, color: colors.text }]}>{item.title}</Text>
                   <Text style={[typography.caption1, { color: colors.textSecondary }]}>{item.desc}</Text>
                 </View>
               </View>
@@ -570,7 +570,7 @@ const styles = StyleSheet.create({
   optionCheck: {
     width: 22,
     height: 22,
-    borderRadius: 6,
+    borderRadius: borderRadius.xs,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
