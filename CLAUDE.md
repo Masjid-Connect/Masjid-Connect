@@ -19,6 +19,9 @@ Mosque Connect is a premium mobile app **exclusively for The Salafi Masjid** com
 - **Icons**: @expo/vector-icons/Ionicons (outline/filled pairs)
 - **Date Handling**: date-fns
 - **i18n**: i18next + react-i18next (English only — Arabic not shipping for MVP)
+- **Payments**: Stripe Checkout (embedded on web, hosted redirect in app) + Stripe.js
+- **In-app Browser**: expo-web-browser (for Stripe Hosted Checkout in app)
+- **Website**: Static HTML/CSS/JS on Cloudflare Pages (salafimasjid.app)
 - **Language**: TypeScript (strict mode)
 - **CI/CD**: GitHub Actions (TypeScript check, ESLint, Jest, Django tests)
 
@@ -27,20 +30,30 @@ Mosque Connect is a premium mobile app **exclusively for The Salafi Masjid** com
 /app                    # Expo Router file-based routes
   /(tabs)/              # Tab navigator
     index.tsx           # Prayer Times (home tab)
-    announcements.tsx   # Announcements feed
-    events.tsx          # Events/lessons calendar
+    community.tsx       # Announcements + Events (combined community tab)
+    support.tsx         # Donations/Give tab (Stripe checkout + bank transfer)
     settings.tsx        # Settings & preferences
   /_layout.tsx          # Root layout
 /components             # Reusable UI components
   /brand                # Brand identity components
     AnimatedSplash.tsx  # Splash screen animation
     GoldBadge.tsx       # Divine Gold notification badge (not red)
+    IslamicPattern.tsx  # Sacred geometric pattern backgrounds
     index.ts            # Re-exports for clean imports
   /ui                   # Base design system components
     BottomSheet.tsx      # Spring-animated bottom sheet (replaces centered modals)
+    ErrorFallback.tsx   # Sentry error boundary fallback
+  /navigation           # Tab bar and navigation components
+    AmbientTabIndicator.tsx  # Custom ambient tab bar
   /prayer               # Prayer time components
-  /announcements        # Announcement components
-  /events               # Event components
+  /community            # Announcements + Events components
+    AnnouncementsContent.tsx
+    EventsContent.tsx
+  /support              # Donation components
+    AmountSelector.tsx  # Preset + custom amount picker
+    BankDetailsSheet.tsx # Bank transfer details bottom sheet
+    DonationConfirmationSheet.tsx # Post-donation confirmation
+    TrustBadge.tsx      # Security/charity badge
 /lib                    # Utilities and services
   /api.ts               # Django REST API client (auth, mosques, announcements, events, subscriptions)
   /prayer.ts            # Aladhan API + adhan-js offline fallback
@@ -158,6 +171,14 @@ PATCH /api/v1/subscriptions/{id}/    # Update notification preferences
 
 POST /api/v1/push-tokens/            # Register push token
 
+POST /api/v1/donate/checkout/        # Create Stripe Checkout Session (embedded or redirect)
+GET  /api/v1/donate/session-status/  # Verify checkout session completion
+POST /api/v1/stripe/webhook/         # Stripe webhook (signature-verified)
+GET  /api/v1/gift-aid/summary/       # Gift Aid summary (admin-only)
+
+POST /api/v1/contact/                # Contact form submission
+POST /api/v1/feedback/               # User feedback
+
 GET  /api/schema/                     # OpenAPI schema (drf-spectacular)
 GET  /api/docs/                      # Swagger UI (interactive API docs)
 
@@ -173,6 +194,14 @@ GET  /admin/                         # Django admin (Unfold theme)
 - **UserSubscription** — user FK, mosque FK, notify_prayers/announcements/events, prayer_reminder_minutes
 - **PushToken** — user FK, token (unique), platform (ios/android)
 - **MosqueAdmin** — mosque FK, user FK, role (admin/super_admin)
+- **Feedback** — user feedback submissions
+- **MosquePrayerTime** — cached prayer times per mosque
+- **PasswordResetToken** — password reset flow tokens
+- **StripeEvent** — idempotent webhook event log (stripe_event_id, event_type, processed, payload)
+- **CharityGiftAidSettings** — HMRC Gift Aid configuration for the charity
+- **Donation** — amount_pence, currency, frequency (one-time/monthly), source (stripe), gift_aid_eligible, Stripe IDs (checkout session, payment intent, customer), donor details
+- **GiftAidDeclaration** — donor declarations for HMRC Gift Aid reclaim (linked to donations)
+- **GiftAidClaim** — batched HMRC Gift Aid claim submissions
 
 ### Backend Commands
 ```bash
@@ -183,6 +212,53 @@ python manage.py seed_data            # Seed sample data
 python manage.py createsuperuser      # Create admin user
 python manage.py runserver            # Start dev server (port 8000)
 ```
+
+## Website — Static Landing & Donation Pages
+
+The marketing website lives in `/web/` and is deployed to Cloudflare Pages at `salafimasjid.app`.
+
+### Website Structure
+```
+/web
+  index.html            # Landing page
+  donate.html           # Donation page (Stripe Embedded Checkout)
+  donate.js             # Donation page logic (amount, fees, Gift Aid, Stripe)
+  features.html         # App features showcase
+  about.html            # About the masjid
+  contact.html          # Contact form (submits to API)
+  download.html         # App download links
+  privacy.html          # Privacy policy
+  terms.html            # Terms of service
+  sitemap.html          # Sitemap
+  styles.css            # Global styles
+  script.js             # Shared site JS (nav, scroll reveal, dark mode, prefetch, spam protection)
+  site.webmanifest      # PWA manifest
+  _headers              # Cloudflare Pages headers
+```
+
+### Donation Flow (Website)
+1. User selects frequency (one-time/monthly) + amount on `donate.html`
+2. Optional: Gift Aid checkbox (UK taxpayers, +25%), Cover Processing Fees checkbox
+3. "Donate Now" → `fetch()` creates Stripe Checkout Session via `POST /api/v1/donate/checkout/` with `ui_mode: 'embedded'`
+4. Stripe.js mounts Embedded Checkout inline (no redirect)
+5. On completion → success state with verification via `/api/v1/donate/session-status/`
+6. Fallback: if embedded fails → form POST redirect to Stripe Hosted Checkout
+7. Alternative: "Bank Transfer" opens bottom sheet with Lloyds bank details
+
+### Donation Flow (Mobile App)
+1. Support tab (`app/(tabs)/support.tsx`) — same amount/frequency/Gift Aid/fees UI
+2. "Donate Now" → `donations.createCheckoutUrl()` calls `POST /api/v1/donate/checkout/` with redirect mode (no `ui_mode`)
+3. Backend returns 303 redirect → app opens Stripe Hosted Checkout via `expo-web-browser`
+4. On return → confirmation bottom sheet shown
+
+### Stripe Integration
+- **Payments**: Stripe Checkout (embedded on web, hosted redirect in app)
+- **Payment methods**: Card, PayPal, Apple Pay, Google Pay, Pay by Bank — managed via Stripe Dashboard
+- **Webhooks**: `POST /api/v1/stripe/webhook/` — signature-verified, idempotent (StripeEvent model)
+- **Webhook events handled**: `checkout.session.completed`, `invoice.payment_succeeded/failed`, `customer.subscription.created/deleted`, `payment_intent.succeeded`, `charge.refunded`
+- **Gift Aid**: Auto-creates GiftAidDeclaration on checkout completion when opted in
+- **Receipt emails**: Sent automatically after successful donation
+- **Environment**: `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` in server env
 
 ## Commands
 
