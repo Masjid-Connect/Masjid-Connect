@@ -296,9 +296,12 @@ UNFOLD = {
         "light": lambda request: "/static/admin/img/Masjid_Logo.png",
         "dark": lambda request: "/static/admin/img/Masjid_Logo.png",
     },
-    "SITE_ICON": lambda request: "/static/admin/img/Masjid_Logo.png",
+    "SITE_ICON": lambda request: "/static/admin/img/favicon-32x32.png",
     "SITE_FAVICONS": [
-        {"rel": "icon", "sizes": "any", "href": lambda request: "/static/admin/img/Masjid_Logo.png"},
+        {"rel": "icon", "sizes": "32x32", "type": "image/png", "href": lambda request: "/static/admin/img/favicon-32x32.png"},
+        {"rel": "icon", "sizes": "16x16", "type": "image/png", "href": lambda request: "/static/admin/img/favicon-16x16.png"},
+        {"rel": "shortcut icon", "href": lambda request: "/static/admin/img/favicon.ico"},
+        {"rel": "apple-touch-icon", "sizes": "180x180", "href": lambda request: "/static/admin/img/apple-touch-icon.png"},
     ],
     "COLORS": {
         "font": {
