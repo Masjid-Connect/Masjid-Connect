@@ -312,6 +312,45 @@
   margin: 0;
 }
 
+/* ── Buttons and links ───────────────────────────────────────────── */
+
+.dash-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.dash-btn {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.dash-btn-primary {
+  background: var(--dash-sapphire);
+  color: #fff;
+}
+
+.dash-btn-outline {
+  background: transparent;
+  color: var(--dash-sapphire);
+  border: 1px solid var(--dash-separator);
+}
+
+.dash-link {
+  color: var(--dash-sapphire);
+  font-size: 13px;
+}
+
+.dash-empty-text {
+  color: var(--dash-onyx-600);
+  font-size: 14px;
+}
+
 /* ── Section divider ─────────────────────────────────────────────── */
 
 .dash-divider {
@@ -357,8 +396,24 @@
   color: var(--dash-sapphire-light);
 }
 
+.dark .dash-stat-label {
+  color: #9CA3AF;
+}
+
 .dark .dash-stat-value {
   color: var(--dash-sapphire-light);
+}
+
+.dark .dash-stat-card.gold .dash-stat-value {
+  color: var(--dash-gold-bright);
+}
+
+.dark .dash-stat-sub {
+  color: #9CA3AF;
+}
+
+.dark .dash-header p {
+  color: #9CA3AF;
 }
 
 .dark .dash-chart-card h3,
@@ -374,6 +429,7 @@
 }
 
 .dark .dash-table th {
+  color: #9CA3AF;
   border-color: #444;
 }
 
@@ -383,6 +439,46 @@
 
 .dark .dash-ga-item {
   background: #262628;
+}
+
+.dark .dash-ga-item .ga-label {
+  color: #9CA3AF;
+}
+
+.dark .dash-progress-labels {
+  color: #9CA3AF;
+}
+
+.dark .dash-restricted p {
+  color: #9CA3AF;
+}
+
+.dark .dash-btn-primary {
+  background: var(--dash-sapphire-light);
+  color: #0A0A0C;
+}
+
+.dark .dash-btn-outline {
+  color: var(--dash-sapphire-light);
+  border-color: #444;
+}
+
+.dark .dash-link {
+  color: var(--dash-sapphire-light);
+}
+
+.dark .dash-empty-text {
+  color: #9CA3AF;
+}
+
+.dark .dash-badge.gift-aid {
+  background: #3D3520;
+  color: var(--dash-gold-bright);
+}
+
+.dark .dash-badge.source {
+  background: #262628;
+  color: #D1D5DB;
 }
 
 .dark .dash-progress-bar {
