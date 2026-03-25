@@ -17,7 +17,7 @@ on:
 
 jobs:
   scrape:
-    name: Scrape Timetables
+    name: Scrape & Export Timetables
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -54,3 +54,36 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           ALLOWED_HOSTS: "*"
+
+      - name: Export static timetable JSON for mobile app
+        run: python manage.py export_timetable_json
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          ALLOWED_HOSTS: "*"
+
+      - name: Commit updated timetable JSON
+        working-directory: .
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add constants/static-timetable.json
+          if git diff --cached --quiet; then
+            echo "No timetable changes to commit"
+          else
+            git commit -m "chore: update static timetable from scraped data"
+            git push
+          fi
+
+      - name: Trigger EAS Update (optional)
+        if: ${{ hashFiles('constants/static-timetable.json') != '' }}
+        continue-on-error: true
+        run: |
+          if command -v npx &> /dev/null && [ -f ../package.json ]; then
+            cd ..
+            npx eas-cli update --branch production --message "Update prayer timetable" --non-interactive
+          else
+            echo "EAS CLI not available — skipping OTA update"
+          fi
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}

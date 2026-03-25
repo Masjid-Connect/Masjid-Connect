@@ -608,6 +608,37 @@ export const adminRoles = {
   },
 };
 
+// ── Prayer Times ────────────────────────────────────────────────────
+
+import type { MosquePrayerTimeResponse } from '@/types';
+
+export const prayerTimes = {
+  /**
+   * Fetch jama'ah times for a mosque on a specific date.
+   * Returns null if no data is available (404 or empty results).
+   */
+  async getByDate(mosqueId: string, date: string): Promise<MosquePrayerTimeResponse | null> {
+    try {
+      const data = await request<PaginatedResponse<MosquePrayerTimeResponse>>(
+        `/mosques/${mosqueId}/prayer-times/?date=${date}`,
+      );
+      return data.results.length > 0 ? data.results[0] : null;
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * Fetch jama'ah times for a date range.
+   */
+  async getRange(mosqueId: string, fromDate: string, toDate: string): Promise<MosquePrayerTimeResponse[]> {
+    const data = await request<PaginatedResponse<MosquePrayerTimeResponse>>(
+      `/mosques/${mosqueId}/prayer-times/?from_date=${fromDate}&to_date=${toDate}`,
+    );
+    return data.results;
+  },
+};
+
 // ── Push Tokens ──────────────────────────────────────────────────────
 
 export const pushTokens = {
