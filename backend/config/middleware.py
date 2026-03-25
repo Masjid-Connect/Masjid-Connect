@@ -35,7 +35,7 @@ class ContentSecurityPolicyMiddleware:
 
     CSP_DIRECTIVES = {
         "default-src": "'self'",
-        "script-src": "'self' 'unsafe-inline'",  # Swagger UI + Unfold admin
+        "script-src": "'self' 'unsafe-inline' 'unsafe-eval'",  # Swagger UI + Unfold admin (Alpine.js requires unsafe-eval)
         "style-src": "'self' 'unsafe-inline'",  # Swagger UI + Unfold admin
         "img-src": "'self' data:",
         "font-src": "'self' data:",
