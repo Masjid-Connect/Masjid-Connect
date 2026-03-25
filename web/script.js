@@ -256,6 +256,7 @@
   const prefetched = {};
 
   function prefetchOnHover(e) {
+    if (!e.target || typeof e.target.closest !== 'function') return;
     const link = e.target.closest('a[href]');
     if (!link) return;
     const href = link.getAttribute('href');
