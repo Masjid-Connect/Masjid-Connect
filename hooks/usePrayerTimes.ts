@@ -1,16 +1,51 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format, addDays, isSameDay, isToday as isTodayFn } from 'date-fns';
-import { getPrayerTimes, buildPrayerEntries, getNextPrayer, getCountdown } from '@/lib/prayer';
+import { getPrayerTimes, buildPrayerEntries, getNextPrayer, getCountdown, ensurePM } from '@/lib/prayer';
 import { getReminderMinutes, getUse24h } from '@/lib/storage';
-import { SALAFI_MASJID } from '@/constants/mosque';
+import { SALAFI_MASJID, getMosqueId } from '@/constants/mosque';
 import { schedulePrayerReminders } from '@/lib/notifications';
 import { getStaticPrayerTimes } from '@/lib/staticTimetable';
-import type { PrayerTimeEntry, PrayerName } from '@/types';
+import { prayerTimes as prayerTimesApi } from '@/lib/api';
+import type { PrayerTimeEntry, PrayerName, PrayerTimesData, JamaahTimesData, MosquePrayerTimeResponse } from '@/types';
 
 /** Umm Al-Qura is the only calculation method used */
 const CALCULATION_METHOD_CODE = 4;
 const CALCULATION_METHOD_NAME = 'UmmAlQura';
+
+/** Parse "HH:MM:SS" or "HH:MM" time string into a Date on the given date. */
+function parseTimeField(timeStr: string | null, targetDate: Date): Date {
+  if (!timeStr) {
+    return new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0);
+  }
+  const parts = timeStr.split(':').map(Number);
+  return new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), parts[0], parts[1], 0);
+}
+
+/** Convert an API MosquePrayerTimeResponse into PrayerTimesData + JamaahTimesData. */
+function parseApiPrayerTimes(
+  apiData: MosquePrayerTimeResponse,
+  targetDate: Date,
+): { times: PrayerTimesData; jamaahTimes: JamaahTimesData } {
+  const times: PrayerTimesData = {
+    fajr: parseTimeField(apiData.fajr_start, targetDate),
+    sunrise: parseTimeField(apiData.sunrise, targetDate),
+    dhuhr: ensurePM(parseTimeField(apiData.dhuhr_start, targetDate)),
+    asr: ensurePM(parseTimeField(apiData.asr_start, targetDate)),
+    maghrib: ensurePM(parseTimeField(apiData.maghrib_jamat, targetDate)), // maghrib has no separate start
+    isha: ensurePM(parseTimeField(apiData.isha_start, targetDate)),
+  };
+
+  const jamaahTimes: JamaahTimesData = {
+    fajr: parseTimeField(apiData.fajr_jamat, targetDate),
+    dhuhr: ensurePM(parseTimeField(apiData.dhuhr_jamat, targetDate)),
+    asr: ensurePM(parseTimeField(apiData.asr_jamat, targetDate)),
+    maghrib: ensurePM(parseTimeField(apiData.maghrib_jamat, targetDate)),
+    isha: ensurePM(parseTimeField(apiData.isha_jamat, targetDate)),
+  };
+
+  return { times, jamaahTimes };
+}
 
 /**
  * Get the correct Hijri date, accounting for the Islamic day starting at Maghrib.
@@ -107,36 +142,58 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     if (!mountedRef.current) return;
     setUse24hState(h24);
 
+    // Helper: once we have valid prayer data, set state + schedule reminders
+    const applyPrayerData = async (
+      times: PrayerTimesData,
+      jamaahTimes: JamaahTimesData | undefined,
+      dataSource: 'static' | 'api' | 'offline',
+      estimated: boolean,
+    ) => {
+      if (!mountedRef.current) return;
+      const entries = buildPrayerEntries(times, jamaahTimes);
+      setPrayers(entries);
+      setNextPrayer(isTodayFn(targetDate) ? getNextPrayer(times, jamaahTimes ?? null) : null);
+      setSource(dataSource);
+      setJamaahAvailable(!!jamaahTimes);
+      setIsEstimated(estimated);
+
+      if (isTodayFn(targetDate)) {
+        const reminderMinutes = await getReminderMinutes();
+        await schedulePrayerReminders(times, reminderMinutes, jamaahTimes);
+      }
+
+      // Fetch Aladhan for Hijri date only
+      try {
+        const hijri = await getCorrectHijriDate(targetDate, times.maghrib);
+        if (hijri && mountedRef.current) setHijriDate(hijri);
+      } catch {
+        // Hijri date is nice-to-have
+      }
+
+      if (mountedRef.current) setIsLoading(false);
+    };
+
     try {
-      // 1. Static bundled timetable — primary source (has start + jama'ah times)
+      // 1. Live API — primary source (has start + jama'ah times from Coolify backend)
+      const mosqueId = await getMosqueId();
+      if (mosqueId) {
+        const dateStr = format(targetDate, 'yyyy-MM-dd');
+        const apiData = await prayerTimesApi.getByDate(mosqueId, dateStr);
+        if (apiData) {
+          const { times, jamaahTimes } = parseApiPrayerTimes(apiData, targetDate);
+          await applyPrayerData(times, jamaahTimes, 'static', false);
+          return;
+        }
+      }
+
+      // 2. Static bundled timetable — offline fallback (has start + jama'ah times)
       const staticResult = getStaticPrayerTimes(targetDate);
       if (staticResult) {
-        if (!mountedRef.current) return;
-        const entries = buildPrayerEntries(staticResult.times, staticResult.jamaahTimes);
-        setPrayers(entries);
-        setNextPrayer(isTodayFn(targetDate) ? getNextPrayer(staticResult.times, staticResult.jamaahTimes) : null);
-        setSource('static');
-        setJamaahAvailable(true);
-        setIsEstimated(staticResult.isEstimated);
-
-        if (isTodayFn(targetDate)) {
-          const reminderMinutes = await getReminderMinutes();
-          await schedulePrayerReminders(staticResult.times, reminderMinutes, staticResult.jamaahTimes);
-        }
-
-        // Fetch Aladhan for Hijri date only
-        try {
-          const hijri = await getCorrectHijriDate(targetDate, staticResult.times.maghrib);
-          if (hijri && mountedRef.current) setHijriDate(hijri);
-        } catch {
-          // Hijri date is nice-to-have
-        }
-
-        if (mountedRef.current) setIsLoading(false);
+        await applyPrayerData(staticResult.times, staticResult.jamaahTimes, 'static', staticResult.isEstimated);
         return;
       }
 
-      // 2. Aladhan API fallback (calculated start times, no jama'ah)
+      // 3. Aladhan API fallback (calculated start times, no jama'ah)
       const { latitude: lat, longitude: lng } = SALAFI_MASJID;
       const result = await getPrayerTimes(lat, lng, CALCULATION_METHOD_CODE, CALCULATION_METHOD_NAME, targetDate);
       if (!mountedRef.current) return;
