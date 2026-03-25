@@ -292,3 +292,9 @@ This principle applies to Django admin customizations, in-app admin screens, and
 - **Rate limiting**: Content creation endpoints (announcements, events) throttled via `ContentCreationRateThrottle`; auth endpoints at 5/min; nearby at 30/min
 - **Gunicorn**: 2 workers, 2 threads, 30s timeout, 1000 max requests with jitter
 - **Admin panel**: Django admin with Unfold theme at `/admin/` (Sacred Blue brand colors)
+
+## gstack
+
+Use the `/browse` skill from gstack for all web browsing. Never use `mcp__claude-in-chrome__*` tools.
+
+**Available skills:** `/office-hours`, `/plan-ceo-review`, `/plan-eng-review`, `/plan-design-review`, `/design-consultation`, `/review`, `/ship`, `/land-and-deploy`, `/canary`, `/benchmark`, `/browse`, `/qa`, `/qa-only`, `/design-review`, `/setup-browser-cookies`, `/setup-deploy`, `/retro`, `/investigate`, `/document-release`, `/codex`, `/cso`, `/autoplan`, `/careful`, `/freeze`, `/guard`, `/unfreeze`, `/gstack-upgrade`
