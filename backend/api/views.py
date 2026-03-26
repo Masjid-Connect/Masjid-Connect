@@ -1034,7 +1034,7 @@ def create_checkout_session(request):
             return _redirect_303(return_url + sep + "donation=error&msg=" + quote(msg))
         return Response({"detail": msg}, status=status.HTTP_400_BAD_REQUEST)
 
-    is_embedded = ui_mode in ("embedded", "custom")
+    is_embedded = ui_mode in ("embedded", "custom", "elements")
 
     if not return_url:
         return Response(
@@ -1111,7 +1111,7 @@ def create_checkout_session(request):
 
         if is_embedded:
             # Embedded Checkout — stays on the donor's page
-            session_params["ui_mode"] = "custom"
+            session_params["ui_mode"] = "elements"
             session_params["return_url"] = (
                 return_url + "?donation=success&session_id={CHECKOUT_SESSION_ID}"
             )
