@@ -1136,9 +1136,10 @@ def create_checkout_session(request):
         else:
             # 303 See Other — browser converts POST to GET for Stripe's hosted page
             return _redirect_303(session.url)
-    except Exception:
+    except Exception as exc:
         logger.exception("Stripe Checkout Session creation failed")
-        return _error("Something went wrong. Please try again.", for_redirect=not is_embedded)
+        error_msg = str(exc) if str(exc) else "Something went wrong. Please try again."
+        return _error(error_msg, for_redirect=not is_embedded)
 
 
 
