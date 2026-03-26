@@ -7,6 +7,7 @@ import {
   ScrollView,
   Alert,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -15,6 +16,8 @@ import Animated, {
   interpolate,
   Extrapolation,
   FadeInDown,
+  FadeIn,
+  ZoomIn,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -22,10 +25,11 @@ import * as WebBrowser from 'expo-web-browser';
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { getColors, palette } from '@/constants/Colors';
+import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography, getElevation } from '@/constants/Theme';
-import { AmountSelector, BankDetailsSheet } from '@/components/support';
+import { spacing, borderRadius, typography, getElevation, fontWeight } from '@/constants/Theme';
+import { AmountSelector, BankDetailsSheet, DonationConfirmationSheet, TrustBadge } from '@/components/support';
+import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { donations } from '@/lib/api';
 
 // Fee calculation: blended 2.5% + 20p estimate
@@ -49,14 +53,18 @@ export default function SupportScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
+  const alphaColors = getAlpha(effectiveScheme);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   // State
   const [frequency, setFrequency] = useState<Frequency>('one-time');
   const [amount, setAmount] = useState<number | null>(25);
   const [isLoading, setIsLoading] = useState(false);
   const [showBankDetails, setShowBankDetails] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [confirmedAmount, setConfirmedAmount] = useState(0);
   const [giftAid, setGiftAid] = useState(false);
   const [coverFees, setCoverFees] = useState(false);
 
@@ -137,6 +145,9 @@ export default function SupportScreen() {
           dismissButtonStyle: 'close',
           presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
         });
+        // Show confirmation after returning from Stripe checkout
+        setConfirmedAmount(totalAmount);
+        setShowConfirmation(true);
       }
     } catch (err) {
       const message = err instanceof Error && err.message
@@ -159,6 +170,11 @@ export default function SupportScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.backgroundSecondary }]}>
+      {/* Subtle Islamic pattern — sacred identity */}
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <IslamicPattern width={windowWidth} height={windowHeight} opacity={0.02} color={isDark ? palette.divineGoldBright : palette.divineGold} />
+      </View>
+
       {/* Inline header */}
       <View style={[styles.inlineHeader, { paddingTop: insets.top, height: insets.top + HEADER_HEIGHT, backgroundColor: colors.backgroundSecondary }]}>
         <Animated.Text
@@ -193,11 +209,16 @@ export default function SupportScreen() {
           </Text>
         </Animated.View>
 
-        {/* Section: How often? */}
+        {/* Hadith — spiritual framing before the ask */}
         <Animated.View entering={FadeInDown.delay(150).duration(400)}>
-          <Text style={[typography.sectionHeader, styles.sectionLabel, { color: colors.textSecondary }]}>
-            {t('support.howOften')}
-          </Text>
+          <View style={[styles.hadithCard, { backgroundColor: isDark ? colors.backgroundGrouped : alphaColors.sapphireBgSubtle, borderColor: alphaColors.sapphireHadithBorder }]}>
+            <Text style={[typography.callout, { color: colors.text, fontStyle: 'italic', lineHeight: 24 }]}>
+              &ldquo;{hadith.text}&rdquo;
+            </Text>
+            <Text style={[typography.caption1, { color: colors.textTertiary, marginTop: spacing.sm }]}>
+              — {hadith.source}
+            </Text>
+          </View>
         </Animated.View>
 
         {/* Frequency toggle */}
@@ -226,6 +247,7 @@ export default function SupportScreen() {
                 ]}
                 onPress={() => handleFrequency(freq)}
                 accessibilityRole="button"
+                accessibilityLabel={t(`support.${freq === 'one-time' ? 'oneTime' : 'monthly'}`)}
                 accessibilityState={{ selected: isActive }}
               >
                 <Text
@@ -244,33 +266,33 @@ export default function SupportScreen() {
           })}
         </Animated.View>
 
-        {/* Section: How much? */}
-        <Animated.View entering={FadeInDown.delay(250).duration(400)}>
-          <Text style={[typography.sectionHeader, styles.sectionLabel, { color: colors.textSecondary }]}>
-            {t('support.howMuch')}
-          </Text>
-        </Animated.View>
-
         {/* Amount selection */}
-        <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+        <Animated.View entering={FadeInDown.delay(250).duration(400)}>
           <AmountSelector
             selectedAmount={amount}
             onAmountChange={setAmount}
           />
         </Animated.View>
 
+        {/* Enhance your gift — optional extras grouped together */}
+        <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+          <Text style={[typography.sectionHeader, styles.sectionLabel, { color: colors.textSecondary, marginTop: spacing['2xl'] }]}>
+            {t('support.enhanceGift')}
+          </Text>
+        </Animated.View>
+
         {/* Gift Aid */}
-        <Animated.View entering={FadeInDown.delay(350).duration(400)}>
+        <Animated.View entering={FadeInDown.delay(320).duration(400)}>
           <Pressable
             style={[
               styles.optionCard,
               {
                 backgroundColor: giftAid
-                  ? (isDark ? 'rgba(45, 106, 79, 0.12)' : 'rgba(45, 106, 79, 0.06)')
-                  : (isDark ? colors.backgroundGrouped : 'rgba(45, 106, 79, 0.03)'),
+                  ? alphaColors.sageBg
+                  : (isDark ? colors.backgroundGrouped : alphaColors.sageBgSubtle),
                 borderColor: giftAid
                   ? palette.sage600
-                  : (isDark ? 'rgba(45, 106, 79, 0.2)' : 'rgba(45, 106, 79, 0.12)'),
+                  : alphaColors.sageBorder,
               },
             ]}
             onPress={() => {
@@ -291,11 +313,13 @@ export default function SupportScreen() {
               ]}
             >
               {giftAid && (
-                <Ionicons name="checkmark" size={14} color={palette.white} />
+                <Animated.View entering={ZoomIn.duration(200).springify()}>
+                  <Ionicons name="checkmark" size={16} color={palette.white} />
+                </Animated.View>
               )}
             </View>
             <View style={styles.optionText}>
-              <Text style={[typography.subhead, { fontWeight: '600', color: palette.sage600 }]}>
+              <Text style={[typography.subhead, { fontWeight: fontWeight.semibold, color: palette.sage600 }]}>
                 {t('support.giftAid')}
               </Text>
               <Text style={[typography.footnote, { color: colors.textSecondary }]}>
@@ -309,17 +333,17 @@ export default function SupportScreen() {
         </Animated.View>
 
         {/* Cover Processing Fees */}
-        <Animated.View entering={FadeInDown.delay(380).duration(400)}>
+        <Animated.View entering={FadeInDown.delay(340).duration(400)}>
           <Pressable
             style={[
               styles.optionCard,
               {
                 backgroundColor: coverFees
-                  ? (isDark ? 'rgba(15, 45, 82, 0.12)' : 'rgba(15, 45, 82, 0.06)')
-                  : (isDark ? colors.backgroundGrouped : 'rgba(15, 45, 82, 0.03)'),
+                  ? alphaColors.sapphireBg
+                  : (isDark ? colors.backgroundGrouped : alphaColors.sapphireBgSubtle),
                 borderColor: coverFees
                   ? colors.tint
-                  : (isDark ? 'rgba(91, 155, 213, 0.2)' : 'rgba(15, 45, 82, 0.12)'),
+                  : alphaColors.sapphireBorder,
               },
             ]}
             onPress={() => {
@@ -340,11 +364,13 @@ export default function SupportScreen() {
               ]}
             >
               {coverFees && (
-                <Ionicons name="checkmark" size={14} color={palette.white} />
+                <Animated.View entering={ZoomIn.duration(200).springify()}>
+                  <Ionicons name="checkmark" size={16} color={palette.white} />
+                </Animated.View>
               )}
             </View>
             <View style={styles.optionText}>
-              <Text style={[typography.subhead, { fontWeight: '600', color: colors.tint }]}>
+              <Text style={[typography.subhead, { fontWeight: fontWeight.semibold, color: colors.tint }]}>
                 {t('support.coverFees')}
               </Text>
               <Text style={[typography.footnote, { color: colors.textSecondary }]}>
@@ -357,15 +383,8 @@ export default function SupportScreen() {
           </Pressable>
         </Animated.View>
 
-        {/* Section: Payment method */}
-        <Animated.View entering={FadeInDown.delay(400).duration(400)}>
-          <Text style={[typography.sectionHeader, styles.sectionLabel, { color: colors.textSecondary, marginTop: spacing['2xl'] }]}>
-            {t('support.paymentMethod')}
-          </Text>
-        </Animated.View>
-
-        {/* Donate Now button — Card, PayPal, Apple Pay, Google Pay */}
-        <Animated.View entering={FadeInDown.delay(420).duration(400)}>
+        {/* Donate Now — primary CTA */}
+        <Animated.View entering={FadeInDown.delay(380).duration(400)} style={{ marginTop: spacing['2xl'] }}>
           <Pressable
             style={[
               styles.methodCard,
@@ -404,8 +423,13 @@ export default function SupportScreen() {
           </Pressable>
         </Animated.View>
 
-        {/* Bank Transfer */}
-        <Animated.View entering={FadeInDown.delay(450).duration(400)}>
+        {/* Trust signal — directly under CTA */}
+        <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+          <TrustBadge />
+        </Animated.View>
+
+        {/* Bank Transfer — secondary alternative */}
+        <Animated.View entering={FadeInDown.delay(420).duration(400)}>
           <Pressable
             style={[
               styles.methodCard,
@@ -435,16 +459,8 @@ export default function SupportScreen() {
           </Pressable>
         </Animated.View>
 
-        {/* Security note */}
-        <Animated.View entering={FadeInDown.delay(470).duration(400)} style={styles.secureRow}>
-          <Ionicons name="shield-checkmark-outline" size={14} color={colors.textTertiary} />
-          <Text style={[typography.caption1, { color: colors.textTertiary }]}>
-            {t('support.secureNote')}
-          </Text>
-        </Animated.View>
-
-        {/* Where your donation goes */}
-        <Animated.View entering={FadeInDown.delay(500).duration(400)}>
+        {/* Where your donation goes — reinforcement after commitment */}
+        <Animated.View entering={FadeInDown.delay(450).duration(400)}>
           <View style={[styles.impactCard, { backgroundColor: colors.card, borderColor: colors.separator, ...getElevation('sm', isDark) }]}>
             <Text style={[typography.headline, { color: colors.text, marginBottom: spacing['2xs'] }]}>
               {t('support.impactTitle')}
@@ -463,23 +479,11 @@ export default function SupportScreen() {
                   <Ionicons name={item.icon} size={18} color={colors.tint} />
                 </View>
                 <View style={styles.impactText}>
-                  <Text style={[typography.subhead, { fontWeight: '600', color: colors.text }]}>{item.title}</Text>
+                  <Text style={[typography.subhead, { fontWeight: fontWeight.semibold, color: colors.text }]}>{item.title}</Text>
                   <Text style={[typography.caption1, { color: colors.textSecondary }]}>{item.desc}</Text>
                 </View>
               </View>
             ))}
-          </View>
-        </Animated.View>
-
-        {/* Hadith */}
-        <Animated.View entering={FadeInDown.delay(550).duration(400)}>
-          <View style={[styles.hadithCard, { backgroundColor: isDark ? colors.backgroundGrouped : 'rgba(15, 45, 82, 0.03)', borderColor: isDark ? 'rgba(91, 155, 213, 0.12)' : 'rgba(15, 45, 82, 0.08)' }]}>
-            <Text style={[typography.callout, { color: colors.text, fontStyle: 'italic', lineHeight: 24 }]}>
-              &ldquo;{hadith.text}&rdquo;
-            </Text>
-            <Text style={[typography.caption1, { color: colors.textTertiary, marginTop: spacing.sm }]}>
-              — {hadith.source}
-            </Text>
           </View>
         </Animated.View>
 
@@ -493,6 +497,14 @@ export default function SupportScreen() {
       <BankDetailsSheet
         visible={showBankDetails}
         onDismiss={() => setShowBankDetails(false)}
+      />
+
+      {/* Donation Confirmation */}
+      <DonationConfirmationSheet
+        visible={showConfirmation}
+        onDismiss={() => setShowConfirmation(false)}
+        amount={confirmedAmount}
+        frequency={frequency}
       />
     </View>
   );
@@ -531,7 +543,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing['3xl'],
   },
   subtitle: {
-    marginBottom: spacing['2xl'],
+    marginBottom: spacing.lg,
   },
   frequencyContainer: {
     flexDirection: 'row',
@@ -553,9 +565,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   optionCheck: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
+    width: 24,
+    height: 24,
+    borderRadius: borderRadius.sm,
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
@@ -591,14 +603,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.xs,
   },
-  secureRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xs,
-    marginTop: spacing.lg,
-    marginBottom: spacing['2xl'],
-  },
   impactCard: {
     padding: spacing.lg,
     borderRadius: borderRadius.sm,
@@ -625,7 +629,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
-    marginTop: spacing.lg,
+    marginBottom: spacing['2xl'],
   },
   footer: {
     textAlign: 'center',

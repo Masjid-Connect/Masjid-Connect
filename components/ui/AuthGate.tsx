@@ -8,17 +8,16 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import Animated, {
-  Easing,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
   withDelay,
   withSpring,
-  withTiming,
 } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
+import * as Haptics from 'expo-haptics';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -78,11 +77,11 @@ export const AuthGate = ({ variant }: AuthGateProps) => {
 
   useEffect(() => {
     if (reducedMotion) return;
-    logoOpacity.value = withDelay(100, withTiming(1, { duration: 500, easing: Easing.out(Easing.quad) }));
+    logoOpacity.value = withDelay(100, withSpring(1, springs.gentle));
     logoScale.value = withDelay(100, withSpring(1, springs.gentle));
-    contentOpacity.value = withDelay(300, withTiming(1, { duration: 450, easing: Easing.out(Easing.quad) }));
+    contentOpacity.value = withDelay(300, withSpring(1, springs.gentle));
     contentTranslateY.value = withDelay(300, withSpring(0, springs.gentle));
-    ctaOpacity.value = withDelay(500, withTiming(1, { duration: 400, easing: Easing.out(Easing.quad) }));
+    ctaOpacity.value = withDelay(500, withSpring(1, springs.gentle));
     ctaTranslateY.value = withDelay(500, withSpring(0, springs.gentle));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reducedMotion]);
@@ -101,6 +100,19 @@ export const AuthGate = ({ variant }: AuthGateProps) => {
     opacity: ctaOpacity.value,
     transform: [{ translateY: ctaTranslateY.value }],
   }));
+
+  // Scale-press animation for CTA buttons
+  const primaryScale = useSharedValue(1);
+  const secondaryScale = useSharedValue(1);
+
+  const primaryScaleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: primaryScale.value }],
+  }));
+  const secondaryScaleStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: secondaryScale.value }],
+  }));
+
+  const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
   const isDark = effectiveScheme === 'dark';
   const valueProps = VALUE_PROPS[variant];
@@ -156,21 +168,46 @@ export const AuthGate = ({ variant }: AuthGateProps) => {
 
       {/* ─── CTA zone ─── */}
       <Animated.View style={[styles.ctaZone, ctaStyle]}>
-        <Pressable
-          onPress={() => router.push('/(auth)/welcome')}
-          style={[styles.primaryBtn, { backgroundColor: colors.tint }]}
+        <AnimatedPressable
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            router.push('/(auth)/welcome');
+          }}
+          onPressIn={() => { primaryScale.value = withSpring(0.96, springs.snappy); }}
+          onPressOut={() => { primaryScale.value = withSpring(1, springs.gentle); }}
+          style={[styles.primaryBtn, { backgroundColor: colors.tint }, primaryScaleStyle]}
+          accessibilityRole="button"
+          accessibilityLabel={t('gate.createAccount')}
         >
           <Text style={[typography.headline, { color: colors.onPrimary }]}>
             {t('gate.createAccount')}
           </Text>
-        </Pressable>
+        </AnimatedPressable>
 
-        <Pressable
-          onPress={() => router.push('/(auth)/sign-in')}
-          style={styles.secondaryBtn}
+        <AnimatedPressable
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push('/(auth)/sign-in');
+          }}
+          onPressIn={() => { secondaryScale.value = withSpring(0.96, springs.snappy); }}
+          onPressOut={() => { secondaryScale.value = withSpring(1, springs.gentle); }}
+          style={[styles.secondaryBtn, secondaryScaleStyle]}
+          accessibilityRole="button"
+          accessibilityLabel={t('gate.alreadyHaveAccount')}
         >
           <Text style={[typography.subhead, { color: colors.tint }]}>
             {t('gate.alreadyHaveAccount')}
+          </Text>
+        </AnimatedPressable>
+
+        <Pressable
+          onPress={() => router.back()}
+          style={styles.guestBtn}
+          accessibilityRole="button"
+          accessibilityLabel={t('gate.continueAsGuest')}
+        >
+          <Text style={[typography.caption1, { color: colors.textTertiary }]}>
+            {t('gate.continueAsGuest')}
           </Text>
         </Pressable>
       </Animated.View>
@@ -209,7 +246,7 @@ const styles = StyleSheet.create({
   propIcon: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: borderRadius.lg,
     justifyContent: 'center',
     alignItems: 'center',
     marginEnd: spacing.lg,
@@ -232,6 +269,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: layout.minTouchTarget,
     marginTop: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  guestBtn: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: layout.minTouchTarget,
     paddingVertical: spacing.sm,
   },
 });

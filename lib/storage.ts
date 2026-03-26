@@ -15,7 +15,13 @@ const KEYS = {
 /** User location */
 export async function getUserLocation(): Promise<{ latitude: number; longitude: number } | null> {
   const raw = await AsyncStorage.getItem(KEYS.USER_LOCATION);
-  return raw ? JSON.parse(raw) : null;
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    await AsyncStorage.removeItem(KEYS.USER_LOCATION);
+    return null;
+  }
 }
 
 export async function setUserLocation(latitude: number, longitude: number): Promise<void> {
@@ -102,7 +108,12 @@ const READ_ANNOUNCEMENTS_KEY = 'read_announcement_ids';
 export async function getReadAnnouncementIds(): Promise<Set<string>> {
   const raw = await AsyncStorage.getItem(READ_ANNOUNCEMENTS_KEY);
   if (!raw) return new Set();
-  return new Set(JSON.parse(raw) as string[]);
+  try {
+    return new Set(JSON.parse(raw) as string[]);
+  } catch {
+    await AsyncStorage.removeItem(READ_ANNOUNCEMENTS_KEY);
+    return new Set();
+  }
 }
 
 export async function markAnnouncementRead(id: string): Promise<Set<string>> {
@@ -118,14 +129,22 @@ export async function markAnnouncementRead(id: string): Promise<Set<string>> {
 
 const CACHE_PREFIX = 'api_cache_';
 const DEFAULT_TTL_MS = 15 * 60 * 1000; // 15 minutes
+const MAX_STALE_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days — hard cap for allowStale mode
+
+/**
+ * Cache version — bump this when the CacheEntry schema changes.
+ * Entries with a mismatched version are treated as missing.
+ */
+const CACHE_VERSION = 1;
 
 interface CacheEntry<T> {
   data: T;
   timestamp: number;
+  version: number;
 }
 
 /**
- * Get cached API data. Returns null if expired or missing.
+ * Get cached API data. Returns null if expired, missing, or version mismatched.
  * When `allowStale` is true, returns data even if TTL has expired.
  */
 export async function getCachedData<T>(
@@ -135,16 +154,44 @@ export async function getCachedData<T>(
 ): Promise<T | null> {
   const raw = await AsyncStorage.getItem(CACHE_PREFIX + key);
   if (!raw) return null;
-  const entry: CacheEntry<T> = JSON.parse(raw);
-  const isFresh = Date.now() - entry.timestamp < ttlMs;
-  if (isFresh || allowStale) return entry.data;
+  let entry: CacheEntry<T>;
+  try {
+    entry = JSON.parse(raw);
+  } catch {
+    await AsyncStorage.removeItem(CACHE_PREFIX + key);
+    return null;
+  }
+  // Reject entries from older cache versions
+  if (entry.version !== CACHE_VERSION) {
+    await AsyncStorage.removeItem(CACHE_PREFIX + key);
+    return null;
+  }
+  const age = Date.now() - entry.timestamp;
+  const isFresh = age < ttlMs;
+  if (isFresh) return entry.data;
+  // Stale data allowed but capped at 7 days to prevent serving months-old data
+  if (allowStale && age < MAX_STALE_AGE_MS) return entry.data;
   return null;
 }
 
-/** Store API response data with a timestamp. */
+/** Store API response data with a timestamp and version tag. */
 export async function setCachedData<T>(key: string, data: T): Promise<void> {
-  const entry: CacheEntry<T> = { data, timestamp: Date.now() };
+  const entry: CacheEntry<T> = { data, timestamp: Date.now(), version: CACHE_VERSION };
   await AsyncStorage.setItem(CACHE_PREFIX + key, JSON.stringify(entry));
+}
+
+/** Evict a single cache key. */
+export async function evictCachedData(key: string): Promise<void> {
+  await AsyncStorage.removeItem(CACHE_PREFIX + key);
+}
+
+/** Evict all API cache entries (keys matching the cache prefix). */
+export async function evictAllCachedData(): Promise<void> {
+  const allKeys = await AsyncStorage.getAllKeys();
+  const cacheKeys = allKeys.filter((k: string) => k.startsWith(CACHE_PREFIX));
+  if (cacheKeys.length > 0) {
+    await AsyncStorage.multiRemove(cacheKeys);
+  }
 }
 
 /** Hardcoded fallback coordinates — The Salafi Masjid, Birmingham, UK */

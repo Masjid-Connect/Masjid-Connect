@@ -1,8 +1,10 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Sentry from '@sentry/react-native';
 import { auth, pushTokens } from '@/lib/api';
 import { registerForPushNotifications } from '@/lib/notifications';
+import { evictAllCachedData } from '@/lib/storage';
 
 const GUEST_KEY = 'has_chosen_guest';
 
@@ -34,21 +36,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isGuest, setIsGuest] = useState(false);
 
-  const syncPushToken = useCallback(async () => {
+  const syncPushToken = useCallback(async (retryCount = 0) => {
     try {
       const token = await registerForPushNotifications();
       if (token && (Platform.OS === 'ios' || Platform.OS === 'android')) {
         await pushTokens.register(token, Platform.OS);
       }
-    } catch {
-      // Non-critical — push registration can fail silently
+    } catch (err) {
+      Sentry.captureException(err, { tags: { context: 'push_token_registration', retry: retryCount } });
+      if (retryCount < 2) {
+        setTimeout(() => syncPushToken(retryCount + 1), 5000 * (retryCount + 1));
+      }
     }
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
     (async () => {
       try {
         await auth.hydrate();
+        if (cancelled) return;
         if (auth.isLoggedIn && auth.user) {
           setUser(auth.user);
           syncPushToken();
@@ -59,12 +66,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setIsGuest(true);
           }
         }
-      } catch {
-        // Token invalid or expired — stay logged out
+      } catch (err) {
+        if (cancelled) return;
+        // Q20: Distinguish network error from invalid token
+        const isNetworkError = err instanceof TypeError || (err instanceof Error && err.message.includes('network'));
+        if (isNetworkError) {
+          // Network failure — preserve any cached user state, don't log out
+          // User may still have a valid token but no connectivity
+          console.warn('Auth hydration network error — preserving cached state');
+        }
+        // Invalid token / other error — stay logged out (default state)
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     })();
+    return () => { cancelled = true; };
   }, [syncPushToken]);
 
   const login = useCallback(async (email: string, password: string) => {
@@ -97,6 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
+    await evictAllCachedData();
     await auth.logout();
     setUser(null);
     setIsGuest(false);
@@ -104,6 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const deleteAccount = useCallback(async (password?: string) => {
+    await evictAllCachedData();
     await auth.deleteAccount(password);
     setUser(null);
     setIsGuest(false);

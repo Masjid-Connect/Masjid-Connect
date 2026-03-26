@@ -10,6 +10,7 @@ import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.models import Sum as models_Sum
 from django.db.models.expressions import RawSQL
 from django.utils import timezone
 from django.utils.dateparse import parse_date
@@ -23,8 +24,10 @@ logger = logging.getLogger(__name__)
 
 from core.models import (
     Announcement,
+    Donation,
     Event,
     Feedback,
+    GiftAidDeclaration,
     Mosque,
     MosqueAdmin,
     MosquePrayerTime,
@@ -34,9 +37,11 @@ from core.models import (
 
 from .serializers import (
     AnnouncementSerializer,
+    DonationSerializer,
     EventSerializer,
     FeedbackCreateSerializer,
     FeedbackSerializer,
+    GiftAidDeclarationSerializer,
     MosqueAdminSerializer,
     MosqueListSerializer,
     MosquePrayerTimeSerializer,
@@ -79,6 +84,17 @@ class FeedbackRateThrottle(AnonRateThrottle):
     """Limit feedback submissions to prevent spam."""
 
     scope = "feedback"
+
+    def allow_request(self, request, view):
+        if getattr(settings, "TESTING", False):
+            return True
+        return super().allow_request(request, view)
+
+
+class ContentCreationRateThrottle(ScopedRateThrottle):
+    """Rate limit content creation (announcements/events) to prevent abuse from compromised admin accounts."""
+
+    scope = "content_creation"
 
     def allow_request(self, request, view):
         if getattr(settings, "TESTING", False):
@@ -143,8 +159,14 @@ def register(request):
     """Register a new user and return auth token."""
     serializer = RegisterSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    user = serializer.save()
-    token, _ = Token.objects.get_or_create(user=user)
+    with transaction.atomic():
+        user = serializer.save()
+        token, _ = Token.objects.get_or_create(user=user)
+
+    # Fire-and-forget welcome email (outside transaction)
+    from core.email import send_welcome_email
+    send_welcome_email(user)
+
     return Response(
         {"token": token.key, "user": UserSerializer(user).data},
         status=status.HTTP_201_CREATED,
@@ -227,9 +249,15 @@ def social_login(request):
             user.set_unusable_password()
             user.save()
 
-    # Rotate token on each social login to limit token lifetime
-    Token.objects.filter(user=user).delete()
-    token = Token.objects.create(user=user)
+        # Rotate token on each social login to limit token lifetime
+        Token.objects.filter(user=user).delete()
+        token = Token.objects.create(user=user)
+
+    # Fire-and-forget welcome email for new users (outside transaction)
+    if created:
+        from core.email import send_welcome_email
+        send_welcome_email(user)
+
     return Response(
         {"token": token.key, "user": UserSerializer(user).data},
         status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
@@ -378,6 +406,13 @@ def export_user_data(request):
     user_announcements = Announcement.objects.filter(author=user).select_related("mosque")
     user_events = Event.objects.filter(author=user).select_related("mosque")
     user_admin_roles = MosqueAdmin.objects.filter(user=user).select_related("mosque")
+    user_feedback = Feedback.objects.filter(user=user)
+    # Donations matched by email (donors may not have app accounts)
+    user_donations = Donation.objects.filter(donor_email=user.email)
+    user_gift_aid = GiftAidDeclaration.objects.filter(donor_email=user.email).annotate(
+        _total_donated_pence=models_Sum("donations__amount_pence"),
+        _total_gift_aid_pence=models_Sum("donations__gift_aid_amount_pence"),
+    )
 
     return Response({
         "profile": profile,
@@ -386,6 +421,9 @@ def export_user_data(request):
         "announcements": AnnouncementSerializer(user_announcements, many=True).data,
         "events": EventSerializer(user_events, many=True).data,
         "admin_roles": MosqueAdminSerializer(user_admin_roles, many=True).data,
+        "feedback": FeedbackSerializer(user_feedback, many=True).data,
+        "donations": DonationSerializer(user_donations, many=True).data,
+        "gift_aid_declarations": GiftAidDeclarationSerializer(user_gift_aid, many=True).data,
         "exported_at": timezone.now().isoformat(),
     })
 
@@ -408,6 +446,19 @@ def delete_account(request):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+    # Audit log: record account deletion before destroying data
+    logger.info(
+        "Account deletion: user_id=%s email=%s at %s from IP=%s",
+        user.id,
+        user.email,
+        timezone.now().isoformat(),
+        request.META.get("HTTP_CF_CONNECTING_IP", request.META.get("REMOTE_ADDR", "unknown")),
+    )
+
+    # Capture email and name before deletion
+    user_email = user.email
+    user_name = user.name
+
     with transaction.atomic():
         # Delete auth token
         if hasattr(user, "auth_token"):
@@ -416,7 +467,111 @@ def delete_account(request):
         # Orphan authored content (SET_NULL on announcements/events)
         user.delete()
 
+    # Send confirmation email after successful deletion (outside transaction)
+    from core.email import send_account_deletion_email
+    send_account_deletion_email(user_email, user_name)
+
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+# ── Password Reset ──────────────────────────────────────────────────
+
+
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+@throttle_classes([AuthRateThrottle])
+def request_password_reset(request):
+    """Request a password reset email.
+
+    Always returns 200 to prevent email enumeration — even if the email
+    doesn't exist. The actual email is only sent if a matching user is found.
+    """
+    from core.email import generate_password_reset_token, send_password_reset_email
+    from core.models import PasswordResetToken
+
+    email = request.data.get("email", "").strip().lower()
+    if not email:
+        return Response(
+            {"detail": "Email is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Always return success to prevent enumeration
+    success_msg = {"detail": "If an account exists with that email, a reset link has been sent."}
+
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return Response(success_msg, status=status.HTTP_200_OK)
+
+    # Social-only accounts can't reset passwords
+    if not user.has_usable_password():
+        return Response(success_msg, status=status.HTTP_200_OK)
+
+    # Invalidate any existing unused tokens for this user
+    PasswordResetToken.objects.filter(user=user, used=False).update(used=True)
+
+    # Create new token
+    token_value = generate_password_reset_token()
+    PasswordResetToken.objects.create(user=user, token=token_value)
+
+    # Build reset URL (frontend handles the actual reset form)
+    frontend_url = getattr(settings, "FRONTEND_URL", "https://salafimasjid.app")
+    reset_url = f"{frontend_url}/reset-password?token={token_value}"
+
+    send_password_reset_email(user, reset_url)
+    return Response(success_msg, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+@throttle_classes([AuthRateThrottle])
+def confirm_password_reset(request):
+    """Confirm a password reset — validate token and set new password."""
+    from core.models import PasswordResetToken
+
+    token_value = request.data.get("token", "")
+    new_password = request.data.get("password", "")
+
+    if not token_value or not new_password:
+        return Response(
+            {"detail": "Token and password are required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if len(new_password) < 8:
+        return Response(
+            {"detail": "Password must be at least 8 characters."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        reset_token = PasswordResetToken.objects.select_related("user").get(token=token_value)
+    except PasswordResetToken.DoesNotExist:
+        return Response(
+            {"detail": "Invalid or expired reset link."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not reset_token.is_valid():
+        return Response(
+            {"detail": "Invalid or expired reset link."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    with transaction.atomic():
+        user = reset_token.user
+        user.set_password(new_password)
+        user.save()
+
+        # Mark token as used
+        reset_token.used = True
+        reset_token.save(update_fields=["used"])
+
+        # Invalidate all existing auth tokens (force re-login)
+        Token.objects.filter(user=user).delete()
+
+    return Response({"detail": "Password has been reset. Please log in with your new password."})
 
 
 # ── Mosques ──────────────────────────────────────────────────────────
@@ -446,9 +601,20 @@ class MosqueViewSet(viewsets.ReadOnlyModelViewSet):
                 {"detail": "lat and lng query params are required."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        radius = float(request.query_params.get("radius", 50))
 
-        # Haversine formula executed at the DB level (works with SQLite and PostgreSQL)
+        if not (-90 <= lat <= 90) or not (-180 <= lng <= 180):
+            return Response(
+                {"detail": "lat must be between -90 and 90, lng between -180 and 180."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            radius = float(request.query_params.get("radius", 50))
+        except (ValueError, TypeError):
+            radius = 50
+        radius = min(radius, 500)  # cap at 500 km
+
+        # Haversine formula executed at the DB level (PostgreSQL)
         lat_rad = math.radians(lat)
         lng_rad = math.radians(lng)
         qs = Mosque.objects.annotate(
@@ -485,6 +651,12 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
 
     serializer_class = AnnouncementSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsMosqueAdminOrReadOnly]
+    throttle_scope = "content_creation"
+
+    def get_throttles(self):
+        if self.action in ("create", "update", "partial_update"):
+            return [ContentCreationRateThrottle()]
+        return []
 
     def get_queryset(self):
         qs = Announcement.objects.select_related("mosque", "author")
@@ -521,6 +693,12 @@ class EventViewSet(viewsets.ModelViewSet):
 
     serializer_class = EventSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsMosqueAdminOrReadOnly]
+    throttle_scope = "content_creation"
+
+    def get_throttles(self):
+        if self.action in ("create", "update", "partial_update"):
+            return [ContentCreationRateThrottle()]
+        return []
 
     def get_queryset(self):
         qs = Event.objects.select_related("mosque", "author")
@@ -578,11 +756,12 @@ def register_push_token(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    push_token, created = PushToken.objects.update_or_create(
-        user=request.user,
-        token=token_str,
-        defaults={"platform": platform},
-    )
+    with transaction.atomic():
+        push_token, created = PushToken.objects.update_or_create(
+            user=request.user,
+            token=token_str,
+            defaults={"platform": platform},
+        )
     return Response(
         PushTokenSerializer(push_token).data,
         status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
@@ -617,7 +796,7 @@ class FeedbackViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.request.user.is_authenticated:
-            return Feedback.objects.filter(user=self.request.user)
+            return Feedback.objects.filter(user=self.request.user).select_related("user")
         return Feedback.objects.none()
 
     def perform_create(self, serializer):
@@ -652,6 +831,33 @@ def contact_submit(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     data = serializer.validated_data
+
+    # Validate Turnstile token (skip if no secret key configured)
+    turnstile_secret = getattr(settings, "TURNSTILE_SECRET_KEY", "")
+    turnstile_token = data.get("turnstile_token", "")
+    if turnstile_secret and turnstile_token:
+        try:
+            turnstile_resp = requests.post(
+                "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+                data={"secret": turnstile_secret, "response": turnstile_token},
+                timeout=5,
+            )
+            result = turnstile_resp.json()
+            if not result.get("success"):
+                logger.warning("Turnstile verification failed: %s", result)
+                return Response(
+                    {"detail": "Bot verification failed. Please try again."},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+        except requests.RequestException:
+            logger.exception("Turnstile verification request failed")
+            # Fail open — don't block legitimate users if Turnstile is down
+    elif turnstile_secret and not turnstile_token:
+        return Response(
+            {"detail": "Bot verification required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     api_key = getattr(settings, "RESEND_API_KEY", "")
 
     if not api_key:
@@ -930,9 +1136,10 @@ def create_checkout_session(request):
         else:
             # 303 See Other — browser converts POST to GET for Stripe's hosted page
             return _redirect_303(session.url)
-    except Exception:
+    except Exception as exc:
         logger.exception("Stripe Checkout Session creation failed")
-        return _error("Something went wrong. Please try again.", for_redirect=not is_embedded)
+        error_msg = str(exc) if str(exc) else "Something went wrong. Please try again."
+        return _error(error_msg, for_redirect=not is_embedded)
 
 
 
@@ -1052,25 +1259,31 @@ def stripe_webhook(request):
     logger.info("Stripe webhook received: %s (%s)", event_type, event["id"])
 
     # ── Handle specific event types ──
+    # Wrap handler + processed flag update in a transaction so partial
+    # writes (e.g. donation created but Gift Aid linking fails) are rolled back.
     try:
-        if event_type == "checkout.session.completed":
-            _handle_checkout_completed(data_object)
-        elif event_type == "invoice.payment_succeeded":
-            _handle_invoice_payment_succeeded(data_object)
-        elif event_type == "invoice.payment_failed":
-            _handle_invoice_payment_failed(data_object)
-        elif event_type == "customer.subscription.created":
-            _handle_subscription_created(data_object)
-        elif event_type == "customer.subscription.deleted":
-            _handle_subscription_deleted(data_object)
-        elif event_type == "payment_intent.succeeded":
-            _handle_payment_intent_succeeded(data_object)
-        else:
-            logger.info("Stripe webhook: unhandled event type %s", event_type)
+        with transaction.atomic():
+            if event_type == "checkout.session.completed":
+                _handle_checkout_completed(data_object)
+            elif event_type == "invoice.payment_succeeded":
+                _handle_invoice_payment_succeeded(data_object)
+            elif event_type == "invoice.payment_failed":
+                _handle_invoice_payment_failed(data_object)
+            elif event_type == "customer.subscription.created":
+                _handle_subscription_created(data_object)
+            elif event_type == "customer.subscription.deleted":
+                _handle_subscription_deleted(data_object)
+            elif event_type == "payment_intent.succeeded":
+                _handle_payment_intent_succeeded(data_object)
+            elif event_type == "charge.refunded":
+                _handle_charge_refunded(data_object)
+            else:
+                logger.info("Stripe webhook: unhandled event type %s", event_type)
 
-        # Mark as successfully processed
-        stripe_event.processed = True
-        stripe_event.save(update_fields=["processed"])
+            # Mark as successfully processed (inside transaction so it only
+            # commits if the handler succeeded)
+            stripe_event.processed = True
+            stripe_event.save(update_fields=["processed"])
     except Exception:
         logger.exception("Stripe webhook: failed to process event %s", event["id"])
         # Event is recorded but not marked as processed — safe to retry
@@ -1128,11 +1341,23 @@ def _handle_checkout_completed(session):
     # Auto-create or link Gift Aid declaration
     if wants_gift_aid and customer_email:
         _link_gift_aid_declaration(donation)
+    elif wants_gift_aid and not customer_email:
+        logger.warning(
+            "Gift Aid opted in but no email on checkout %s — cannot create declaration",
+            session.get("id"),
+        )
+
+    # Send donation receipt email
+    from core.email import send_donation_receipt_email
+    send_donation_receipt_email(donation)
 
 
 def _link_gift_aid_declaration(donation):
     """Find or create a GiftAidDeclaration for this donor and link it."""
     from datetime import date
+
+    from django.db import IntegrityError as DjangoIntegrityError
+    from django.db.models import Max
 
     from core.models import GiftAidDeclaration
 
@@ -1151,30 +1376,45 @@ def _link_gift_aid_declaration(donation):
         ).first()
 
     if not declaration:
-        # Generate next charity reference
-        last = GiftAidDeclaration.objects.order_by("-charity_reference").first()
-        if last and last.charity_reference.startswith("GA-"):
-            try:
-                seq = int(last.charity_reference.split("-")[1]) + 1
-            except (ValueError, IndexError):
+        # Generate next charity reference with retry on unique constraint violation.
+        # select_for_update locks scanned rows, but when the table is empty no rows
+        # are locked — two concurrent transactions can both generate the same ref.
+        # Retry once on IntegrityError to handle this race.
+        for attempt in range(2):
+            max_ref = (
+                GiftAidDeclaration.objects
+                .select_for_update()
+                .aggregate(max_ref=Max("charity_reference"))
+            )["max_ref"]
+            if max_ref and max_ref.startswith("GA-"):
+                try:
+                    seq = int(max_ref.split("-")[1]) + 1
+                except (ValueError, IndexError):
+                    seq = 1
+            else:
                 seq = 1
-        else:
-            seq = 1
-        ref = f"GA-{seq:06d}"
+            ref = f"GA-{seq:06d}"
 
-        declaration = GiftAidDeclaration.objects.create(
-            donor_name=donation.donor_name,
-            donor_email=donation.donor_email,
-            donor_address_line1=donation.donor_address_line1,
-            donor_address_line2=donation.donor_address_line2,
-            donor_city=donation.donor_city,
-            donor_postcode=donation.donor_postcode,
-            donor_country=donation.donor_country,
-            stripe_customer_id=donation.stripe_customer_id,
-            declaration_date=date.today(),
-            charity_reference=ref,
-        )
-        logger.info("Gift Aid declaration created: %s for %s", ref, donation.donor_email)
+            try:
+                declaration = GiftAidDeclaration.objects.create(
+                    donor_name=donation.donor_name,
+                    donor_email=donation.donor_email,
+                    donor_address_line1=donation.donor_address_line1,
+                    donor_address_line2=donation.donor_address_line2,
+                    donor_city=donation.donor_city,
+                    donor_postcode=donation.donor_postcode,
+                    donor_country=donation.donor_country,
+                    stripe_customer_id=donation.stripe_customer_id,
+                    declaration_date=date.today(),
+                    charity_reference=ref,
+                )
+                logger.info("Gift Aid declaration created: %s for %s", ref, donation.donor_email)
+                break
+            except DjangoIntegrityError:
+                if attempt == 0:
+                    logger.warning("Gift Aid ref %s conflict, retrying", ref)
+                    continue
+                raise
 
     donation.gift_aid_declaration = declaration
     donation.save(update_fields=["gift_aid_declaration", "updated"])
@@ -1226,6 +1466,10 @@ def _handle_invoice_payment_succeeded(invoice):
     if wants_gift_aid and customer_email:
         _link_gift_aid_declaration(donation)
 
+    # Send donation receipt email for recurring payment
+    from core.email import send_donation_receipt_email
+    send_donation_receipt_email(donation)
+
 
 def _handle_invoice_payment_failed(invoice):
     """Handle invoice.payment_failed — a recurring payment failed."""
@@ -1271,6 +1515,29 @@ def _handle_payment_intent_succeeded(payment_intent):
         payment_intent.get("amount"), payment_intent.get("currency"),
         metadata.get("frequency", "unknown"), metadata.get("donor_email", "unknown"),
     )
+
+
+def _handle_charge_refunded(charge):
+    """Handle charge.refunded — mark donation as refunded so it's excluded from Gift Aid claims."""
+    from core.models import Donation
+
+    payment_intent_id = charge.get("payment_intent", "")
+    if not payment_intent_id:
+        logger.warning("charge.refunded: no payment_intent in charge %s", charge.get("id"))
+        return
+
+    donations = Donation.objects.filter(stripe_payment_intent_id=payment_intent_id)
+    updated = donations.update(gift_aid_eligible=False, gift_aid_amount_pence=0)
+    if updated:
+        logger.info(
+            "charge.refunded: marked %d donation(s) as ineligible for Gift Aid (pi: %s)",
+            updated, payment_intent_id,
+        )
+    else:
+        logger.warning(
+            "charge.refunded: no matching donation for payment_intent %s",
+            payment_intent_id,
+        )
 
 
 # ── Gift Aid Summary (admin-only) ────────────────────────────────────
@@ -1358,6 +1625,8 @@ class MosquePrayerTimeViewSet(viewsets.ReadOnlyModelViewSet):
             parsed = parse_date(single_date)
             if parsed:
                 return qs.filter(date=parsed)
+            # Invalid date format — return empty rather than all times
+            return qs.none()
 
         # Date range filter
         from_date = self.request.query_params.get("from_date")

@@ -42,7 +42,7 @@
         <a href="/features" class="navbar__link">Features</a>
         <a href="/about" class="navbar__link">About</a>
         <a href="/contact" class="navbar__link">Contact</a>
-        <a href="/donate" class="navbar__link navbar__link--donate">Donate</a>
+        <a href="/donate" class="navbar__link navbar__link--donate">Give</a>
         <a href="/download" class="navbar__link navbar__link--cta">Download</a>
         <!-- Mobile menu (iOS Settings sheet) -->
         <div class="mobile-menu">
@@ -62,7 +62,7 @@
                 <svg class="mobile-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </a>
               <a href="/donate" class="mobile-menu__item mobile-menu__item--donate">
-                <span class="mobile-menu__item-text">Donate</span>
+                <span class="mobile-menu__item-text">Give</span>
                 <svg class="mobile-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </a>
             </div>
@@ -107,9 +107,9 @@
     <!-- LAST UPDATED -->
     <section class="page-section">
       <div class="container">
-        <p class="legal__updated">Last updated: 15 March 2026</p>
+        <p class="legal__updated">Last updated: 23 March 2026</p>
 
-        <div class="legal__content reveal">
+        <div class="legal__content reveal" data-reveal-threshold="0.05">
 
           <div class="legal__section">
             <h2 class="legal__heading">1. Overview</h2>
@@ -217,11 +217,12 @@
             <ul class="legal__list">
               <li><strong>Aladhan API</strong> — calculates prayer times from coordinates (no account required, no tracking)</li>
               <li><strong>Expo Push Service</strong> — delivers push notifications to your device</li>
+              <li><strong>Sentry</strong> — crash and error reporting to help us fix bugs and improve app stability. Sentry receives error messages, device type, and app version. We scrub all personally identifiable information (email addresses, IP addresses, and authentication tokens) before data is sent to Sentry. Sentry's servers are located in the US. See <a href="https://sentry.io/privacy/" class="legal__link" target="_blank" rel="noopener noreferrer">Sentry's Privacy Policy</a>.</li>
               <li><strong>Stripe</strong> — processes donations securely</li>
               <li><strong>Apple App Store / Google Play Store</strong> — distributes the app</li>
             </ul>
             <p>
-              We do not use any social media SDKs, crash reporting tools, or analytics platforms.
+              We do not use any social media SDKs, advertising networks, or behavioural analytics platforms.
             </p>
           </div>
 
@@ -235,6 +236,12 @@
             <p>
               Contact form submissions are retained for up to 12 months to handle follow-up
               enquiries, then permanently deleted.
+            </p>
+            <p>
+              Donation records (transaction amounts, dates, and Gift Aid declarations) are retained
+              for a minimum of 6 years after the end of the tax year in which the donation was made,
+              as required by HMRC for Gift Aid audit purposes. After this period, records are
+              permanently deleted.
             </p>
           </div>
 
@@ -308,7 +315,7 @@
             <li><a href="/about" class="footer__link">About</a></li>
             <li><a href="/contact" class="footer__link">Contact</a></li>
             <li><a href="/download" class="footer__link">Download</a></li>
-            <li><a href="/donate" class="footer__link">Donate</a></li>
+            <li><a href="/donate" class="footer__link">Give</a></li>
           </ul>
         </div>
         <div class="footer__col">
@@ -356,6 +363,6 @@
     </div>
   </footer>
 
-  <script src="script.js?v=3"></script>
+  <script src="script.js?v=4"></script>
 </body>
 </html>

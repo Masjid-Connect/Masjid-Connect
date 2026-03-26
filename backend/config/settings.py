@@ -2,6 +2,7 @@
 
 import os
 import sys
+from datetime import timedelta
 from pathlib import Path
 
 TESTING = "test" in sys.argv
@@ -9,7 +10,6 @@ TESTING = "test" in sys.argv
 import logging
 import environ
 import sentry_sdk
-from django.core.management.utils import get_random_secret_key
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -18,7 +18,7 @@ _INSECURE_SECRET_KEY = "django-insecure-dev-only-change-me"
 env = environ.Env(
     DEBUG=(bool, False),
     ALLOWED_HOSTS=(list, []),
-    DATABASE_URL=(str, "sqlite:///db.sqlite3"),
+    DATABASE_URL=(str, "postgres://localhost:5432/masjid_connect"),
     SECRET_KEY=(str, _INSECURE_SECRET_KEY),
     CORS_ALLOWED_ORIGINS=(list, []),
     CSRF_TRUSTED_ORIGINS=(list, []),
@@ -31,16 +31,12 @@ if env_file.exists():
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 
-# In production, generate a random key if none was explicitly set.
-# This lets the app start (health checks pass) but sessions/tokens won't
-# persist across container restarts — operators should set a proper key.
+# In production, refuse to start without an explicit SECRET_KEY.
+# A random key per container start would silently invalidate all tokens/sessions.
 if not DEBUG and SECRET_KEY == _INSECURE_SECRET_KEY:
-    SECRET_KEY = get_random_secret_key()
-    logger = logging.getLogger("django")
-    logger.critical(
-        "SECRET_KEY is not set — using a random key. "
-        "Sessions will be lost on restart. "
-        "Set SECRET_KEY in your environment variables or .env file."
+    raise RuntimeError(
+        "SECRET_KEY is not set. Refusing to start in production with the insecure "
+        "default key. Set SECRET_KEY in your environment variables or .env file."
     )
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 
@@ -67,12 +63,14 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_filters",
     "drf_spectacular",
+    "axes",
     # Local
     "core",
     "api",
 ]
 
 MIDDLEWARE = [
+    "config.middleware.RequestIDMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
@@ -83,6 +81,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "config.middleware.ContentSecurityPolicyMiddleware",
+    "axes.middleware.AxesMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -90,7 +89,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "core" / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -105,7 +104,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-DATABASES = {"default": {**env.db(), "CONN_MAX_AGE": 600}}
+DATABASES = {"default": {**env.db(), "CONN_MAX_AGE": 600, "CONN_HEALTH_CHECKS": True}}
 
 AUTH_USER_MODEL = "core.User"
 
@@ -135,6 +134,10 @@ STORAGES = {
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Limit uploaded file size to 10 MB (prevents memory exhaustion from large uploads)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # DRF
@@ -150,7 +153,7 @@ REST_FRAMEWORK = {
         "rest_framework.filters.SearchFilter",
         "rest_framework.filters.OrderingFilter",
     ],
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "DEFAULT_PAGINATION_CLASS": "api.pagination.AppPageNumberPagination",
     "PAGE_SIZE": 50,
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_CLASSES": [] if TESTING else [
@@ -162,11 +165,14 @@ REST_FRAMEWORK = {
         "user": "500/hour",
         "feedback": "5/hour",
         "contact": "5/hour",
+        "content_creation": "30/hour",
         "data_export": "3/day",
     },
 }
 
 # Logging
+_LOG_FORMATTER = "json" if not DEBUG else "verbose"
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -175,11 +181,14 @@ LOGGING = {
             "format": "[{asctime}] {levelname} {name} {message}",
             "style": "{",
         },
+        "json": {
+            "()": "config.logging_formatter.JSONFormatter",
+        },
     },
     "handlers": {
         "console": {
             "class": "logging.StreamHandler",
-            "formatter": "verbose",
+            "formatter": _LOG_FORMATTER,
         },
     },
     "root": {
@@ -218,6 +227,12 @@ FEEDBACK_NOTIFY_EMAIL = env("FEEDBACK_NOTIFY_EMAIL", default="info@salafimasjid.
 RESEND_API_KEY = env("RESEND_API_KEY", default="")
 CONTACT_TO_EMAIL = env("CONTACT_TO_EMAIL", default="info@salafimasjid.app")
 
+# Frontend URL — used for password reset links
+FRONTEND_URL = env("FRONTEND_URL", default="https://salafimasjid.app")
+
+# Cloudflare Turnstile — anti-bot for contact form
+TURNSTILE_SECRET_KEY = env("TURNSTILE_SECRET_KEY", default="")
+
 # Stripe
 STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="")
 STRIPE_PUBLISHABLE_KEY = env("STRIPE_PUBLISHABLE_KEY", default="")
@@ -232,13 +247,26 @@ SPECTACULAR_SETTINGS = {
 
 # CORS
 CORS_ALLOWED_ORIGINS = env("CORS_ALLOWED_ORIGINS")
-# Allow Cloudflare Pages preview deployments (unique subdomains per deploy)
+# Only allow known production and preview origins — no wildcard subdomains.
+# Add specific preview URLs here as needed rather than allowing any subdomain,
+# which would let attackers deploy on *.masjid-connect.pages.dev.
 CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https://[a-z0-9]+\.masjid-connect\.pages\.dev$",
     r"^https://(www\.)?salafimasjid\.app$",
 ]
+# Explicit Cloudflare Pages origins (add known preview deployments here)
+_CF_PAGES_ORIGINS = env.list("CORS_CF_PAGES_ORIGINS", default=[])
+CORS_ALLOWED_ORIGINS = list(CORS_ALLOWED_ORIGINS) + _CF_PAGES_ORIGINS
 if DEBUG and not CORS_ALLOWED_ORIGINS:
-    CORS_ALLOW_ALL_ORIGINS = True
+    # Allow common local development origins instead of wildcard CORS_ALLOW_ALL_ORIGINS.
+    # Using explicit origins prevents accidental exposure if DEBUG=True leaks to production.
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:8081",
+        "http://localhost:19006",
+        "http://localhost:3000",
+        "http://127.0.0.1:8081",
+        "http://127.0.0.1:19006",
+        "http://127.0.0.1:3000",
+    ]
 
 # CSRF
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
@@ -268,9 +296,12 @@ UNFOLD = {
         "light": lambda request: "/static/admin/img/Masjid_Logo.png",
         "dark": lambda request: "/static/admin/img/Masjid_Logo.png",
     },
-    "SITE_ICON": lambda request: "/static/admin/img/Masjid_Logo.png",
+    "SITE_ICON": lambda request: "/static/admin/img/favicon-32x32.png",
     "SITE_FAVICONS": [
-        {"rel": "icon", "sizes": "any", "href": lambda request: "/static/admin/img/Masjid_Logo.png"},
+        {"rel": "icon", "sizes": "32x32", "type": "image/png", "href": lambda request: "/static/admin/img/favicon-32x32.png"},
+        {"rel": "icon", "sizes": "16x16", "type": "image/png", "href": lambda request: "/static/admin/img/favicon-16x16.png"},
+        {"rel": "shortcut icon", "href": lambda request: "/static/admin/img/favicon.ico"},
+        {"rel": "apple-touch-icon", "sizes": "180x180", "href": lambda request: "/static/admin/img/apple-touch-icon.png"},
     ],
     "COLORS": {
         "font": {
@@ -348,6 +379,32 @@ UNFOLD = {
         ],
     },
 }
+
+# ── Proxy IP resolution ──────────────────────────────────────────────
+# Behind Cloudflare → Traefik → Gunicorn: 2 proxies before Django.
+# NUM_PROXIES tells DRF throttling to trust the correct X-Forwarded-For hop.
+NUM_PROXIES = env.int("NUM_PROXIES", default=2)
+
+# ── django-axes — admin brute-force protection ──────────────────────
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = 0.5  # 30 minutes
+AXES_LOCKOUT_PARAMETERS = ["ip_address", "username"]
+AXES_RESET_ON_SUCCESS = True
+AXES_ONLY_ADMIN_SITE = True  # Only protect /admin/ login
+# Use Cloudflare's real client IP header for accurate lockout
+AXES_META_PRECEDENCE_ORDER = [
+    "HTTP_CF_CONNECTING_IP",
+    "HTTP_X_FORWARDED_FOR",
+    "REMOTE_ADDR",
+]
+
+AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+# ── Token authentication TTL ─────────────────────────────────────────
+TOKEN_TTL = timedelta(days=30)
 
 # ── Sentry — error tracking ──────────────────────────────────────────
 SENTRY_DSN_BACKEND = env("SENTRY_DSN_BACKEND", default="")

@@ -10,6 +10,7 @@
 
 import React from 'react';
 import { Platform, StyleSheet } from 'react-native';
+import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 
 interface SkiaAtmosphericGradientProps {
   /** Canvas width */
@@ -25,7 +26,17 @@ export const SkiaAtmosphericGradient = ({
   height,
   colors,
 }: SkiaAtmosphericGradientProps) => {
-  if (Platform.OS === 'web') return null;
+  // Web fallback — use expo-linear-gradient instead of Skia
+  if (Platform.OS === 'web') {
+    return (
+      <ExpoLinearGradient
+        colors={colors}
+        locations={[0, 0.5, 1]}
+        style={[StyleSheet.absoluteFill, { width, height }]}
+        pointerEvents="none"
+      />
+    );
+  }
 
   const { Canvas, Rect, LinearGradient, vec } = require('@shopify/react-native-skia');
 

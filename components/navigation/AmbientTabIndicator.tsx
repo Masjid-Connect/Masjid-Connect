@@ -26,7 +26,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import { getColors, getAlpha } from '@/constants/Colors';
-import { springs, spacing, typography, components } from '@/constants/Theme';
+import { springs, spacing, typography, components, fontWeight } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { layout } from '@/lib/layoutGrid';
 
@@ -81,7 +81,7 @@ export const AmbientTabBar = ({ state, descriptors, navigation }: BottomTabBarPr
   const glowColor = isDark ? colors.accent : colors.tint;
 
   const barHeight = layout.tabBarHeight;
-  const bottomPadding = Platform.OS === 'ios' ? insets.bottom : spacing.sm;
+  const bottomPadding = Platform.OS === 'ios' ? insets.bottom : Platform.OS === 'web' ? spacing.xs : spacing.sm;
 
   return (
     <View
@@ -95,7 +95,24 @@ export const AmbientTabBar = ({ state, descriptors, navigation }: BottomTabBarPr
       ]}
     >
       {/* Ambient glow — positioned absolutely behind tabs */}
-      {Platform.OS !== 'web' && (
+      {Platform.OS === 'web' ? (
+        <Animated.View
+          style={[styles.glowContainer, glowAnimatedStyle]}
+          pointerEvents="none"
+        >
+          <View
+            style={[
+              styles.glowCanvas,
+              {
+                borderRadius: GLOW_RADIUS,
+                opacity: GLOW_OPACITY,
+                // @ts-expect-error — web-only CSS property
+                background: `radial-gradient(circle, ${glowColor} 0%, transparent 70%)`,
+              },
+            ]}
+          />
+        </Animated.View>
+      ) : (
         <Animated.View style={[styles.glowContainer, glowAnimatedStyle]} pointerEvents="none">
           <SkiaGlow color={glowColor} />
         </Animated.View>
@@ -210,7 +227,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: typography.caption2.fontSize,
-    fontWeight: '500',
+    fontWeight: fontWeight.medium,
     marginTop: spacing['2xs'],
   },
   glowContainer: {

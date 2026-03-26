@@ -9,7 +9,7 @@ import {
 import * as Haptics from 'expo-haptics';
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography, fonts, components } from '@/constants/Theme';
+import { spacing, borderRadius, typography, fonts, components, fontWeight } from '@/constants/Theme';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'destructive';
 
@@ -64,7 +64,7 @@ export const Button = ({
         style,
       ]}>
       {loading ? (
-        <ActivityIndicator color={variantStyles.text} size="small" />
+        <ActivityIndicator color={variantStyles.text} size="small" style={styles.spinner} />
       ) : (
         <Text style={[styles.label, { color: variantStyles.text, fontFamily: fonts.body }]}>
           {title}
@@ -106,8 +106,12 @@ const styles = StyleSheet.create({
   outlined: {
     borderWidth: 1.5,
   },
+  spinner: {
+    height: typography.callout.lineHeight,
+  },
   label: {
     fontSize: typography.callout.fontSize,
-    fontWeight: '600',
+    fontWeight: fontWeight.semibold,
+    lineHeight: typography.callout.lineHeight,
   },
 });

@@ -24,6 +24,7 @@ import Constants from 'expo-constants';
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdminStatus } from '@/hooks/useAdminStatus';
 import { spacing, typography } from '@/constants/Theme';
 import {
   getReminderMinutes,
@@ -39,7 +40,7 @@ import {
 } from '@/lib/storage';
 import { reschedulePrayerRemindersForToday } from '@/lib/notifications';
 import { subscriptions as subscriptionsApi } from '@/lib/api';
-import i18n from '@/lib/i18n';
+import { i18n } from '@/lib/i18n';
 import {
   ProfileCard,
   SettingsSection,
@@ -63,6 +64,7 @@ export default function SettingsScreen() {
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
   const { user, isAuthenticated, isGuest, logout, deleteAccount } = useAuth();
+  const { isAdmin } = useAdminStatus();
   const insets = useSafeAreaInsets();
 
   // ─── Large title collapse animation ────────────────────────────
@@ -125,10 +127,19 @@ export default function SettingsScreen() {
   };
 
   const handleLanguageChange = useCallback(async (lang: string) => {
+    const isRTLChange = (lang === 'ar') !== (currentLanguage === 'ar');
     setCurrentLanguage(lang);
     await persistLanguage(lang);
     await i18n.changeLanguage(lang);
-  }, []);
+    if (isRTLChange) {
+      Alert.alert(
+        lang === 'ar' ? 'إعادة تشغيل مطلوبة' : 'Restart Required',
+        lang === 'ar'
+          ? 'يرجى إعادة تشغيل التطبيق لتطبيق تخطيط اللغة العربية.'
+          : 'Please restart the app to apply the right-to-left layout for Arabic.',
+      );
+    }
+  }, [currentLanguage]);
 
   const handleReminderChange = useCallback(async (minutes: number) => {
     setReminderMin(minutes);
@@ -289,6 +300,8 @@ export default function SettingsScreen() {
           variant="authenticated"
           name={user.name || user.email}
           email={user.email}
+          memberSince={user.date_joined}
+          isAdmin={isAdmin}
           onPress={() => {/* TODO: Account details screen */}}
         />
       ) : (

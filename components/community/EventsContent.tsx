@@ -7,12 +7,12 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  ActivityIndicator,
   Pressable,
   Linking,
   Alert,
+  LayoutAnimation,
 } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { format } from 'date-fns';
 import { Calendar, DateData } from 'react-native-calendars';
@@ -20,12 +20,13 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, getElevation, borderRadius, typography, components } from '@/constants/Theme';
+import { spacing, getElevation, borderRadius, typography, components, fontWeight } from '@/constants/Theme';
 import { useEvents } from '@/hooks/useEvents';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { Card } from '@/components/ui/Card';
 import type { MosqueEvent, EventCategory } from '@/types';
 import { EVENT_CATEGORY_COLORS, EVENT_CATEGORY_COLORS_DARK } from '@/types';
+import { ListSkeleton } from '@/components/ui/ListSkeleton';
 import { formatTimeString } from '@/lib/prayer';
 import { getUse24h } from '@/lib/storage';
 
@@ -149,7 +150,7 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
                 </Text>
               ) : null}
               {item.recurring && (
-                <Text style={[typography.caption1, { color: colors.success, marginTop: spacing.xs, fontWeight: '500' }]}>
+                <Text style={[typography.caption1, { color: colors.success, marginTop: spacing.xs, fontWeight: fontWeight.medium }]}>
                   {t('events.repeats', { frequency: item.recurring })}
                 </Text>
               )}
@@ -162,11 +163,7 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
 
   // ─── Loading ────────────────────────────────────────────────────
   if (isLoading && events.length === 0) {
-    return (
-      <View style={[styles.centered, { flex: 1 }]}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </View>
-    );
+    return <ListSkeleton rows={3} showAccentBar />;
   }
 
   // ─── Error ──────────────────────────────────────────────────────
@@ -188,13 +185,13 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
     <>
       {/* Toolbar: calendar toggle + filter */}
       <View style={[styles.toolbar, { borderBottomColor: colors.separator }]}>
-        <TouchableOpacity onPress={() => setShowCalendar(!showCalendar)} style={styles.toolbarButton}>
+        <TouchableOpacity onPress={() => { LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut); setShowCalendar(!showCalendar); }} style={styles.toolbarButton} accessibilityRole="button" accessibilityLabel={t('events.calendar')} accessibilityState={{ expanded: showCalendar }}>
           <Ionicons name={showCalendar ? 'calendar' : 'calendar-outline'} size={20} color={showCalendar ? colors.accent : colors.textSecondary} />
           <Text style={[typography.subhead, { color: showCalendar ? colors.accent : colors.textSecondary, marginStart: spacing.xs }]}>
             {t('events.calendar')}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setShowFilters(true)} style={styles.toolbarButton}>
+        <TouchableOpacity onPress={() => setShowFilters(true)} style={styles.toolbarButton} accessibilityRole="button" accessibilityLabel={t('events.filter')}>
           <Ionicons name="funnel-outline" size={18} color={selectedCategory ? colors.accent : colors.textSecondary} />
           <Text style={[typography.subhead, { color: selectedCategory ? colors.accent : colors.textSecondary, marginStart: spacing.xs }]}>
             {selectedCategory ? CATEGORIES.find((c) => c.key === selectedCategory)?.label : t('events.filter')}
@@ -203,6 +200,7 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
       </View>
 
       {showCalendar && (
+        <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(100)}>
         <Calendar
           markedDates={markedDates}
           onDayPress={(day: DateData) => setSelectedDate(day.dateString === selectedDate ? null : day.dateString)}
@@ -217,10 +215,11 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
             textDisabledColor: colors.textTertiary,
           }}
         />
+        </Animated.View>
       )}
 
       {selectedDate && (
-        <Pressable onPress={() => setSelectedDate(null)}>
+        <Pressable onPress={() => setSelectedDate(null)} accessibilityRole="button" accessibilityLabel={t('common.clearFilter')}>
           <View style={[styles.dateChip, { backgroundColor: colors.tintLight }]}>
             <Text style={[typography.footnote, { color: colors.tint }]}>
               {format(new Date(selectedDate), 'EEE, MMM d')}
@@ -267,7 +266,10 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
               style={[
                 styles.filterRow,
                 { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator },
-              ]}>
+              ]}
+              accessibilityRole="radio"
+              accessibilityLabel={cat.label}
+              accessibilityState={{ selected: isActive }}>
               <Text style={[typography.body, { color: colors.text, flex: 1 }]}>{cat.label}</Text>
               {isActive && <Ionicons name="checkmark" size={20} color={colors.tint} />}
             </TouchableOpacity>
@@ -305,13 +307,15 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
               </Text>
             ) : null}
             {detailEvent.recurring && (
-              <Text style={[typography.footnote, { color: colors.success, marginTop: spacing.xs, fontWeight: '500' }]}>
+              <Text style={[typography.footnote, { color: colors.success, marginTop: spacing.xs, fontWeight: fontWeight.medium }]}>
                 {t('events.repeats', { frequency: detailEvent.recurring })}
               </Text>
             )}
             <TouchableOpacity
               onPress={() => handleAddToCalendar(detailEvent)}
               style={[styles.addBtn, { backgroundColor: colors.tint }]}
+              accessibilityRole="button"
+              accessibilityLabel={t('events.addToCalendar')}
             >
               <Ionicons name="calendar-outline" size={18} color={colors.onPrimary} style={{ marginEnd: spacing.sm }} />
               <Text style={[typography.headline, { color: colors.onPrimary }]}>{t('events.addToCalendar')}</Text>

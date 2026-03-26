@@ -4,7 +4,26 @@ import uuid
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.db import models
+
+
+def validate_image_file(value):
+    """Validate uploaded images: max 5 MB, must be JPEG/PNG/WebP."""
+    max_size = 5 * 1024 * 1024  # 5 MB
+    allowed_types = {"image/jpeg", "image/png", "image/webp"}
+
+    if value.size > max_size:
+        raise ValidationError(
+            f"Image file too large (max 5 MB, got {value.size / 1024 / 1024:.1f} MB)."
+        )
+
+    # Check content type from the uploaded file
+    content_type = getattr(value, "content_type", None)
+    if content_type and content_type not in allowed_types:
+        raise ValidationError(
+            f"Unsupported image format '{content_type}'. Use JPEG, PNG, or WebP."
+        )
 
 
 class User(AbstractUser):
@@ -43,7 +62,11 @@ class Mosque(models.Model):
     contact_phone = models.CharField(max_length=30, blank=True, help_text="Public phone number for the mosque")
     contact_email = models.EmailField(blank=True, help_text="Public email address for enquiries")
     website = models.URLField(blank=True, help_text="Mosque website URL (include https://)")
-    photo = models.ImageField(upload_to="mosques/", blank=True, help_text="Photo of the mosque exterior")
+    photo = models.ImageField(
+        upload_to="mosques/", blank=True,
+        validators=[validate_image_file],
+        help_text="Photo of the mosque exterior (JPEG, PNG, or WebP, max 5 MB)",
+    )
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -66,6 +89,7 @@ class Announcement(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     mosque = models.ForeignKey(
         Mosque, on_delete=models.CASCADE, related_name="announcements",
+        db_index=True,
         help_text="Which mosque is this announcement for?",
     )
     title = models.CharField(
@@ -81,7 +105,7 @@ class Announcement(models.Model):
     )
     published_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(
-        null=True, blank=True,
+        null=True, blank=True, db_index=True,
         help_text="Leave blank to keep visible indefinitely. Set a date to auto-hide after that time.",
     )
     author = models.ForeignKey(
@@ -118,6 +142,7 @@ class Event(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     mosque = models.ForeignKey(
         Mosque, on_delete=models.CASCADE, related_name="events",
+        db_index=True,
         help_text="Which mosque is hosting this event?",
     )
     title = models.CharField(
@@ -132,7 +157,7 @@ class Event(models.Model):
         max_length=255, blank=True,
         help_text="Name of the speaker, teacher, or instructor (if applicable).",
     )
-    event_date = models.DateField(help_text="Date of the event (or first occurrence if recurring).")
+    event_date = models.DateField(db_index=True, help_text="Date of the event (or first occurrence if recurring).")
     start_time = models.TimeField(help_text="Start time (e.g. 19:00 or 7:00 PM).")
     end_time = models.TimeField(
         null=True, blank=True,
@@ -176,6 +201,7 @@ class UserSubscription(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="subscriptions",
+        db_index=True,
         help_text="The app user who subscribed.",
     )
     mosque = models.ForeignKey(
@@ -339,6 +365,35 @@ class MosquePrayerTime(models.Model):
         return f"{self.mosque.name} — {self.date}"
 
 
+class PasswordResetToken(models.Model):
+    """Time-limited token for password reset via email."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="password_reset_tokens",
+    )
+    token = models.CharField(max_length=64, unique=True, db_index=True)
+    created = models.DateTimeField(auto_now_add=True)
+    used = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ["-created"]
+
+    def __str__(self):
+        return f"Reset token for {self.user.email}"
+
+    def is_expired(self):
+        """Token expires after 1 hour."""
+        from django.utils import timezone
+        from datetime import timedelta
+        return timezone.now() > self.created + timedelta(hours=1)
+
+    def is_valid(self):
+        return not self.used and not self.is_expired()
+
+
 class StripeEvent(models.Model):
     """Tracks processed Stripe webhook events for idempotency."""
 
@@ -452,7 +507,7 @@ class Donation(models.Model):
 
     # Donor details (from Stripe billing or manual entry)
     donor_name = models.CharField(max_length=255, blank=True, help_text="Donor's full name.")
-    donor_email = models.EmailField(blank=True, help_text="Donor's email address.")
+    donor_email = models.EmailField(blank=True, db_index=True, help_text="Donor's email address.")
     donor_address_line1 = models.CharField(max_length=255, blank=True, help_text="House number and street.")
     donor_address_line2 = models.CharField(max_length=255, blank=True, help_text="Second address line (optional).")
     donor_city = models.CharField(max_length=100, blank=True, help_text="City or town.")
@@ -483,7 +538,7 @@ class Donation(models.Model):
         help_text="Reclaimable Gift Aid = 25% of donation (amount × 25/100)",
     )
 
-    donation_date = models.DateField(help_text="Date the payment was received.")
+    donation_date = models.DateField(db_index=True, help_text="Date the payment was received.")
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 

@@ -19,9 +19,9 @@ import { BottomSheet } from '@/components/ui/BottomSheet';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
 import { PreviewCard } from './PreviewCard';
-import { getColors } from '@/constants/Colors';
+import { getColors, getAlpha } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius } from '@/constants/Theme';
+import { spacing, typography, borderRadius, fontWeight } from '@/constants/Theme';
 import { events as eventsApi } from '@/lib/api';
 import type { EventCategory, EventCreatePayload } from '@/types';
 import { EVENT_CATEGORY_COLORS, EVENT_CATEGORY_COLORS_DARK } from '@/types';
@@ -48,6 +48,7 @@ export const EventWizardSheet = ({
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
+  const alphaColors = getAlpha(effectiveScheme);
   const { t } = useTranslation();
 
   // Wizard step (0-indexed: 0=Basics, 1=DateTime, 2=Details/Preview)
@@ -197,7 +198,7 @@ export const EventWizardSheet = ({
                 {i < step ? (
                   <Ionicons name="checkmark" size={12} color={colors.onPrimary} />
                 ) : (
-                  <Text style={[typography.caption2, { color: i === step ? colors.onPrimary : colors.textSecondary, fontWeight: '600' }]}>
+                  <Text style={[typography.caption2, { color: i === step ? colors.onPrimary : colors.textSecondary, fontWeight: fontWeight.semibold }]}>
                     {i + 1}
                   </Text>
                 )}
@@ -206,7 +207,7 @@ export const EventWizardSheet = ({
                 typography.caption1,
                 {
                   color: i <= step ? colors.text : colors.textTertiary,
-                  fontWeight: i === step ? '600' : '400',
+                  fontWeight: i === step ? fontWeight.semibold : fontWeight.regular,
                   marginTop: spacing.xs,
                 },
               ]}>
@@ -252,7 +253,7 @@ export const EventWizardSheet = ({
         {step === 1 && (
           <>
             {/* Date picker trigger */}
-            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: '500', marginBottom: spacing.xs }]}>
+            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: fontWeight.medium, marginBottom: spacing.xs }]}>
               {t('admin.eventDate')}
             </Text>
             <TouchableOpacity
@@ -286,7 +287,7 @@ export const EventWizardSheet = ({
             )}
 
             {/* Start time picker trigger */}
-            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: '500', marginBottom: spacing.xs, marginTop: spacing.md }]}>
+            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: fontWeight.medium, marginBottom: spacing.xs, marginTop: spacing.md }]}>
               {t('admin.eventStartTime')}
             </Text>
             <TouchableOpacity
@@ -319,7 +320,7 @@ export const EventWizardSheet = ({
             )}
 
             {/* End time picker trigger */}
-            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: '500', marginBottom: spacing.xs, marginTop: spacing.md }]}>
+            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: fontWeight.medium, marginBottom: spacing.xs, marginTop: spacing.md }]}>
               {t('admin.eventEndTime')}
             </Text>
             <TouchableOpacity
@@ -356,7 +357,7 @@ export const EventWizardSheet = ({
             />
 
             {/* Recurring selector */}
-            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: '500', marginBottom: spacing.xs }]}>
+            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: fontWeight.medium, marginBottom: spacing.xs }]}>
               {t('admin.eventRecurring')}
             </Text>
             <View style={styles.chipRow}>
@@ -370,11 +371,14 @@ export const EventWizardSheet = ({
                     },
                   ]}
                   onPress={() => { setRecurring(opt.value); Haptics.selectionAsync(); }}
+                  accessibilityRole="radio"
+                  accessibilityLabel={opt.label}
+                  accessibilityState={{ selected: recurring === opt.value }}
                 >
                   <Text style={[
                     typography.caption1,
                     {
-                      fontWeight: '600',
+                      fontWeight: fontWeight.semibold,
                       color: recurring === opt.value ? colors.onPrimary : colors.textSecondary,
                     },
                   ]}>
@@ -390,7 +394,7 @@ export const EventWizardSheet = ({
         {step === 2 && (
           <>
             {/* Category selector */}
-            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: '500', marginBottom: spacing.xs }]}>
+            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: fontWeight.medium, marginBottom: spacing.xs }]}>
               {t('admin.eventCategory')}
             </Text>
             <Text style={[typography.caption1, { color: colors.textTertiary, marginBottom: spacing.sm }]}>
@@ -404,18 +408,19 @@ export const EventWizardSheet = ({
                     styles.categoryCard,
                     {
                       backgroundColor: category === cat
-                        ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)')
+                        ? alphaColors.actionBg
                         : 'transparent',
                       borderColor: category === cat ? categoryColors[cat] : colors.cardBorder,
                     },
                   ]}
                   onPress={() => { setCategory(cat); Haptics.selectionAsync(); }}
                   accessibilityRole="radio"
+                  accessibilityLabel={t(`events.categories.${cat}`)}
                   accessibilityState={{ selected: category === cat }}
                 >
                   <View style={[styles.categoryDot, { backgroundColor: categoryColors[cat] }]} />
                   <View style={styles.categoryTextCol}>
-                    <Text style={[typography.subhead, { color: category === cat ? colors.text : colors.textSecondary, fontWeight: '600' }]}>
+                    <Text style={[typography.subhead, { color: category === cat ? colors.text : colors.textSecondary, fontWeight: fontWeight.semibold }]}>
                       {t(`events.categories.${cat}`)}
                     </Text>
                     <Text style={[typography.caption2, { color: colors.textTertiary }]}>
@@ -497,7 +502,7 @@ const styles = StyleSheet.create({
   stepDot: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -531,7 +536,7 @@ const styles = StyleSheet.create({
   categoryDot: {
     width: 10,
     height: 10,
-    borderRadius: 5,
+    borderRadius: borderRadius.full,
   },
   categoryTextCol: {
     flex: 1,

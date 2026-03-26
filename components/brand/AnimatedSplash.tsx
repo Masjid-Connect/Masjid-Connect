@@ -1,37 +1,35 @@
 /**
  * Animated Splash Screen — The Reveal
  *
- * The screen opens with a prayer-aware atmospheric gradient.
- * During the silence phase, a whisper of Islamic geometric pattern
- * fades in at 4% opacity.
+ * Full Sapphire-950 backdrop. An Islamic geometric pattern
+ * breathes in at whisper opacity. A Divine Gold radial glow
+ * pulses softly behind the logo. The logo emerges with a
+ * gentle spring scale — then a gold shimmer sweeps across
+ * the text like light catching gilded calligraphy.
  *
- * With a haptic impact(Medium), the mosque logo fades in and gently
- * scales up from 85% to 100% — a quiet, confident emergence, as if
- * light is finding the mark on the paper.
- *
- * The app content subtly fades in around it.
+ * Haptic impact(Medium) fires at the moment of reveal.
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Image, Platform, StyleSheet, View, useColorScheme, useWindowDimensions } from 'react-native';
+import { Image, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, {
   Easing,
+  type SharedValue,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
   withDelay,
+  withSequence,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
 import { palette } from '@/constants/Colors';
-import { springs } from '@/constants/Theme';
+import { springs, borderRadius } from '@/constants/Theme';
 import { patterns } from '@/lib/layoutGrid';
 import { breath, breathEasing } from '@/lib/breathMotion';
-import { getAtmosphericGradient } from '@/lib/prayerGradients';
 import { IslamicPattern } from './IslamicPattern';
-import { SkiaAtmosphericGradient } from './SkiaAtmosphericGradient';
 
 /** Logo max width cap */
 const LOGO_MAX_WIDTH = 360;
@@ -41,6 +39,10 @@ const PAUSE_BEFORE_REVEAL = 500;
 const LOGO_FADE_DURATION = 1200;
 const HOLD_DURATION = 700;
 const CONTENT_FADE_DURATION = 800;
+const SHIMMER_DURATION = 1400;
+
+/** Glow sizing relative to logo */
+const GLOW_SCALE = 1.8;
 
 interface AnimatedSplashProps {
   /** Called when the splash animation is complete and content should appear */
@@ -51,6 +53,105 @@ interface AnimatedSplashProps {
   children: React.ReactNode;
 }
 
+/**
+ * Skia radial glow — a soft Divine Gold light behind the logo.
+ * Pulses gently between 0.0 and 0.12 opacity with spring rhythm.
+ */
+const GoldenGlow = ({
+  width,
+  height,
+  glowWidth,
+  glowHeight,
+}: {
+  width: number;
+  height: number;
+  glowWidth: number;
+  glowHeight: number;
+}) => {
+  if (Platform.OS === 'web') return null;
+
+  const { Canvas, Circle, RadialGradient, vec } = require('@shopify/react-native-skia');
+  const cx = width / 2;
+  const cy = height / 2;
+  const radius = Math.max(glowWidth, glowHeight) / 2;
+
+  return (
+    <Canvas style={[StyleSheet.absoluteFill, { width, height }]} pointerEvents="none">
+      <Circle cx={cx} cy={cy} r={radius}>
+        <RadialGradient
+          c={vec(cx, cy)}
+          r={radius}
+          colors={[
+            'rgba(240, 208, 96, 0.14)',  // Divine Gold center
+            'rgba(240, 208, 96, 0.06)',  // Mid fade
+            'rgba(240, 208, 96, 0.0)',   // Fully transparent edge
+          ]}
+          positions={[0, 0.5, 1]}
+        />
+      </Circle>
+    </Canvas>
+  );
+};
+
+/**
+ * Shimmer sweep — a diagonal highlight that sweeps across the logo area.
+ * Uses a masked linear gradient to create a "light catching gold" effect.
+ */
+const ShimmerSweep = ({
+  width,
+  height,
+  shimmerX,
+}: {
+  width: number;
+  height: number;
+  shimmerX: SharedValue<number>;
+}) => {
+  if (Platform.OS === 'web') return null;
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: shimmerX.value }],
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        {
+          position: 'absolute',
+          width: width * 0.4,
+          height: height,
+          left: -width * 0.4,
+        },
+        animatedStyle,
+      ]}
+      pointerEvents="none"
+    >
+      <ShimmerGradient width={width * 0.4} height={height} />
+    </Animated.View>
+  );
+};
+
+const ShimmerGradient = ({ width, height }: { width: number; height: number }) => {
+  if (Platform.OS === 'web') return null;
+
+  const { Canvas, Rect, LinearGradient, vec } = require('@shopify/react-native-skia');
+
+  return (
+    <Canvas style={{ width, height }} pointerEvents="none">
+      <Rect x={0} y={0} width={width} height={height}>
+        <LinearGradient
+          start={vec(0, 0)}
+          end={vec(width, 0)}
+          colors={[
+            'rgba(240, 208, 96, 0.0)',
+            'rgba(240, 208, 96, 0.08)',
+            'rgba(240, 208, 96, 0.0)',
+          ]}
+        />
+      </Rect>
+    </Canvas>
+  );
+};
+
 export const AnimatedSplash = ({
   onAnimationComplete,
   isVisible,
@@ -58,8 +159,6 @@ export const AnimatedSplash = ({
 }: AnimatedSplashProps) => {
   const isWeb = Platform.OS === 'web';
   const reducedMotion = useReducedMotion();
-  const systemScheme = useColorScheme();
-  const isDark = systemScheme === 'dark';
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const logoWidth = Math.min(windowWidth * 0.75, LOGO_MAX_WIDTH);
 
@@ -69,15 +168,14 @@ export const AnimatedSplash = ({
   const splashOpacity = useSharedValue(1);
   const contentOpacity = useSharedValue(0);
   const patternOpacity = useSharedValue(0);
+  const glowOpacity = useSharedValue(0);
+  const shimmerX = useSharedValue(0);
 
   // Layout dimensions (updated on mount for accuracy)
   const [dimensions, setDimensions] = useState({
     width: windowWidth,
     height: windowHeight,
   });
-
-  // Default gradient — uses null prayer (neutral sky)
-  const gradient = getAtmosphericGradient(null, false);
 
   const triggerHaptic = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -106,48 +204,51 @@ export const AnimatedSplash = ({
       easing: breathEasing.inhale,
     });
 
+    // Phase 2: Gold glow fades in, then logo reveals with spring
+    const logoSpring = { ...springs.gentle, stiffness: 80, damping: 20 };
 
-    // Phase 2: Haptic + logo fades in with gentle scale
-    logoOpacity.value = withDelay(
-      PAUSE_BEFORE_REVEAL,
-      withTiming(1, {
-        duration: LOGO_FADE_DURATION,
-        easing: Easing.bezier(0.25, 0.1, 0.25, 1),
-      })
+    // Glow appears slightly before logo
+    glowOpacity.value = withDelay(
+      PAUSE_BEFORE_REVEAL - 200,
+      withSpring(1, { ...springs.gentle, stiffness: 60 }),
     );
 
-    logoScale.value = withDelay(
-      PAUSE_BEFORE_REVEAL,
-      withSpring(1, {
-        ...springs.gentle,
-        stiffness: 80,
-        damping: 20,
-      })
-    );
+    // Logo fades in with gentle scale
+    logoOpacity.value = withDelay(PAUSE_BEFORE_REVEAL, withSpring(1, logoSpring));
+    logoScale.value = withDelay(PAUSE_BEFORE_REVEAL, withSpring(1, logoSpring));
 
     // Trigger haptic at the start of reveal
     const hapticTimeout = setTimeout(() => {
       triggerHaptic();
     }, PAUSE_BEFORE_REVEAL);
 
+    // Phase 2.5: Shimmer sweep across logo after it's visible
+    const shimmerDelay = PAUSE_BEFORE_REVEAL + LOGO_FADE_DURATION * 0.6;
+    const shimmerTravel = windowWidth * 1.8; // full sweep distance
+    shimmerX.value = withDelay(
+      shimmerDelay,
+      withTiming(shimmerTravel, {
+        duration: SHIMMER_DURATION,
+        easing: Easing.inOut(Easing.ease),
+      }),
+    );
+
+    // Glow pulses gently after initial reveal (2 soft pulses)
+    const pulseDelay = PAUSE_BEFORE_REVEAL + LOGO_FADE_DURATION * 0.8;
+    const pulseTimeout = setTimeout(() => {
+      glowOpacity.value = withSequence(
+        withSpring(1.3, { ...springs.gentle, stiffness: 40 }),
+        withSpring(0.8, { ...springs.gentle, stiffness: 40 }),
+        withSpring(1, { ...springs.gentle, stiffness: 40 }),
+      );
+    }, pulseDelay);
+
     // Phase 3: Hold, then splash fades out and content fades in
     const contentDelay = PAUSE_BEFORE_REVEAL + LOGO_FADE_DURATION + HOLD_DURATION;
+    const fadeSpring = { ...springs.gentle, stiffness: 60, damping: 18 };
 
-    splashOpacity.value = withDelay(
-      contentDelay,
-      withTiming(0, {
-        duration: CONTENT_FADE_DURATION,
-        easing: Easing.bezier(0.4, 0, 0.2, 1),
-      })
-    );
-
-    contentOpacity.value = withDelay(
-      contentDelay,
-      withTiming(1, {
-        duration: CONTENT_FADE_DURATION,
-        easing: Easing.bezier(0.4, 0, 0.2, 1),
-      })
-    );
+    splashOpacity.value = withDelay(contentDelay, withSpring(0, fadeSpring));
+    contentOpacity.value = withDelay(contentDelay, withSpring(1, fadeSpring));
 
     // Notify completion
     const completeTimeout = setTimeout(() => {
@@ -156,6 +257,7 @@ export const AnimatedSplash = ({
 
     return () => {
       clearTimeout(hapticTimeout);
+      clearTimeout(pulseTimeout);
       clearTimeout(completeTimeout);
     };
   }, [isVisible]);
@@ -182,6 +284,14 @@ export const AnimatedSplash = ({
     opacity: patternOpacity.value,
   }));
 
+  // Glow layer opacity (animated for pulse)
+  const glowAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: glowOpacity.value,
+  }));
+
+  const glowWidth = logoWidth * GLOW_SCALE;
+  const glowHeight = logoWidth * 0.6 * GLOW_SCALE;
+
   // On web, skip the splash animation — the Animated.View wrappers
   // break Expo Router's LinkingContext on web.
   if (isWeb) {
@@ -201,34 +311,43 @@ export const AnimatedSplash = ({
         {children}
       </Animated.View>
 
-      {/* Splash overlay */}
+      {/* Splash overlay — full Sapphire-950 */}
       <Animated.View style={[styles.splashContainer, splashAnimatedStyle]}>
-        {/* Atmospheric gradient background */}
-        <SkiaAtmosphericGradient
-          width={dimensions.width}
-          height={dimensions.height}
-          colors={gradient}
-        />
-
         {/* Islamic pattern — fades in during silence */}
         <Animated.View style={[StyleSheet.absoluteFill, patternAnimatedStyle]}>
           <IslamicPattern
             width={dimensions.width}
             height={dimensions.height}
-            color={isDark ? palette.sapphire400 : palette.sapphire700}
+            color={palette.sapphire400}
             opacity={1} // Opacity controlled by Animated.View wrapper
             tileSize={patterns.tileSize}
           />
         </Animated.View>
 
+        {/* Divine Gold radial glow — pulses softly behind logo */}
+        <Animated.View style={[styles.glowContainer, glowAnimatedStyle]}>
+          <GoldenGlow
+            width={glowWidth}
+            height={glowHeight}
+            glowWidth={glowWidth}
+            glowHeight={glowHeight}
+          />
+        </Animated.View>
+
         {/* The logo — centered, fades in with scale */}
         <Animated.View style={[styles.logoContainer, logoAnimatedStyle]} accessibilityLabel="Mosque Connect">
+          {/* Shimmer sweep layer */}
+          <View style={[styles.shimmerClip, { width: logoWidth, height: logoWidth * 0.6 }]}>
+            <ShimmerSweep
+              width={logoWidth}
+              height={logoWidth * 0.6}
+              shimmerX={shimmerX}
+            />
+          </View>
+
           <Image
             source={require('@/assets/images/Masjid_Logo.png')}
-            style={[
-              { width: logoWidth, height: logoWidth * 0.6 },
-              isDark && { tintColor: palette.snow },
-            ]}
+            style={{ width: logoWidth, height: logoWidth * 0.6, tintColor: palette.snow }}
             resizeMode="contain"
           />
         </Animated.View>
@@ -249,9 +368,20 @@ const styles = StyleSheet.create({
     zIndex: 10,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: palette.sapphire950,
   },
   logoContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  glowContainer: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shimmerClip: {
+    position: 'absolute',
+    overflow: 'hidden',
+    borderRadius: borderRadius.sm,
   },
 });

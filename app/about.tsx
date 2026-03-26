@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleSheet, ScrollView, Text, View, Image } from 'react-native';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -7,7 +8,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import Constants from 'expo-constants';
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, getElevation } from '@/constants/Theme';
+import { spacing, typography, borderRadius, getElevation, fontWeight } from '@/constants/Theme';
 
 const GoldRule = ({ color }: { color: string }) => (
   <View style={styles.ruleContainer}>
@@ -43,33 +44,33 @@ export default function AboutScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Hero — logo IS the identity, no redundant text */}
-        <View style={styles.hero}>
+        <Animated.View entering={FadeIn.duration(400)} style={styles.hero}>
           <Image
             source={require('@/assets/images/Masjid_Logo.png')}
             style={[styles.logo, isDark && { tintColor: colors.text }]}
             resizeMode="contain"
           />
           <View style={[styles.versionPill, { backgroundColor: isDark ? colors.backgroundGrouped : colors.background }]}>
-            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: '500' }]}>
+            <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: fontWeight.medium }]}>
               {t('about.version')} {Constants.expoConfig?.version ?? '1.0.0'}
             </Text>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Tagline — pull-quote style */}
-        <View style={styles.taglineSection}>
+        <Animated.View entering={FadeIn.duration(400)} style={styles.taglineSection}>
           <GoldRule color={colors.accent} />
           <Text style={[styles.tagline, { color: colors.text }]}>
             {t('about.tagline')}
           </Text>
           <GoldRule color={colors.accent} />
-        </View>
+        </Animated.View>
 
         {/* Sections */}
         <View style={styles.sections}>
 
           {/* 01 — About the Masjid */}
-          <View style={[styles.section, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
+          <Animated.View entering={FadeInDown.delay(0).duration(300).springify()} style={[styles.section, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
             <View style={styles.sectionHeader}>
               <SectionNumber n="01" color={colors.accent} />
               <Text style={[typography.title3, { color: colors.text, flex: 1 }]}>
@@ -80,10 +81,10 @@ export default function AboutScreen() {
             <Text style={[typography.callout, styles.sectionBody, { color: colors.textSecondary }]}>
               {t('about.aboutMasjid')}
             </Text>
-          </View>
+          </Animated.View>
 
           {/* 02 — About the App */}
-          <View style={[styles.section, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
+          <Animated.View entering={FadeInDown.delay(60).duration(300).springify()} style={[styles.section, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
             <View style={styles.sectionHeader}>
               <SectionNumber n="02" color={colors.accent} />
               <Text style={[typography.title3, { color: colors.text, flex: 1 }]}>
@@ -94,10 +95,10 @@ export default function AboutScreen() {
             <Text style={[typography.callout, styles.sectionBody, { color: colors.textSecondary }]}>
               {t('about.aboutApp')}
             </Text>
-          </View>
+          </Animated.View>
 
           {/* 03 — Acknowledgements */}
-          <View style={[styles.section, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
+          <Animated.View entering={FadeInDown.delay(120).duration(300).springify()} style={[styles.section, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
             <View style={styles.sectionHeader}>
               <SectionNumber n="03" color={colors.accent} />
               <Text style={[typography.title3, { color: colors.text, flex: 1 }]}>
@@ -108,7 +109,7 @@ export default function AboutScreen() {
             <Text style={[typography.callout, styles.sectionBody, { color: colors.textSecondary }]}>
               {t('about.credits')}
             </Text>
-          </View>
+          </Animated.View>
         </View>
 
         {/* Footer dua */}
@@ -153,8 +154,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tagline: {
-    fontSize: 19,
-    fontWeight: '300',
+    fontSize: typography.title3.fontSize,
+    fontWeight: fontWeight.light,
     fontStyle: 'italic',
     lineHeight: 28,
     textAlign: 'center',
@@ -193,10 +194,10 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   sectionNumber: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: typography.footnote.fontSize,
+    fontWeight: fontWeight.bold,
     letterSpacing: 1.5,
-    fontFamily: 'SpaceMono',
+    fontVariant: ['tabular-nums'],
   },
   sectionDivider: {
     height: StyleSheet.hairlineWidth,
@@ -212,7 +213,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing['4xl'],
   },
   footer: {
-    fontSize: 13,
+    fontSize: typography.footnote.fontSize,
     fontStyle: 'italic',
     lineHeight: 20,
     textAlign: 'center',

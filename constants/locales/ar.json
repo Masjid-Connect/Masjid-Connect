@@ -28,7 +28,10 @@
     "startTime": "البداية {{time}}",
     "upcoming": "التالية",
     "todaySchedule": "اليوم",
-    "today": "اليوم"
+    "today": "اليوم",
+    "previousDay": "اليوم السابق",
+    "nextDay": "اليوم التالي",
+    "jumpToToday": "العودة إلى اليوم"
   },
   "announcements": {
     "title": "الإعلانات",
@@ -150,6 +153,9 @@
     "deleteAccountButton": "حذف حسابي",
     "deleteAccountHint": "سيتم حذف حسابك وجميع البيانات نهائياً",
     "ummAlQura": "أم القرى (مكة)",
+    "memberSince": "عضو منذ {{date}}",
+    "admin": "مسؤول",
+    "profileButton": "تفاصيل الحساب",
     "dangerZone": "إجراءات الحساب",
     "shareMessage": "جرب تطبيق المسجد السلفي — أوقات الصلاة والإعلانات والفعاليات من مسجدك المحلي.",
     "calculationMethods": {
@@ -271,6 +277,7 @@
   "gate": {
     "createAccount": "إنشاء حساب مجاني",
     "alreadyHaveAccount": "لديك حساب بالفعل؟ سجل الدخول",
+    "continueAsGuest": "المتابعة كضيف",
     "announcements": {
       "headline": "ابقَ على تواصل مع مسجدك",
       "subtitle": "أنشئ حسابًا مجانيًا للوصول إلى الإعلانات وآخر أخبار المجتمع",
@@ -339,6 +346,9 @@
     "donateNow": "تبرع الآن",
     "donateNowHint": "بطاقة، Apple Pay، Google Pay أو PayPal",
     "totalLabel": "الإجمالي: £{{total}}",
+    "confirmationTitle": "جزاكم الله خيراً!",
+    "confirmationMessage": "يتم الآن معالجة تبرعك {{frequency}} بقيمة {{amount}}.",
+    "confirmationHint": "ستصلك إيصال عبر البريد الإلكتروني قريباً.",
     "secureNote": "جميع المدفوعات آمنة ومشفرة",
     "impactTitle": "أين يذهب تبرعك",
     "impactSubtitle": "جميع التبرعات تذهب مباشرة إلى المسجد السلفي، برمنغهام",
@@ -458,6 +468,16 @@
       "community": "تجمعات مجتمعية عامة"
     }
   },
+  "error": {
+    "title": "حدث خطأ ما",
+    "message": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+    "retry": "إعادة المحاولة",
+    "loadAnnouncements": "تعذر تحميل الإعلانات. اسحب للأسفل للمحاولة مرة أخرى.",
+    "loadEvents": "تعذر تحميل الفعاليات. اسحب للأسفل للمحاولة مرة أخرى.",
+    "prayerTimesUnavailable": "أوقات الصلاة غير متاحة",
+    "prayerTimesRetry": "تعذر تحميل أوقات الصلاة حالياً. يرجى التحقق من الاتصال والسحب للأسفل للتحديث.",
+    "networkError": "تعذر الاتصال. يرجى التحقق من الإنترنت والمحاولة مرة أخرى."
+  },
   "common": {
     "loading": "جارٍ التحميل...",
     "error": "حدث خطأ ما",
@@ -470,6 +490,7 @@
     "locationError": "تعذر تحديد موقعك. يرجى المحاولة مرة أخرى.",
     "calendarError": "تعذر فتح التقويم.",
     "networkError": "تعذر الاتصال. يرجى التحقق من الإنترنت والمحاولة مرة أخرى.",
+    "dismiss": "إغلاق",
     "clearFilter": "مسح الفلتر",
     "showPassword": "إظهار كلمة المرور",
     "hidePassword": "إخفاء كلمة المرور",
@@ -482,5 +503,9 @@
     "privacyPolicy": "سياسة الخصوصية",
     "termsOfService": "شروط الخدمة",
     "lastUpdated": "آخر تحديث: مارس ٢٠٢٦"
+  },
+  "notFound": {
+    "title": "الصفحة غير موجودة",
+    "returnHome": "العودة إلى أوقات الصلاة"
   }
 }

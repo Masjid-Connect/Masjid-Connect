@@ -35,6 +35,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    security_opt:
+      - no-new-privileges:true
     deploy:
       resources:
         limits:
@@ -73,10 +75,16 @@ services:
       - default
       - traefik
     # Uses Gunicorn (from Dockerfile CMD) — no override needed
+    read_only: true
+    tmpfs:
+      - /tmp:size=64M
+      - /home/mosque/.cache:size=32M
+    security_opt:
+      - no-new-privileges:true
     deploy:
       resources:
         limits:
-          memory: 384M    # ~128M per Gunicorn worker × 3 workers
+          memory: 512M    # ~150M per Gunicorn worker × 3 workers + 4 threads each
 
 networks:
   traefik:

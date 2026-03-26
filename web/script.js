@@ -3,6 +3,36 @@
  * Scroll reveal, navbar state, mobile nav toggle.
  */
 
+// ─── Sentry Browser Error Tracking ─────────────────────────
+// Lightweight init — captures unhandled errors and rejections.
+// DSN is only set in production builds; no-ops if absent.
+(function () {
+  var SENTRY_DSN = ''; // Set to your Sentry Browser DSN in production
+  if (!SENTRY_DSN) return;
+
+  var sentryScript = document.createElement('script');
+  sentryScript.src = 'https://browser.sentry-cdn.com/8.0.0/bundle.tracing.min.js';
+  sentryScript.crossOrigin = 'anonymous';
+  sentryScript.onload = function () {
+    if (window.Sentry) {
+      window.Sentry.init({
+        dsn: SENTRY_DSN,
+        tracesSampleRate: 0.1,
+        environment: window.location.hostname === 'salafimasjid.app' ? 'production' : 'staging',
+        beforeSend: function (event) {
+          // Strip PII
+          if (event.user) {
+            delete event.user.email;
+            delete event.user.ip_address;
+          }
+          return event;
+        },
+      });
+    }
+  };
+  document.head.appendChild(sentryScript);
+})();
+
 (function () {
   'use strict';
 
@@ -12,7 +42,13 @@
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   if ('IntersectionObserver' in window && !prefersReducedMotion) {
-    const revealObserver = new IntersectionObserver(
+    // Mobile-friendly threshold — use lower threshold on small screens
+    // so tall elements (hero, feature grids) actually trigger
+    var isMobile = window.innerWidth <= 768;
+    var defaultThreshold = isMobile ? 0.15 : 0.4;
+    var defaultRootMargin = isMobile ? '0px 0px -20px 0px' : '0px 0px -40px 0px';
+
+    var revealObserver = new IntersectionObserver(
       function (entries) {
         entries.forEach(function (entry) {
           if (entry.isIntersecting) {
@@ -21,11 +57,31 @@
           }
         });
       },
-      { threshold: 0.6, rootMargin: '0px 0px -60px 0px' }
+      { threshold: defaultThreshold, rootMargin: defaultRootMargin }
+    );
+
+    // Low-threshold observer for tall elements (legal pages, long content)
+    var lowThresholdObserver = new IntersectionObserver(
+      function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            lowThresholdObserver.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.05, rootMargin: '0px 0px -20px 0px' }
     );
 
     revealElements.forEach(function (el) {
-      revealObserver.observe(el);
+      // Hero elements should appear immediately — no scroll trigger needed
+      if (el.closest('.hero')) {
+        el.classList.add('is-visible');
+      } else if (el.dataset.revealThreshold) {
+        lowThresholdObserver.observe(el);
+      } else {
+        revealObserver.observe(el);
+      }
     });
   } else {
     revealElements.forEach(function (el) {
@@ -200,6 +256,7 @@
   const prefetched = {};
 
   function prefetchOnHover(e) {
+    if (!(e.target instanceof Element)) return;
     const link = e.target.closest('a[href]');
     if (!link) return;
     const href = link.getAttribute('href');
@@ -299,6 +356,7 @@
       })
         .then(function (res) {
           if (!res.ok) throw new Error('Failed');
+          formErrorEl.hidden = true;
           formSuccessEl.hidden = false;
           contactForm.reset();
           turnstileTokens.contact = null;
@@ -306,6 +364,7 @@
           if (window.turnstile) window.turnstile.reset();
         })
         .catch(function () {
+          formSuccessEl.hidden = true;
           formErrorText.innerHTML = 'Something went wrong. Please email us directly at <a href="mailto:info@salafimasjid.app">info@salafimasjid.app</a>';
           formErrorEl.hidden = false;
         })
@@ -317,7 +376,7 @@
   }
 
   // ─── Donate form spam protection ──────────────────────────────
-  const donateSubmit = document.getElementById('donate-submit');
+  const donateSubmit = document.getElementById('pay-card');
 
   if (donateSubmit) {
     donateSubmit.addEventListener('click', function (e) {
@@ -343,8 +402,8 @@
         return;
       }
 
-      // 3. Turnstile token
-      if (!turnstileTokens.donate) {
+      // 3. Turnstile token (only check if a Turnstile widget is present on the page)
+      if (document.querySelector('.cf-turnstile') && !turnstileTokens.donate) {
         if (donateErrorEl && donateErrorText) {
           donateErrorText.textContent = 'Please complete the security check.';
           donateErrorEl.hidden = false;

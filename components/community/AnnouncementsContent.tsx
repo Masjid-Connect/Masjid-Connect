@@ -7,7 +7,6 @@ import {
   SectionListData,
   ScrollView,
   RefreshControl,
-  ActivityIndicator,
   Pressable,
   Share,
   Platform,
@@ -20,11 +19,12 @@ import * as Haptics from 'expo-haptics';
 
 import { getColors, getAlpha } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, getElevation } from '@/constants/Theme';
+import { spacing, typography, borderRadius, getElevation, fontWeight } from '@/constants/Theme';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { useReadAnnouncements } from '@/hooks/useReadAnnouncements';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { GoldBadge } from '@/components/brand/GoldBadge';
+import { ListSkeleton } from '@/components/ui/ListSkeleton';
 import type { Announcement } from '@/types';
 
 // ─── Time grouping ──────────────────────────────────────────────────
@@ -131,11 +131,7 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
 
   // ─── Loading ────────────────────────────────────────────────────
   if (isLoading && announcements.length === 0) {
-    return (
-      <View style={[styles.centered, { flex: 1 }]}>
-        <ActivityIndicator size="large" color={colors.accent} />
-      </View>
-    );
+    return <ListSkeleton rows={4} />;
   }
 
   // ─── Error ──────────────────────────────────────────────────────
@@ -239,12 +235,12 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
                     <Text
                       style={[
                         typography.caption2,
-                        { color: colors.accentText, fontWeight: '600', marginStart: spacing.xs, marginEnd: spacing.xs },
+                        { color: colors.accentText, fontWeight: fontWeight.semibold, marginStart: spacing.xs, marginEnd: spacing.xs },
                       ]}>
                       {t('announcements.janazah')}
                     </Text>
                     {mosqueName ? (
-                      <Text style={[typography.caption2, { color: colors.accentText, fontWeight: '600' }]}>
+                      <Text style={[typography.caption2, { color: colors.accentText, fontWeight: fontWeight.semibold }]}>
                         · {mosqueName.toUpperCase()}
                       </Text>
                     ) : null}
@@ -256,12 +252,12 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
                     <Text
                       style={[
                         typography.caption2,
-                        { color: colors.urgent, fontWeight: '600', marginStart: spacing.xs, marginEnd: spacing.xs },
+                        { color: colors.urgent, fontWeight: fontWeight.semibold, marginStart: spacing.xs, marginEnd: spacing.xs },
                       ]}>
                       {t('announcements.urgent')}
                     </Text>
                     {mosqueName ? (
-                      <Text style={[typography.caption2, { color: colors.urgent, fontWeight: '600' }]}>
+                      <Text style={[typography.caption2, { color: colors.urgent, fontWeight: fontWeight.semibold }]}>
                         · {mosqueName.toUpperCase()}
                       </Text>
                     ) : null}
@@ -348,7 +344,7 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
                 <Text
                   style={[
                     typography.caption2,
-                    { color: colors.accentText, fontWeight: '700', marginStart: spacing.xs },
+                    { color: colors.accentText, fontWeight: fontWeight.bold, marginStart: spacing.xs },
                   ]}>
                   {t('announcements.janazah')}
                 </Text>
@@ -360,7 +356,7 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
                 <Text
                   style={[
                     typography.caption2,
-                    { color: colors.urgent, fontWeight: '700', marginStart: spacing.xs },
+                    { color: colors.urgent, fontWeight: fontWeight.bold, marginStart: spacing.xs },
                   ]}>
                   {t('announcements.urgent')}
                 </Text>
@@ -373,7 +369,7 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
                 <Text
                   style={[
                     typography.footnote,
-                    { color: colors.textSecondary, fontWeight: '500', marginStart: spacing.xs },
+                    { color: colors.textSecondary, fontWeight: fontWeight.medium, marginStart: spacing.xs },
                   ]}>
                   {expandedItem.expand.mosque.name}
                 </Text>

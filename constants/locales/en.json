@@ -2,7 +2,7 @@
   "tabs": {
     "prayerTimes": "Prayer Times",
     "prayer": "Prayer",
-    "support": "Support",
+    "support": "Give",
     "community": "Community",
     "announcements": "Announcements",
     "events": "Events",
@@ -28,7 +28,10 @@
     "startTime": "Start {{time}}",
     "upcoming": "Next",
     "todaySchedule": "Today",
-    "today": "Today"
+    "today": "Today",
+    "previousDay": "Previous day",
+    "nextDay": "Next day",
+    "jumpToToday": "Jump to today"
   },
   "announcements": {
     "title": "Announcements",
@@ -150,6 +153,9 @@
     "deleteAccountButton": "Delete My Account",
     "deleteAccountHint": "This will permanently delete your account and all data",
     "ummAlQura": "Umm Al-Qura (Makkah)",
+    "memberSince": "Member since {{date}}",
+    "admin": "Admin",
+    "profileButton": "Account details",
     "dangerZone": "Account Actions",
     "shareMessage": "Check out The Salafi Masjid App — prayer times, announcements, and events from your local masjid.",
     "calculationMethods": {
@@ -271,6 +277,7 @@
   "gate": {
     "createAccount": "Create free account",
     "alreadyHaveAccount": "Already have an account? Sign in",
+    "continueAsGuest": "Continue as guest",
     "announcements": {
       "headline": "Stay connected with your masjid",
       "subtitle": "Create a free account to access announcements and community updates",
@@ -335,10 +342,14 @@
     "coverFeesHint": "Payment providers charge a small fee per transaction. Covering this means 100% of your donation goes to the masjid.",
     "howOften": "How often?",
     "howMuch": "How much?",
+    "enhanceGift": "Enhance your gift",
     "paymentMethod": "Payment method",
     "donateNow": "Donate Now",
     "donateNowHint": "Card, Apple Pay, Google Pay or PayPal",
     "totalLabel": "Total: £{{total}}",
+    "confirmationTitle": "JazakAllahu Khairan!",
+    "confirmationMessage": "Your {{frequency}} donation of {{amount}} is being processed.",
+    "confirmationHint": "You'll receive a receipt by email shortly.",
     "secureNote": "All payments are secure and encrypted",
     "impactTitle": "Where your donation goes",
     "impactSubtitle": "All donations go directly to The Salafi Masjid, Birmingham",
@@ -458,6 +469,16 @@
       "community": "General community gatherings"
     }
   },
+  "error": {
+    "title": "Something went wrong",
+    "message": "An unexpected error occurred. Please try again.",
+    "retry": "Try Again",
+    "loadAnnouncements": "Unable to load announcements. Pull down to retry.",
+    "loadEvents": "Unable to load events. Pull down to retry.",
+    "prayerTimesUnavailable": "Prayer times unavailable",
+    "prayerTimesRetry": "We couldn't load prayer times right now. Please check your connection and pull down to refresh.",
+    "networkError": "Unable to connect. Please check your internet and try again."
+  },
   "common": {
     "loading": "Loading...",
     "error": "Something went wrong",
@@ -474,6 +495,7 @@
     "updateLater": "Later",
     "updateRestart": "Restart",
     "networkError": "Unable to connect. Please check your internet and try again.",
+    "dismiss": "Dismiss",
     "clearFilter": "Clear filter",
     "showPassword": "Show password",
     "hidePassword": "Hide password"
@@ -482,5 +504,9 @@
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "lastUpdated": "Last updated: March 2026"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "returnHome": "Return to Prayer Times"
   }
 }

@@ -12,7 +12,7 @@
     "description": "Prayer times, announcements, and events from The Salafi Masjid. Stay connected with your local mosque community.",
     "githubUrl": "https://github.com/Masjid-Connect/Masjid-Connect",
     "runtimeVersion": {
-      "policy": "appVersion"
+      "policy": "fingerprint"
     },
     "updates": {
       "url": "https://u.expo.dev/2c59ce1c-80b6-434a-9c9f-90a1fd1f415f"
@@ -20,7 +20,7 @@
     "splash": {
       "image": "./assets/images/Masjid-Logo-App.png",
       "resizeMode": "contain",
-      "backgroundColor": "#F9F7F2"
+      "backgroundColor": "#0A1628"
     },
     "ios": {
       "supportsTablet": true,
@@ -29,11 +29,11 @@
       "splash": {
         "image": "./assets/images/Masjid-Logo-App.png",
         "resizeMode": "contain",
-        "backgroundColor": "#F9F7F2",
+        "backgroundColor": "#0A1628",
         "dark": {
           "image": "./assets/images/Masjid-Logo-App.png",
           "resizeMode": "contain",
-          "backgroundColor": "#0A0A0C"
+          "backgroundColor": "#0A1628"
         }
       },
       "infoPlist": {
@@ -52,11 +52,11 @@
       "splash": {
         "image": "./assets/images/Masjid-Logo-App.png",
         "resizeMode": "contain",
-        "backgroundColor": "#F9F7F2",
+        "backgroundColor": "#0A1628",
         "dark": {
           "image": "./assets/images/Masjid-Logo-App.png",
           "resizeMode": "contain",
-          "backgroundColor": "#0A0A0C"
+          "backgroundColor": "#0A1628"
         }
       },
       "permissions": [
@@ -69,7 +69,12 @@
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "name": "The Salafi Masjid",
+      "shortName": "Salafi Masjid",
+      "description": "Prayer times, announcements, and events from The Salafi Masjid.",
+      "themeColor": "#0F2D52",
+      "backgroundColor": "#F9F7F2"
     },
     "plugins": [
       "@sentry/react-native/expo",

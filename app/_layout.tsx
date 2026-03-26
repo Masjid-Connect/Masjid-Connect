@@ -14,6 +14,7 @@ import { palette } from '@/constants/Colors';
 import { AnimatedSplash } from '@/components/brand/AnimatedSplash';
 import { InAppToast } from '@/components/ui/InAppToast';
 import { ErrorFallback } from '@/components/ui/ErrorFallback';
+import { WebContainer } from '@/components/ui/WebContainer';
 import { ThemeProvider as AppThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { ToastProvider, useToast } from '@/contexts/ToastContext';
@@ -79,7 +80,9 @@ function RootLayout() {
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
-      if (state === 'active') reschedulePrayerRemindersForToday().catch(() => {});
+      if (state === 'active') reschedulePrayerRemindersForToday().catch((err) => {
+          Sentry.captureException(err, { extra: { context: 'prayer reminder reschedule' } });
+        });
     });
     return () => sub.remove();
   }, []);
@@ -102,8 +105,9 @@ function RootLayout() {
             ],
           );
         }
-      } catch {
-        // Silently fail — update check is best-effort
+      } catch (err) {
+        // Update check is best-effort, but log to Sentry for visibility
+        Sentry.captureException(err, { extra: { context: 'OTA update check' } });
       }
     }
 
@@ -125,20 +129,22 @@ function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Sentry.ErrorBoundary fallback={({ error, resetError }) => (
-        <ErrorFallback error={error} resetError={resetError} />
-      )}>
-        <AuthProvider>
-          <AnimatedSplash isVisible={showSplash} onAnimationComplete={handleSplashComplete}>
-            <AppThemeProvider>
-              <ToastProvider>
-                <RootLayoutNav />
-                <InAppToast />
-              </ToastProvider>
-            </AppThemeProvider>
-          </AnimatedSplash>
-        </AuthProvider>
-      </Sentry.ErrorBoundary>
+      <WebContainer>
+        <Sentry.ErrorBoundary fallback={({ error, resetError }) => (
+          <ErrorFallback error={error} resetError={resetError} />
+        )}>
+          <AuthProvider>
+            <AnimatedSplash isVisible={showSplash} onAnimationComplete={handleSplashComplete}>
+              <AppThemeProvider>
+                <ToastProvider>
+                  <RootLayoutNav />
+                  <InAppToast />
+                </ToastProvider>
+              </AppThemeProvider>
+            </AnimatedSplash>
+          </AuthProvider>
+        </Sentry.ErrorBoundary>
+      </WebContainer>
     </GestureHandlerRootView>
   );
 }

@@ -51,7 +51,8 @@ No Flutter, no Next.js, no Firebase, no Redis, no Celery, no microservices.
 ## 6. Feature Rules
 
 - If it doesn't serve "mosque communicates with community", reject it.
-- No chat. No social feeds. No comments. No likes. No payments.
+- No chat. No social feeds. No comments. No likes.
+- **Exception:** Donations are permitted via Stripe (one-time and monthly), including Gift Aid support for UK tax relief. No other payment flows.
 - No user-generated content beyond admin-posted announcements and events.
 - Community members browse anonymously. Login is optional (for subscriptions and push notifications).
 - Admin experience must require zero technical knowledge. Target: 60 seconds from opening admin panel to posting an announcement.

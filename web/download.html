@@ -42,7 +42,7 @@
         <a href="/features" class="navbar__link">Features</a>
         <a href="/about" class="navbar__link">About</a>
         <a href="/contact" class="navbar__link">Contact</a>
-        <a href="/donate" class="navbar__link navbar__link--donate">Donate</a>
+        <a href="/donate" class="navbar__link navbar__link--donate">Give</a>
         <a href="/download" class="navbar__link navbar__link--cta navbar__link--active">Download</a>
         <!-- Mobile menu (iOS Settings sheet) -->
         <div class="mobile-menu">
@@ -62,7 +62,7 @@
                 <svg class="mobile-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </a>
               <a href="/donate" class="mobile-menu__item mobile-menu__item--donate">
-                <span class="mobile-menu__item-text">Donate</span>
+                <span class="mobile-menu__item-text">Give</span>
                 <svg class="mobile-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
               </a>
             </div>
@@ -96,6 +96,18 @@
 
     <!-- PAGE HERO -->
     <section class="page-hero">
+      <!-- Islamic geometric pattern overlay -->
+      <div class="page-hero__pattern" aria-hidden="true">
+        <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="islamic-geo" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
+              <path d="M40 0 L48 16 L64 8 L56 24 L80 24 L64 32 L72 48 L56 40 L56 56 L48 40 L40 48 L32 40 L24 56 L24 40 L8 48 L16 32 L0 24 L24 24 L16 8 L32 16 Z" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+              <circle cx="40" cy="24" r="2" fill="rgba(255,255,255,0.03)"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#islamic-geo)"/>
+        </svg>
+      </div>
       <div class="container">
         <h1 class="page-hero__title reveal">Download the App</h1>
         <p class="page-hero__subtitle reveal reveal--delay-1">
@@ -304,7 +316,7 @@
             <li><a href="/about" class="footer__link">About</a></li>
             <li><a href="/contact" class="footer__link">Contact</a></li>
             <li><a href="/download" class="footer__link">Download</a></li>
-            <li><a href="/donate" class="footer__link">Donate</a></li>
+            <li><a href="/donate" class="footer__link">Give</a></li>
           </ul>
         </div>
         <div class="footer__col">
@@ -352,6 +364,6 @@
     </div>
   </footer>
 
-  <script src="script.js?v=3"></script>
+  <script src="script.js?v=4"></script>
 </body>
 </html>

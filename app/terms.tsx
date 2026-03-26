@@ -1,12 +1,13 @@
 import React from 'react';
 import { StyleSheet, ScrollView, Text, View, Pressable, Linking } from 'react-native';
+import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, getElevation } from '@/constants/Theme';
+import { spacing, typography, borderRadius, getElevation, fontWeight } from '@/constants/Theme';
 
 const CONTACT_EMAIL = 'support@salafimasjid.app';
 
@@ -72,7 +73,7 @@ export default function TermsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Hero header */}
-        <View style={styles.header}>
+        <Animated.View entering={FadeIn.duration(400)} style={styles.header}>
           <Text style={[styles.headerLabel, { color: colors.accent }]}>
             {t('legal.lastUpdated').toUpperCase()}
           </Text>
@@ -80,7 +81,7 @@ export default function TermsScreen() {
             {t('legal.termsOfService')}
           </Text>
           <View style={[styles.goldRule, { backgroundColor: colors.accent }]} />
-        </View>
+        </Animated.View>
 
         {/* Introduction */}
         <View style={styles.introSection}>
@@ -92,7 +93,7 @@ export default function TermsScreen() {
         </View>
 
         {/* Terms sections in a single card */}
-        <View style={[styles.sectionsCard, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
+        <Animated.View entering={FadeInDown.delay(0).duration(300).springify()} style={[styles.sectionsCard, { backgroundColor: colors.card, ...getElevation('sm', isDark) }]}>
 
           <TermsSection
             number="01"
@@ -325,7 +326,7 @@ export default function TermsScreen() {
             </Pressable>
           </TermsSection>
 
-        </View>
+        </Animated.View>
 
         {/* Footer */}
         <View style={styles.footer}>
@@ -353,8 +354,8 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
   },
   headerLabel: {
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: typography.caption2.fontSize,
+    fontWeight: fontWeight.semibold,
     letterSpacing: 1.5,
     marginBottom: spacing.sm,
   },
@@ -362,7 +363,7 @@ const styles = StyleSheet.create({
     height: 2,
     width: 40,
     marginTop: spacing.lg,
-    borderRadius: 1,
+    borderRadius: borderRadius['2xs'],
   },
   // Intro
   introSection: {
@@ -391,10 +392,10 @@ const styles = StyleSheet.create({
     paddingTop: 2,
   },
   sectionNumber: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: typography.footnote.fontSize,
+    fontWeight: fontWeight.bold,
     letterSpacing: 1.5,
-    fontFamily: 'SpaceMono',
+    fontVariant: ['tabular-nums'],
   },
   sectionContent: {
     flex: 1,
@@ -405,7 +406,7 @@ const styles = StyleSheet.create({
     marginStart: 44,
   },
   link: {
-    fontWeight: '600',
+    fontWeight: fontWeight.semibold,
     marginTop: spacing.sm,
   },
   // Footer
@@ -415,7 +416,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing['3xl'],
   },
   footerText: {
-    fontWeight: '500',
+    fontWeight: fontWeight.medium,
     letterSpacing: 0.5,
   },
 });

@@ -36,6 +36,13 @@ KEEP_DAILY=30       # Last 30 days
 KEEP_WEEKLY=12      # Last 12 weeks (Sundays)
 KEEP_MONTHLY=12     # Last 12 months (1st of month)
 
+# Offsite sync (DigitalOcean Spaces / S3-compatible)
+# Set these environment variables to enable offsite backup:
+#   BACKUP_S3_BUCKET  — e.g. "s3://masjid-backups"
+#   AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY (or use Spaces credentials)
+#   AWS_ENDPOINT_URL  — e.g. "https://lon1.digitaloceanspaces.com"
+BACKUP_S3_BUCKET="${BACKUP_S3_BUCKET:-}"
+
 # -----------------------------------------------------------
 # Create backup directory if it doesn't exist
 # -----------------------------------------------------------
@@ -100,6 +107,25 @@ find "$BACKUP_DIR/weekly" -name "*.sql.gz" -mtime +$((KEEP_WEEKLY * 7)) -delete 
 
 # Delete monthly backups older than $KEEP_MONTHLY months
 find "$BACKUP_DIR/monthly" -name "*.sql.gz" -mtime +$((KEEP_MONTHLY * 30)) -delete 2>/dev/null || true
+
+# -----------------------------------------------------------
+# Sync to offsite storage (DigitalOcean Spaces / S3)
+# -----------------------------------------------------------
+if [ -n "$BACKUP_S3_BUCKET" ]; then
+    echo "Syncing backups to offsite storage ($BACKUP_S3_BUCKET)..."
+    if command -v aws &>/dev/null; then
+        aws s3 sync "$BACKUP_DIR/" "$BACKUP_S3_BUCKET/" \
+            --exclude "*.tmp" \
+            --only-show-errors \
+            ${AWS_ENDPOINT_URL:+--endpoint-url "$AWS_ENDPOINT_URL"}
+        echo "Offsite sync complete."
+    else
+        echo "WARNING: 'aws' CLI not found. Install with: apt install awscli"
+        echo "Offsite sync skipped."
+    fi
+else
+    echo "NOTE: No offsite backup configured. Set BACKUP_S3_BUCKET to enable."
+fi
 
 # -----------------------------------------------------------
 # Summary

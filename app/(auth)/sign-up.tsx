@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography } from '@/constants/Theme';
+import { spacing, borderRadius, typography, fontWeight } from '@/constants/Theme';
 import { TextInput } from '@/components/ui/TextInput';
 import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -49,7 +49,7 @@ export default function SignUpScreen() {
     if (!email.trim()) errs.email = t('auth.emailRequired');
     else if (!/\S+@\S+\.\S+/.test(email)) errs.email = t('auth.emailInvalid');
     if (!password) errs.password = t('auth.passwordRequired');
-    else if (password.length < 8) errs.password = t('auth.weakPasswordHint');
+    else if (password.length < 10) errs.password = t('auth.weakPasswordHint');
     if (password !== confirmPassword) errs.confirmPassword = t('auth.passwordsMismatch');
     if (!agreePrivacy || !agreeTerms) errs.consent = t('auth.consentRequired');
     setErrors(errs);
@@ -172,7 +172,7 @@ export default function SignUpScreen() {
                 <Text style={[typography.subhead, { color: colors.textSecondary, flex: 1 }]}>
                   {t('auth.agreeToPrivacy')}
                   <Text
-                    style={{ color: colors.tint, fontWeight: '600' }}
+                    style={{ color: colors.tint, fontWeight: fontWeight.semibold }}
                     onPress={() => router.push('/privacy')}
                   >
                     {t('auth.privacyPolicyLink')}
@@ -191,7 +191,7 @@ export default function SignUpScreen() {
                 <Text style={[typography.subhead, { color: colors.textSecondary, flex: 1 }]}>
                   {t('auth.agreeToTerms')}
                   <Text
-                    style={{ color: colors.tint, fontWeight: '600' }}
+                    style={{ color: colors.tint, fontWeight: fontWeight.semibold }}
                     onPress={() => router.push('/terms')}
                   >
                     {t('auth.termsLink')}
@@ -226,7 +226,7 @@ export default function SignUpScreen() {
               {t('auth.haveAccountQuestion')}{' '}
             </Text>
             <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-              <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>
+              <Text style={[typography.subhead, { color: colors.tint, fontWeight: fontWeight.semibold }]}>
                 {t('auth.login')}
               </Text>
             </TouchableOpacity>
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   checkbox: {
     width: 20,
     height: 20,
-    borderRadius: 4,
+    borderRadius: borderRadius['3xs'],
     borderWidth: 2,
     borderColor: palette.onyx400,
     marginTop: 2,

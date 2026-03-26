@@ -15,9 +15,9 @@ import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 
-import { getColors, palette } from '@/constants/Colors';
+import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, springs, getElevation } from '@/constants/Theme';
+import { spacing, typography, borderRadius, springs, getElevation, fontWeight } from '@/constants/Theme';
 
 interface AdminFABProps {
   onNewAnnouncement: () => void;
@@ -28,6 +28,7 @@ export const AdminFAB = ({ onNewAnnouncement, onNewEvent }: AdminFABProps) => {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
+  const alphaColors = getAlpha(effectiveScheme);
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -70,6 +71,8 @@ export const AdminFAB = ({ onNewAnnouncement, onNewEvent }: AdminFABProps) => {
         <Pressable
           style={StyleSheet.absoluteFill}
           onPress={toggleMenu}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.dismiss')}
         />
       )}
 
@@ -78,11 +81,13 @@ export const AdminFAB = ({ onNewAnnouncement, onNewEvent }: AdminFABProps) => {
         <Pressable
           style={[styles.menuItem, { backgroundColor: colors.card, ...getElevation('md', isDark) }]}
           onPress={() => handleOption(onNewAnnouncement)}
+          accessibilityRole="menuitem"
+          accessibilityLabel={t('admin.newAnnouncement')}
         >
-          <View style={[styles.menuIcon, { backgroundColor: isDark ? 'rgba(107,171,229,0.15)' : 'rgba(15,45,82,0.08)' }]}>
+          <View style={[styles.menuIcon, { backgroundColor: alphaColors.sapphireIconBg }]}>
             <Ionicons name="megaphone-outline" size={18} color={colors.tint} />
           </View>
-          <Text style={[typography.subhead, { color: colors.text, fontWeight: '600' }]}>
+          <Text style={[typography.subhead, { color: colors.text, fontWeight: fontWeight.semibold }]}>
             {t('admin.newAnnouncement')}
           </Text>
         </Pressable>
@@ -90,11 +95,13 @@ export const AdminFAB = ({ onNewAnnouncement, onNewEvent }: AdminFABProps) => {
         <Pressable
           style={[styles.menuItem, { backgroundColor: colors.card, ...getElevation('md', isDark) }]}
           onPress={() => handleOption(onNewEvent)}
+          accessibilityRole="menuitem"
+          accessibilityLabel={t('admin.newEvent')}
         >
-          <View style={[styles.menuIcon, { backgroundColor: isDark ? 'rgba(107,171,229,0.15)' : 'rgba(15,45,82,0.08)' }]}>
+          <View style={[styles.menuIcon, { backgroundColor: alphaColors.sapphireIconBg }]}>
             <Ionicons name="calendar-outline" size={18} color={colors.tint} />
           </View>
-          <Text style={[typography.subhead, { color: colors.text, fontWeight: '600' }]}>
+          <Text style={[typography.subhead, { color: colors.text, fontWeight: fontWeight.semibold }]}>
             {t('admin.newEvent')}
           </Text>
         </Pressable>
@@ -124,7 +131,7 @@ const styles = StyleSheet.create({
   fab: {
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -144,7 +151,7 @@ const styles = StyleSheet.create({
   menuIcon: {
     width: 32,
     height: 32,
-    borderRadius: 16,
+    borderRadius: borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },

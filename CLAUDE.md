@@ -3,7 +3,7 @@
 > **Governing Doctrine**: See [DOCTRINE.md](./DOCTRINE.md) for non-negotiable project rules. All development must comply.
 
 ## Project Overview
-Mosque Connect is a premium mobile app serving local mosque communities with prayer time notifications, event/lesson listings, and community announcements. The design philosophy is **god-tier, not SaaS** — a serene, premium experience rooted in Islamic geometric art and calligraphic tradition.
+Mosque Connect is a premium mobile app **exclusively for The Salafi Masjid** community, providing prayer time notifications, event/lesson listings, and community announcements. This is a **single-mosque app** — there is no mosque selection, discovery, or multi-mosque subscription flow. The design philosophy is **god-tier, not SaaS** — a serene, premium experience rooted in Islamic geometric art and calligraphic tradition.
 
 ## Tech Stack
 - **Framework**: React Native + Expo (SDK 55, managed workflow, TypeScript)
@@ -18,7 +18,10 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
 - **Haptics**: expo-haptics (meaningful interactions)
 - **Icons**: @expo/vector-icons/Ionicons (outline/filled pairs)
 - **Date Handling**: date-fns
-- **i18n**: i18next + react-i18next (English + Arabic, RTL-ready)
+- **i18n**: i18next + react-i18next (English only — Arabic not shipping for MVP)
+- **Payments**: Stripe Checkout (embedded on web, hosted redirect in app) + Stripe.js
+- **In-app Browser**: expo-web-browser (for Stripe Hosted Checkout in app)
+- **Website**: Static HTML/CSS/JS on Cloudflare Pages (salafimasjid.app)
 - **Language**: TypeScript (strict mode)
 - **CI/CD**: GitHub Actions (TypeScript check, ESLint, Jest, Django tests)
 
@@ -27,31 +30,39 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
 /app                    # Expo Router file-based routes
   /(tabs)/              # Tab navigator
     index.tsx           # Prayer Times (home tab)
-    announcements.tsx   # Announcements feed
-    events.tsx          # Events/lessons calendar
+    community.tsx       # Announcements + Events (combined community tab)
+    support.tsx         # Donations/Give tab (Stripe checkout + bank transfer)
     settings.tsx        # Settings & preferences
   /_layout.tsx          # Root layout
 /components             # Reusable UI components
   /brand                # Brand identity components
     AnimatedSplash.tsx  # Splash screen animation
     GoldBadge.tsx       # Divine Gold notification badge (not red)
+    IslamicPattern.tsx  # Sacred geometric pattern backgrounds
     index.ts            # Re-exports for clean imports
   /ui                   # Base design system components
     BottomSheet.tsx      # Spring-animated bottom sheet (replaces centered modals)
+    ErrorFallback.tsx   # Sentry error boundary fallback
+  /navigation           # Tab bar and navigation components
+    AmbientTabIndicator.tsx  # Custom ambient tab bar
   /prayer               # Prayer time components
-  /announcements        # Announcement components
-  /events               # Event components
+  /community            # Announcements + Events components
+    AnnouncementsContent.tsx
+    EventsContent.tsx
+  /support              # Donation components
+    AmountSelector.tsx  # Preset + custom amount picker
+    BankDetailsSheet.tsx # Bank transfer details bottom sheet
+    DonationConfirmationSheet.tsx # Post-donation confirmation
+    TrustBadge.tsx      # Security/charity badge
 /lib                    # Utilities and services
   /api.ts               # Django REST API client (auth, mosques, announcements, events, subscriptions)
   /prayer.ts            # Aladhan API + adhan-js offline fallback
   /notifications.ts     # Push notification logic
   /storage.ts           # Offline cache (AsyncStorage)
-  /i18n.ts              # i18next initialization (en + ar)
-  /rtl.ts               # RTL layout configuration
+  /i18n.ts              # i18next initialization (English only)
 /hooks                  # Custom React hooks
 /constants              # App constants, enums
   /locales/en.json      # English translations (100+ keys)
-  /locales/ar.json      # Arabic translations (100+ keys)
 /assets                 # Fonts, images, patterns
   /fonts                # SpaceMono (system fonts used for all other text)
   /patterns             # Islamic geometric SVG patterns
@@ -61,7 +72,7 @@ Mosque Connect is a premium mobile app serving local mosque communities with pra
 
 The app uses the **Masjid_Logo.png** (The Salafi Masjid logo with transparent background) as the primary brand mark. It appears on the welcome screen, auth screens, and splash screen. No custom SVG brand mark — the logo PNG is the identity.
 
-**Notification Badge:** Divine Gold circle, never red.
+**Notification Badge:** Divine Gold circle, never red. `GoldBadge` auto-selects `divineGoldBright` in dark mode for contrast.
 
 **Typography:** Prayer time numerals use `tabular-nums` font variant with confident weight.
 
@@ -97,7 +108,6 @@ The app uses the **Masjid_Logo.png** (The Salafi Masjid logo with transparent ba
 - **System fonts** — SF Pro (iOS) / Roboto (Android) with weight variation, no custom font loading
 - **14 named styles**: largeTitle (34/700), title1 (28/700), title2 (22/700), title3 (20/600), headline (17/600), body (17/400), callout (16/400), subhead (15/400), footnote (13/400), caption1 (12/400), caption2 (11/400)
 - **Special purpose**: prayerCountdown (54/200, ultralight), prayerTime (17/600), sectionHeader (13/600, uppercase + letter-spacing)
-- **Arabic**: System Arabic fonts (SF Arabic / Noto) with mirrored scale
 - `tabular-nums` font variant for prayer times
 - SpaceMono for technical accents only
 
@@ -105,13 +115,14 @@ The app uses the **Masjid_Logo.png** (The Salafi Masjid logo with transparent ba
 - **Apple HIG influence** — system fonts, SF-style type scale, grouped list patterns, checkmarks over radio buttons
 - Generous whitespace — 32px screen-edge insets (`spacing['3xl']`)
 - 3-tier elevation system: none/sm/md/lg (black shadows only, Apple convention)
-- RTL-native from day one via `I18nManager.forceRTL()`
+- LTR only (Arabic/RTL not shipping for MVP)
 - Spring-based animations (Reanimated `springs.gentle/snappy/bouncy`), no linear easing
+- **Button component** — 4 variants: primary, secondary, ghost, destructive. Loading spinner matches text height to prevent layout jank. Compact variant available.
 - **BottomSheet pattern** — spring-animated, gesture-dismissible sheets replace all centered modals
 - Haptic feedback on meaningful interactions (prayer transitions)
 - **Ionicons** (outline/filled pairs) for tab bar and UI icons — no FontAwesome
 - Notification badges are Divine Gold, never red — a glint, not an error
-- **i18n throughout** — all user-facing strings via `t()` calls, English + Arabic locale files
+- **i18n throughout** — all user-facing strings via `t()` calls, English locale file
 
 ## Backend — Django REST Framework
 
@@ -160,6 +171,14 @@ PATCH /api/v1/subscriptions/{id}/    # Update notification preferences
 
 POST /api/v1/push-tokens/            # Register push token
 
+POST /api/v1/donate/checkout/        # Create Stripe Checkout Session (embedded or redirect)
+GET  /api/v1/donate/session-status/  # Verify checkout session completion
+POST /api/v1/stripe/webhook/         # Stripe webhook (signature-verified)
+GET  /api/v1/gift-aid/summary/       # Gift Aid summary (admin-only)
+
+POST /api/v1/contact/                # Contact form submission
+POST /api/v1/feedback/               # User feedback
+
 GET  /api/schema/                     # OpenAPI schema (drf-spectacular)
 GET  /api/docs/                      # Swagger UI (interactive API docs)
 
@@ -170,11 +189,19 @@ GET  /admin/                         # Django admin (Unfold theme)
 ### Django Models
 - **User** — UUID PK, extends AbstractUser with `name` field
 - **Mosque** — name, address, city, state, country, lat/lng, calculation_method, jumua_time, contact info, photo
-- **Announcement** — mosque FK, title, body, priority (normal/urgent), published_at, expires_at, author FK
+- **Announcement** — mosque FK, title, body, priority (normal/urgent/janazah), published_at, expires_at (indexed), author FK
 - **Event** — mosque FK, title, description, speaker, event_date, start/end_time, recurring (weekly/monthly), category (lesson/lecture/quran_circle/youth/sisters/community)
 - **UserSubscription** — user FK, mosque FK, notify_prayers/announcements/events, prayer_reminder_minutes
 - **PushToken** — user FK, token (unique), platform (ios/android)
 - **MosqueAdmin** — mosque FK, user FK, role (admin/super_admin)
+- **Feedback** — user feedback submissions
+- **MosquePrayerTime** — cached prayer times per mosque
+- **PasswordResetToken** — password reset flow tokens
+- **StripeEvent** — idempotent webhook event log (stripe_event_id, event_type, processed, payload)
+- **CharityGiftAidSettings** — HMRC Gift Aid configuration for the charity
+- **Donation** — amount_pence, currency, frequency (one-time/monthly), source (stripe), gift_aid_eligible, Stripe IDs (checkout session, payment intent, customer), donor details
+- **GiftAidDeclaration** — donor declarations for HMRC Gift Aid reclaim (linked to donations)
+- **GiftAidClaim** — batched HMRC Gift Aid claim submissions
 
 ### Backend Commands
 ```bash
@@ -185,6 +212,53 @@ python manage.py seed_data            # Seed sample data
 python manage.py createsuperuser      # Create admin user
 python manage.py runserver            # Start dev server (port 8000)
 ```
+
+## Website — Static Landing & Donation Pages
+
+The marketing website lives in `/web/` and is deployed to Cloudflare Pages at `salafimasjid.app`.
+
+### Website Structure
+```
+/web
+  index.html            # Landing page
+  donate.html           # Donation page (Stripe Embedded Checkout)
+  donate.js             # Donation page logic (amount, fees, Gift Aid, Stripe)
+  features.html         # App features showcase
+  about.html            # About the masjid
+  contact.html          # Contact form (submits to API)
+  download.html         # App download links
+  privacy.html          # Privacy policy
+  terms.html            # Terms of service
+  sitemap.html          # Sitemap
+  styles.css            # Global styles
+  script.js             # Shared site JS (nav, scroll reveal, dark mode, prefetch, spam protection)
+  site.webmanifest      # PWA manifest
+  _headers              # Cloudflare Pages headers
+```
+
+### Donation Flow (Website)
+1. User selects frequency (one-time/monthly) + amount on `donate.html`
+2. Optional: Gift Aid checkbox (UK taxpayers, +25%), Cover Processing Fees checkbox
+3. "Donate Now" → `fetch()` creates Stripe Checkout Session via `POST /api/v1/donate/checkout/` with `ui_mode: 'embedded'`
+4. Stripe.js mounts Embedded Checkout inline (no redirect)
+5. On completion → success state with verification via `/api/v1/donate/session-status/`
+6. Fallback: if embedded fails → form POST redirect to Stripe Hosted Checkout
+7. Alternative: "Bank Transfer" opens bottom sheet with Lloyds bank details
+
+### Donation Flow (Mobile App)
+1. Support tab (`app/(tabs)/support.tsx`) — same amount/frequency/Gift Aid/fees UI
+2. "Donate Now" → `donations.createCheckoutUrl()` calls `POST /api/v1/donate/checkout/` with redirect mode (no `ui_mode`)
+3. Backend returns 303 redirect → app opens Stripe Hosted Checkout via `expo-web-browser`
+4. On return → confirmation bottom sheet shown
+
+### Stripe Integration
+- **Payments**: Stripe Checkout (embedded on web, hosted redirect in app)
+- **Payment methods**: Card, PayPal, Apple Pay, Google Pay, Pay by Bank — managed via Stripe Dashboard
+- **Webhooks**: `POST /api/v1/stripe/webhook/` — signature-verified, idempotent (StripeEvent model)
+- **Webhook events handled**: `checkout.session.completed`, `invoice.payment_succeeded/failed`, `customer.subscription.created/deleted`, `payment_intent.succeeded`, `charge.refunded`
+- **Gift Aid**: Auto-creates GiftAidDeclaration on checkout completion when opted in
+- **Receipt emails**: Sent automatically after successful donation
+- **Environment**: `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` in server env
 
 ## Commands
 
@@ -235,7 +309,7 @@ This principle applies to Django admin customizations, in-app admin screens, and
 - Named exports (not default exports) for components
 - Use `const` arrow functions for components: `export const PrayerCard = () => {}`
 - Colocate styles with components using StyleSheet.create()
-- All user-facing strings via i18n `t()` calls — never hardcode display text (English + Arabic)
+- All user-facing strings via i18n `t()` calls — never hardcode display text (English only for MVP)
 
 ### Naming
 - Components: PascalCase (`PrayerTimeCard.tsx`)
@@ -252,20 +326,37 @@ This principle applies to Django admin customizations, in-app admin screens, and
 
 ### Error Handling
 - Validate at system boundaries only (API responses, user input)
-- Use try/catch around API calls and notification scheduling
+- Use try/catch around API calls and notification scheduling — always log to Sentry with context
 - Show user-friendly error states, not raw errors
 - Offline-first: gracefully degrade when network unavailable
+- **Error boundaries**: Tab navigator wrapped in `Sentry.ErrorBoundary` with `ErrorFallback` component
+- **No silent catches** — all catch blocks must either log to Sentry or have a comment justifying silence
+
+### Pagination
+- All list endpoints use DRF `PageNumberPagination` (50 items per page)
+- API client returns `{ items, totalItems, hasMore }` from paginated endpoints
+- Hooks expose `loadMore()` + `isLoadingMore` + `hasMore` for infinite scroll
+- First page loads on mount; subsequent pages append via `loadMore()`
+
+### Accessibility
+- All interactive elements (Pressable, TouchableOpacity) must have `accessibilityRole` and `accessibilityLabel`
+- Radio-style selectors use `accessibilityRole="radio"` with `accessibilityState={{ selected }}`
+- Toggle buttons include `accessibilityState={{ expanded }}` where applicable
+- FAB menu items use `accessibilityRole="menuitem"`
+- All accessibility labels use i18n `t()` calls — never hardcode English
 
 ### Offline-First Strategy
 - Prayer times: Aladhan API is the **primary source** when online; adhan-js is the **offline-only fallback** — never the primary
 - Cache prayer times, announcements, and events in AsyncStorage
 - Queue actions (subscription changes) when offline, sync when back online
 - Show stale data with "last updated" indicator rather than empty screens
+- **Stale cache capped at 7 days** — `allowStale` mode in `getCachedData()` enforces `MAX_STALE_AGE_MS` to prevent serving months-old data
+- Stale cache race condition prevented with `hasFreshDataRef` pattern in hooks
 
 ## Important Notes
 - **Primary prayer times**: Aladhan API (free, no key required) — `GET https://api.aladhan.com/v1/timings/{date}?latitude={lat}&longitude={lng}&method={method}`
 - **Offline fallback only**: adhan-js calculates locally from coordinates when network is unavailable — never used as primary source
-- **All times respect user's local timezone** and 12h/24h device locale
+- **All times respect user's local timezone** and 12h/24h device locale — `parseTimeString` validates input and falls back gracefully on malformed Aladhan responses
 - **Django backend** is self-hosted on Digital Ocean (same pattern as Orphanages project)
 - **Expo managed workflow** — no native code ejection for MVP
 - **Never hardcode prayer times** — always calculate from coordinates + date + method
@@ -273,4 +364,13 @@ This principle applies to Django admin customizations, in-app admin screens, and
 - Announcements fetched via REST API with pull-to-refresh (no realtime subscriptions)
 - Prayer reminders use local scheduled notifications (not server-pushed)
 - **API client**: `lib/api.ts` wraps all Django REST calls with token auth
+- **Error tracking**: Sentry (`@sentry/react-native`) — all catch blocks log with context metadata
+- **Rate limiting**: Content creation endpoints (announcements, events) throttled via `ContentCreationRateThrottle`; auth endpoints at 5/min; nearby at 30/min
+- **Gunicorn**: 2 workers, 2 threads, 30s timeout, 1000 max requests with jitter
 - **Admin panel**: Django admin with Unfold theme at `/admin/` (Sacred Blue brand colors)
+
+## gstack
+
+Use the `/browse` skill from gstack for all web browsing. Never use `mcp__claude-in-chrome__*` tools.
+
+**Available skills:** `/office-hours`, `/plan-ceo-review`, `/plan-eng-review`, `/plan-design-review`, `/design-consultation`, `/review`, `/ship`, `/land-and-deploy`, `/canary`, `/benchmark`, `/browse`, `/qa`, `/qa-only`, `/design-review`, `/setup-browser-cookies`, `/setup-deploy`, `/retro`, `/investigate`, `/document-release`, `/codex`, `/cso`, `/autoplan`, `/careful`, `/freeze`, `/guard`, `/unfreeze`, `/gstack-upgrade`

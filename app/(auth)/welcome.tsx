@@ -23,13 +23,11 @@ import Animated, {
   useReducedMotion,
   withSpring,
   withDelay,
-  withTiming,
-  Easing,
 } from 'react-native-reanimated';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography, springs, components, timing, layout } from '@/constants/Theme';
+import { spacing, borderRadius, typography, springs, components, timing, layout, fontWeight } from '@/constants/Theme';
 import { patterns } from '@/lib/layoutGrid';
 import { useAuth } from '@/contexts/AuthContext';
 import { SkiaAtmosphericGradient, IslamicPattern, SolarLight } from '@/components/brand';
@@ -81,7 +79,7 @@ const AnimatedButton = ({
   useEffect(() => {
     if (reducedMotion) return;
     const delay = timing.slow + index * (timing.staggerOffset + 20);
-    opacity.value = withDelay(delay, withTiming(1, { duration: 400, easing: Easing.out(Easing.quad) }));
+    opacity.value = withDelay(delay, withSpring(1, springs.gentle));
     translateY.value = withDelay(delay, withSpring(0, springs.gentle));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, reducedMotion]);
@@ -120,7 +118,7 @@ const FeatureCard = ({
   useEffect(() => {
     if (reducedMotion) return;
     const delay = 600 + index * 120;
-    opacity.value = withDelay(delay, withTiming(1, { duration: 400, easing: Easing.out(Easing.quad) }));
+    opacity.value = withDelay(delay, withSpring(1, springs.gentle));
     translateY.value = withDelay(delay, withSpring(0, springs.gentle));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [index, reducedMotion]);
@@ -132,11 +130,11 @@ const FeatureCard = ({
 
   return (
     <Animated.View style={[styles.featureCard, animatedStyle]}>
-      <View style={[styles.featureIconBox, { backgroundColor: isDark ? 'rgba(240, 208, 96, 0.12)' : 'rgba(191, 155, 48, 0.10)' }]}>
+      <View style={[styles.featureIconBox, { backgroundColor: getAlpha(isDark ? 'dark' : 'light').goldIconBg }]}>
         <Ionicons name={icon} size={18} color={colors.accent} />
       </View>
       <View style={styles.featureTextBox}>
-        <Text style={[typography.subhead, { color: colors.text, fontWeight: '600' }]}>
+        <Text style={[typography.subhead, { color: colors.text, fontWeight: fontWeight.semibold }]}>
           {t(titleKey)}
         </Text>
         <Text style={[typography.caption1, { color: colors.textSecondary, marginTop: 2 }]}>
@@ -169,9 +167,9 @@ export default function WelcomeScreen() {
 
   useEffect(() => {
     if (reducedMotion) return;
-    logoOpacity.value = withDelay(200, withTiming(1, { duration: 600, easing: Easing.out(Easing.quad) }));
+    logoOpacity.value = withDelay(200, withSpring(1, springs.gentle));
     logoScale.value = withDelay(200, withSpring(1, springs.gentle));
-    taglineOpacity.value = withDelay(400, withTiming(1, { duration: 500, easing: Easing.out(Easing.quad) }));
+    taglineOpacity.value = withDelay(400, withSpring(1, springs.gentle));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reducedMotion]);
 
@@ -229,21 +227,18 @@ export default function WelcomeScreen() {
         tokenEndpoint: 'https://oauth2.googleapis.com/token',
       };
         
-      console.log("CLIENT ID:", process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID);
-      
       const authRequest = new AuthSession.AuthRequest({
         clientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID || '',
         redirectUri,
         scopes: ['openid', 'profile', 'email'],
-        responseType: AuthSession.ResponseType.IdToken,
-        usePKCE: false, // ✅ THIS FIXES YOUR ERROR
+        responseType: AuthSession.ResponseType.Code,
         extraParams: { nonce },
       });
 
       const result = await authRequest.promptAsync(discovery);
 
-      if (result.type === 'success' && result.params.id_token) {
-        await loginWithSocial('google', result.params.id_token);
+      if (result.type === 'success' && result.params.code) {
+        await loginWithSocial('google', result.params.code);
       }
     } catch {
       setError(t('welcome.socialFailed'));
@@ -261,9 +256,9 @@ export default function WelcomeScreen() {
   const isLoading = appleLoading || googleLoading;
 
   // Google button colors per official branding guidelines (Dec 2025)
-  const googleBtnBg = isDark ? '#131314' : palette.white;
-  const googleBtnBorder = isDark ? '#8E918F' : '#747775';
-  const googleBtnText = isDark ? '#E3E3E3' : '#1F1F1F';
+  const googleBtnBg = isDark ? palette.googleBgDark : palette.googleBgLight;
+  const googleBtnBorder = isDark ? palette.googleBorderDark : palette.googleBorderLight;
+  const googleBtnText = isDark ? palette.googleTextDark : palette.googleTextLight;
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
@@ -371,6 +366,8 @@ export default function WelcomeScreen() {
               },
             ]}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={t('welcome.continueWithGoogle')}
           >
             {googleLoading ? (
               <ActivityIndicator color={googleBtnText} size="small" />
@@ -398,6 +395,8 @@ export default function WelcomeScreen() {
                 { backgroundColor: isDark ? palette.white : palette.black },
               ]}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel={t('welcome.continueWithApple')}
             >
               {appleLoading ? (
                 <ActivityIndicator color={isDark ? palette.black : palette.white} size="small" />
@@ -434,6 +433,8 @@ export default function WelcomeScreen() {
               { borderColor: colors.tint },
             ]}
             activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel={t('welcome.signUpWithEmail')}
           >
             <Text style={[styles.authButtonText, { color: colors.tint }]}>
               {t('welcome.signUpWithEmail')}
@@ -447,8 +448,8 @@ export default function WelcomeScreen() {
             <Text style={[typography.subhead, { color: colors.textSecondary }]}>
               {t('welcome.haveAccount')}{' '}
             </Text>
-            <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')}>
-              <Text style={[typography.subhead, { color: colors.tint, fontWeight: '600' }]}>
+            <TouchableOpacity onPress={() => router.push('/(auth)/sign-in')} accessibilityRole="button" accessibilityLabel={t('welcome.signIn')}>
+              <Text style={[typography.subhead, { color: colors.tint, fontWeight: fontWeight.semibold }]}>
                 {t('welcome.signIn')}
               </Text>
             </TouchableOpacity>
@@ -461,6 +462,8 @@ export default function WelcomeScreen() {
             onPress={handleContinueAsGuest}
             disabled={isLoading}
             style={styles.guestLink}
+            accessibilityRole="button"
+            accessibilityLabel={t('welcome.continueAsGuest')}
           >
             <Text style={[typography.caption1, { color: colors.textTertiary, textAlign: 'center' }]}>
               {t('welcome.continueAsGuest')}
@@ -538,8 +541,8 @@ const styles = StyleSheet.create({
     marginEnd: spacing.sm,
   },
   authButtonText: {
-    fontSize: 15,
-    fontWeight: '500',
+    fontSize: typography.subhead.fontSize,
+    fontWeight: fontWeight.medium,
     letterSpacing: -0.1,
     marginStart: spacing.sm,
   },

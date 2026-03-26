@@ -605,11 +605,11 @@ def _donation_dashboard_view(request):
         data = {}
 
     context = {
+        **admin.site.each_context(request),
         "title": "Donation Dashboard",
         "level": level,
         "data": data,
-        "is_nav_sidebar_enabled": True,
-        "available_apps": [],
+        "has_permission": True,
         "is_popup": False,
     }
     return render(request, "admin/dashboard/donations.html", context)

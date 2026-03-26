@@ -12,7 +12,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography } from '@/constants/Theme';
+import { spacing, typography, borderRadius, fontWeight } from '@/constants/Theme';
 
 interface DateNavigatorProps {
   selectedDate: Date;
@@ -61,6 +61,8 @@ export const DateNavigator = ({
         onPress={handlePrev}
         style={styles.arrowButton}
         hitSlop={12}
+        accessibilityRole="button"
+        accessibilityLabel={t('prayer.previousDay')}
       >
         <Ionicons
           name="chevron-back"
@@ -89,9 +91,14 @@ export const DateNavigator = ({
 
         {!isTodayDate && (
           <Animated.View entering={FadeIn.duration(200)} exiting={FadeOut.duration(150)}>
-            <Pressable onPress={handleToday} style={[styles.todayPill, {
-              backgroundColor: getAlpha(effectiveScheme).accentPill,
-            }]}>
+            <Pressable
+              onPress={handleToday}
+              style={[styles.todayPill, {
+                backgroundColor: getAlpha(effectiveScheme).accentPill,
+              }]}
+              accessibilityRole="button"
+              accessibilityLabel={t('prayer.jumpToToday')}
+            >
               <Text style={[styles.todayText, {
                 color: isDark ? palette.divineGoldBright : palette.divineGoldText,
               }]}>
@@ -106,6 +113,8 @@ export const DateNavigator = ({
         onPress={handleNext}
         style={styles.arrowButton}
         hitSlop={12}
+        accessibilityRole="button"
+        accessibilityLabel={t('prayer.nextDay')}
       >
         <Ionicons
           name="chevron-forward"
@@ -128,7 +137,7 @@ const styles = StyleSheet.create({
   arrowButton: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: borderRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -150,11 +159,11 @@ const styles = StyleSheet.create({
   todayPill: {
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
-    borderRadius: 12,
+    borderRadius: borderRadius.md,
   },
   todayText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: typography.caption1.fontSize,
+    fontWeight: fontWeight.semibold,
     letterSpacing: 0.3,
   },
 });

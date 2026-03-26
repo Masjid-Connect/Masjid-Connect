@@ -1,6 +1,10 @@
 """DRF serializers — shaped to match existing React Native types."""
 
+import re
+
 from django.contrib.auth import get_user_model
+from django.utils import timezone
+from django.utils.html import strip_tags
 from rest_framework import serializers
 
 from core.models import (
@@ -29,7 +33,8 @@ class RegisterSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
 
     def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
+        value = value.lower()
+        if User.objects.filter(email__iexact=value).exists():
             raise serializers.ValidationError("Unable to complete registration. Please try again.")
         return value
 
@@ -111,6 +116,17 @@ class AnnouncementSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "published_at", "author"]
 
+    def validate_title(self, value):
+        return strip_tags(value).strip()
+
+    def validate_body(self, value):
+        return strip_tags(value).strip()
+
+    def validate_expires_at(self, value):
+        if value and value <= timezone.now():
+            raise serializers.ValidationError("Expiry date must be in the future.")
+        return value
+
 
 # ── Event ─────────────────────────────────────────────────────────────
 
@@ -138,6 +154,24 @@ class EventSerializer(serializers.ModelSerializer):
             "updated",
         ]
         read_only_fields = ["id", "author", "created", "updated"]
+
+    def validate_title(self, value):
+        return strip_tags(value).strip()
+
+    def validate_description(self, value):
+        return strip_tags(value).strip()
+
+    def validate_speaker(self, value):
+        return strip_tags(value).strip()
+
+    def validate(self, attrs):
+        end_time = attrs.get("end_time") or (self.instance and self.instance.end_time)
+        start_time = attrs.get("start_time") or (self.instance and self.instance.start_time)
+        if end_time and start_time and end_time <= start_time:
+            raise serializers.ValidationError(
+                {"end_time": "End time must be after start time."}
+            )
+        return attrs
 
 
 # ── Subscription ──────────────────────────────────────────────────────
@@ -183,6 +217,13 @@ class PushTokenSerializer(serializers.ModelSerializer):
         fields = ["id", "token", "platform", "created", "updated"]
         read_only_fields = ["id", "created", "updated"]
 
+    def validate_token(self, value: str) -> str:
+        if not re.match(r'^ExponentPushToken\[.+\]$', value):
+            raise serializers.ValidationError(
+                "Invalid push token format. Expected: ExponentPushToken[...]"
+            )
+        return value
+
 
 # ── Mosque Admin ──────────────────────────────────────────────────────
 
@@ -221,6 +262,13 @@ class ContactSerializer(serializers.Serializer):
     email = serializers.EmailField()
     subject = serializers.ChoiceField(choices=SUBJECT_CHOICES)
     message = serializers.CharField(max_length=5000)
+    turnstile_token = serializers.CharField(write_only=True, required=False, default="")
+
+    def validate_name(self, value):
+        return strip_tags(value).strip()
+
+    def validate_message(self, value):
+        return strip_tags(value).strip()
 
 
 # ── Feedback ─────────────────────────────────────────────────────────
@@ -232,6 +280,12 @@ class FeedbackCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feedback
         fields = ["type", "category", "description", "device_info"]
+
+    def validate_category(self, value):
+        return strip_tags(value).strip()
+
+    def validate_description(self, value):
+        return strip_tags(value).strip()
 
 
 class FeedbackSerializer(serializers.ModelSerializer):
@@ -333,10 +387,17 @@ class GiftAidDeclarationSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_total_donated_pounds(self, obj):
-        return f"{obj.total_donated_pence / 100:.2f}"
+        # Use annotated value if available (avoids N+1), fall back to property
+        pence = getattr(obj, "_total_donated_pence", None)
+        if pence is None:
+            pence = obj.total_donated_pence
+        return f"{(pence or 0) / 100:.2f}"
 
     def get_total_gift_aid_pounds(self, obj):
-        return f"{obj.total_gift_aid_pence / 100:.2f}"
+        pence = getattr(obj, "_total_gift_aid_pence", None)
+        if pence is None:
+            pence = obj.total_gift_aid_pence
+        return f"{(pence or 0) / 100:.2f}"
 
 
 class GiftAidClaimSerializer(serializers.ModelSerializer):

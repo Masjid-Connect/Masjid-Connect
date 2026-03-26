@@ -104,10 +104,10 @@
       </div>
     </div>
 
-    <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap;">
-      <a href="/admin/core/giftaidclaim/add/" style="display: inline-block; padding: 8px 16px; background: #0F2D52; color: #fff; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">Create New Claim</a>
-      <a href="/admin/core/giftaiddeclaration/" style="display: inline-block; padding: 8px 16px; background: transparent; color: #0F2D52; border: 1px solid #E2DFD8; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">View Declarations</a>
-      <a href="/admin/core/charitygiftaidsettings/" style="display: inline-block; padding: 8px 16px; background: transparent; color: #0F2D52; border: 1px solid #E2DFD8; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 500;">Charity Settings</a>
+    <div class="dash-actions">
+      <a href="/admin/core/giftaidclaim/add/" class="dash-btn dash-btn-primary">Create New Claim</a>
+      <a href="/admin/core/giftaiddeclaration/" class="dash-btn dash-btn-outline">View Declarations</a>
+      <a href="/admin/core/charitygiftaidsettings/" class="dash-btn dash-btn-outline">Charity Settings</a>
     </div>
   </div>
 
@@ -140,16 +140,16 @@
                   —
                 {% endif %}
               </td>
-              <td><a href="/admin/core/donation/{{ d.id }}/change/" style="color: #0F2D52; font-size: 13px;">View</a></td>
+              <td><a href="/admin/core/donation/{{ d.id }}/change/" class="dash-link">View</a></td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
       <div style="margin-top: 12px;">
-        <a href="/admin/core/donation/" style="color: #0F2D52; font-size: 13px; font-weight: 500;">View all donations &rarr;</a>
+        <a href="/admin/core/donation/" class="dash-link" style="font-weight: 500;">View all donations &rarr;</a>
       </div>
     {% else %}
-      <p style="color: var(--dash-onyx-600); font-size: 14px;">No donations recorded yet.</p>
+      <p class="dash-empty-text">No donations recorded yet.</p>
     {% endif %}
   </div>
 

@@ -47,9 +47,9 @@ export const palette = {
   sage400: '#6BCB9B',       // Success states (dark mode)
 
   // ─── Gold: divine accent, prayer signal ─────────────────────────
-  divineGold: '#BF9B30',    // Rich matte leaf gold — accent, prayer active (3:1+ on Stone-100)
+  divineGold: '#A68523',    // Rich matte leaf gold — accent, prayer active (4.5:1+ on Stone-100 for WCAG AA)
   divineGoldBright: '#F0D060', // Brighter variant for dark mode contrast (4.5:1+ on sapphire950)
-  divineGoldGlow: 'rgba(191, 155, 48, 0.08)', // Subtle glow for active prayer
+  divineGoldGlow: 'rgba(166, 133, 35, 0.08)', // Subtle glow for active prayer
   divineGoldText: '#8A7023',        // Darker gold for text on light backgrounds (4.5:1 contrast on white)
   divineGoldTextDark: '#E0C96B',    // Lighter gold for text on dark backgrounds (4.5:1 contrast on black)
 
@@ -103,6 +103,14 @@ export const palette = {
   emerald700: '#0F2D52',
   emerald600: '#2D6A4F',
   emerald400: '#6BABE5',
+
+  // ─── External brand colors (mandated by third parties) ───
+  googleBgLight: '#FFFFFF',
+  googleBgDark: '#131314',
+  googleBorderLight: '#747775',
+  googleBorderDark: '#8E918F',
+  googleTextLight: '#1F1F1F',
+  googleTextDark: '#E3E3E3',
 } as const;
 
 /**
@@ -210,7 +218,7 @@ export const alpha = {
   },
   /** Prayer active row highlight */
   prayerActiveBg: {
-    light: 'rgba(191, 155, 48, 0.04)',
+    light: 'rgba(166, 133, 35, 0.04)',
     dark: 'rgba(240, 208, 96, 0.06)',
   },
   /** Frosted navigation / sheet backgrounds (tab bar, bottom zones) */
@@ -230,18 +238,93 @@ export const alpha = {
   },
   /** Gold-tinted pill/chip backgrounds (e.g. "Today" pill in DateNavigator) */
   accentPill: {
-    light: 'rgba(191, 155, 48, 0.12)',
+    light: 'rgba(166, 133, 35, 0.12)',
     dark: 'rgba(240, 208, 96, 0.15)',
   },
   /** Janazah announcement — respectful gold tint (not alarm red) */
   janazahBg: {
-    light: 'rgba(191, 155, 48, 0.06)',
+    light: 'rgba(166, 133, 35, 0.06)',
     dark: 'rgba(240, 208, 96, 0.08)',
   },
   /** Stronger janazah emphasis (badge fills in detail sheet) */
   janazahBgEmphasis: {
-    light: 'rgba(191, 155, 48, 0.10)',
+    light: 'rgba(166, 133, 35, 0.10)',
     dark: 'rgba(240, 208, 96, 0.14)',
+  },
+  /** Gold-tinted feature icon backgrounds (welcome screen, community share) */
+  goldIconBg: {
+    light: 'rgba(166, 133, 35, 0.10)',
+    dark: 'rgba(240, 208, 96, 0.12)',
+  },
+  /** Gold-tinted empty state icon circles (announcements, community) */
+  goldEmptyBg: {
+    light: 'rgba(166, 133, 35, 0.06)',
+    dark: 'rgba(240, 208, 96, 0.08)',
+  },
+  /** Sapphire-tinted icon backgrounds (admin FAB, events empty state) */
+  sapphireIconBg: {
+    light: 'rgba(15, 45, 82, 0.08)',
+    dark: 'rgba(107, 171, 229, 0.15)',
+  },
+  /** Sapphire-tinted empty state icon circles (events) */
+  sapphireEmptyBg: {
+    light: 'rgba(15, 45, 82, 0.06)',
+    dark: 'rgba(107, 171, 229, 0.10)',
+  },
+  /** Active prayer row highlight (prayer times screen) */
+  prayerActiveRowBg: {
+    light: 'rgba(212, 175, 55, 0.08)',
+    dark: 'rgba(229, 193, 75, 0.10)',
+  },
+  /** Prayer progress bar fill */
+  prayerProgressFill: {
+    light: 'rgba(212, 175, 55, 0.30)',
+    dark: 'rgba(229, 193, 75, 0.35)',
+  },
+  /** Community share card background */
+  communityShareBg: {
+    light: 'rgba(212, 175, 55, 0.06)',
+    dark: 'rgba(229, 193, 75, 0.08)',
+  },
+  /** Community share card border */
+  communityShareBorder: {
+    light: 'rgba(212, 175, 55, 0.15)',
+    dark: 'rgba(229, 193, 75, 0.20)',
+  },
+  /** Sage-tinted option card backgrounds (gift aid) */
+  sageBg: {
+    light: 'rgba(45, 106, 79, 0.06)',
+    dark: 'rgba(45, 106, 79, 0.12)',
+  },
+  /** Sage-tinted subtle background (gift aid unchecked) */
+  sageBgSubtle: {
+    light: 'rgba(45, 106, 79, 0.03)',
+    dark: 'rgba(45, 106, 79, 0.06)',
+  },
+  /** Sage-tinted border */
+  sageBorder: {
+    light: 'rgba(45, 106, 79, 0.12)',
+    dark: 'rgba(45, 106, 79, 0.20)',
+  },
+  /** Sapphire-tinted option card backgrounds (cover fees) */
+  sapphireBg: {
+    light: 'rgba(15, 45, 82, 0.06)',
+    dark: 'rgba(15, 45, 82, 0.12)',
+  },
+  /** Sapphire-tinted subtle background (cover fees unchecked) */
+  sapphireBgSubtle: {
+    light: 'rgba(15, 45, 82, 0.03)',
+    dark: 'rgba(15, 45, 82, 0.06)',
+  },
+  /** Sapphire-tinted border */
+  sapphireBorder: {
+    light: 'rgba(15, 45, 82, 0.12)',
+    dark: 'rgba(91, 155, 213, 0.20)',
+  },
+  /** Sapphire hadith card border */
+  sapphireHadithBorder: {
+    light: 'rgba(15, 45, 82, 0.08)',
+    dark: 'rgba(91, 155, 213, 0.12)',
   },
 } as const;
 
@@ -265,6 +348,21 @@ export function getAlpha(scheme: string | null | undefined) {
     accentPill: alpha.accentPill[key],
     janazahBg: alpha.janazahBg[key],
     janazahBgEmphasis: alpha.janazahBgEmphasis[key],
+    goldIconBg: alpha.goldIconBg[key],
+    goldEmptyBg: alpha.goldEmptyBg[key],
+    sapphireIconBg: alpha.sapphireIconBg[key],
+    sapphireEmptyBg: alpha.sapphireEmptyBg[key],
+    prayerActiveRowBg: alpha.prayerActiveRowBg[key],
+    prayerProgressFill: alpha.prayerProgressFill[key],
+    communityShareBg: alpha.communityShareBg[key],
+    communityShareBorder: alpha.communityShareBorder[key],
+    sageBg: alpha.sageBg[key],
+    sageBgSubtle: alpha.sageBgSubtle[key],
+    sageBorder: alpha.sageBorder[key],
+    sapphireBg: alpha.sapphireBg[key],
+    sapphireBgSubtle: alpha.sapphireBgSubtle[key],
+    sapphireBorder: alpha.sapphireBorder[key],
+    sapphireHadithBorder: alpha.sapphireHadithBorder[key],
   };
 }
 

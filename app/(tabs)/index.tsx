@@ -5,7 +5,6 @@ import {
   Text,
   ScrollView,
   RefreshControl,
-  ActivityIndicator,
   PanResponder,
   useWindowDimensions,
   type ViewStyle,
@@ -18,7 +17,6 @@ import Animated, {
   useAnimatedStyle,
   withSequence,
   withSpring,
-  withTiming,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -27,8 +25,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, getElevation, springs } from '@/constants/Theme';
+import { spacing, typography, borderRadius, getElevation, springs, fontWeight } from '@/constants/Theme';
 import { layout, patterns } from '@/lib/layoutGrid';
+import { PrayerSkeleton } from '@/components/ui/PrayerSkeleton';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
 import { formatPrayerTime } from '@/lib/prayer';
 import { getAtmosphericGradient } from '@/lib/prayerGradients';
@@ -78,7 +77,7 @@ export default function PrayerTimesScreen() {
   const reducedMotion = useReducedMotion();
   const {
     prayers, nextPrayer, countdown, windowProgress, hijriDate,
-    isLoading, source, jamaahAvailable, isEstimated, use24h, refresh,
+    isLoading, error: prayerError, source, jamaahAvailable, isEstimated, use24h, refresh,
     selectedDate, isToday, goToNextDay, goToPrevDay, goToToday,
   } = usePrayerTimes();
 
@@ -104,10 +103,10 @@ export default function PrayerTimesScreen() {
           withSpring(1.08, springs.snappy),
           withSpring(1, springs.gentle),
         );
-        // Gold overlay flash: 0 → 0.25 → 0
+        // Gold overlay flash: 0 → 0.25 → 0 (spring-based per doctrine)
         goldPulseOpacity.value = withSequence(
-          withTiming(0.25, { duration: 200 }),
-          withTiming(0, { duration: 600 }),
+          withSpring(0.25, springs.snappy),
+          withSpring(0, springs.gentle),
         );
       }
       // Haptic feedback — Medium impact for prayer transition (sacred moment)
@@ -161,9 +160,20 @@ export default function PrayerTimesScreen() {
 
   // ─── Loading state ──────────────────────────────────────────────
   if (isLoading && prayers.length === 0) {
+    return <PrayerSkeleton />;
+  }
+
+  // ─── Error state — both prayer time sources failed (R2) ────────
+  if (prayerError && prayers.length === 0) {
     return (
-      <View style={[styles.root, styles.loading, { backgroundColor: colors.background, paddingTop: insets.top }]} accessibilityLabel={t('prayer.calculating')} accessibilityRole="progressbar">
-        <ActivityIndicator size="large" color={colors.accent} accessibilityLabel={t('prayer.calculating')} />
+      <View style={[styles.root, styles.loading, { backgroundColor: colors.background, paddingTop: insets.top }]}>
+        <Ionicons name="cloud-offline-outline" size={48} color={colors.textTertiary} />
+        <Text style={[typography.title3, { color: colors.text, marginTop: spacing.lg, textAlign: 'center' }]}>
+          {t('error.prayerTimesUnavailable')}
+        </Text>
+        <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.sm, textAlign: 'center', paddingHorizontal: spacing['3xl'] }]}>
+          {t('error.prayerTimesRetry')}
+        </Text>
       </View>
     );
   }
@@ -242,7 +252,7 @@ export default function PrayerTimesScreen() {
                     <Text style={[
                       styles.countdown,
                       { color: colors.text },
-                      isLandscape && { fontSize: 32, lineHeight: 38 },
+                      isLandscape && { fontSize: typography.largeTitle.fontSize - 2, lineHeight: 38 },
                     ]}>
                       {countdown}
                     </Text>
@@ -333,9 +343,7 @@ export default function PrayerTimesScreen() {
                   isNext && [
                     styles.activeRow,
                     {
-                      backgroundColor: isDark
-                        ? 'rgba(229,193,75,0.10)'
-                        : 'rgba(212,175,55,0.08)',
+                      backgroundColor: alphaColors.prayerActiveRowBg,
                     },
                   ],
                 ]}
@@ -415,9 +423,7 @@ export default function PrayerTimesScreen() {
                         styles.progressBarFill,
                         {
                           width: `${Math.round(windowProgress * 100)}%`,
-                          backgroundColor: isDark
-                            ? 'rgba(229,193,75,0.35)'
-                            : 'rgba(212,175,55,0.30)',
+                          backgroundColor: alphaColors.prayerProgressFill,
                         } as ViewStyle,
                       ]}
                     />
@@ -471,7 +477,7 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
     marginTop: spacing.md, // 12
     textAlign: 'center',
-    fontWeight: '600',
+    fontWeight: fontWeight.semibold,
   },
 
   // Gradient fade from hero to content
@@ -513,7 +519,7 @@ const styles = StyleSheet.create({
     top: spacing.sm,    // 8
     bottom: spacing.sm,  // 8
     width: 3,
-    borderRadius: 2,
+    borderRadius: borderRadius['2xs'],
   },
   dotCol: {
     width: spacing.xl, // 20
@@ -536,6 +542,6 @@ const styles = StyleSheet.create({
   },
   progressBarFill: {
     height: 2,
-    borderRadius: 1,
+    borderRadius: borderRadius['2xs'],
   },
 });
