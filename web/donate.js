@@ -319,7 +319,7 @@
         currency: 'gbp',
         frequency: frequency,
         return_url: returnUrl,
-        ui_mode: 'embedded',
+        ui_mode: 'embedded_page',
         gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no',
         cover_fees: coverFeesCheckbox && coverFeesCheckbox.checked ? 'yes' : 'no',
       }),
@@ -358,7 +358,7 @@
       .then(function (data) {
         // eslint-disable-next-line no-undef
         const stripe = Stripe(data.publishable_key);
-        return stripe.initEmbeddedCheckout({
+        return stripe.createEmbeddedCheckoutPage({
           clientSecret: data.client_secret,
         });
       })
