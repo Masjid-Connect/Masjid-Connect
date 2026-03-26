@@ -6,7 +6,7 @@ import { getColors, palette } from '@/constants/Colors';
 import { typography, spacing, borderRadius } from '@/constants/Theme';
 
 interface ErrorFallbackProps {
-  error: Error;
+  error: unknown;
   resetError: () => void;
 }
 
@@ -33,7 +33,9 @@ export const ErrorFallback = ({ error, resetError }: ErrorFallbackProps) => {
         {t('error.message', 'An unexpected error occurred. Please try again.')}
       </Text>
       {__DEV__ && (
-        <Text style={[styles.debug, { color: colors.urgent }]}>{error.message}</Text>
+        <Text style={[styles.debug, { color: colors.urgent }]}>
+          {error instanceof Error ? error.message : String(error)}
+        </Text>
       )}
       <TouchableOpacity
         style={[styles.button, { backgroundColor: colors.tint }]}
