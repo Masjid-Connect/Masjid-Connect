@@ -308,7 +308,7 @@
   }
 
   // ─── Create checkout session via API ────────────────────────
-  function createSession(uiMode) {
+  function createSession() {
     const returnUrl = window.location.origin + window.location.pathname;
 
     return fetch(CHECKOUT_URL, {
@@ -319,7 +319,7 @@
         currency: 'gbp',
         frequency: frequency,
         return_url: returnUrl,
-        ui_mode: uiMode,
+        ui_mode: 'embedded_page',
         gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no',
         cover_fees: coverFeesCheckbox && coverFeesCheckbox.checked ? 'yes' : 'no',
       }),
@@ -341,7 +341,7 @@
     hideError();
     hideSuccess();
 
-    createSession('elements')
+    createSession()
       .then(function (data) {
         if (!data.client_secret) {
           throw new Error('Server did not return a checkout session. Please try again.');
@@ -358,7 +358,7 @@
       .then(function (data) {
         // eslint-disable-next-line no-undef
         const stripe = Stripe(data.publishable_key);
-        return stripe.initEmbeddedCheckout({
+        return stripe.createEmbeddedCheckoutPage({
           clientSecret: data.client_secret,
         });
       })
@@ -374,39 +374,8 @@
           showError('Unable to connect. Please check your internet connection and try again.');
         } else {
           showError(err.message || 'Something went wrong. Please try again.');
-          setTimeout(formPostFallback, 2000);
         }
       });
-  }
-
-  // ─── Fallback: form POST redirect to Stripe Hosted Checkout ─
-  function formPostFallback() {
-    const returnUrl = window.location.origin + window.location.pathname;
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = CHECKOUT_URL;
-    form.style.display = 'none';
-
-    const fields = {
-      amount: Math.round(selectedAmount * 100),
-      currency: 'gbp',
-      frequency: frequency,
-      return_url: returnUrl,
-      gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no',
-      cover_fees: coverFeesCheckbox && coverFeesCheckbox.checked ? 'yes' : 'no'
-    };
-
-    Object.keys(fields).forEach(function (name) {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = name;
-      input.value = fields[name];
-      form.appendChild(input);
-    });
-
-    document.body.appendChild(form);
-    form.submit();
   }
 
   // ─── Wait for Stripe.js to be available ─────────────────────
@@ -418,9 +387,9 @@
         return;
       }
 
-      let attempts = 0;
-      const maxAttempts = 50; // 5 seconds
-      const interval = setInterval(function () {
+      var attempts = 0;
+      var maxAttempts = 50; // 5 seconds
+      var interval = setInterval(function () {
         attempts++;
         // eslint-disable-next-line no-undef
         if (typeof Stripe !== 'undefined') {
