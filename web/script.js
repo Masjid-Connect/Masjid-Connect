@@ -402,8 +402,8 @@
         return;
       }
 
-      // 3. Turnstile token
-      if (!turnstileTokens.donate) {
+      // 3. Turnstile token (only check if a Turnstile widget is present on the page)
+      if (document.querySelector('.cf-turnstile') && !turnstileTokens.donate) {
         if (donateErrorEl && donateErrorText) {
           donateErrorText.textContent = 'Please complete the security check.';
           donateErrorEl.hidden = false;
