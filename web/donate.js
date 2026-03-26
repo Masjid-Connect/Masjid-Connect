@@ -341,7 +341,7 @@
     hideError();
     hideSuccess();
 
-    createSession('embedded')
+    createSession('custom')
       .then(function (data) {
         if (!data.client_secret) {
           throw new Error('Server did not return a checkout session. Please try again.');
