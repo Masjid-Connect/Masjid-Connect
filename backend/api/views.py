@@ -1111,7 +1111,7 @@ def create_checkout_session(request):
 
         if is_embedded:
             # Embedded Checkout — stays on the donor's page
-            session_params["ui_mode"] = "elements"
+            session_params["ui_mode"] = "embedded"
             session_params["return_url"] = (
                 return_url + "?donation=success&session_id={CHECKOUT_SESSION_ID}"
             )
