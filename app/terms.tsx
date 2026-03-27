@@ -7,7 +7,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, getElevation, fontWeight } from '@/constants/Theme';
+import { spacing, typography, borderRadius, getElevation, fontWeight, hairline } from '@/constants/Theme';
 
 const CONTACT_EMAIL = 'support@salafimasjid.app';
 
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
   },
   sectionSeparator: {
-    height: StyleSheet.hairlineWidth,
+    height: hairline,
     marginStart: 44,
   },
   link: {

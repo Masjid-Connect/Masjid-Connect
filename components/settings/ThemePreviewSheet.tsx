@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme, ThemePreference } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, springs, badge } from '@/constants/Theme';
+import { spacing, typography, borderRadius, springs, badge, hairline } from '@/constants/Theme';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 
 interface ThemePreviewSheetProps {
@@ -75,7 +75,7 @@ const ThemeCard = ({
           {
             backgroundColor: previewBg,
             borderColor: selected ? colors.tint : colors.separator,
-            borderWidth: selected ? 2.5 : StyleSheet.hairlineWidth,
+            borderWidth: selected ? 2.5 : hairline,
           },
         ]}
       >
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 4,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: hairline,
     borderBottomColor: 'transparent',
   },
   previewDot: {

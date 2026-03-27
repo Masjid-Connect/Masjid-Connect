@@ -16,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, components } from '@/constants/Theme';
+import { spacing, typography, borderRadius, components, hairline } from '@/constants/Theme';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { feedback } from '@/lib/api';
 
@@ -152,7 +152,7 @@ export const FeatureRequestSheet = ({ visible, onDismiss }: FeatureRequestSheetP
                     {
                       backgroundColor: isSelected ? colors.tintLight : colors.background,
                       borderColor: isSelected ? colors.tint : colors.separator,
-                      borderWidth: isSelected ? 2 : StyleSheet.hairlineWidth,
+                      borderWidth: isSelected ? 2 : hairline,
                     },
                   ]}
                 >
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
   },
   textInput: {
     minHeight: 80,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: hairline,
     borderRadius: borderRadius.sm,
     padding: spacing.md,
     marginBottom: spacing.xl,

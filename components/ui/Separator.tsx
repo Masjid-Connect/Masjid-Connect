@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing } from '@/constants/Theme';
+import { spacing, hairline } from '@/constants/Theme';
 
 interface SeparatorProps {
   /** Horizontal inset from the leading edge (e.g. to align with text after an icon) */
@@ -31,7 +31,7 @@ export const Separator = ({ inset = 0, style }: SeparatorProps) => {
 
 const styles = StyleSheet.create({
   separator: {
-    height: StyleSheet.hairlineWidth,
+    height: hairline,
     marginVertical: spacing['2xs'],
   },
 });

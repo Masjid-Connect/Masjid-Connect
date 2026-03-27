@@ -7,7 +7,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, getElevation, fontWeight } from '@/constants/Theme';
+import { spacing, typography, borderRadius, getElevation, fontWeight, hairline } from '@/constants/Theme';
 
 interface PolicySectionProps {
   number: string;
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sectionSeparator: {
-    height: StyleSheet.hairlineWidth,
+    height: hairline,
     marginTop: spacing.xl,
     marginStart: 44,
   },

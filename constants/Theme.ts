@@ -1,4 +1,4 @@
-import { PixelRatio, StyleSheet, TextStyle, ViewStyle } from 'react-native';
+import { PixelRatio, Platform, StyleSheet, TextStyle, ViewStyle } from 'react-native';
 
 /**
  * Font families — system-first strategy.
@@ -44,6 +44,13 @@ export const spacing = {
   '5xl': 64,
 } as const;
 
+/**
+ * Android-safe hairline border width.
+ * On iOS, StyleSheet.hairlineWidth (0.5px) renders crisply on Retina displays.
+ * On Android, hairlineWidth (~0.33px) is often invisible — use 1px instead.
+ */
+export const hairline = Platform.OS === 'android' ? 1 : StyleSheet.hairlineWidth;
+
 /** Badge sizing tokens */
 export const badge = {
   dotSize: 8,
@@ -66,16 +73,16 @@ export const elevation = {
   sm: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-    elevation: 1,
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
   md: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.10,
     shadowRadius: 8,
-    elevation: 3,
+    elevation: 4,
   },
   lg: {
     shadowColor: '#000',

@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius } from '@/constants/Theme';
+import { spacing, borderRadius, hairline } from '@/constants/Theme';
 import { SkeletonLoader } from './SkeletonLoader';
 
 export const PrayerSkeleton = () => {
@@ -24,7 +24,7 @@ export const PrayerSkeleton = () => {
       {/* Timetable rows */}
       <View style={[styles.timetable, { backgroundColor: colors.card, borderRadius: borderRadius.lg }]}>
         {[0, 1, 2, 3, 4, 5].map((i) => (
-          <View key={i} style={[styles.row, i < 5 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }]}>
+          <View key={i} style={[styles.row, i < 5 && { borderBottomWidth: hairline, borderBottomColor: colors.separator }]}>
             <SkeletonLoader width={60} height={14} />
             <SkeletonLoader width={50} height={14} />
           </View>

@@ -26,7 +26,7 @@ import * as Haptics from 'expo-haptics';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, fontWeight, springs, getElevation } from '@/constants/Theme';
+import { spacing, typography, borderRadius, fontWeight, springs, getElevation, hairline } from '@/constants/Theme';
 import { AnnouncementsContent } from '@/components/community/AnnouncementsContent';
 import { EventsContent } from '@/components/community/EventsContent';
 import { GoldBadge } from '@/components/brand/GoldBadge';
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: StyleSheet.hairlineWidth,
+    height: hairline,
   },
   contentArea: {
     flex: 1,

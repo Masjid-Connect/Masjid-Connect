@@ -27,7 +27,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography, getElevation, fontWeight } from '@/constants/Theme';
+import { spacing, borderRadius, typography, getElevation, fontWeight, hairline } from '@/constants/Theme';
 import { AmountSelector, BankDetailsSheet, DonationConfirmationSheet, TrustBadge } from '@/components/support';
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { donations } from '@/lib/api';
@@ -476,7 +476,7 @@ export default function SupportScreen() {
               { icon: 'book-outline' as const, title: t('support.impactEducation'), desc: t('support.impactEducationDesc') },
               { icon: 'people-outline' as const, title: t('support.impactCommunity'), desc: t('support.impactCommunityDesc') },
             ].map((item, i) => (
-              <View key={i} style={[styles.impactRow, i < 2 && { borderBottomColor: colors.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+              <View key={i} style={[styles.impactRow, i < 2 && { borderBottomColor: colors.separator, borderBottomWidth: hairline }]}>
                 <View style={[styles.impactIcon, { backgroundColor: isDark ? colors.backgroundGrouped : colors.backgroundSecondary }]}>
                   <Ionicons name={item.icon} size={18} color={colors.tint} />
                 </View>
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: StyleSheet.hairlineWidth,
+    height: hairline,
   },
   largeTitleContainer: {
     paddingHorizontal: spacing['3xl'],
