@@ -593,6 +593,111 @@ eas submit --platform android --profile production
 
 4. Go to Google Play Console to complete the listing
 
+### Testing Before Going Public
+
+Before releasing to the public, you should test your app with real people using **Google Play Internal Testing** (Android) and **TestFlight** (iOS). This lets a small group install the app from the real store without it being visible to the public.
+
+#### Android — Internal Testing (recommended first step)
+
+Google Play has 4 tracks. Start with Internal, then promote up:
+
+| Track | Who can see it | Google review? | Max testers |
+|-------|---------------|----------------|-------------|
+| **Internal testing** | Only people you invite by email | No — instant | 100 |
+| **Closed testing** | Only people you invite | Brief review | Unlimited |
+| **Open testing** | Anyone with the link | Full review | Unlimited |
+| **Production** | Everyone on Play Store | Full review | Everyone |
+
+**Step-by-step for Internal Testing:**
+
+1. **Build the app bundle:**
+
+```bash
+eas build --platform android --profile production
+```
+
+This takes 5–15 minutes. EAS builds a `.aab` file (Android App Bundle) in the cloud.
+
+2. **Submit to the internal testing track:**
+
+```bash
+eas submit --platform android --profile internal
+```
+
+This uses the `internal` profile in `eas.json`, which targets the internal testing track.
+
+> **If automated submit fails** (common on the very first upload — Google requires the first one to be manual):
+> 1. EAS prints a download link when the build finishes — download the `.aab` file
+> 2. In Google Play Console, go to **Testing > Internal testing**
+> 3. Click **Create new release**
+> 4. Drag the `.aab` file into the upload area
+> 5. Add release notes (e.g., "First internal test build")
+> 6. Click **Next** → **Start rollout to Internal testing**
+
+3. **Add testers:**
+
+   - In Play Console, go to **Testing > Internal testing > Testers**
+   - Create a new email list (e.g., "Core Team")
+   - Add email addresses of people who should test (must be Gmail or Google Workspace accounts)
+   - Click **Save changes**
+
+4. **Share the install link:**
+
+   - On the same Testers page, copy the **opt-in link**
+   - Send it to your testers
+   - They click the link → accept the invite → install from Play Store
+   - The app appears as a normal Play Store listing, but only for them
+
+5. **Testers provide feedback:**
+
+   - Testers can leave feedback directly in the Play Store internal test
+   - Or you can set up your own feedback channel (WhatsApp group, email, etc.)
+
+6. **When ready, promote to production:**
+
+   - Go to **Testing > Internal testing > Releases**
+   - Click **Promote release** → **Production**
+   - Add public release notes
+   - Submit for Google review (1–3 days for first review)
+
+#### iOS — TestFlight
+
+1. **Build:**
+
+```bash
+eas build --platform ios --profile production
+```
+
+2. **Submit to TestFlight:**
+
+```bash
+eas submit --platform ios --profile production
+```
+
+3. Go to **App Store Connect** (`appstoreconnect.apple.com`)
+4. The build appears under **TestFlight** tab after Apple processes it (5–30 minutes)
+5. Add **internal testers** (up to 100 — Apple Developer account members) or **external testers** (up to 10,000 — needs brief Apple review)
+6. Testers install via the TestFlight app on their iPhone
+
+#### Updating a Test Build
+
+Each time you want testers to try a new version:
+
+```bash
+# 1. Bump version (if needed — not required for every test build)
+./scripts/bump-version.sh patch
+
+# 2. Commit
+git add package.json app.json
+git commit -m "chore: bump version to X.Y.Z"
+
+# 3. Build + submit
+eas build --platform android --profile production
+eas submit --platform android --profile internal
+```
+
+The build number auto-increments (`eas.json` → `autoIncrement: true`), so you can submit multiple test builds without manually changing anything. Only bump the semver when you want a meaningful version change.
+
 ### Updating the App
 
 When you want to release a new version:
