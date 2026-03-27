@@ -146,8 +146,31 @@ const darkElevation: Record<ElevationLevel, ViewStyle> = {
   },
 };
 
+/**
+ * Light mode elevation for Android — shadows are weak on Android,
+ * so we add explicit borders (same approach as dark mode).
+ */
+const androidLightElevation: Record<ElevationLevel, ViewStyle> = {
+  sm: {
+    borderWidth: 1,
+    borderColor: '#C8C3B8', // separatorLight — visible on stone backgrounds
+    ...elevation.sm,
+  },
+  md: {
+    borderWidth: 1,
+    borderColor: '#C8C3B8',
+    ...elevation.md,
+  },
+  lg: {
+    borderWidth: 1,
+    borderColor: '#C8C3B8',
+    ...elevation.lg,
+  },
+};
+
 export function getElevation(level: ElevationLevel, isDark: boolean): ViewStyle {
   if (isDark) return darkElevation[level];
+  if (Platform.OS === 'android') return androidLightElevation[level];
   return elevation[level];
 }
 
