@@ -70,7 +70,7 @@ export const AmountSelector = ({ selectedAmount, onAmountChange }: AmountSelecto
                 {
                   backgroundColor: isSelected ? colors.tint : colors.card,
                   borderColor: isSelected ? colors.tint : (suggested ? goldColor : colors.separator),
-                  borderWidth: suggested && !isSelected ? 1 : StyleSheet.hairlineWidth,
+                  borderWidth: suggested && !isSelected ? 1.5 : 1,
                   ...(!isSelected ? getElevation('sm', isDark) : {}),
                 },
               ]}
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingVertical: spacing.lg,
     borderRadius: borderRadius.sm,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
   },
   popularText: {
-    color: 'white',
+    color: palette.white,
     fontSize: (typography.caption2.fontSize as number) - 2,
     fontWeight: fw.semibold,
   },
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: borderRadius.sm,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     gap: spacing.xs,

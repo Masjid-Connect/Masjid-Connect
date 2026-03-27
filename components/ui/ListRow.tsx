@@ -21,7 +21,7 @@ import * as Haptics from 'expo-haptics';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, springs, layout } from '@/constants/Theme';
+import { spacing, springs, layout, hairline } from '@/constants/Theme';
 
 interface ListRowProps {
   children: React.ReactNode;
@@ -102,6 +102,6 @@ const styles = StyleSheet.create({
     paddingEnd: spacing.lg,
   },
   separator: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: hairline,
   },
 });

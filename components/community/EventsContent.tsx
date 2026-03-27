@@ -20,7 +20,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, getElevation, borderRadius, typography, components, fontWeight } from '@/constants/Theme';
+import { spacing, getElevation, borderRadius, typography, components, fontWeight, hairline } from '@/constants/Theme';
 import { useEvents } from '@/hooks/useEvents';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { Card } from '@/components/ui/Card';
@@ -265,7 +265,7 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
               }}
               style={[
                 styles.filterRow,
-                { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator },
+                { borderBottomWidth: hairline, borderBottomColor: colors.separator },
               ]}
               accessibilityRole="radio"
               accessibilityLabel={cat.label}
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: spacing['3xl'],
     paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: hairline,
   },
   toolbarButton: {
     flexDirection: 'row',

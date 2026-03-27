@@ -24,7 +24,7 @@ import Constants from 'expo-constants';
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAdminStatus } from '@/hooks/useAdminStatus';
-import { spacing, typography } from '@/constants/Theme';
+import { spacing, typography, hairline } from '@/constants/Theme';
 import {
   getReminderMinutes,
   setReminderMinutes,
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: StyleSheet.hairlineWidth,
+    height: hairline,
   },
   largeTitleContainer: {
     paddingHorizontal: spacing['3xl'],

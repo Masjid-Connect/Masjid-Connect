@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography } from '@/constants/Theme';
+import { spacing, borderRadius, typography, hairline } from '@/constants/Theme';
 
 const BANK_DETAILS = [
   { key: 'accountName', value: 'Salafi Bookstore & Islamic Centre' },
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: hairline,
   },
   detailText: {
     flex: 1,

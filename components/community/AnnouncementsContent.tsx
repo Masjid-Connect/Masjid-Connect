@@ -19,7 +19,7 @@ import * as Haptics from 'expo-haptics';
 
 import { getColors, getAlpha } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, getElevation, fontWeight } from '@/constants/Theme';
+import { spacing, typography, borderRadius, getElevation, fontWeight, hairline } from '@/constants/Theme';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { useReadAnnouncements } from '@/hooks/useReadAnnouncements';
 import { BottomSheet } from '@/components/ui/BottomSheet';
@@ -468,7 +468,7 @@ const styles = StyleSheet.create({
     paddingEnd: spacing.lg,
   },
   rowSeparator: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: hairline,
   },
   unreadColumn: {
     width: spacing.xl,
@@ -511,7 +511,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: spacing['2xl'],
     paddingTop: spacing.lg,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopWidth: hairline,
     gap: spacing.md,
   },
   sheetAction: {

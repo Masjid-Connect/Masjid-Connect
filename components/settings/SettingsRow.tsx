@@ -16,7 +16,7 @@ import * as Haptics from 'expo-haptics';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, springs, components } from '@/constants/Theme';
+import { spacing, typography, borderRadius, springs, components, hairline } from '@/constants/Theme';
 import { layout } from '@/lib/layoutGrid';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     paddingEnd: spacing.lg,
   },
   separator: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: hairline,
   },
   disclosureContent: {
     flexDirection: 'row',

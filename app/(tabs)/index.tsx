@@ -25,7 +25,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, getElevation, springs, fontWeight } from '@/constants/Theme';
+import { spacing, typography, borderRadius, getElevation, springs, fontWeight, hairline } from '@/constants/Theme';
 import { layout, patterns } from '@/lib/layoutGrid';
 import { PrayerSkeleton } from '@/components/ui/PrayerSkeleton';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
@@ -337,7 +337,7 @@ export default function PrayerTimesScreen() {
                 style={[
                   styles.row,
                   index < prayers.length - 1 && !isNext && {
-                    borderBottomWidth: StyleSheet.hairlineWidth,
+                    borderBottomWidth: hairline,
                     borderBottomColor: colors.separator,
                   },
                   isNext && [

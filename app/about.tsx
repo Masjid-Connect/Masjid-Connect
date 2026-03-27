@@ -8,7 +8,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import Constants from 'expo-constants';
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, getElevation, fontWeight } from '@/constants/Theme';
+import { spacing, typography, borderRadius, getElevation, fontWeight, hairline } from '@/constants/Theme';
 
 const GoldRule = ({ color }: { color: string }) => (
   <View style={styles.ruleContainer}>
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
   },
   ruleLine: {
     flex: 1,
-    height: StyleSheet.hairlineWidth,
+    height: hairline,
   },
   ruleDiamond: {
     width: 5,
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   sectionDivider: {
-    height: StyleSheet.hairlineWidth,
+    height: hairline,
     marginVertical: spacing.lg,
   },
   sectionBody: {

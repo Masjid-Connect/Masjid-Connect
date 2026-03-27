@@ -5,7 +5,7 @@ import * as Haptics from 'expo-haptics';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, components } from '@/constants/Theme';
+import { spacing, typography, components, hairline } from '@/constants/Theme';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 
 interface PickerOption<T extends string | number> {
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
     minHeight: components.button.compactHeight,
   },
   optionBorder: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: hairline,
   },
   optionText: {
     flex: 1,

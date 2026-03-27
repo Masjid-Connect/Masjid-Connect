@@ -27,7 +27,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, typography, getElevation, fontWeight } from '@/constants/Theme';
+import { spacing, borderRadius, typography, getElevation, fontWeight, hairline } from '@/constants/Theme';
 import { AmountSelector, BankDetailsSheet, DonationConfirmationSheet, TrustBadge } from '@/components/support';
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { donations } from '@/lib/api';
@@ -148,6 +148,8 @@ export default function SupportScreen() {
         // Show confirmation after returning from Stripe checkout
         setConfirmedAmount(totalAmount);
         setShowConfirmation(true);
+      } else {
+        throw new Error(t('support.errorMessage'));
       }
     } catch (err) {
       const message = err instanceof Error && err.message
@@ -211,7 +213,7 @@ export default function SupportScreen() {
 
         {/* Hadith — spiritual framing before the ask */}
         <Animated.View entering={FadeInDown.delay(150).duration(400)}>
-          <View style={[styles.hadithCard, { backgroundColor: isDark ? colors.backgroundGrouped : alphaColors.sapphireBgSubtle, borderColor: alphaColors.sapphireHadithBorder }]}>
+          <View style={[styles.hadithCard, { backgroundColor: isDark ? colors.backgroundGrouped : colors.card, borderColor: isDark ? alphaColors.sapphireHadithBorder : colors.separator }]}>
             <Text style={[typography.callout, { color: colors.text, fontStyle: 'italic', lineHeight: 24 }]}>
               &ldquo;{hadith.text}&rdquo;
             </Text>
@@ -289,10 +291,10 @@ export default function SupportScreen() {
               {
                 backgroundColor: giftAid
                   ? alphaColors.sageBg
-                  : (isDark ? colors.backgroundGrouped : alphaColors.sageBgSubtle),
+                  : (isDark ? colors.backgroundGrouped : colors.card),
                 borderColor: giftAid
                   ? palette.sage600
-                  : alphaColors.sageBorder,
+                  : (isDark ? alphaColors.sageBorder : colors.separator),
               },
             ]}
             onPress={() => {
@@ -308,7 +310,7 @@ export default function SupportScreen() {
                 styles.optionCheck,
                 {
                   backgroundColor: giftAid ? palette.sage600 : (isDark ? colors.backgroundGrouped : palette.white),
-                  borderColor: giftAid ? palette.sage600 : colors.separator,
+                  borderColor: giftAid ? palette.sage600 : (isDark ? colors.separator : palette.onyx400),
                 },
               ]}
             >
@@ -340,10 +342,10 @@ export default function SupportScreen() {
               {
                 backgroundColor: coverFees
                   ? alphaColors.sapphireBg
-                  : (isDark ? colors.backgroundGrouped : alphaColors.sapphireBgSubtle),
+                  : (isDark ? colors.backgroundGrouped : colors.card),
                 borderColor: coverFees
                   ? colors.tint
-                  : alphaColors.sapphireBorder,
+                  : (isDark ? alphaColors.sapphireBorder : colors.separator),
               },
             ]}
             onPress={() => {
@@ -359,7 +361,7 @@ export default function SupportScreen() {
                 styles.optionCheck,
                 {
                   backgroundColor: coverFees ? colors.tint : (isDark ? colors.backgroundGrouped : palette.white),
-                  borderColor: coverFees ? colors.tint : colors.separator,
+                  borderColor: coverFees ? colors.tint : (isDark ? colors.separator : palette.onyx400),
                 },
               ]}
             >
@@ -474,7 +476,7 @@ export default function SupportScreen() {
               { icon: 'book-outline' as const, title: t('support.impactEducation'), desc: t('support.impactEducationDesc') },
               { icon: 'people-outline' as const, title: t('support.impactCommunity'), desc: t('support.impactCommunityDesc') },
             ].map((item, i) => (
-              <View key={i} style={[styles.impactRow, i < 2 && { borderBottomColor: colors.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+              <View key={i} style={[styles.impactRow, i < 2 && { borderBottomColor: colors.separator, borderBottomWidth: hairline }]}>
                 <View style={[styles.impactIcon, { backgroundColor: isDark ? colors.backgroundGrouped : colors.backgroundSecondary }]}>
                   <Ionicons name={item.icon} size={18} color={colors.tint} />
                 </View>
@@ -531,7 +533,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: StyleSheet.hairlineWidth,
+    height: hairline,
   },
   largeTitleContainer: {
     paddingHorizontal: spacing['3xl'],
@@ -584,7 +586,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing.lg,
     borderRadius: borderRadius.sm,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     gap: spacing.md,
   },
   methodIcon: {
@@ -606,7 +608,7 @@ const styles = StyleSheet.create({
   impactCard: {
     padding: spacing.lg,
     borderRadius: borderRadius.sm,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
   },
   impactRow: {
     flexDirection: 'row',
