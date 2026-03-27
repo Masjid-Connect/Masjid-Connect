@@ -312,6 +312,31 @@ eas build --platform android      # Android build
 eas build --platform all          # Both platforms
 ```
 
+### Testing (Google Play Internal / Apple TestFlight)
+```bash
+# ── Android Internal Testing ──
+eas build --platform android --profile production    # Build .aab
+eas submit --platform android --profile internal     # Submit to internal testing track
+
+# ── iOS TestFlight ──
+eas build --platform ios --profile production        # Build .ipa
+eas submit --platform ios --profile production       # Submit to TestFlight
+```
+
+**Google Play testing tracks** (configured in `eas.json` submit profiles):
+- **Internal testing** — up to 100 testers, no review needed, instant availability
+- **Closed testing** — invite-only, brief Google review
+- **Open testing** — anyone with the link, full Google review
+- **Production** — public on Play Store
+
+**Android internal testing workflow:**
+1. Build: `eas build --platform android --profile production`
+2. Submit: `eas submit --platform android --profile internal`
+   - Or manually: download `.aab` from EAS build URL → upload in Play Console
+3. In Play Console → **Testing > Internal testing > Testers** → add tester email addresses
+4. Share the opt-in link with testers — they install via Play Store
+5. Promote to Closed/Open/Production when ready
+
 ### Version Management
 ```bash
 ./scripts/bump-version.sh patch       # 1.0.0 → 1.0.1 (bug fix)
