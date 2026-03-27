@@ -859,6 +859,7 @@ def create_checkout_session(request):
         return Response({"detail": msg}, status=status.HTTP_400_BAD_REQUEST)
 
     is_embedded = ui_mode in ("embedded", "embedded_page", "custom", "elements")
+    is_url_only = ui_mode == "url"
 
     if not return_url:
         return Response(
@@ -955,6 +956,13 @@ def create_checkout_session(request):
                     "client_secret": session.client_secret,
                     "publishable_key": publishable_key,
                 },
+                status=status.HTTP_200_OK,
+            )
+        elif is_url_only:
+            # URL-only mode — return checkout URL as JSON (for mobile apps
+            # where fetch redirect: 'manual' returns an opaque response)
+            return Response(
+                {"checkout_url": session.url},
                 status=status.HTTP_200_OK,
             )
         else:

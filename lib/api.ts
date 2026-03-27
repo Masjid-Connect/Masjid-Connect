@@ -459,8 +459,8 @@ export const donations = {
           return_url: returnUrl,
           gift_aid: options?.giftAid ? 'yes' : 'no',
           cover_fees: options?.coverFees ? 'yes' : 'no',
+          ui_mode: 'url',
         }),
-        redirect: 'manual',
         signal: controller.signal,
       });
     } catch (err) {
@@ -471,13 +471,6 @@ export const donations = {
     }
     clearTimeout(timeoutId);
 
-    // Backend returns 303 with Location header pointing to Stripe
-    if (response.status >= 300 && response.status < 400) {
-      const location = response.headers.get('Location');
-      if (location) return location;
-    }
-
-    // If the server returned an error JSON instead of a redirect
     if (!response.ok) {
       let detail = '';
       try {
@@ -489,7 +482,8 @@ export const donations = {
       throw new Error(detail || 'Payment request failed');
     }
 
-    return null;
+    const body = await response.json();
+    return body.checkout_url || null;
   },
 
   /** Check the status of a completed Stripe checkout session. */
