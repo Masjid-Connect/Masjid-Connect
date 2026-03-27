@@ -23,7 +23,7 @@ Mosque Connect is a premium mobile app **exclusively for The Salafi Masjid** com
 - **In-app Browser**: expo-web-browser (for Stripe Hosted Checkout in app)
 - **Website**: Static HTML/CSS/JS on Cloudflare Pages (salafimasjid.app)
 - **Language**: TypeScript (strict mode)
-- **CI/CD**: GitHub Actions (TypeScript check, ESLint, Jest, Django tests)
+- **CI/CD**: GitHub Actions (TypeScript check, ESLint, Jest, Django tests, version increment check)
 
 ## Project Structure
 ```
@@ -66,6 +66,13 @@ Mosque Connect is a premium mobile app **exclusively for The Salafi Masjid** com
 /assets                 # Fonts, images, patterns
   /fonts                # SpaceMono (system fonts used for all other text)
   /patterns             # Islamic geometric SVG patterns
+/scripts                # Project-level scripts
+  bump-version.sh       # Bump semver in package.json + app.json in sync
+/backend/scripts        # Backend operational scripts
+  deploy.sh             # Docker-based production deployment with rollback
+  backup.sh             # Database backup
+  restore.sh            # Database restore
+  update-deps.sh        # Dependency updates
 ```
 
 ## Brand Identity
@@ -213,6 +220,26 @@ python manage.py createsuperuser      # Create admin user
 python manage.py runserver            # Start dev server (port 8000)
 ```
 
+### Backend Management Commands
+```bash
+cd backend
+python manage.py scrape_timetables        # Scrape prayer timetables
+python manage.py scrape_all_timetables    # Scrape all mosque timetables
+python manage.py export_timetable_json    # Export timetables as JSON
+python manage.py fix_prayer_times         # Fix/correct prayer time data
+python manage.py generate_gift_aid_xml    # Generate HMRC Gift Aid XML
+python manage.py test_push                # Test push notifications
+```
+
+### Backend Operational Scripts
+```bash
+cd backend
+./scripts/deploy.sh                   # Docker-based deploy with rollback
+./scripts/backup.sh                   # Database backup
+./scripts/restore.sh                  # Database restore from backup
+./scripts/update-deps.sh              # Update Python dependencies
+```
+
 ## Website — Static Landing & Donation Pages
 
 The marketing website lives in `/web/` and is deployed to Cloudflare Pages at `salafimasjid.app`.
@@ -284,6 +311,24 @@ eas build --platform ios          # iOS build
 eas build --platform android      # Android build
 eas build --platform all          # Both platforms
 ```
+
+### Version Management
+```bash
+./scripts/bump-version.sh patch       # 1.0.0 → 1.0.1 (bug fix)
+./scripts/bump-version.sh minor       # 1.0.0 → 1.1.0 (new feature)
+./scripts/bump-version.sh major       # 1.0.0 → 2.0.0 (breaking change)
+./scripts/bump-version.sh 2.3.1      # Set explicit version
+./scripts/bump-version.sh            # Show current versions
+# Or via npm:
+npm run version:bump -- patch         # Same as above via npm
+```
+
+**Versioning rules:**
+- `package.json` and `app.json` versions must always match (CI enforces this on PRs)
+- EAS auto-increments build numbers for production builds (`eas.json` → `autoIncrement: true`)
+- OTA updates use `runtimeVersion: { policy: "fingerprint" }` — no manual version needed
+- App Store / Play Store submissions require a semver bump; OTA-only updates do not
+- CI workflow `.github/workflows/check-version.yml` validates version sync, format, and non-regression on PRs
 
 ## Admin Experience — Non-Technical User First
 

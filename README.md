@@ -331,16 +331,20 @@ mosque-connect/
 │       ├── en.json               # English translations (500+ keys)
 │       └── ar.json               # Arabic translations (500+ keys)
 │
+├── scripts/                      # Project-level scripts
+│   └── bump-version.sh           # Bump semver in package.json + app.json
+│
 ├── backend/                      # Django REST API
 │   ├── config/                   # Settings, URLs, middleware
 │   ├── core/                     # Models, admin, migrations
 │   ├── api/                      # Serializers, views, URLs
+│   ├── scripts/                  # Operational scripts (deploy, backup, restore)
 │   ├── Dockerfile                # Multi-stage production build
 │   └── gunicorn.conf.py          # 2 workers, 30s timeout
 │
 ├── CLAUDE.md                     # AI development conventions
 ├── DOCTRINE.md                   # Non-negotiable project rules
-└── .github/workflows/            # CI: TypeScript, ESLint, Jest, Django tests
+└── .github/workflows/            # CI: TypeScript, ESLint, Jest, Django tests, version check
 ```
 
 ---
@@ -400,6 +404,17 @@ npm run lint                          # ESLint + Prettier
 npm test                              # Jest test suite
 cd backend && python manage.py test   # Django tests
 ```
+
+### Version Bumping
+
+```bash
+./scripts/bump-version.sh patch       # Bug fix:    1.0.0 → 1.0.1
+./scripts/bump-version.sh minor       # Feature:    1.0.0 → 1.1.0
+./scripts/bump-version.sh major       # Breaking:   1.0.0 → 2.0.0
+./scripts/bump-version.sh            # Show current versions
+```
+
+This keeps `package.json` and `app.json` in sync. CI will reject PRs where they drift apart.
 
 ---
 
