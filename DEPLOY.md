@@ -597,9 +597,15 @@ eas submit --platform android --profile production
 
 When you want to release a new version:
 
-1. Update the version in `app.json`
-2. Build: `eas build --platform all --profile production`
-3. Submit: `eas submit --platform all --profile production`
+1. Bump the version (this updates both `package.json` and `app.json` together):
+   ```bash
+   ./scripts/bump-version.sh patch    # for bug fixes (1.0.0 → 1.0.1)
+   ./scripts/bump-version.sh minor    # for new features (1.0.0 → 1.1.0)
+   ./scripts/bump-version.sh major    # for breaking changes (1.0.0 → 2.0.0)
+   ```
+2. Commit: `git add package.json app.json && git commit -m "chore: bump version to X.Y.Z"`
+3. Build: `eas build --platform all --profile production`
+4. Submit: `eas submit --platform all --profile production`
 
 For small JavaScript-only updates (no native code changes):
 
