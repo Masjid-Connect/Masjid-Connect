@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { Sentry } from '@/lib/sentry';
-import type { Mosque, Announcement, MosqueEvent, UserSubscription, MosqueAdminRole, AnnouncementCreatePayload, EventCreatePayload } from '@/types';
+import type { Mosque, Announcement, MosqueEvent, MosqueAdminRole, AnnouncementCreatePayload, EventCreatePayload } from '@/types';
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.salafimasjid.app/api/v1';
 
@@ -194,18 +194,6 @@ export const auth = {
     return data;
   },
 
-  async register(email: string, password: string, name: string) {
-    const data = await request<{ token: string; user: AuthUser }>('/auth/register/', {
-      method: 'POST',
-      body: JSON.stringify({ email, password, name }),
-    });
-    _token = data.token;
-    _user = data.user;
-    await secureSet(KEYS.AUTH_TOKEN, data.token);
-    await secureSet(KEYS.AUTH_USER, JSON.stringify(data.user));
-    return data;
-  },
-
   async logout() {
     try {
       await request('/auth/logout/', { method: 'POST' });
@@ -231,42 +219,6 @@ export const auth = {
     await loadToken();
   },
 
-  async socialLogin(provider: 'apple' | 'google', token: string, name?: string) {
-    const body: Record<string, string> = { provider, token };
-    if (name) body.name = name;
-    const data = await request<{ token: string; user: AuthUser }>('/auth/social/', {
-      method: 'POST',
-      body: JSON.stringify(body),
-    });
-    _token = data.token;
-    _user = data.user;
-    await secureSet(KEYS.AUTH_TOKEN, data.token);
-    await secureSet(KEYS.AUTH_USER, JSON.stringify(data.user));
-    return data;
-  },
-
-  async exportData() {
-    return request<{
-      profile: AuthUser;
-      subscriptions: UserSubscription[];
-      push_tokens: Array<{ id: string; token: string; platform: string; created: string; updated: string }>;
-      announcements: Announcement[];
-      events: MosqueEvent[];
-      admin_roles: Array<{ id: string; mosque: string; user: string; role: string; created: string }>;
-      exported_at: string;
-    }>('/auth/export-data/');
-  },
-
-  async deleteAccount(password?: string) {
-    await request('/auth/delete-account/', {
-      method: 'DELETE',
-      body: password ? JSON.stringify({ password }) : undefined,
-    });
-    _token = null;
-    _user = null;
-    await secureDelete(KEYS.AUTH_TOKEN);
-    await secureDelete(KEYS.AUTH_USER);
-  },
 };
 
 // ── Paginated response shape from DRF ────────────────────────────────
@@ -449,41 +401,6 @@ export const events = {
   },
 };
 
-// ── Subscriptions ────────────────────────────────────────────────────
-
-export const subscriptions = {
-  async list(): Promise<UserSubscription[]> {
-    if (!auth.isLoggedIn) return [];
-    const data = await request<PaginatedResponse<UserSubscription>>('/subscriptions/');
-    return data.results;
-  },
-
-  async subscribe(mosqueId: string) {
-    if (!auth.isLoggedIn) throw new Error('Not authenticated');
-    return request<UserSubscription>('/subscriptions/', {
-      method: 'POST',
-      body: JSON.stringify({
-        mosque: mosqueId,
-        notify_prayers: true,
-        notify_announcements: true,
-        notify_events: true,
-        prayer_reminder_minutes: 15,
-      }),
-    });
-  },
-
-  async unsubscribe(subscriptionId: string) {
-    return request<void>(`/subscriptions/${subscriptionId}/`, { method: 'DELETE' });
-  },
-
-  async updatePreferences(id: string, data: Partial<UserSubscription>) {
-    return request<UserSubscription>(`/subscriptions/${id}/`, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    });
-  },
-};
-
 // ── Push Tokens ──────────────────────────────────────────────────────
 
 // ── Feedback ────────────────────────────────────────────────────────
@@ -643,7 +560,6 @@ export const prayerTimes = {
 
 export const pushTokens = {
   async register(token: string, platform: 'ios' | 'android') {
-    if (!auth.isLoggedIn) return;
     return request('/push-tokens/', {
       method: 'POST',
       body: JSON.stringify({ token, platform }),
