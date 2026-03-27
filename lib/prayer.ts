@@ -10,7 +10,7 @@ import {
   Prayer,
 } from 'adhan';
 import { format } from 'date-fns';
-import type { PrayerTimesData, PrayerTimeEntry, PrayerName, JamaahTimesData } from '@/types';
+import type { PrayerTimesData, PrayerTimeEntry, PrayerName } from '@/types';
 import { PRAYER_LABELS } from '@/types';
 
 const ALADHAN_BASE = 'https://api.aladhan.com/v1';
@@ -150,44 +150,39 @@ const PM_PRAYERS = new Set<PrayerName>(['dhuhr', 'asr', 'maghrib', 'isha']);
 /** Build prayer time entries list for display.
  *  This is the single enforcement point: all display paths flow through here,
  *  so ensurePM is applied regardless of data source (cache, mosque API, Aladhan, offline).
+ *
+ *  `times` = primary masjid timetable times (jama'ah) or calculated as last resort.
+ *  `startTimes` = optional prayer start/begins times from the masjid timetable.
  */
 export function buildPrayerEntries(
   times: PrayerTimesData,
-  jamaahTimes?: JamaahTimesData | null
+  startTimes?: PrayerTimesData | null
 ): PrayerTimeEntry[] {
   const names: PrayerName[] = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
   return names.map((name) => {
     const shouldEnsurePM = PM_PRAYERS.has(name);
     const time = shouldEnsurePM ? ensurePM(times[name]) : times[name];
-    const jamaahTime = (jamaahTimes && name !== 'sunrise' && name in jamaahTimes)
-      ? (shouldEnsurePM ? ensurePM(jamaahTimes[name as keyof JamaahTimesData]) : jamaahTimes[name as keyof JamaahTimesData])
+    const startTime = startTimes
+      ? (shouldEnsurePM ? ensurePM(startTimes[name]) : startTimes[name])
       : null;
-    return { name, label: PRAYER_LABELS[name].en, time, jamaahTime };
+    return { name, label: PRAYER_LABELS[name].en, time, startTime };
   });
 }
 
 /**
  * Determine the next upcoming prayer.
  *
- * When jama'ah times are available, a prayer is not considered "passed"
- * until BOTH the adhan time AND the jama'ah time have passed. This prevents
- * the app from jumping to the next prayer while the congregation hasn't
- * prayed yet (e.g. Dhuhr adhan at 12:17 but jama'ah at 12:45).
+ * `times` contains the masjid timetable times (jama'ah). A prayer is not
+ * considered "passed" until its time has passed.
  */
 export function getNextPrayer(
   times: PrayerTimesData,
-  jamaahTimes?: JamaahTimesData | null,
 ): PrayerName | null {
   const now = new Date();
   const order: PrayerName[] = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
   for (const name of order) {
-    const adhanTime = times[name];
-    // Use the later of adhan or jama'ah time (sunrise has no jama'ah)
-    const jamaahTime = name !== 'sunrise' && jamaahTimes?.[name as keyof JamaahTimesData];
-    const effectiveTime = jamaahTime && jamaahTime > adhanTime ? jamaahTime : adhanTime;
-
-    if (effectiveTime > now) {
+    if (times[name] > now) {
       return name;
     }
   }

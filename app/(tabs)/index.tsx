@@ -263,7 +263,7 @@ export default function PrayerTimesScreen() {
                 <Text style={[styles.prayerTime, {
                   color: colors.accentText,
                 }]}>
-                  {formatPrayerTime(nextPrayerData.jamaahTime || nextPrayerData.time, use24h)}
+                  {formatPrayerTime(nextPrayerData.time, use24h)}
                 </Text>
               </>
             )}
@@ -324,16 +324,13 @@ export default function PrayerTimesScreen() {
 
           {prayers.map((prayer, index) => {
             const isNext = prayer.name === nextPrayer;
-            // A prayer is "passed" when both adhan AND jama'ah times are in the past
-            const effectiveTime = prayer.jamaahTime && prayer.jamaahTime > prayer.time
-              ? prayer.jamaahTime : prayer.time;
-            const isPassed = !isNext && effectiveTime < new Date() && prayer.name !== 'sunrise';
+            const isPassed = !isNext && prayer.time < new Date() && prayer.name !== 'sunrise';
 
             return (
               <Animated.View
                 key={prayer.name}
                 entering={reducedMotion ? FadeIn.duration(300) : FadeInDown.delay(Math.min(index * 40, 300)).duration(300).springify()}
-                accessibilityLabel={`${t(`prayer.${prayer.name}`)}, ${formatPrayerTime(prayer.jamaahTime || prayer.time, use24h)}${isNext ? `, ${t('prayer.nextPrayer')}` : ''}`}
+                accessibilityLabel={`${t(`prayer.${prayer.name}`)}, ${formatPrayerTime(prayer.time, use24h)}${isNext ? `, ${t('prayer.nextPrayer')}` : ''}`}
                 style={[
                   styles.row,
                   index < prayers.length - 1 && !isNext && {
@@ -397,9 +394,9 @@ export default function PrayerTimesScreen() {
                       opacity: isPassed ? 0.5 : 1,
                     },
                   ]}>
-                    {formatPrayerTime(prayer.jamaahTime || prayer.time, use24h)}
+                    {formatPrayerTime(prayer.time, use24h)}
                   </Text>
-                  {prayer.jamaahTime && (
+                  {prayer.startTime && prayer.startTime.getTime() !== prayer.time.getTime() && (
                     <Text style={[
                       typography.caption2,
                       {
@@ -410,7 +407,7 @@ export default function PrayerTimesScreen() {
                         marginTop: 0,
                       },
                     ]}>
-                      {formatPrayerTime(prayer.time, use24h)}
+                      {formatPrayerTime(prayer.startTime, use24h)}
                     </Text>
                   )}
                 </View>
