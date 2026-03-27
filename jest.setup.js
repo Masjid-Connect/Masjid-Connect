@@ -200,30 +200,6 @@ jest.mock('expo-linear-gradient', () => ({
   LinearGradient: 'LinearGradient',
 }));
 
-// Mock expo-apple-authentication
-jest.mock('expo-apple-authentication', () => ({
-  isAvailableAsync: jest.fn(() => Promise.resolve(false)),
-  signInAsync: jest.fn(),
-  AppleAuthenticationButton: 'AppleAuthenticationButton',
-  AppleAuthenticationButtonType: {},
-  AppleAuthenticationButtonStyle: {},
-  AppleAuthenticationScope: {},
-}));
-
-// Mock expo-auth-session
-jest.mock('expo-auth-session', () => ({
-  makeRedirectUri: jest.fn(() => 'mock-redirect-uri'),
-  useAuthRequest: jest.fn(() => [null, null, jest.fn()]),
-  ResponseType: {},
-}));
-
-// Mock expo-crypto
-jest.mock('expo-crypto', () => ({
-  digestStringAsync: jest.fn(() => Promise.resolve('mock-hash')),
-  CryptoDigestAlgorithm: { SHA256: 'SHA-256' },
-  randomUUID: jest.fn(() => 'mock-uuid'),
-}));
-
 // Silence console.warn in tests (reanimated etc.)
 const originalWarn = console.warn;
 console.warn = (...args) => {
