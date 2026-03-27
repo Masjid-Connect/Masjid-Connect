@@ -99,8 +99,10 @@ export type PrayerName = 'fajr' | 'sunrise' | 'dhuhr' | 'asr' | 'maghrib' | 'ish
 export interface PrayerTimeEntry {
   name: PrayerName;
   label: string;
+  /** The primary display time — jama'ah time from masjid timetable (or calculated as last resort) */
   time: Date;
-  jamaahTime: Date | null;
+  /** Optional prayer start/begins time from masjid timetable (NOT from Aladhan) */
+  startTime: Date | null;
 }
 
 export const PRAYER_LABELS: Record<PrayerName, { en: string; ar: string }> = {

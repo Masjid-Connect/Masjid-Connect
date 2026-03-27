@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { format, addDays, isSameDay, isToday as isTodayFn } from 'date-fns';
+import { format, addDays, isToday as isTodayFn } from 'date-fns';
 import { getPrayerTimes, buildPrayerEntries, getNextPrayer, getCountdown, ensurePM } from '@/lib/prayer';
 import { getReminderMinutes, getUse24h } from '@/lib/storage';
 import { SALAFI_MASJID, getMosqueId } from '@/constants/mosque';
 import { schedulePrayerReminders } from '@/lib/notifications';
 import { getStaticPrayerTimes } from '@/lib/staticTimetable';
 import { prayerTimes as prayerTimesApi } from '@/lib/api';
-import type { PrayerTimeEntry, PrayerName, PrayerTimesData, JamaahTimesData, MosquePrayerTimeResponse } from '@/types';
+import type { PrayerTimeEntry, PrayerName, PrayerTimesData, MosquePrayerTimeResponse } from '@/types';
 
 /** Umm Al-Qura is the only calculation method used */
 const CALCULATION_METHOD_CODE = 4;
@@ -22,29 +22,37 @@ function parseTimeField(timeStr: string | null, targetDate: Date): Date {
   return new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), parts[0], parts[1], 0);
 }
 
-/** Convert an API MosquePrayerTimeResponse into PrayerTimesData + JamaahTimesData. */
+/**
+ * Convert an API MosquePrayerTimeResponse into prayer data.
+ * Masjid jama'ah times are the PRIMARY times — they're what the congregation uses.
+ * Start times from the masjid timetable are optional secondary info.
+ */
 function parseApiPrayerTimes(
   apiData: MosquePrayerTimeResponse,
   targetDate: Date,
-): { times: PrayerTimesData; jamaahTimes: JamaahTimesData } {
+): { times: PrayerTimesData; startTimes: PrayerTimesData | undefined } {
+  // PRIMARY: jama'ah times from the masjid timetable (always present)
   const times: PrayerTimesData = {
-    fajr: parseTimeField(apiData.fajr_start, targetDate),
-    sunrise: parseTimeField(apiData.sunrise, targetDate),
-    dhuhr: ensurePM(parseTimeField(apiData.dhuhr_start, targetDate)),
-    asr: ensurePM(parseTimeField(apiData.asr_start, targetDate)),
-    maghrib: ensurePM(parseTimeField(apiData.maghrib_jamat, targetDate)), // maghrib has no separate start
-    isha: ensurePM(parseTimeField(apiData.isha_start, targetDate)),
-  };
-
-  const jamaahTimes: JamaahTimesData = {
     fajr: parseTimeField(apiData.fajr_jamat, targetDate),
+    sunrise: parseTimeField(apiData.sunrise, targetDate),
     dhuhr: ensurePM(parseTimeField(apiData.dhuhr_jamat, targetDate)),
     asr: ensurePM(parseTimeField(apiData.asr_jamat, targetDate)),
     maghrib: ensurePM(parseTimeField(apiData.maghrib_jamat, targetDate)),
     isha: ensurePM(parseTimeField(apiData.isha_jamat, targetDate)),
   };
 
-  return { times, jamaahTimes };
+  // OPTIONAL: start/begins times from the masjid timetable (may be null)
+  const hasStartTimes = apiData.fajr_start || apiData.dhuhr_start || apiData.asr_start || apiData.isha_start;
+  const startTimes: PrayerTimesData | undefined = hasStartTimes ? {
+    fajr: parseTimeField(apiData.fajr_start, targetDate),
+    sunrise: parseTimeField(apiData.sunrise, targetDate),
+    dhuhr: ensurePM(parseTimeField(apiData.dhuhr_start, targetDate)),
+    asr: ensurePM(parseTimeField(apiData.asr_start, targetDate)),
+    maghrib: ensurePM(parseTimeField(apiData.maghrib_jamat, targetDate)), // maghrib has no separate start
+    isha: ensurePM(parseTimeField(apiData.isha_start, targetDate)),
+  } : undefined;
+
+  return { times, startTimes };
 }
 
 /**
@@ -145,21 +153,22 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     // Helper: once we have valid prayer data, set state + schedule reminders
     const applyPrayerData = async (
       times: PrayerTimesData,
-      jamaahTimes: JamaahTimesData | undefined,
+      startTimes: PrayerTimesData | undefined,
       dataSource: 'static' | 'api' | 'offline',
       estimated: boolean,
+      hasMasjidTimes: boolean,
     ) => {
       if (!mountedRef.current) return;
-      const entries = buildPrayerEntries(times, jamaahTimes);
+      const entries = buildPrayerEntries(times, startTimes);
       setPrayers(entries);
-      setNextPrayer(isTodayFn(targetDate) ? getNextPrayer(times, jamaahTimes ?? null) : null);
+      setNextPrayer(isTodayFn(targetDate) ? getNextPrayer(times) : null);
       setSource(dataSource);
-      setJamaahAvailable(!!jamaahTimes);
+      setJamaahAvailable(hasMasjidTimes);
       setIsEstimated(estimated);
 
       if (isTodayFn(targetDate)) {
         const reminderMinutes = await getReminderMinutes();
-        await schedulePrayerReminders(times, reminderMinutes, jamaahTimes);
+        await schedulePrayerReminders(times, reminderMinutes);
       }
 
       // Fetch Aladhan for Hijri date only
@@ -174,51 +183,30 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     };
 
     try {
-      // 1. Live API — primary source (has start + jama'ah times from Coolify backend)
+      // 1. Live API — primary source (masjid jama'ah times from backend)
       const mosqueId = await getMosqueId();
       if (mosqueId) {
         const dateStr = format(targetDate, 'yyyy-MM-dd');
         const apiData = await prayerTimesApi.getByDate(mosqueId, dateStr);
         if (apiData) {
-          const { times, jamaahTimes } = parseApiPrayerTimes(apiData, targetDate);
-          await applyPrayerData(times, jamaahTimes, 'static', false);
+          const { times, startTimes } = parseApiPrayerTimes(apiData, targetDate);
+          await applyPrayerData(times, startTimes, 'api', false, true);
           return;
         }
       }
 
-      // 2. Static bundled timetable — offline fallback (has start + jama'ah times)
+      // 2. Static bundled timetable — offline fallback (masjid jama'ah + start times)
       const staticResult = getStaticPrayerTimes(targetDate);
       if (staticResult) {
-        await applyPrayerData(staticResult.times, staticResult.jamaahTimes, 'static', staticResult.isEstimated);
+        await applyPrayerData(staticResult.times, staticResult.startTimes, 'static', staticResult.isEstimated, true);
         return;
       }
 
-      // 3. Aladhan API fallback (calculated start times, no jama'ah)
+      // 3. Aladhan API — last resort (calculated times only, no masjid timetable)
       const { latitude: lat, longitude: lng } = SALAFI_MASJID;
       const result = await getPrayerTimes(lat, lng, CALCULATION_METHOD_CODE, CALCULATION_METHOD_NAME, targetDate);
       if (!mountedRef.current) return;
-      const entries = buildPrayerEntries(result.times);
-
-      setPrayers(entries);
-      setNextPrayer(isTodayFn(targetDate) ? getNextPrayer(result.times) : null);
-      setSource(result.source);
-      setJamaahAvailable(false);
-      setIsEstimated(false);
-
-      // Hijri date from the Aladhan response
-      try {
-        const hijri = await getCorrectHijriDate(targetDate, result.times.maghrib);
-        if (hijri && mountedRef.current) setHijriDate(hijri);
-      } catch {
-        if (result.hijriDate && result.hijriMonth && result.hijriYear) {
-          if (mountedRef.current) setHijriDate(`${result.hijriDate} ${result.hijriMonth} ${result.hijriYear}`);
-        }
-      }
-
-      if (isTodayFn(targetDate)) {
-        const reminderMinutes = await getReminderMinutes();
-        await schedulePrayerReminders(result.times, reminderMinutes);
-      }
+      await applyPrayerData(result.times, undefined, result.source, false, false);
     } catch (err) {
       console.error('Failed to load prayer times:', err);
       // R2: Surface error so the UI can show a fallback instead of a blank screen
@@ -245,9 +233,8 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     const updateCountdown = () => {
       const prayer = prayers.find((p) => p.name === nextPrayer);
       if (prayer) {
-        // Count down to jama'ah time if available, else start time
-        const target = prayer.jamaahTime || prayer.time;
-        setCountdown(getCountdown(target));
+        // Count down to the masjid timetable time (jama'ah)
+        setCountdown(getCountdown(prayer.time));
 
         // Calculate window progress: how far through current→next prayer window
         const nextIdx = prayers.findIndex((p) => p.name === nextPrayer);
@@ -290,14 +277,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
         maghrib: prayers.find((p) => p.name === 'maghrib')!.time,
         isha: prayers.find((p) => p.name === 'isha')!.time,
       };
-      const jamaahData = prayers[0].jamaahTime ? {
-        fajr: prayers.find((p) => p.name === 'fajr')!.jamaahTime!,
-        dhuhr: prayers.find((p) => p.name === 'dhuhr')!.jamaahTime!,
-        asr: prayers.find((p) => p.name === 'asr')!.jamaahTime!,
-        maghrib: prayers.find((p) => p.name === 'maghrib')!.jamaahTime!,
-        isha: prayers.find((p) => p.name === 'isha')!.jamaahTime!,
-      } : null;
-      setNextPrayer(getNextPrayer(times, jamaahData));
+      setNextPrayer(getNextPrayer(times));
     };
 
     nextPrayerIntervalRef.current = setInterval(checkNextPrayer, 60_000);

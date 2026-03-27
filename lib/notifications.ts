@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
-import type { PrayerTimesData, PrayerName, JamaahTimesData } from '@/types';
+import type { PrayerTimesData, PrayerName } from '@/types';
 import { PRAYER_LABELS } from '@/types';
 import { getPrayerTimes } from '@/lib/prayer';
 import { getStaticPrayerTimes } from '@/lib/staticTimetable';
@@ -70,13 +70,11 @@ export async function registerForPushNotifications(): Promise<string | null> {
 }
 
 /** Schedule prayer reminder notifications for today.
- *  When jamaahTimes are provided, reminders are relative to jama'ah time
- *  (more useful — "15 min before jama'ah" tells you when to leave home).
+ *  `times` contains the masjid timetable (jama'ah) times — reminders fire relative to these.
  */
 export async function schedulePrayerReminders(
   times: PrayerTimesData,
   reminderMinutes: number = 15,
-  jamaahTimes?: JamaahTimesData | null
 ): Promise<void> {
   if (Platform.OS === 'web') return;
 
@@ -87,27 +85,18 @@ export async function schedulePrayerReminders(
   const prayers: PrayerName[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
   for (const prayer of prayers) {
-    // Use jama'ah time as the target if available, otherwise start time
-    const targetTime = (jamaahTimes && prayer in jamaahTimes)
-      ? jamaahTimes[prayer as keyof JamaahTimesData]
-      : times[prayer];
-    const prayerStartTime = times[prayer];
-
+    const targetTime = times[prayer];
     const reminderTime = new Date(targetTime.getTime() - reminderMinutes * 60 * 1000);
 
     // Skip if reminder time has already passed
     if (reminderTime <= now) continue;
 
     // Schedule "X minutes before" reminder
-    const reminderBody = jamaahTimes
-      ? `${PRAYER_LABELS[prayer].ar} — Jama'ah starts soon`
-      : `${PRAYER_LABELS[prayer].ar} — Time to prepare for prayer`;
-
     try {
       await Notifications.scheduleNotificationAsync({
         content: {
           title: `${PRAYER_LABELS[prayer].en} in ${reminderMinutes} minutes`,
-          body: reminderBody,
+          body: `${PRAYER_LABELS[prayer].ar} — Jama'ah starts soon`,
           data: { type: 'prayer_reminder', prayer },
           ...(Platform.OS === 'android' && { channelId: 'prayer-reminders' }),
         },
@@ -121,8 +110,8 @@ export async function schedulePrayerReminders(
       Sentry.captureException(err, { extra: { context: 'schedule prayer reminder', prayer } });
     }
 
-    // Schedule "at athan time" notification with adhan sound
-    if (prayerStartTime > now) {
+    // Schedule "at prayer time" notification with adhan sound
+    if (targetTime > now) {
       try {
         await Notifications.scheduleNotificationAsync({
           content: {
@@ -134,7 +123,7 @@ export async function schedulePrayerReminders(
           },
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: prayerStartTime,
+            date: targetTime,
           },
           identifier: `prayer-athan-${prayer}`,
         });
@@ -151,13 +140,11 @@ export async function reschedulePrayerRemindersForToday(): Promise<void> {
 
   const today = new Date();
   let times: PrayerTimesData;
-  let jamaahTimes: JamaahTimesData | null = null;
 
-  // Static timetable is primary
+  // Static timetable is primary (jama'ah times from masjid)
   const staticResult = getStaticPrayerTimes(today);
   if (staticResult) {
     times = staticResult.times;
-    jamaahTimes = staticResult.jamaahTimes;
   } else {
     // Fallback to Aladhan calculated times
     const { latitude: lat, longitude: lng } = SALAFI_MASJID;
@@ -166,7 +153,7 @@ export async function reschedulePrayerRemindersForToday(): Promise<void> {
   }
 
   const reminderMinutes = await getReminderMinutes();
-  await schedulePrayerReminders(times, reminderMinutes, jamaahTimes);
+  await schedulePrayerReminders(times, reminderMinutes);
 }
 
 /** Cancel all prayer reminder notifications */

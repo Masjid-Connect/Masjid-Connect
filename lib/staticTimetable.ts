@@ -7,7 +7,7 @@
  * year's data is an excellent proxy for the current year.
  */
 import { format, subYears } from 'date-fns';
-import type { PrayerTimesData, JamaahTimesData } from '@/types';
+import type { PrayerTimesData } from '@/types';
 import { ensurePM } from '@/lib/prayer';
 
 /**
@@ -71,7 +71,7 @@ export function hasStaticTimetable(): boolean {
  */
 export function getStaticPrayerTimes(
   targetDate: Date,
-): { times: PrayerTimesData; jamaahTimes: JamaahTimesData; isEstimated: boolean } | null {
+): { times: PrayerTimesData; startTimes: PrayerTimesData | undefined; isEstimated: boolean } | null {
   if (!hasStaticTimetable()) return null;
 
   const dateStr = format(targetDate, 'yyyy-MM-dd');
@@ -101,24 +101,26 @@ export function getStaticPrayerTimes(
     if (!entry) return null;
   }
 
-  // Build PrayerTimesData — use start times when available, fall back to jama'ah
+  // PRIMARY: jama'ah times from the masjid timetable
   const times: PrayerTimesData = {
-    fajr: toDate(entry.fS ?? entry.fJ, dateStr),
-    sunrise: toDate(entry.sr, dateStr),
-    dhuhr: ensurePM(toDate(entry.dS ?? entry.dJ, dateStr)),
-    asr: ensurePM(toDate(entry.aS ?? entry.aJ, dateStr)),
-    maghrib: ensurePM(toDate(entry.mJ, dateStr)),
-    isha: ensurePM(toDate(entry.iS ?? entry.iJ, dateStr)),
-  };
-
-  // Build JamaahTimesData
-  const jamaahTimes: JamaahTimesData = {
     fajr: toDate(entry.fJ, dateStr),
+    sunrise: toDate(entry.sr, dateStr),
     dhuhr: ensurePM(toDate(entry.dJ, dateStr)),
     asr: ensurePM(toDate(entry.aJ, dateStr)),
     maghrib: ensurePM(toDate(entry.mJ, dateStr)),
     isha: ensurePM(toDate(entry.iJ, dateStr)),
   };
 
-  return { times, jamaahTimes, isEstimated };
+  // OPTIONAL: start/begins times from the masjid timetable
+  const hasStartTimes = entry.fS || entry.dS || entry.aS || entry.iS;
+  const startTimes: PrayerTimesData | undefined = hasStartTimes ? {
+    fajr: toDate(entry.fS, dateStr),
+    sunrise: toDate(entry.sr, dateStr),
+    dhuhr: ensurePM(toDate(entry.dS, dateStr)),
+    asr: ensurePM(toDate(entry.aS, dateStr)),
+    maghrib: ensurePM(toDate(entry.mJ, dateStr)), // maghrib has no separate start
+    isha: ensurePM(toDate(entry.iS, dateStr)),
+  } : undefined;
+
+  return { times, startTimes, isEstimated };
 }
