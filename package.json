@@ -10,7 +10,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint . --ext .ts,.tsx",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "version:bump": "./scripts/bump-version.sh"
   },
   "dependencies": {
     "@expo/vector-icons": "15.0.2",

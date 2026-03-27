@@ -1,0 +1,98 @@
+name: Check Version Increment
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "package.json"
+      - "app.json"
+      - "backend/config/settings.py"
+
+jobs:
+  check-version:
+    name: Version Increment Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get PR version numbers
+        id: pr_version
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          APP_VERSION=$(node -p "require('./app.json').expo.version")
+          echo "package=$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "app=$APP_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Get base branch version numbers
+        id: base_version
+        run: |
+          git fetch origin main
+          git show origin/main:package.json > /tmp/base_package.json
+          git show origin/main:app.json > /tmp/base_app.json
+          PACKAGE_VERSION=$(node -p "require('/tmp/base_package.json').version")
+          APP_VERSION=$(node -p "require('/tmp/base_app.json').expo.version")
+          echo "package=$PACKAGE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "app=$APP_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Validate versions
+        run: |
+          PR_PKG="${{ steps.pr_version.outputs.package }}"
+          PR_APP="${{ steps.pr_version.outputs.app }}"
+          BASE_PKG="${{ steps.base_version.outputs.package }}"
+          BASE_APP="${{ steps.base_version.outputs.app }}"
+
+          ERRORS=0
+
+          echo "================================================"
+          echo "  Version Increment Check"
+          echo "================================================"
+          echo ""
+          echo "  Base (main):  package.json=$BASE_PKG  app.json=$BASE_APP"
+          echo "  PR branch:    package.json=$PR_PKG    app.json=$PR_APP"
+          echo ""
+
+          # ── Check 1: package.json and app.json must match ──
+          if [ "$PR_PKG" != "$PR_APP" ]; then
+            echo "::error::Version mismatch: package.json ($PR_PKG) != app.json ($PR_APP). They must be identical."
+            ERRORS=$((ERRORS + 1))
+          else
+            echo "✓ package.json and app.json versions match ($PR_PKG)"
+          fi
+
+          # ── Check 2: Version must be valid semver ──
+          if ! echo "$PR_PKG" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Invalid semver in package.json: $PR_PKG (expected X.Y.Z)"
+            ERRORS=$((ERRORS + 1))
+          else
+            echo "✓ Valid semver format ($PR_PKG)"
+          fi
+
+          # ── Check 3: Version must not decrease ──
+          # Compare using sort -V (version sort)
+          HIGHER=$(printf '%s\n%s' "$BASE_PKG" "$PR_PKG" | sort -V | tail -n1)
+          if [ "$PR_PKG" != "$HIGHER" ]; then
+            echo "::error::Version decreased: $BASE_PKG (main) → $PR_PKG (PR). Version must not go backwards."
+            ERRORS=$((ERRORS + 1))
+          else
+            echo "✓ Version did not decrease"
+          fi
+
+          # ── Check 4: If version files changed, version must have actually increased ──
+          if [ "$PR_PKG" = "$BASE_PKG" ]; then
+            echo ""
+            echo "⚠ Version unchanged ($PR_PKG). This is allowed — not every PR needs a bump."
+            echo "  To bump, run:  npm version patch|minor|major  then update app.json to match."
+          else
+            echo "✓ Version incremented: $BASE_PKG → $PR_PKG"
+          fi
+
+          echo ""
+          if [ $ERRORS -gt 0 ]; then
+            echo "::error::Version check failed with $ERRORS error(s). See above."
+            exit 1
+          fi
+          echo "All version checks passed."
