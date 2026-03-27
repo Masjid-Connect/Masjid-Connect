@@ -23,7 +23,6 @@ import Constants from 'expo-constants';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useAuth } from '@/contexts/AuthContext';
 import { useAdminStatus } from '@/hooks/useAdminStatus';
 import { spacing, typography } from '@/constants/Theme';
 import {
@@ -39,10 +38,8 @@ import {
   setLanguage as persistLanguage,
 } from '@/lib/storage';
 import { reschedulePrayerRemindersForToday } from '@/lib/notifications';
-import { subscriptions as subscriptionsApi } from '@/lib/api';
 import { i18n } from '@/lib/i18n';
 import {
-  ProfileCard,
   SettingsSection,
   SettingsRow,
   SettingsPickerSheet,
@@ -63,7 +60,6 @@ export default function SettingsScreen() {
   const { effectiveScheme, themePreference, setThemePreference } = useTheme();
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
-  const { user, isAuthenticated, isGuest, logout, deleteAccount } = useAuth();
   const { isAdmin } = useAdminStatus();
   const insets = useSafeAreaInsets();
 
@@ -155,77 +151,16 @@ export default function SettingsScreen() {
   const handleNotifyAnnouncementsChange = useCallback(async (value: boolean) => {
     setNotifyAnnouncementsState(value);
     await setNotifyAnnouncements(value);
-    // Sync to backend — update all user subscriptions
-    if (isAuthenticated) {
-      try {
-        const subs = await subscriptionsApi.list();
-        await Promise.all(
-          subs.map((s) => subscriptionsApi.updatePreferences(s.id, { notify_announcements: value }))
-        );
-      } catch {
-        // Preference saved locally; backend sync will retry on next app open
-      }
-    }
-  }, [isAuthenticated]);
+  }, []);
 
   const handleNotifyEventsChange = useCallback(async (value: boolean) => {
     setNotifyEventsState(value);
     await setNotifyEvents(value);
-    // Sync to backend — update all user subscriptions
-    if (isAuthenticated) {
-      try {
-        const subs = await subscriptionsApi.list();
-        await Promise.all(
-          subs.map((s) => subscriptionsApi.updatePreferences(s.id, { notify_events: value }))
-        );
-      } catch {
-        // Preference saved locally; backend sync will retry on next app open
-      }
-    }
-  }, [isAuthenticated]);
+  }, []);
 
   const handleThemeChange = useCallback(async (theme: 'light' | 'dark' | 'system') => {
     await setThemePreference(theme);
   }, [setThemePreference]);
-
-  const handleSignOut = useCallback(async () => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-    if (Platform.OS === 'web') {
-      const confirmed = window.confirm(t('settings.signOutConfirm'));
-      if (confirmed) await logout();
-    } else {
-      Alert.alert(t('settings.signOut'), t('settings.signOutConfirm'), [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('settings.signOut'),
-          style: 'destructive',
-          onPress: () => logout(),
-        },
-      ]);
-    }
-  }, [t, logout]);
-
-  const handleDeleteAccount = useCallback(() => {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-    Alert.alert(
-      t('settings.deleteAccountTitle'),
-      t('settings.deleteAccountConfirm'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('settings.deleteAccount'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteAccount();
-            } catch {
-              Alert.alert(t('common.error'), t('common.networkError'));
-            }
-          },
-        },
-      ]
-    );
-  }, [t, deleteAccount]);
 
   const handleShareApp = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -294,23 +229,6 @@ export default function SettingsScreen() {
           </Text>
         </Animated.View>
 
-        {/* ── Profile Card (Hero) ── */}
-      {isAuthenticated && user ? (
-        <ProfileCard
-          variant="authenticated"
-          name={user.name || user.email}
-          email={user.email}
-          memberSince={user.date_joined}
-          isAdmin={isAdmin}
-          onPress={() => {/* TODO: Account details screen */}}
-        />
-      ) : (
-        <ProfileCard
-          variant="guest"
-          onSignIn={() => router.push('/(auth)/welcome')}
-        />
-      )}
-
       {/* ── Notifications & Reminders ── */}
       <SettingsSection
         header={t('settings.notifications')}
@@ -325,28 +243,24 @@ export default function SettingsScreen() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
             setShowReminderPicker(true);
           }}
-          position={isAuthenticated ? 'first' : 'only'}
+          position="first"
         />
-        {isAuthenticated && (
-          <SettingsRow
-            icon={{ name: 'megaphone', backgroundColor: palette.sapphire700 }}
-            label={t('settings.announcementAlerts')}
-            accessory="toggle"
-            toggleValue={notifyAnnouncements}
-            onToggleChange={handleNotifyAnnouncementsChange}
-            position="middle"
-          />
-        )}
-        {isAuthenticated && (
-          <SettingsRow
-            icon={{ name: 'calendar', backgroundColor: palette.divineGold }}
-            label={t('settings.eventReminders')}
-            accessory="toggle"
-            toggleValue={notifyEvents}
-            onToggleChange={handleNotifyEventsChange}
-            position="last"
-          />
-        )}
+        <SettingsRow
+          icon={{ name: 'megaphone', backgroundColor: palette.sapphire700 }}
+          label={t('settings.announcementAlerts')}
+          accessory="toggle"
+          toggleValue={notifyAnnouncements}
+          onToggleChange={handleNotifyAnnouncementsChange}
+          position="middle"
+        />
+        <SettingsRow
+          icon={{ name: 'calendar', backgroundColor: palette.divineGold }}
+          label={t('settings.eventReminders')}
+          accessory="toggle"
+          toggleValue={notifyEvents}
+          onToggleChange={handleNotifyEventsChange}
+          position="last"
+        />
       </SettingsSection>
 
       {/* ── Appearance ── */}
@@ -437,26 +351,6 @@ export default function SettingsScreen() {
           position="last"
         />
       </SettingsSection>
-
-      {/* ── Danger Zone (authenticated only) ── */}
-      {isAuthenticated && (
-        <SettingsSection header={t('settings.dangerZone')}>
-          <SettingsRow
-            icon={{ name: 'log-out-outline', backgroundColor: palette.crimson600 }}
-            label={t('settings.signOut')}
-            onPress={handleSignOut}
-            destructive
-            position="first"
-          />
-          <SettingsRow
-            icon={{ name: 'trash-outline', backgroundColor: palette.crimson600 }}
-            label={t('settings.deleteAccount')}
-            onPress={handleDeleteAccount}
-            destructive
-            position="last"
-          />
-        </SettingsSection>
-      )}
 
       {/* ── Footer ── */}
       <View style={styles.footer}>

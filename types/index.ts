@@ -59,16 +59,6 @@ export type EventCategory =
   | 'sisters'
   | 'community';
 
-export interface UserSubscription {
-  id: string;
-  user: string;
-  mosque: string;
-  notify_prayers: boolean;
-  notify_announcements: boolean;
-  notify_events: boolean;
-  prayer_reminder_minutes: number;
-}
-
 export interface PrayerTimesData {
   fajr: Date;
   sunrise: Date;

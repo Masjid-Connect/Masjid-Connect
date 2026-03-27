@@ -236,8 +236,10 @@ class PushToken(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
+        null=True,
+        blank=True,
         related_name="push_tokens",
-        help_text="The user this device token belongs to.",
+        help_text="Optional — null for anonymous device registrations.",
     )
     token = models.CharField(max_length=255, unique=True, help_text="Expo push token for this device.")
     platform = models.CharField(max_length=10, choices=Platform.choices, help_text="iOS or Android.")
@@ -248,7 +250,7 @@ class PushToken(models.Model):
         ordering = ["-updated"]
 
     def __str__(self):
-        return f"{self.user} ({self.platform})"
+        return f"{self.user or 'anonymous'} ({self.platform})"
 
 
 class MosqueAdmin(models.Model):

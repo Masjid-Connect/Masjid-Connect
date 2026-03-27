@@ -101,19 +101,12 @@ def send_push_notifications(
 
 
 def notify_announcement_subscribers(announcement) -> dict:
-    """Send push notification for a new announcement to all subscribers."""
-    from .models import PushToken, UserSubscription
+    """Send push notification for a new announcement to all registered devices."""
+    from .models import PushToken
 
     mosque = announcement.mosque
-    subscriber_user_ids = UserSubscription.objects.filter(
-        mosque=mosque,
-        notify_announcements=True,
-    ).values_list("user_id", flat=True)
-
     tokens = list(
-        PushToken.objects.filter(user_id__in=subscriber_user_ids).values_list(
-            "token", flat=True
-        )
+        PushToken.objects.values_list("token", flat=True)
     )
 
     if not tokens:
@@ -138,19 +131,12 @@ def notify_announcement_subscribers(announcement) -> dict:
 
 
 def notify_event_subscribers(event) -> dict:
-    """Send push notification for a new event to all subscribers."""
-    from .models import PushToken, UserSubscription
+    """Send push notification for a new event to all registered devices."""
+    from .models import PushToken
 
     mosque = event.mosque
-    subscriber_user_ids = UserSubscription.objects.filter(
-        mosque=mosque,
-        notify_events=True,
-    ).values_list("user_id", flat=True)
-
     tokens = list(
-        PushToken.objects.filter(user_id__in=subscriber_user_ids).values_list(
-            "token", flat=True
-        )
+        PushToken.objects.values_list("token", flat=True)
     )
 
     if not tokens:

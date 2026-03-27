@@ -5,7 +5,6 @@ import math
 import os
 import uuid as uuid_mod
 
-import jwt
 import requests
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -198,168 +197,6 @@ def login(request):
     return Response({"token": token.key, "user": UserSerializer(user).data})
 
 
-@api_view(["POST"])
-@permission_classes([permissions.AllowAny])
-@throttle_classes([AuthRateThrottle])
-def social_login(request):
-    """
-    Authenticate via Apple or Google.
-    Expects: { "provider": "apple"|"google", "token": "<id_token>", "name": "optional" }
-    Creates user if first login, returns auth token.
-    """
-    provider = request.data.get("provider")
-    id_token = request.data.get("token")
-    name = request.data.get("name", "")
-
-    if not provider or not id_token:
-        return Response(
-            {"detail": "provider and token are required."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    if provider not in ("apple", "google"):
-        return Response(
-            {"detail": "provider must be 'apple' or 'google'."},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    try:
-        if provider == "apple":
-            email, social_name = _verify_apple_token(id_token)
-        else:
-            email, social_name = _verify_google_token(id_token)
-    except ValueError as e:
-        return Response({"detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
-
-    # Use provided name, then social provider name, then email prefix
-    display_name = name or social_name or email.split("@")[0]
-
-    # Find or create user (atomic to prevent race conditions)
-    with transaction.atomic():
-        user, created = User.objects.get_or_create(
-            email=email,
-            defaults={
-                "username": email,
-                "name": display_name,
-            },
-        )
-
-        if created:
-            # Set unusable password for social-only accounts
-            user.set_unusable_password()
-            user.save()
-
-        # Rotate token on each social login to limit token lifetime
-        Token.objects.filter(user=user).delete()
-        token = Token.objects.create(user=user)
-
-    # Fire-and-forget welcome email for new users (outside transaction)
-    if created:
-        from core.email import send_welcome_email
-        send_welcome_email(user)
-
-    return Response(
-        {"token": token.key, "user": UserSerializer(user).data},
-        status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
-    )
-
-
-def _verify_apple_token(id_token: str) -> tuple[str, str]:
-    """Verify Apple identity token and extract email + name."""
-    try:
-        # Decode without verification first to get the header
-        header = jwt.get_unverified_header(id_token)
-        kid = header.get("kid")
-
-        # Fetch Apple's public keys
-        resp = requests.get("https://appleid.apple.com/auth/keys", timeout=10)
-        resp.raise_for_status()
-        apple_keys = resp.json()["keys"]
-
-        # Find the matching key
-        key_data = next((k for k in apple_keys if k["kid"] == kid), None)
-        if not key_data:
-            raise ValueError("Apple key not found.")
-
-        public_key = jwt.algorithms.RSAAlgorithm.from_jwk(key_data)
-        apple_bundle_id = os.environ.get("APPLE_BUNDLE_ID", "")
-        if not apple_bundle_id:
-            raise ValueError(
-                "Apple login is not configured. "
-                "Set APPLE_BUNDLE_ID in environment variables."
-            )
-        payload = jwt.decode(
-            id_token,
-            public_key,
-            algorithms=["RS256"],
-            audience=[apple_bundle_id],
-            issuer="https://appleid.apple.com",
-        )
-
-        email = payload.get("email", "")
-        if not email:
-            raise ValueError("No email in Apple token.")
-        return email, ""
-    except jwt.PyJWTError as e:
-        logger.warning("Apple token verification failed: %s", e)
-        raise ValueError("Invalid Apple token.") from e
-
-
-def _verify_google_token(id_token: str) -> tuple[str, str]:
-    """Verify Google ID token using Google's public keys (JWT verification)."""
-    try:
-        # Decode header to get key ID
-        header = jwt.get_unverified_header(id_token)
-        kid = header.get("kid")
-
-        # Fetch Google's public keys
-        resp = requests.get("https://www.googleapis.com/oauth2/v3/certs", timeout=10)
-        resp.raise_for_status()
-        google_keys = resp.json()["keys"]
-
-        # Find matching key
-        key_data = next((k for k in google_keys if k["kid"] == kid), None)
-        if not key_data:
-            raise ValueError("Google key not found.")
-
-        public_key = jwt.algorithms.RSAAlgorithm.from_jwk(key_data)
-        google_client_id = os.environ.get("GOOGLE_CLIENT_ID", "")
-
-        # Build audience list — accept both web and iOS client IDs if configured
-        audiences = [a for a in [
-            google_client_id,
-            os.environ.get("GOOGLE_IOS_CLIENT_ID", ""),
-        ] if a]
-
-        if not audiences:
-            raise ValueError(
-                "Google login is not configured. "
-                "Set GOOGLE_CLIENT_ID in environment variables."
-            )
-
-        payload = jwt.decode(
-            id_token,
-            public_key,
-            algorithms=["RS256"],
-            audience=audiences,
-            issuer=["accounts.google.com", "https://accounts.google.com"],
-        )
-
-        email = payload.get("email", "")
-        name = payload.get("name", "")
-
-        if not email:
-            raise ValueError("No email in Google token.")
-        if not payload.get("email_verified"):
-            raise ValueError("Google email not verified.")
-
-        return email, name
-    except jwt.PyJWTError as e:
-        logger.warning("Google token verification failed: %s", e)
-        raise ValueError("Invalid Google token.") from e
-    except requests.RequestException as e:
-        logger.warning("Google key fetch failed: %s", e)
-        raise ValueError("Could not verify Google token.") from e
 
 
 @api_view(["POST"])
@@ -728,26 +565,13 @@ class EventViewSet(viewsets.ModelViewSet):
 # ── Subscriptions ────────────────────────────────────────────────────
 
 
-class UserSubscriptionViewSet(viewsets.ModelViewSet):
-    """Manage the authenticated user's mosque subscriptions."""
-
-    serializer_class = UserSubscriptionSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return UserSubscription.objects.filter(user=self.request.user).select_related("mosque")
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
-
 # ── Push Tokens ──────────────────────────────────────────────────────
 
 
 @api_view(["POST"])
-@permission_classes([permissions.IsAuthenticated])
+@permission_classes([permissions.AllowAny])
 def register_push_token(request):
-    """Register or update a push token for the authenticated user."""
+    """Register or update a push token. Works for both anonymous and authenticated users."""
     token_str = request.data.get("token")
     platform = request.data.get("platform")
     if not token_str or not platform:
@@ -756,11 +580,11 @@ def register_push_token(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    user = request.user if request.user.is_authenticated else None
     with transaction.atomic():
         push_token, created = PushToken.objects.update_or_create(
-            user=request.user,
             token=token_str,
-            defaults={"platform": platform},
+            defaults={"platform": platform, "user": user},
         )
     return Response(
         PushTokenSerializer(push_token).data,

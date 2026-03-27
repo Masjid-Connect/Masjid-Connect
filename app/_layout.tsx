@@ -1,6 +1,6 @@
 import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import * as Updates from 'expo-updates';
@@ -16,7 +16,7 @@ import { InAppToast } from '@/components/ui/InAppToast';
 import { ErrorFallback } from '@/components/ui/ErrorFallback';
 import { WebContainer } from '@/components/ui/WebContainer';
 import { ThemeProvider as AppThemeProvider, useTheme } from '@/contexts/ThemeContext';
-import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { ToastProvider, useToast } from '@/contexts/ToastContext';
 import { reschedulePrayerRemindersForToday, addNotificationReceivedListener, addNotificationResponseListener } from '@/lib/notifications';
 import { initSentry, Sentry } from '@/lib/sentry';
@@ -153,10 +153,7 @@ export default Sentry.wrap(RootLayout);
 
 function RootLayoutNav() {
   const { effectiveScheme } = useTheme();
-  const { isAuthenticated, isLoading, hasCompletedOnboarding } = useAuth();
-  const segments = useSegments();
   const router = useRouter();
-  const { t } = useTranslation();
   const { showToast } = useToast();
 
   // Show in-app toast when notification arrives while foregrounded
@@ -194,26 +191,11 @@ function RootLayoutNav() {
     return () => sub.remove();
   }, [router]);
 
-  useEffect(() => {
-    if (isLoading) return;
-
-    const inAuthGroup = segments[0] === '(auth)';
-
-    if (!hasCompletedOnboarding && !inAuthGroup) {
-      // Not logged in and not guest → show welcome screen
-      router.replace('/(auth)/welcome');
-    } else if (isAuthenticated && inAuthGroup) {
-      // Logged in but still on auth screens → go to tabs
-      router.replace('/(tabs)');
-    }
-  }, [isAuthenticated, isLoading, hasCompletedOnboarding, segments]);
-
   return (
     <ThemeProvider value={effectiveScheme === 'dark' ? MosqueDark : MosqueLight}>
       <StatusBar style={effectiveScheme === 'dark' ? 'light' : 'dark'} />
       <Stack screenOptions={{ animation: 'ios_from_right' }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'none' }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="privacy" options={{ presentation: 'card', headerBackTitle: ' ' }} />
         <Stack.Screen name="about" options={{ presentation: 'card', headerBackTitle: ' ' }} />
       </Stack>

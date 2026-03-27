@@ -7,7 +7,6 @@ router = DefaultRouter()
 router.register("mosques", views.MosqueViewSet)
 router.register("announcements", views.AnnouncementViewSet, basename="announcement")
 router.register("events", views.EventViewSet, basename="event")
-router.register("subscriptions", views.UserSubscriptionViewSet, basename="subscription")
 router.register("feedback", views.FeedbackViewSet, basename="feedback")
 
 prayer_time_router = DefaultRouter()
@@ -17,7 +16,6 @@ urlpatterns = [
     # Auth
     path("auth/register/", views.register, name="register"),
     path("auth/login/", views.login, name="login"),
-    path("auth/social/", views.social_login, name="social-login"),
     path("auth/logout/", views.logout, name="logout"),
     path("auth/me/", views.me, name="me"),
     path("auth/admin-roles/", views.admin_roles, name="admin-roles"),
