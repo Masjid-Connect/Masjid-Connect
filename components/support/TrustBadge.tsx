@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
     borderRadius: borderRadius.sm,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     gap: spacing.md,
     marginTop: spacing.lg,
   },
