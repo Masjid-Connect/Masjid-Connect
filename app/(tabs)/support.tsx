@@ -7,6 +7,7 @@ import {
   ScrollView,
   Alert,
   Platform,
+  Linking,
   useWindowDimensions,
 } from 'react-native';
 import Animated, {
@@ -141,10 +142,15 @@ export default function SupportScreen() {
       );
 
       if (stripeUrl) {
-        await WebBrowser.openBrowserAsync(stripeUrl, {
-          dismissButtonStyle: 'close',
-          presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
-        });
+        try {
+          await WebBrowser.openBrowserAsync(stripeUrl, {
+            dismissButtonStyle: 'close',
+            presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
+          });
+        } catch {
+          // Fallback: open in external browser if in-app browser fails
+          await Linking.openURL(stripeUrl);
+        }
         // Show confirmation after returning from Stripe checkout
         setConfirmedAmount(totalAmount);
         setShowConfirmation(true);
@@ -163,7 +169,7 @@ export default function SupportScreen() {
     } finally {
       setIsLoading(false);
     }
-  }, [amount, frequency, giftAid, coverFees, t]);
+  }, [amount, frequency, giftAid, coverFees, totalAmount, t]);
 
   const handleBankTransfer = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
