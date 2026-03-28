@@ -324,7 +324,7 @@ export default function PrayerTimesScreen() {
 
           {prayers.map((prayer, index) => {
             const isNext = prayer.name === nextPrayer;
-            const isPassed = !isNext && prayer.time < new Date() && prayer.name !== 'sunrise';
+            const isPassed = !isNext && prayer.time < new Date();
 
             return (
               <Animated.View
