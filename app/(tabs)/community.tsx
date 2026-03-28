@@ -29,12 +29,14 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography, borderRadius, fontWeight, springs, getElevation, hairline } from '@/constants/Theme';
 import { AnnouncementsContent } from '@/components/community/AnnouncementsContent';
 import { EventsContent } from '@/components/community/EventsContent';
+import { LiveLessonBanner } from '@/components/community/LiveLessonBanner';
 import { GoldBadge } from '@/components/brand/GoldBadge';
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { AdminFAB, QuickPostSheet, EventWizardSheet } from '@/components/admin';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { useReadAnnouncements } from '@/hooks/useReadAnnouncements';
 import { useAdminStatus } from '@/hooks/useAdminStatus';
+import { useLiveLesson } from '@/hooks/useLiveLesson';
 
 type CommunitySegment = 'announcements' | 'events';
 
@@ -53,6 +55,7 @@ export default function CommunityScreen() {
   const { unreadCount } = useReadAnnouncements();
   const announcementUnreadCount = unreadCount(announcements.map((a) => a.id));
   const { isAdmin, mosqueIds } = useAdminStatus();
+  const { isLive, broadcastTitle } = useLiveLesson();
   const [showQuickPost, setShowQuickPost] = useState(false);
   const [showEventWizard, setShowEventWizard] = useState(false);
   const adminMosqueId = mosqueIds[0] || '';
@@ -159,6 +162,9 @@ export default function CommunityScreen() {
             {t('community.title')}
           </Text>
         </Animated.View>
+
+        {/* Live lesson banner — appears when a Mixlr broadcast is active */}
+        {isLive && <LiveLessonBanner broadcastTitle={broadcastTitle} />}
 
         {/* Segmented control with spring-animated sliding indicator */}
         <View style={[styles.segmentContainer, { paddingHorizontal: spacing['3xl'] }]}>

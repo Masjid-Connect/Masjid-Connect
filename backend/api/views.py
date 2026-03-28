@@ -27,6 +27,7 @@ from core.models import (
     Event,
     Feedback,
     GiftAidDeclaration,
+    MixlrStatus,
     Mosque,
     MosqueAdmin,
     MosquePrayerTime,
@@ -41,6 +42,7 @@ from .serializers import (
     FeedbackCreateSerializer,
     FeedbackSerializer,
     GiftAidDeclarationSerializer,
+    MixlrStatusSerializer,
     MosqueAdminSerializer,
     MosqueListSerializer,
     MosquePrayerTimeSerializer,
@@ -1511,3 +1513,37 @@ def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
         + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(d_lon / 2) ** 2
     )
     return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+# ── Mixlr Live Status ──────────────────────────────────────────────
+
+
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])
+def mixlr_status(request):
+    """Return the current Mixlr live broadcast status.
+
+    Public endpoint — no authentication required. Returns the cached
+    status from the database (updated by the poll_mixlr management
+    command running on a 30-second cron).
+
+    Falls back to a default "offline" response if no MixlrStatus
+    record exists yet.
+    """
+    status_obj = MixlrStatus.objects.first()
+    if status_obj is None:
+        return Response(
+            {
+                "is_live": False,
+                "broadcast_title": "",
+                "channel_name": "",
+                "channel_logo_url": "",
+                "channel_slug": "",
+                "embed_url": "",
+                "channel_url": "",
+                "last_live_at": None,
+                "last_checked": None,
+            }
+        )
+    serializer = MixlrStatusSerializer(status_obj)
+    return Response(serializer.data)

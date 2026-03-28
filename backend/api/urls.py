@@ -37,4 +37,6 @@ urlpatterns = [
     path("stripe/webhook/", views.stripe_webhook, name="stripe-webhook"),
     # Gift Aid (admin-only)
     path("gift-aid/summary/", views.gift_aid_summary, name="gift-aid-summary"),
+    # Mixlr live status
+    path("mixlr/status/", views.mixlr_status, name="mixlr-status"),
 ]

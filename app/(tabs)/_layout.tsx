@@ -1,18 +1,22 @@
 import React from 'react';
+import { View, StyleSheet } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { AmbientTabBar } from '@/components/navigation/AmbientTabIndicator';
 import { Sentry } from '@/lib/sentry';
 import { ErrorFallback } from '@/components/ui/ErrorFallback';
+import { useLiveLesson } from '@/hooks/useLiveLesson';
 
 function TabLayoutInner() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
+  const isDark = effectiveScheme === 'dark';
   const { t } = useTranslation();
+  const { isLive } = useLiveLesson();
 
   return (
     <Tabs
@@ -41,11 +45,19 @@ function TabLayoutInner() {
         options={{
           title: t('tabs.community'),
           tabBarIcon: ({ color, focused }: { color: string; focused: boolean }) => (
-            <Ionicons
-              name={focused ? 'people' : 'people-outline'}
-              size={24}
-              color={color}
-            />
+            <View>
+              <Ionicons
+                name={focused ? 'people' : 'people-outline'}
+                size={24}
+                color={color}
+              />
+              {isLive && (
+                <View style={[
+                  tabStyles.liveDot,
+                  { backgroundColor: isDark ? palette.divineGoldBright : palette.divineGold },
+                ]} />
+              )}
+            </View>
           ),
         }}
       />
@@ -78,6 +90,17 @@ function TabLayoutInner() {
     </Tabs>
   );
 }
+
+const tabStyles = StyleSheet.create({
+  liveDot: {
+    position: 'absolute',
+    top: -2,
+    right: -4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+});
 
 export default function TabLayout() {
   return (
