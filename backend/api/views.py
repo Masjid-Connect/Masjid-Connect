@@ -860,6 +860,8 @@ def create_checkout_session(request):
 
     is_embedded = ui_mode in ("embedded", "embedded_page", "custom", "elements")
     is_url_only = ui_mode == "url"
+    # url mode (mobile apps) should receive JSON errors, not redirects
+    is_json_mode = is_embedded or is_url_only
 
     if not return_url:
         return Response(
@@ -876,10 +878,10 @@ def create_checkout_session(request):
     try:
         amount = int(amount)
     except (TypeError, ValueError):
-        return _error("Invalid amount.", for_redirect=not is_embedded)
+        return _error("Invalid amount.", for_redirect=not is_json_mode)
 
     if amount < 100 or amount > 1000000:
-        return _error("Amount must be between £1 and £10,000.", for_redirect=not is_embedded)
+        return _error("Amount must be between £1 and £10,000.", for_redirect=not is_json_mode)
 
     try:
         is_recurring = frequency == "monthly"
@@ -971,7 +973,7 @@ def create_checkout_session(request):
     except Exception as exc:
         logger.exception("Stripe Checkout Session creation failed")
         error_msg = str(exc) if str(exc) else "Something went wrong. Please try again."
-        return _error(error_msg, for_redirect=not is_embedded)
+        return _error(error_msg, for_redirect=not is_json_mode)
 
 
 
