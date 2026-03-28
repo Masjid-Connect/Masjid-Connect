@@ -471,19 +471,34 @@ export const donations = {
     }
     clearTimeout(timeoutId);
 
+    // If backend returned JSON with checkout_url (ui_mode=url supported)
+    const contentType = response.headers.get('Content-Type') || '';
+    if (response.ok && contentType.includes('application/json')) {
+      const body = await response.json();
+      if (body.checkout_url) return body.checkout_url;
+    }
+
+    // Fallback: fetch auto-followed the 303 redirect to Stripe's hosted page.
+    // response.url contains the final destination URL after redirect.
+    if (response.url && response.url.includes('checkout.stripe.com')) {
+      return response.url;
+    }
+
+    // Error response
     if (!response.ok) {
       let detail = '';
       try {
-        const body = await response.json();
-        detail = body.detail || '';
+        if (contentType.includes('application/json')) {
+          const body = await response.json();
+          detail = body.detail || '';
+        }
       } catch {
         // Not JSON
       }
       throw new Error(detail || 'Payment request failed');
     }
 
-    const body = await response.json();
-    return body.checkout_url || null;
+    return null;
   },
 
   /** Check the status of a completed Stripe checkout session. */
