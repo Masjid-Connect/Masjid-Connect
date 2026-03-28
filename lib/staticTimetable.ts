@@ -6,7 +6,7 @@
  * file.  Solar prayer times repeat annually to within ±1 minute, so last
  * year's data is an excellent proxy for the current year.
  */
-import { format, subYears } from 'date-fns';
+import { format, subYears, addDays } from 'date-fns';
 import type { PrayerTimesData } from '@/types';
 import { ensurePM } from '@/lib/prayer';
 
@@ -61,11 +61,26 @@ export function hasStaticTimetable(): boolean {
 }
 
 /**
+ * Detect whether a date falls on a DST transition (clocks change).
+ * On transition days, the static timetable may have times in the wrong
+ * timezone (e.g. GMT times on a BST day or vice versa).
+ */
+function isDSTTransition(date: Date): boolean {
+  const dayBefore = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 1, 12);
+  const dayOf = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
+  return dayOf.getTimezoneOffset() !== dayBefore.getTimezoneOffset();
+}
+
+/**
  * Look up prayer times for a given date from the static timetable.
  *
  * If no exact match exists for the date, tries the same calendar day
  * from the previous year (solar prayer times repeat annually).
  * Jama'ah times from a prior year are still useful estimates.
+ *
+ * On DST transition days (e.g. GMT→BST in March, BST→GMT in October),
+ * uses the next day's timetable entry instead, since the transition-day
+ * entry is often stored in the pre-transition timezone.
  *
  * Returns null if no data is available at all.
  */
@@ -77,6 +92,18 @@ export function getStaticPrayerTimes(
   const dateStr = format(targetDate, 'yyyy-MM-dd');
   let entry = timetable[dateStr];
   let isEstimated = false;
+
+  // On DST transition days, the timetable entry often has times in the
+  // pre-transition timezone. Use the next day's entry which has correct
+  // post-transition times (prayer times shift by <2 min day-to-day).
+  if (entry && isDSTTransition(targetDate)) {
+    const nextDayStr = format(addDays(targetDate, 1), 'yyyy-MM-dd');
+    const nextEntry = timetable[nextDayStr];
+    if (nextEntry) {
+      entry = nextEntry;
+      isEstimated = true;
+    }
+  }
 
   if (!entry) {
     // Try the same calendar day from the previous year
