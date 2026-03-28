@@ -4159,6 +4159,22 @@ a.contact__info-value:hover {
   flex-shrink: 0;
 }
 
+.feature-notif__live-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #E53E3E;
+  margin-right: 4px;
+  vertical-align: middle;
+  animation: live-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
 /* ═══════════════════════════════════════════════════════════════
    ABOUT PAGE
    ═══════════════════════════════════════════════════════════════ */
