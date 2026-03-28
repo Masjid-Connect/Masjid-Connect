@@ -185,6 +185,8 @@ function RootLayoutNav() {
         router.push('/(tabs)/announcements');
       } else if (data.type === 'event') {
         router.push('/(tabs)/events');
+      } else if (data.type === 'live_lesson') {
+        router.push('/live-lesson');
       }
       // prayer_reminder / prayer_athan → default to home (prayer times tab)
     });
@@ -196,6 +198,7 @@ function RootLayoutNav() {
       <StatusBar hidden style={effectiveScheme === 'dark' ? 'light' : 'dark'} />
       <Stack screenOptions={{ animation: 'ios_from_right' }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'none' }} />
+        <Stack.Screen name="live-lesson" options={{ presentation: 'modal', headerShown: false, animation: 'slide_from_bottom' }} />
         <Stack.Screen name="privacy" options={{ presentation: 'card', headerBackTitle: ' ' }} />
         <Stack.Screen name="about" options={{ presentation: 'card', headerBackTitle: ' ' }} />
       </Stack>

@@ -16,6 +16,7 @@ from .models import (
     Feedback,
     GiftAidClaim,
     GiftAidDeclaration,
+    MixlrStatus,
     Mosque,
     MosqueAdmin,
     MosquePrayerTime,
@@ -639,3 +640,25 @@ def _custom_get_urls(self):
 
 
 admin.AdminSite.get_urls = _custom_get_urls
+
+
+@admin.register(MixlrStatus)
+class MixlrStatusAdmin(ModelAdmin):
+    """Mixlr live broadcast status — shows current state and allows manual override."""
+
+    list_display = ["channel_slug", "is_live", "broadcast_title", "last_checked", "last_live_at"]
+    list_editable = ["is_live"]
+    readonly_fields = ["last_checked", "last_live_at"]
+    fieldsets = (
+        ("Channel", {
+            "fields": ("mosque", "channel_slug", "mixlr_user_id"),
+            "description": "Mixlr channel configuration. The channel slug must match the Mixlr URL.",
+        }),
+        ("Live Status", {
+            "fields": ("is_live", "broadcast_title", "channel_name", "channel_logo_url"),
+            "description": "Current broadcast status. Toggle 'Is live' manually if the automatic polling isn't working.",
+        }),
+        ("Timestamps", {
+            "fields": ("last_checked", "last_live_at"),
+        }),
+    )

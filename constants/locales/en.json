@@ -205,6 +205,20 @@
     "shareHint": "Help your community stay connected",
     "shareMessage": "Download The Salafi Masjid app for prayer times, announcements, and community events."
   },
+  "liveLesson": {
+    "live": "LIVE",
+    "title": "Live Lesson",
+    "fromMasjid": "The Salafi Masjid",
+    "lessonInProgress": "A lesson is being broadcast",
+    "tapToListen": "Tap to listen",
+    "bannerHint": "Opens the live audio player",
+    "listeningLive": "Listening Live",
+    "openInMixlr": "Open in Mixlr",
+    "playerError": "Unable to load the player. You can listen on Mixlr directly.",
+    "poweredByMixlr": "Audio broadcast via Mixlr",
+    "notificationTitle": "Live Lesson",
+    "notificationBody": "A lesson is now being broadcast from The Salafi Masjid. Tap to listen."
+  },
   "support": {
     "title": "Support Your Masjid",
     "subtitle": "Your generosity keeps our doors open",

@@ -686,3 +686,69 @@ class GiftAidClaim(models.Model):
         self.total_gift_aid_pence = agg["gift_aid"] or 0
         self.donation_count = agg["count"] or 0
         self.save(update_fields=["total_donations_pence", "total_gift_aid_pence", "donation_count", "updated"])
+
+
+class MixlrStatus(models.Model):
+    """Tracks the live broadcast status from Mixlr for a mosque.
+
+    Updated by the poll_mixlr management command, which runs on a
+    30-second cron. When is_live transitions from False→True, a push
+    notification is sent to all subscribers.
+    """
+
+    mosque = models.OneToOneField(
+        Mosque, on_delete=models.CASCADE, related_name="mixlr_status",
+        help_text="The mosque this Mixlr channel belongs to.",
+    )
+    channel_slug = models.CharField(
+        max_length=100,
+        help_text="Mixlr channel slug (e.g. 'salafi-publications').",
+    )
+    mixlr_user_id = models.IntegerField(
+        default=0,
+        help_text="Numeric Mixlr user ID (used for embed URLs).",
+    )
+    is_live = models.BooleanField(
+        default=False,
+        help_text="Whether the channel is currently broadcasting.",
+    )
+    broadcast_title = models.CharField(
+        max_length=500, blank=True,
+        help_text="Title of the current or last broadcast.",
+    )
+    channel_name = models.CharField(
+        max_length=255, blank=True,
+        help_text="Display name of the Mixlr channel.",
+    )
+    channel_logo_url = models.URLField(
+        blank=True,
+        help_text="URL of the channel logo/artwork.",
+    )
+    last_checked = models.DateTimeField(
+        auto_now=True,
+        help_text="When the Mixlr API was last polled.",
+    )
+    last_live_at = models.DateTimeField(
+        null=True, blank=True,
+        help_text="When the channel was last seen broadcasting.",
+    )
+
+    class Meta:
+        verbose_name = "Mixlr status"
+        verbose_name_plural = "Mixlr statuses"
+
+    def __str__(self):
+        status = "LIVE" if self.is_live else "offline"
+        return f"{self.channel_slug} ({status})"
+
+    @property
+    def embed_url(self):
+        """Embeddable player URL for WebView."""
+        if self.mixlr_user_id:
+            return f"https://mixlr.com/users/{self.mixlr_user_id}/embed/"
+        return f"https://mixlr.com/v2/embed/{self.channel_slug}"
+
+    @property
+    def channel_url(self):
+        """Public channel page URL."""
+        return f"https://{self.channel_slug.replace('-', '')}.mixlr.com" if self.channel_slug else ""

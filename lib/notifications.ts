@@ -63,6 +63,13 @@ export async function registerForPushNotifications(): Promise<string | null> {
       importance: Notifications.AndroidImportance.DEFAULT,
       sound: 'default',
     });
+
+    await Notifications.setNotificationChannelAsync('live-lessons', {
+      name: 'Live Lessons',
+      importance: Notifications.AndroidImportance.HIGH,
+      vibrationPattern: [0, 250, 250, 250],
+      sound: 'default',
+    });
   }
 
   const tokenData = await Notifications.getExpoPushTokenAsync();

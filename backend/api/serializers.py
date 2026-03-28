@@ -14,6 +14,7 @@ from core.models import (
     Feedback,
     GiftAidClaim,
     GiftAidDeclaration,
+    MixlrStatus,
     Mosque,
     MosqueAdmin,
     MosquePrayerTime,
@@ -415,5 +416,30 @@ class GiftAidClaimSerializer(serializers.ModelSerializer):
             "total_gift_aid_pence",
             "status",
             "submitted_date",
+        ]
+        read_only_fields = fields
+
+
+# ── Mixlr Status ────────────────────────────────────────────────────
+
+
+class MixlrStatusSerializer(serializers.ModelSerializer):
+    """Public read-only serializer for Mixlr live broadcast status."""
+
+    embed_url = serializers.CharField(read_only=True)
+    channel_url = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = MixlrStatus
+        fields = [
+            "is_live",
+            "broadcast_title",
+            "channel_name",
+            "channel_logo_url",
+            "channel_slug",
+            "embed_url",
+            "channel_url",
+            "last_live_at",
+            "last_checked",
         ]
         read_only_fields = fields
