@@ -13,17 +13,6 @@ import type { PrayerTimeEntry, PrayerName, PrayerTimesData, MosquePrayerTimeResp
 const CALCULATION_METHOD_CODE = 4;
 const CALCULATION_METHOD_NAME = 'UmmAlQura';
 
-/**
- * Detect whether a date falls on a DST transition (clocks change).
- * On transition days, scraped timetable data may have times stored
- * in the pre-transition timezone.
- */
-function isDSTTransition(date: Date): boolean {
-  const dayBefore = new Date(date.getFullYear(), date.getMonth(), date.getDate() - 1, 12);
-  const dayOf = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
-  return dayOf.getTimezoneOffset() !== dayBefore.getTimezoneOffset();
-}
-
 /** Parse "HH:MM:SS" or "HH:MM" time string into a Date on the given date. */
 function parseTimeField(timeStr: string | null, targetDate: Date): Date {
   if (!timeStr) {
@@ -197,16 +186,11 @@ export function usePrayerTimes(): UsePrayerTimesResult {
       // 1. Live API — primary source (masjid jama'ah times from backend)
       const mosqueId = await getMosqueId();
       if (mosqueId) {
-        // On DST transition days, scraped timetable data may have times
-        // in the pre-transition timezone. Use the next day's data instead
-        // (prayer times shift <2 min day-to-day, so this is accurate).
-        const dstTransition = isDSTTransition(targetDate);
-        const queryDate = dstTransition ? addDays(targetDate, 1) : targetDate;
-        const dateStr = format(queryDate, 'yyyy-MM-dd');
+        const dateStr = format(targetDate, 'yyyy-MM-dd');
         const apiData = await prayerTimesApi.getByDate(mosqueId, dateStr);
         if (apiData) {
           const { times, startTimes } = parseApiPrayerTimes(apiData, targetDate);
-          await applyPrayerData(times, startTimes, 'api', dstTransition, true);
+          await applyPrayerData(times, startTimes, 'api', false, true);
           return;
         }
       }
