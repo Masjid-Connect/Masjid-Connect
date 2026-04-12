@@ -17,6 +17,10 @@
 /*.js
   Cache-Control: public, max-age=86400
 
+# Timetable data — cache for 1 day (updated periodically)
+/data/timetable.json
+  Cache-Control: public, max-age=86400
+
 # HTML pages — short cache, always revalidate
 /*.html
   Cache-Control: public, max-age=3600, must-revalidate

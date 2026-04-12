@@ -510,12 +510,17 @@
     var options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
     document.getElementById('prayer-date').textContent = today.toLocaleDateString('en-GB', options);
 
-    // PRIMARY: Fetch masjid jama'ah times from the backend API
-    // FALLBACK: If backend is unavailable, use Aladhan calculated times
+    // ── Data sources (in priority order) ──────────────────────
+    // 1. Bundled static timetable (always available, real masjid jama'ah times)
+    // 2. Backend API (live, may have updated times)
+    // 3. Aladhan API (calculated only — last resort)
     var dateStr = formatDate(today);
 
-    function showTimes(times) {
+    function showTimes(times, source) {
       render(times);
+      // Update source label
+      var header = document.querySelector('.prayer-card__method');
+      if (header && source) header.textContent = source;
       // Show Jumu'ah on Fridays
       if (today.getDay() === 5) {
         var jumuaEl = document.getElementById('prayer-jumua');
@@ -527,65 +532,79 @@
       }
     }
 
-    function showError() {
-      document.getElementById('prayer-rows').innerHTML =
-        '<div class="prayer-error">' +
-        '<p>Unable to load prayer times right now.</p>' +
-        '<p style="margin-top:0.5rem"><a href="/download" style="color:var(--gold)">Download the app</a> for offline prayer times and notifications.</p>' +
-        '</div>';
+    /**
+     * Look up today's times from the bundled static timetable.
+     * Keys are "YYYY-MM-DD", values use compact format:
+     *   fS=fajr_start, fJ=fajr_jamat, sr=sunrise, dS=dhuhr_start,
+     *   dJ=dhuhr_jamat, aS=asr_start, aJ=asr_jamat, mJ=maghrib_jamat,
+     *   iS=isha_start, iJ=isha_jamat
+     */
+    function lookupStatic(timetable, dateKey) {
+      var entry = timetable[dateKey];
+      if (!entry) {
+        // Try same date from previous years (solar times repeat ±1 min)
+        for (var y = 1; y <= 3; y++) {
+          var parts = dateKey.split('-');
+          var altKey = (parseInt(parts[0], 10) - y) + '-' + parts[1] + '-' + parts[2];
+          entry = timetable[altKey];
+          if (entry) break;
+        }
+      }
+      if (!entry) return null;
+      return {
+        fajr_start: entry.fS || null,
+        fajr_jamat: entry.fJ || null,
+        sunrise: entry.sr || null,
+        dhuhr_start: entry.dS || null,
+        dhuhr_jamat: entry.dJ || null,
+        asr_start: entry.aS || null,
+        asr_jamat: entry.aJ || null,
+        maghrib_jamat: entry.mJ || null,
+        isha_start: entry.iS || null,
+        isha_jamat: entry.iJ || null,
+      };
     }
 
-    // Fetch from backend (masjid-specific jama'ah times)
-    fetch(API_BASE + '/api/v1/mosques/?search=Salafi')
-      .then(function (res) {
-        if (!res.ok) throw new Error('Mosque list: ' + res.status);
-        return res.json();
-      })
-      .then(function (mosques) {
-        var items = mosques.items || mosques.results || [];
-        if (items.length === 0) throw new Error('Mosque not found');
-        return items[0].id;
-      })
-      .then(function (mosqueId) {
-        return fetch(API_BASE + '/api/v1/mosques/' + mosqueId + '/prayer-times/?date=' + dateStr);
-      })
-      .then(function (res) {
-        if (!res.ok) throw new Error('Prayer times: ' + res.status);
-        return res.json();
-      })
-      .then(function (data) {
-        var items = data.items || data.results || [];
-        if (items.length === 0) throw new Error('No prayer times for today');
-        showTimes(items[0]);
-      })
-      .catch(function (err) {
-        console.warn('Backend unavailable, falling back to Aladhan:', err.message);
-        // FALLBACK: Aladhan calculated times (no jama'ah, but better than nothing)
-        var dd = String(today.getDate()).padStart(2, '0');
-        var mm = String(today.getMonth() + 1).padStart(2, '0');
-        var yyyy = today.getFullYear();
-        fetch(ALADHAN_BASE + '/timings/' + dd + '-' + mm + '-' + yyyy + '?latitude=' + LAT + '&longitude=' + LNG + '&method=' + CALC_METHOD)
-          .then(function (res) { return res.json(); })
-          .then(function (response) {
-            if (response.code !== 200 || !response.data) throw new Error('Aladhan error');
-            var t = response.data.timings;
-            function clean(s) { return s ? s.split(' ')[0] : null; }
-            showTimes({
-              fajr_start: clean(t.Fajr), fajr_jamat: null,
-              sunrise: clean(t.Sunrise),
-              dhuhr_start: clean(t.Dhuhr), dhuhr_jamat: null,
-              asr_start: clean(t.Asr), asr_jamat: null,
-              maghrib_jamat: clean(t.Maghrib),
-              isha_start: clean(t.Isha), isha_jamat: null,
-            });
-            // Show note that these are calculated, not masjid times
-            var header = document.querySelector('.prayer-card__method');
-            if (header) header.textContent = 'Calculated (Umm Al-Qura)';
+    // 1. Load the bundled static timetable (guaranteed to work — no API dependency)
+    fetch('/data/timetable.json')
+      .then(function (res) { return res.json(); })
+      .then(function (timetable) {
+        var times = lookupStatic(timetable, dateStr);
+        if (times) {
+          showTimes(times, 'Masjid Timetable');
+        } else {
+          throw new Error('Date not in static timetable');
+        }
+
+        // 2. Try to enhance with live backend data (may have updated jama'ah times)
+        fetch(API_BASE + '/api/v1/mosques/?search=Salafi')
+          .then(function (res) { return res.ok ? res.json() : null; })
+          .then(function (mosques) {
+            if (!mosques) return;
+            var items = mosques.items || mosques.results || [];
+            if (items.length === 0) return;
+            return fetch(API_BASE + '/api/v1/mosques/' + items[0].id + '/prayer-times/?date=' + dateStr);
           })
-          .catch(function () { showError(); });
+          .then(function (res) { return res && res.ok ? res.json() : null; })
+          .then(function (data) {
+            if (!data) return;
+            var items = data.items || data.results || [];
+            if (items.length === 0) return;
+            // Live data available — re-render with latest times
+            showTimes(items[0], 'Masjid Timetable');
+          })
+          .catch(function () { /* Backend unavailable — static times already shown */ });
+      })
+      .catch(function () {
+        // Static timetable failed to load — show error
+        document.getElementById('prayer-rows').innerHTML =
+          '<div class="prayer-error">' +
+          '<p>Unable to load prayer times.</p>' +
+          '<p style="margin-top:0.5rem"><a href="/download" style="color:var(--gold)">Download the app</a> for prayer times and notifications.</p>' +
+          '</div>';
       });
 
-    // Hijri date from Aladhan (separate, lightweight call)
+    // Hijri date from Aladhan
     fetch(ALADHAN_BASE + '/gToH/' + dateStr.split('-').reverse().join('-'))
       .then(function (res) { return res.json(); })
       .then(function (data) {
