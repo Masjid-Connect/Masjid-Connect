@@ -210,8 +210,13 @@ export function getCountdown(target: Date): string {
   return `${minutes}m`;
 }
 
-/** Format prayer time for display */
+/** Format prayer time for display.
+ *  Guards against Invalid Date to prevent render crashes (date-fns throws
+ *  RangeError on Invalid Date, which would blank the entire prayer tab). */
 export function formatPrayerTime(date: Date, use24h: boolean = false): string {
+  if (isNaN(date.getTime())) {
+    return '--:--';
+  }
   if (use24h) {
     return format(date, 'HH:mm');
   }

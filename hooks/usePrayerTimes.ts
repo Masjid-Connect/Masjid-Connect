@@ -13,13 +13,25 @@ import type { PrayerTimeEntry, PrayerName, PrayerTimesData, MosquePrayerTimeResp
 const CALCULATION_METHOD_CODE = 4;
 const CALCULATION_METHOD_NAME = 'UmmAlQura';
 
-/** Parse "HH:MM:SS" or "HH:MM" time string into a Date on the given date. */
+/** Parse "HH:MM:SS" or "HH:MM" time string into a Date on the given date.
+ *  Returns midnight for null/empty, noon for malformed (NaN) values.
+ *  Noon fallback matches parseTimeString in lib/prayer.ts — prevents
+ *  Invalid Date from propagating to the render and crashing date-fns. */
 function parseTimeField(timeStr: string | null, targetDate: Date): Date {
-  if (!timeStr) {
-    return new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0);
+  const y = targetDate.getFullYear();
+  const m = targetDate.getMonth();
+  const d = targetDate.getDate();
+  if (!timeStr || timeStr.trim() === '') {
+    return new Date(y, m, d, 0, 0, 0);
   }
   const parts = timeStr.split(':').map(Number);
-  return new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), parts[0], parts[1], 0);
+  const hours = parts[0];
+  const minutes = parts[1];
+  if (isNaN(hours) || isNaN(minutes)) {
+    // Malformed time string — fall back to noon rather than producing Invalid Date
+    return new Date(y, m, d, 12, 0, 0);
+  }
+  return new Date(y, m, d, hours, minutes, 0);
 }
 
 /**

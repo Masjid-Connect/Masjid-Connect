@@ -545,7 +545,8 @@ export const prayerTimes = {
         `/mosques/${mosqueId}/prayer-times/?date=${date}`,
       );
       return data.results.length > 0 ? data.results[0] : null;
-    } catch {
+    } catch (err) {
+      Sentry.captureException(err, { extra: { mosqueId, date, context: 'prayer times fetch' } });
       return null;
     }
   },

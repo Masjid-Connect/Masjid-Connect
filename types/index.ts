@@ -82,11 +82,11 @@ export interface MosquePrayerTimeResponse {
   id: string;
   mosque: string;
   date: string;
-  fajr_jamat: string;
-  dhuhr_jamat: string;
-  asr_jamat: string;
-  maghrib_jamat: string;
-  isha_jamat: string;
+  fajr_jamat: string | null;
+  dhuhr_jamat: string | null;
+  asr_jamat: string | null;
+  maghrib_jamat: string | null;
+  isha_jamat: string | null;
   fajr_start: string | null;
   sunrise: string | null;
   dhuhr_start: string | null;

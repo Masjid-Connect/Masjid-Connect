@@ -43,15 +43,17 @@ try {
   // JSON not yet generated — static fallback unavailable
 }
 
-/** Parse "HH:MM" into a Date on the given date string (YYYY-MM-DD). */
+/** Parse "HH:MM" into a Date on the given date string (YYYY-MM-DD).
+ *  Returns noon for malformed values to prevent Invalid Date propagation. */
 function toDate(timeStr: string | null, dateStr: string): Date {
-  if (!timeStr) {
-    // Shouldn't happen for required fields, but return midnight as safe default
-    const [y, m, d] = dateStr.split('-').map(Number);
+  const [y, m, d] = dateStr.split('-').map(Number);
+  if (!timeStr || timeStr.trim() === '') {
     return new Date(y, m - 1, d, 0, 0, 0, 0);
   }
   const [hours, minutes] = timeStr.split(':').map(Number);
-  const [y, m, d] = dateStr.split('-').map(Number);
+  if (isNaN(hours) || isNaN(minutes)) {
+    return new Date(y, m - 1, d, 12, 0, 0, 0);
+  }
   return new Date(y, m - 1, d, hours, minutes, 0, 0);
 }
 
