@@ -20,6 +20,7 @@
   // ─── Config ──────────────────────────────────────────────────
   const API_BASE = 'https://api.salafimasjid.app';
   const CHECKOUT_URL = API_BASE + '/api/v1/donate/checkout/';
+  const STRIPE_PK = 'pk_live_jhdJimpenQpkL3cvCMC8wSa700y5o67fj1';
 
   // ─── State ───────────────────────────────────────────────────
   let selectedAmount = 25;
@@ -344,10 +345,6 @@
         if (!data.client_secret) {
           throw new Error('Server did not return a checkout session. Please try again.');
         }
-        if (!data.publishable_key) {
-          throw new Error('Payment configuration incomplete. Please contact the masjid.');
-        }
-
         // Wait for Stripe.js to load (it's loaded async)
         return waitForStripe().then(function () {
           return data;
@@ -355,7 +352,7 @@
       })
       .then(function (data) {
         // eslint-disable-next-line no-undef
-        const stripe = Stripe(data.publishable_key);
+        const stripe = Stripe(STRIPE_PK);
         return stripe.initEmbeddedCheckout({
           clientSecret: data.client_secret,
         });
