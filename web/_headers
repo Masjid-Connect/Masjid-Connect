@@ -5,3 +5,25 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(self)
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://js.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://api.salafimasjid.app https://challenges.cloudflare.com https://api.stripe.com https://checkout.stripe.com; frame-src https://challenges.cloudflare.com https://js.stripe.com https://checkout.stripe.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self' https://api.salafimasjid.app https://checkout.stripe.com; upgrade-insecure-requests
+
+# Static assets — immutable cache (versioned via ?v= query strings)
+/images/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# CSS and JS — cache with revalidation (versioned via ?v= query strings)
+/*.css
+  Cache-Control: public, max-age=86400
+
+/*.js
+  Cache-Control: public, max-age=86400
+
+# HTML pages — short cache, always revalidate
+/*.html
+  Cache-Control: public, max-age=3600, must-revalidate
+
+# Manifest and favicon
+/site.webmanifest
+  Cache-Control: public, max-age=86400
+
+/favicon.ico
+  Cache-Control: public, max-age=31536000, immutable

@@ -4,13 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Contact — The Salafi Masjid</title>
-  <meta name="description" content="Get in touch with The Salafi Masjid, Birmingham. Email, phone, visit, or find us on the map.">
+  <meta name="description" content="Get in touch with The Salafi Masjid, Birmingham. Contact us by email, phone, or visit our mosque on Wright Street, Small Heath. We aim to respond within 24 hours.">
   <meta name="theme-color" content="#0F2D52">
 
   <meta property="og:type" content="website">
   <meta property="og:title" content="Contact — The Salafi Masjid">
   <meta property="og:description" content="Get in touch with The Salafi Masjid, Birmingham. Email, phone, visit, or find us on the map.">
   <meta property="og:image" content="https://salafimasjid.app/images/og-image.png">
+  <meta property="og:site_name" content="The Salafi Masjid">
+  <meta property="og:locale" content="en_GB">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta property="og:url" content="https://salafimasjid.app/contact">
 
   <meta name="twitter:card" content="summary_large_image">
@@ -18,21 +22,28 @@
   <meta name="twitter:description" content="Get in touch with The Salafi Masjid, Birmingham. Email, phone, visit, or find us on the map.">
   <meta name="twitter:image" content="https://salafimasjid.app/images/twitter-card.png">
 
+  <meta name="apple-itunes-app" content="app-id=6740000000">
+
   <link rel="canonical" href="https://salafimasjid.app/contact">
   <link rel="icon" href="images/favicon.ico?v=2" sizes="any">
   <link rel="icon" href="images/favicon.png?v=2" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="images/favicon-180.png?v=2">
   <link rel="manifest" href="site.webmanifest?v=2">
+  <link rel="preload" as="image" href="images/Masjid_Logo.png">
+  <script>
+    (function(){var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark')}})();
+  </script>
   <link rel="stylesheet" href="styles.css?v=4">
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
 
   <!-- NAVBAR -->
   <header class="navbar navbar--solid" id="navbar">
     <div class="container navbar__inner">
       <a href="/" class="navbar__logo" aria-label="The Salafi Masjid — Home">
-        <img src="images/Masjid_Logo.png" alt="The Salafi Masjid" class="navbar__logo-img">
+        <img src="images/Masjid_Logo.png" alt="The Salafi Masjid" class="navbar__logo-img" width="40" height="40">
       </a>
       <button class="navbar__toggle" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
         <span class="navbar__toggle-bar"></span>
@@ -93,7 +104,7 @@
     </div>
   </header>
 
-  <main>
+  <main id="main-content">
 
     <!-- PAGE HERO -->
     <section class="page-hero">
@@ -303,7 +314,7 @@
     <div class="container">
       <div class="footer__grid">
         <div class="footer__col footer__col--brand">
-          <img src="images/Masjid_Logo.png" alt="The Salafi Masjid" class="footer__logo">
+          <img src="images/Masjid_Logo.png" alt="The Salafi Masjid" class="footer__logo" width="40" height="40" loading="lazy">
           <p class="footer__tagline">Upon the Quran and Sunnah, according to the understanding of the Salaf.</p>
           <address class="footer__address">Wright Street, Small Heath<br>Birmingham, B10 0UG</address>
         </div>
@@ -357,7 +368,7 @@
         </div>
       </div>
       <div class="footer__bottom">
-        <p class="footer__copy">&copy; 2026 The Salafi Masjid. All rights reserved.</p>
+        <p class="footer__copy">&copy; <span id="copyright-year">2026</span> The Salafi Masjid. Registered Charity No. 1083080. All rights reserved.</p>
       </div>
     </div>
   </footer>

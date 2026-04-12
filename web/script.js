@@ -158,9 +158,10 @@
   const darkToggle = document.getElementById('dark-mode-toggle');
 
   if (darkToggle) {
-    // Restore saved preference
+    // Restore saved preference or follow OS preference
     const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
+    var isDark = savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (isDark) {
       document.documentElement.setAttribute('data-theme', 'dark');
       darkToggle.checked = true;
     }
@@ -413,4 +414,8 @@
       }
     }, true); // capture phase — runs before any Stripe handler
   }
+
+  // ─── Dynamic copyright year ──────────────────────────────
+  var yearEl = document.getElementById('copyright-year');
+  if (yearEl) yearEl.textContent = new Date().getFullYear().toString();
 })();
