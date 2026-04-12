@@ -982,8 +982,10 @@ def create_checkout_session(request):
             return _redirect_303(session.url)
     except Exception as exc:
         logger.exception("Stripe Checkout Session creation failed")
-        error_msg = str(exc) if str(exc) else "Something went wrong. Please try again."
-        return _error(error_msg, for_redirect=not is_json_mode)
+        return _error(
+            "Unable to process donation at this time. Please try again later.",
+            for_redirect=not is_json_mode,
+        )
 
 
 

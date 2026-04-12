@@ -20,6 +20,7 @@
   // ─── Config ──────────────────────────────────────────────────
   const API_BASE = 'https://api.salafimasjid.app';
   const CHECKOUT_URL = API_BASE + '/api/v1/donate/checkout/';
+  const STRIPE_PK = 'pk_live_jhdJimpenQpkL3cvCMC8wSa700y5o67fj1';
 
   // ─── State ───────────────────────────────────────────────────
   let selectedAmount = 25;
@@ -331,57 +332,15 @@
     });
   }
 
-  // ─── Stripe Embedded Checkout ───────────────────────────────
-  function initEmbeddedCheckout() {
+  // ─── Stripe Hosted Checkout (redirect to Stripe's own page) ──
+  function initCheckout() {
     if (!validateAmount()) return;
 
     setLoading(true);
     hideError();
     hideSuccess();
 
-    createSession()
-      .then(function (data) {
-        if (!data.client_secret) {
-          throw new Error('Server did not return a checkout session. Please try again.');
-        }
-        if (!data.publishable_key || !data.publishable_key.startsWith('pk_')) {
-          throw new Error('Payment configuration incomplete. Please contact the masjid.');
-        }
-
-        // Wait for Stripe.js to load (it's loaded async)
-        return waitForStripe().then(function () {
-          return data;
-        });
-      })
-      .then(function (data) {
-        // eslint-disable-next-line no-undef
-        const stripe = Stripe(data.publishable_key);
-        return stripe.initEmbeddedCheckout({
-          clientSecret: data.client_secret,
-        });
-      })
-      .then(function (checkout) {
-        checkoutInstance = checkout;
-        setLoading(false);
-        showCheckout();
-        checkout.mount('#checkout-container');
-      })
-      .catch(function (err) {
-        setLoading(false);
-        if (err instanceof TypeError && err.message === 'Failed to fetch') {
-          showError('Unable to connect. Please check your internet connection and try again.');
-          return;
-        }
-        // Fallback: embedded checkout failed — redirect to Stripe Hosted Checkout
-        console.warn('Embedded checkout failed, falling back to hosted redirect:', err.message);
-        fallbackToHostedCheckout();
-      });
-  }
-
-  // ─── Fallback: Stripe Hosted Checkout (redirect) ─────────────
-  function fallbackToHostedCheckout() {
-    setLoading(true);
-    const returnUrl = window.location.origin + window.location.pathname;
+    var returnUrl = window.location.origin + window.location.pathname;
 
     fetch(CHECKOUT_URL, {
       method: 'POST',
@@ -406,11 +365,15 @@
       if (data && data.checkout_url) {
         window.location.href = data.checkout_url;
       } else {
-        throw new Error('Could not create checkout session.');
+        throw new Error('Could not create checkout session. Please try again.');
       }
     }).catch(function (err) {
       setLoading(false);
-      showError(err.message || 'Unable to process donation. Please try again.');
+      if (err instanceof TypeError && err.message === 'Failed to fetch') {
+        showError('Unable to connect. Please check your internet connection and try again.');
+      } else {
+        showError(err.message || 'Something went wrong. Please try again.');
+      }
     });
   }
 
@@ -455,7 +418,7 @@
   cardBtn.addEventListener('click', function () {
     trackDonationStep('checkout_started', { amount: selectedAmount, frequency: frequency });
   });
-  cardBtn.addEventListener('click', initEmbeddedCheckout);
+  cardBtn.addEventListener('click', initCheckout);
 
   // ─── Bank Transfer (Bottom Sheet) ───────────────────────────
   const bankSheet = document.getElementById('bank-sheet');
