@@ -186,6 +186,17 @@
   --alpha-sapphire-bg-light: rgba(91, 155, 213, 0.06);
 }
 
+/* Dark: Hero — keep gradient dark so navbar text and hero content remain readable.
+   Light mode's var(--sapphire-700) is deep navy, but dark mode remaps it to #5B9BD5
+   (periwinkle), destroying contrast. Override with fixed dark values. */
+[data-theme="dark"] .hero {
+  background: linear-gradient(165deg, #0a1628 0%, #0F2D52 35%, #132742 60%, #0A1628 100%);
+}
+
+[data-theme="dark"] .hero__subtitle {
+  color: rgba(255, 255, 255, 0.8);
+}
+
 /* Dark: Navbar */
 [data-theme="dark"] .navbar.is-scrolled {
   background: rgba(10, 22, 40, 0.94);
