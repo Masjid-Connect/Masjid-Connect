@@ -30,18 +30,18 @@ class MosqueListTests(TestCase):
     def test_list_all_mosques(self):
         response = self.client.get("/api/v1/mosques/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["count"], 2)
+        self.assertEqual(response.data["totalItems"], 2)
 
     def test_filter_by_city(self):
         response = self.client.get("/api/v1/mosques/", {"city": "Makkah"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["count"], 1)
-        self.assertEqual(response.data["results"][0]["name"], "Masjid Al-Haram")
+        self.assertEqual(response.data["totalItems"], 1)
+        self.assertEqual(response.data["items"][0]["name"], "Masjid Al-Haram")
 
     def test_search_by_name(self):
         response = self.client.get("/api/v1/mosques/", {"search": "Nabawi"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["count"], 1)
+        self.assertEqual(response.data["totalItems"], 1)
 
 
 class MosqueDetailTests(TestCase):

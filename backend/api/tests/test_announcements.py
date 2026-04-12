@@ -43,7 +43,7 @@ class AnnouncementListTests(TestCase):
             "mosque_ids": str(self.mosque.id),
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["count"], 2)
+        self.assertEqual(response.data["totalItems"], 2)
 
     def test_list_without_mosque_ids(self):
         response = self.client.get("/api/v1/announcements/")
@@ -61,7 +61,7 @@ class AnnouncementListTests(TestCase):
         response = self.client.get("/api/v1/announcements/", {
             "mosque_ids": str(self.mosque.id),
         })
-        titles = [a["title"] for a in response.data["results"]]
+        titles = [a["title"] for a in response.data["items"]]
         self.assertNotIn("Expired", titles)
 
 

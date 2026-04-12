@@ -181,7 +181,7 @@ def send_donation_receipt_email(donation) -> None:
 
     body += _divider()
     body += _paragraph(
-        '<span style="font-size:13px;color:{_ONYX_600};">'
+        f'<span style="font-size:13px;color:{_ONYX_600};">'
         "Please keep this email as your donation receipt. "
         "If you have any questions, reply to this email.</span>"
     )
@@ -205,7 +205,7 @@ def send_password_reset_email(user, reset_url: str) -> None:
         )
         + _button(reset_url, "Reset Password")
         + _paragraph(
-            '<span style="font-size:13px;color:{_ONYX_600};">'
+            f'<span style="font-size:13px;color:{_ONYX_600};">'
             "This link expires in 1 hour. If you did not request a password "
             "reset, you can safely ignore this email.</span>"
         )

@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import * as StoreReview from 'expo-store-review';
 import Constants from 'expo-constants';
 
 import { getColors, palette } from '@/constants/Colors';
@@ -318,9 +319,11 @@ export default function SettingsScreen() {
         <SettingsRow
           icon={{ name: 'star', backgroundColor: palette.divineGold }}
           label={t('settings.rateApp')}
-          onPress={() => {
+          onPress={async () => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            // TODO: StoreReview.requestReview()
+            if (await StoreReview.isAvailableAsync()) {
+              await StoreReview.requestReview();
+            }
           }}
           position="middle"
         />

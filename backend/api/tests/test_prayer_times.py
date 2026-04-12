@@ -60,7 +60,7 @@ class MosquePrayerTimeTests(TestCase):
         """GET prayer-times for a mosque returns all entries."""
         response = self.client.get(self._url())
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        results = response.data.get("results", response.data)
+        results = response.data.get("items", response.data)
         self.assertEqual(len(results), 3)
         # Verify data structure includes jamat times
         first = results[0]
@@ -75,7 +75,7 @@ class MosquePrayerTimeTests(TestCase):
         """?date=YYYY-MM-DD returns only that single date."""
         response = self.client.get(self._url(), {"date": "2026-03-15"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        results = response.data.get("results", response.data)
+        results = response.data.get("items", response.data)
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["date"], "2026-03-15")
 
@@ -86,7 +86,7 @@ class MosquePrayerTimeTests(TestCase):
             "to_date": "2026-03-15",
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        results = response.data.get("results", response.data)
+        results = response.data.get("items", response.data)
         self.assertEqual(len(results), 2)
         dates = [r["date"] for r in results]
         self.assertIn("2026-03-14", dates)
@@ -96,7 +96,7 @@ class MosquePrayerTimeTests(TestCase):
         """?from_date=X returns all dates from X onwards."""
         response = self.client.get(self._url(), {"from_date": "2026-03-16"})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        results = response.data.get("results", response.data)
+        results = response.data.get("items", response.data)
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0]["date"], "2026-03-16")
 
@@ -106,7 +106,7 @@ class MosquePrayerTimeTests(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         # Invalid date is ignored by parse_date, so it falls through to range filters
         # which are also absent — returns all results
-        results = response.data.get("results", response.data)
+        results = response.data.get("items", response.data)
         self.assertIsInstance(results, list)
 
     def test_no_prayer_times_for_other_mosque(self):
@@ -120,5 +120,5 @@ class MosquePrayerTimeTests(TestCase):
         )
         response = self.client.get(self._url(other_mosque.id))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        results = response.data.get("results", response.data)
+        results = response.data.get("items", response.data)
         self.assertEqual(len(results), 0)

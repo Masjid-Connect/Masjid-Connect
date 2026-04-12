@@ -47,7 +47,7 @@ class EventListTests(TestCase):
             "mosque_ids": str(self.mosque.id),
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["count"], 2)
+        self.assertEqual(response.data["totalItems"], 2)
 
     def test_filter_by_category(self):
         response = self.client.get("/api/v1/events/", {
@@ -55,8 +55,8 @@ class EventListTests(TestCase):
             "category": "youth",
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["count"], 1)
-        self.assertEqual(response.data["results"][0]["title"], "Youth Night")
+        self.assertEqual(response.data["totalItems"], 1)
+        self.assertEqual(response.data["items"][0]["title"], "Youth Night")
 
     def test_filter_by_from_date(self):
         response = self.client.get("/api/v1/events/", {
@@ -64,8 +64,8 @@ class EventListTests(TestCase):
             "from_date": "2026-06-18",
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["count"], 1)
-        self.assertEqual(response.data["results"][0]["title"], "Youth Night")
+        self.assertEqual(response.data["totalItems"], 1)
+        self.assertEqual(response.data["items"][0]["title"], "Youth Night")
 
 
 class EventCreateTests(TestCase):
