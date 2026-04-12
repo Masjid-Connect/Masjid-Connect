@@ -20,7 +20,8 @@
   // ─── Config ──────────────────────────────────────────────────
   const API_BASE = 'https://api.salafimasjid.app';
   const CHECKOUT_URL = API_BASE + '/api/v1/donate/checkout/';
-  const STRIPE_PK = 'pk_live_jhdJimpenQpkL3cvCMC8wSa700y5o67fj1';
+  // Stripe publishable key no longer needed — hosted checkout handles
+  // everything on Stripe's own page, no client-side Stripe.js required.
 
   // ─── State ───────────────────────────────────────────────────
   let selectedAmount = 25;
@@ -306,33 +307,9 @@
     checkoutBack.addEventListener('click', showForm);
   }
 
-  // ─── Create checkout session via API ────────────────────────
-  function createSession() {
-    const returnUrl = window.location.origin + window.location.pathname;
-
-    return fetch(CHECKOUT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        amount: Math.round(selectedAmount * 100),
-        currency: 'gbp',
-        frequency: frequency,
-        return_url: returnUrl,
-        ui_mode: 'embedded',
-        gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no',
-        cover_fees: coverFeesCheckbox && coverFeesCheckbox.checked ? 'yes' : 'no',
-      }),
-    }).then(function (res) {
-      if (!res.ok) {
-        return res.json().then(function (data) {
-          throw new Error(data.detail || 'Something went wrong.');
-        });
-      }
-      return res.json();
-    });
-  }
-
-  // ─── Stripe Embedded Checkout (inline, no redirect) ──────────
+  // ─── Stripe Hosted Checkout (redirect to Stripe's page) ──────
+  // Single path: create session → get URL → redirect. No embedded
+  // checkout, no Stripe.js initialization, no fallback chains.
   function initCheckout() {
     if (!validateAmount()) return;
 
@@ -340,43 +317,6 @@
     hideError();
     hideSuccess();
 
-    createSession()
-      .then(function (data) {
-        if (!data.client_secret) {
-          throw new Error('Server did not return a checkout session. Please try again.');
-        }
-        return waitForStripe().then(function () {
-          return data;
-        });
-      })
-      .then(function (data) {
-        // eslint-disable-next-line no-undef
-        var stripe = Stripe(STRIPE_PK);
-        return stripe.initEmbeddedCheckout({
-          clientSecret: data.client_secret,
-        });
-      })
-      .then(function (checkout) {
-        checkoutInstance = checkout;
-        setLoading(false);
-        showCheckout();
-        checkout.mount('#checkout-container');
-      })
-      .catch(function (err) {
-        setLoading(false);
-        if (err instanceof TypeError && err.message === 'Failed to fetch') {
-          showError('Unable to connect. Please check your internet connection and try again.');
-          return;
-        }
-        // Fallback: embedded checkout failed — redirect to Stripe Hosted Checkout
-        console.warn('Embedded checkout failed, falling back to hosted redirect:', err.message);
-        fallbackToHostedCheckout();
-      });
-  }
-
-  // ─── Fallback: Stripe Hosted Checkout (redirect) ─────────────
-  function fallbackToHostedCheckout() {
-    setLoading(true);
     var returnUrl = window.location.origin + window.location.pathname;
 
     fetch(CHECKOUT_URL, {
@@ -391,53 +331,32 @@
         gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no',
         cover_fees: coverFeesCheckbox && coverFeesCheckbox.checked ? 'yes' : 'no',
       }),
-    }).then(function (res) {
+    })
+    .then(function (res) {
       if (!res.ok) {
         return res.json().then(function (data) {
           throw new Error(data.detail || 'Something went wrong.');
         });
       }
       return res.json();
-    }).then(function (data) {
+    })
+    .then(function (data) {
       if (data && data.checkout_url) {
         window.location.href = data.checkout_url;
       } else {
         throw new Error('Could not create checkout session. Please try again.');
       }
-    }).catch(function (err) {
+    })
+    .catch(function (err) {
       setLoading(false);
       if (err instanceof TypeError && err.message === 'Failed to fetch') {
-        showError('Unable to connect. Please check your internet connection and try again.');
+        showError('Unable to connect to the payment service. Please check your internet connection and try again.');
       } else {
         showError(err.message || 'Something went wrong. Please try again.');
       }
     });
   }
 
-  // ─── Wait for Stripe.js to be available ─────────────────────
-  function waitForStripe() {
-    return new Promise(function (resolve, reject) {
-      // eslint-disable-next-line no-undef
-      if (typeof Stripe !== 'undefined') {
-        resolve();
-        return;
-      }
-
-      var attempts = 0;
-      var maxAttempts = 50; // 5 seconds
-      var interval = setInterval(function () {
-        attempts++;
-        // eslint-disable-next-line no-undef
-        if (typeof Stripe !== 'undefined') {
-          clearInterval(interval);
-          resolve();
-        } else if (attempts >= maxAttempts) {
-          clearInterval(interval);
-          reject(new Error('Stripe.js failed to load.'));
-        }
-      }, 100);
-    });
-  }
 
   // ─── Donation funnel tracking (Sentry breadcrumbs) ──────────
   function trackDonationStep(step, data) {
