@@ -391,27 +391,23 @@
         currency: 'gbp',
         frequency: frequency,
         return_url: returnUrl,
-        ui_mode: 'redirect',
+        ui_mode: 'url',
         gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no',
         cover_fees: coverFeesCheckbox && coverFeesCheckbox.checked ? 'yes' : 'no',
       }),
     }).then(function (res) {
-      // Backend returns 303 redirect — follow it to Stripe Hosted Checkout
-      if (res.redirected) {
-        window.location.href = res.url;
-        return;
-      }
       if (!res.ok) {
         return res.json().then(function (data) {
           throw new Error(data.detail || 'Something went wrong.');
         });
       }
-      // Shouldn't reach here for redirect mode, but handle gracefully
-      return res.json().then(function (data) {
-        if (data.checkout_url) {
-          window.location.href = data.checkout_url;
-        }
-      });
+      return res.json();
+    }).then(function (data) {
+      if (data && data.checkout_url) {
+        window.location.href = data.checkout_url;
+      } else {
+        throw new Error('Could not create checkout session.');
+      }
     }).catch(function (err) {
       setLoading(false);
       showError(err.message || 'Unable to process donation. Please try again.');

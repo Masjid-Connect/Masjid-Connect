@@ -408,8 +408,14 @@
   (function () {
     'use strict';
 
-    var API_BASE = 'https://api.salafimasjid.app';
     var MOSQUE_NAME = 'The Salafi Masjid';
+    // Masjid coordinates (Birmingham) and calculation method (Umm Al-Qura = 4)
+    var LAT = 52.4694;
+    var LNG = -1.8712;
+    var CALC_METHOD = 4;
+    var API_BASE = 'https://api.salafimasjid.app';
+    // Aladhan API — free, public, no auth, no CORS issues
+    var ALADHAN_BASE = 'https://api.aladhan.com/v1';
 
     // Format date as YYYY-MM-DD
     function formatDate(d) {
@@ -434,12 +440,12 @@
     function getActivePrayer(times) {
       var now = new Date();
       var prayers = [
-        { name: 'fajr', time: times.fajr_jamat },
+        { name: 'fajr', time: times.fajr_jamat || times.fajr_start },
         { name: 'sunrise', time: times.sunrise },
-        { name: 'dhuhr', time: times.dhuhr_jamat },
-        { name: 'asr', time: times.asr_jamat },
+        { name: 'dhuhr', time: times.dhuhr_jamat || times.dhuhr_start },
+        { name: 'asr', time: times.asr_jamat || times.asr_start },
         { name: 'maghrib', time: times.maghrib_jamat },
-        { name: 'isha', time: times.isha_jamat },
+        { name: 'isha', time: times.isha_jamat || times.isha_start },
       ];
       var active = null;
       for (var i = prayers.length - 1; i >= 0; i--) {
@@ -506,33 +512,53 @@
     var options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
     document.getElementById('prayer-date').textContent = today.toLocaleDateString('en-GB', options);
 
-    // Fetch prayer times from the API
+    // Fetch prayer times from Aladhan API (always available, no CORS issues)
     var dateStr = formatDate(today);
+    var dd = String(today.getDate()).padStart(2, '0');
+    var mm = String(today.getMonth() + 1).padStart(2, '0');
+    var yyyy = today.getFullYear();
 
-    // First: get mosque ID, then fetch prayer times
-    fetch(API_BASE + '/api/v1/mosques/?search=Salafi')
+    fetch(ALADHAN_BASE + '/timings/' + dd + '-' + mm + '-' + yyyy + '?latitude=' + LAT + '&longitude=' + LNG + '&method=' + CALC_METHOD)
       .then(function (res) { return res.json(); })
-      .then(function (mosques) {
-        var items = mosques.items || mosques.results || [];
-        if (items.length === 0) throw new Error('Mosque not found');
-        var mosqueId = items[0].id;
+      .then(function (response) {
+        if (response.code !== 200 || !response.data) throw new Error('Aladhan API error');
 
-        return fetch(API_BASE + '/api/v1/mosques/' + mosqueId + '/prayer-times/?date=' + dateStr);
-      })
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        var items = data.items || data.results || [];
-        if (items.length === 0) throw new Error('No prayer times for today');
-        var times = items[0];
+        var t = response.data.timings;
+        // Strip timezone abbreviations (e.g. "05:30 (BST)" → "05:30")
+        function clean(s) { return s ? s.split(' ')[0] : null; }
+
+        // Map Aladhan response to our render format
+        var times = {
+          fajr_start: clean(t.Fajr),
+          fajr_jamat: null,
+          sunrise: clean(t.Sunrise),
+          dhuhr_start: clean(t.Dhuhr),
+          dhuhr_jamat: null,
+          asr_start: clean(t.Asr),
+          asr_jamat: null,
+          maghrib_jamat: clean(t.Maghrib),
+          isha_start: clean(t.Isha),
+          isha_jamat: null,
+        };
+
+        // Try to enhance with masjid jama'ah times from the backend
+        fetchJamaahTimes(dateStr, times);
 
         render(times);
 
-        // Show Jumu'ah time on Fridays
-        if (today.getDay() === 5 && times.dhuhr_jamat) {
+        // Hijri date from the same Aladhan response
+        if (response.data.date && response.data.date.hijri) {
+          var h = response.data.date.hijri;
+          document.getElementById('prayer-hijri').textContent =
+            h.day + ' ' + h.month.en + ' ' + h.year + ' AH';
+        }
+
+        // Show Jumu'ah on Fridays
+        if (today.getDay() === 5) {
           var jumuaEl = document.getElementById('prayer-jumua');
           var jumuaTime = document.getElementById('jumua-time');
           if (jumuaEl && jumuaTime) {
-            jumuaTime.textContent = formatTime(times.dhuhr_jamat);
+            jumuaTime.textContent = formatTime(times.dhuhr_jamat || times.dhuhr_start);
             jumuaEl.hidden = false;
           }
         }
@@ -542,23 +568,51 @@
         document.getElementById('prayer-rows').innerHTML =
           '<div class="prayer-error">' +
           '<p>Unable to load prayer times right now.</p>' +
-          '<p style="margin-top:0.5rem"><a href="/download" style="color:var(--gold)">Download the app</a> for offline prayer times.</p>' +
+          '<p style="margin-top:0.5rem"><a href="/download" style="color:var(--gold)">Download the app</a> for offline prayer times and notifications.</p>' +
           '</div>';
       });
 
-    // Fetch Hijri date from Aladhan
-    fetch('https://api.aladhan.com/v1/gToH/' + dateStr.split('-').reverse().join('-'))
-      .then(function (res) { return res.json(); })
-      .then(function (data) {
-        if (data.code === 200 && data.data && data.data.hijri) {
-          var h = data.data.hijri;
-          document.getElementById('prayer-hijri').textContent =
-            h.day + ' ' + h.month.en + ' ' + h.year + ' AH';
-        }
-      })
-      .catch(function () {
-        // Hijri date is nice-to-have
-      });
+    // Try to fetch jama'ah times from the backend to enhance the timetable
+    function fetchJamaahTimes(date, times) {
+      fetch(API_BASE + '/api/v1/mosques/?search=Salafi')
+        .then(function (res) { return res.json(); })
+        .then(function (mosques) {
+          var items = mosques.items || mosques.results || [];
+          if (items.length === 0) return;
+          var mosqueId = items[0].id;
+          return fetch(API_BASE + '/api/v1/mosques/' + mosqueId + '/prayer-times/?date=' + date);
+        })
+        .then(function (res) { if (res) return res.json(); })
+        .then(function (data) {
+          if (!data) return;
+          var items = data.items || data.results || [];
+          if (items.length === 0) return;
+          var jamat = items[0];
+
+          // Merge jama'ah times into the timetable
+          if (jamat.fajr_jamat) times.fajr_jamat = jamat.fajr_jamat;
+          if (jamat.dhuhr_jamat) times.dhuhr_jamat = jamat.dhuhr_jamat;
+          if (jamat.asr_jamat) times.asr_jamat = jamat.asr_jamat;
+          if (jamat.maghrib_jamat) times.maghrib_jamat = jamat.maghrib_jamat;
+          if (jamat.isha_jamat) times.isha_jamat = jamat.isha_jamat;
+          if (jamat.fajr_start) times.fajr_start = jamat.fajr_start;
+          if (jamat.dhuhr_start) times.dhuhr_start = jamat.dhuhr_start;
+          if (jamat.asr_start) times.asr_start = jamat.asr_start;
+          if (jamat.isha_start) times.isha_start = jamat.isha_start;
+
+          // Re-render with jama'ah times
+          render(times);
+
+          // Update Jumu'ah if on Friday
+          if (today.getDay() === 5 && jamat.dhuhr_jamat) {
+            var jumuaTime = document.getElementById('jumua-time');
+            if (jumuaTime) jumuaTime.textContent = formatTime(jamat.dhuhr_jamat);
+          }
+        })
+        .catch(function () {
+          // Backend unavailable — Aladhan times already displayed
+        });
+    }
   })();
   </script>
 <!-- Cloudflare Web Analytics (free, cookieless, privacy-respecting) -->
