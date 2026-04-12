@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useTranslation } from 'react-i18next';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -10,6 +11,7 @@ export const TrustBadge = () => {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
+  const { t } = useTranslation();
 
   return (
     <View
@@ -22,17 +24,17 @@ export const TrustBadge = () => {
         },
       ]}
       accessibilityRole="text"
-      accessibilityLabel="Payments processed securely"
+      accessibilityLabel={t('support.securePaymentsA11y')}
     >
       <View style={[styles.iconCircle, { backgroundColor: isDark ? colors.backgroundGrouped : colors.backgroundSecondary }]}>
         <Ionicons name="lock-closed" size={14} color={colors.success} />
       </View>
       <View style={styles.textCol}>
         <Text style={[typography.footnote, { color: colors.text, fontWeight: fw.semibold }]}>
-          Secure payments
+          {t('support.securePayments')}
         </Text>
         <Text style={[typography.caption2, { color: colors.textSecondary }]}>
-          256-bit encryption · PCI compliant
+          {t('support.securePaymentsDesc')}
         </Text>
       </View>
       <Ionicons name="shield-checkmark" size={20} color={colors.success} />

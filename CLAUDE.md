@@ -2,6 +2,20 @@
 
 > **Governing Doctrine**: See [DOCTRINE.md](./DOCTRINE.md) for non-negotiable project rules. All development must comply.
 
+> **Council of Experts**: See [COUNCIL.md](./COUNCIL.md) for the 18-seat expert council. **All changes must pass council deliberation before implementation.** This is non-negotiable.
+
+## Council Enforcement
+
+Before making **any** change to this project — code, config, design, architecture, dependencies, or documentation — you **must** run a council deliberation:
+
+1. Identify which council seats are relevant to the change.
+2. Simulate each expert's review from their domain perspective, applying their specific mandate.
+3. Output the deliberation in the format defined in COUNCIL.md.
+4. **Only proceed if the verdict is APPROVED.** If any member blocks or raises concerns, address them first and re-deliberate.
+5. If no existing council seat covers a domain needed for the review, **auto-add a new expert seat** to COUNCIL.md and include them in the deliberation.
+
+The council is the top-level authority. No exceptions.
+
 ## Project Overview
 Mosque Connect is a premium mobile app **exclusively for The Salafi Masjid** community, providing prayer time notifications, event/lesson listings, and community announcements. This is a **single-mosque app** — there is no mosque selection, discovery, or multi-mosque subscription flow. The design philosophy is **god-tier, not SaaS** — a serene, premium experience rooted in Islamic geometric art and calligraphic tradition.
 

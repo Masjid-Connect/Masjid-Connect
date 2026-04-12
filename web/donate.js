@@ -38,8 +38,6 @@
   const giftAidCheckbox = document.getElementById('gift-aid');
   const coverFeesCheckbox = document.getElementById('cover-fees');
   const coverFeesAmountEl = document.getElementById('cover-fees-amount');
-  const formSteps = document.querySelectorAll('.donate__step, .form-hp, .donate__live-total');
-  const secureEl = document.querySelector('.donate__secure');
   const checkoutContainer = document.getElementById('checkout-container');
   const checkoutBack = document.getElementById('checkout-back');
   const summaryEl = document.getElementById('checkout-summary');
@@ -66,7 +64,7 @@
         amountBtns.forEach(function (b) { b.classList.remove('donate__amount--active'); });
         selectedAmount = val;
       } else {
-        selectedAmount = 50;
+        selectedAmount = 0;
       }
       updateFeeDisplay();
     });
@@ -319,7 +317,7 @@
         currency: 'gbp',
         frequency: frequency,
         return_url: returnUrl,
-        ui_mode: 'embedded_page',
+        ui_mode: 'embedded',
         gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no',
         cover_fees: coverFeesCheckbox && coverFeesCheckbox.checked ? 'yes' : 'no',
       }),
@@ -358,7 +356,7 @@
       .then(function (data) {
         // eslint-disable-next-line no-undef
         const stripe = Stripe(data.publishable_key);
-        return stripe.createEmbeddedCheckoutPage({
+        return stripe.initEmbeddedCheckout({
           clientSecret: data.client_secret,
         });
       })
@@ -372,10 +370,52 @@
         setLoading(false);
         if (err instanceof TypeError && err.message === 'Failed to fetch') {
           showError('Unable to connect. Please check your internet connection and try again.');
-        } else {
-          showError(err.message || 'Something went wrong. Please try again.');
+          return;
+        }
+        // Fallback: embedded checkout failed — redirect to Stripe Hosted Checkout
+        console.warn('Embedded checkout failed, falling back to hosted redirect:', err.message);
+        fallbackToHostedCheckout();
+      });
+  }
+
+  // ─── Fallback: Stripe Hosted Checkout (redirect) ─────────────
+  function fallbackToHostedCheckout() {
+    setLoading(true);
+    const returnUrl = window.location.origin + window.location.pathname;
+
+    fetch(CHECKOUT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        amount: Math.round(selectedAmount * 100),
+        currency: 'gbp',
+        frequency: frequency,
+        return_url: returnUrl,
+        ui_mode: 'redirect',
+        gift_aid: giftAidCheckbox && giftAidCheckbox.checked ? 'yes' : 'no',
+        cover_fees: coverFeesCheckbox && coverFeesCheckbox.checked ? 'yes' : 'no',
+      }),
+    }).then(function (res) {
+      // Backend returns 303 redirect — follow it to Stripe Hosted Checkout
+      if (res.redirected) {
+        window.location.href = res.url;
+        return;
+      }
+      if (!res.ok) {
+        return res.json().then(function (data) {
+          throw new Error(data.detail || 'Something went wrong.');
+        });
+      }
+      // Shouldn't reach here for redirect mode, but handle gracefully
+      return res.json().then(function (data) {
+        if (data.checkout_url) {
+          window.location.href = data.checkout_url;
         }
       });
+    }).catch(function (err) {
+      setLoading(false);
+      showError(err.message || 'Unable to process donation. Please try again.');
+    });
   }
 
   // ─── Wait for Stripe.js to be available ─────────────────────
@@ -500,8 +540,8 @@
     { text: 'Every Muslim has to give in charity. If he cannot find something to give, then he should work with his hands to benefit himself and give in charity.', source: 'Sahih al-Bukhari' },
   ];
 
-  var hadithTextEl = document.getElementById('hadith-text');
-  var hadithSourceEl = document.getElementById('hadith-source');
+  var hadithTextEl = document.getElementById('hadith-text-hero');
+  var hadithSourceEl = document.getElementById('hadith-source-hero');
 
   if (hadithTextEl && hadithSourceEl) {
     var now = new Date();
@@ -537,7 +577,10 @@
     if (sessionId) {
       // Verify the session actually completed before showing success
       fetch(API_BASE + '/api/v1/donate/session-status/?session_id=' + encodeURIComponent(sessionId))
-        .then(function (res) { return res.json(); })
+        .then(function (res) {
+          if (!res.ok) throw new Error('Verification failed');
+          return res.json();
+        })
         .then(function (data) {
           if (data.status === 'complete') {
             showSuccess();

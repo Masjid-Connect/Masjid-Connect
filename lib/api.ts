@@ -504,11 +504,7 @@ export const donations = {
   /** Check the status of a completed Stripe checkout session. */
   async getSessionStatus(sessionId: string) {
     return request<{
-      id: string;
       status: string;
-      mode: string;
-      amount_total: number;
-      currency: string;
     }>(`/donate/session-status/?session_id=${encodeURIComponent(sessionId)}`);
   },
 };

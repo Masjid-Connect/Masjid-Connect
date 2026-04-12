@@ -35,10 +35,15 @@ export const BankDetailsSheet = ({ visible, onDismiss }: BankDetailsSheetProps) 
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const handleCopy = useCallback(async (key: string, value: string) => {
-    await Clipboard.setStringAsync(value.replace(/\s/g, ''));
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setCopiedKey(key);
-    setTimeout(() => setCopiedKey(null), 2000);
+    try {
+      await Clipboard.setStringAsync(value.replace(/\s/g, ''));
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setCopiedKey(key);
+      setTimeout(() => setCopiedKey(null), 2000);
+    } catch {
+      // Clipboard unavailable on some Android versions — fail silently
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+    }
   }, []);
 
   return (

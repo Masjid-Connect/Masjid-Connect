@@ -165,6 +165,7 @@ REST_FRAMEWORK = {
         "user": "500/hour",
         "feedback": "5/hour",
         "contact": "5/hour",
+        "donation": "10/hour",
         "content_creation": "30/hour",
         "data_export": "3/day",
     },

@@ -776,7 +776,7 @@ def _build_contact_email_html(data: dict, subject_display: str) -> str:
 class DonationRateThrottle(AnonRateThrottle):
     """Limit donation attempts."""
 
-    scope = "contact"  # reuse same rate
+    scope = "donation"
 
     def allow_request(self, request, view):
         if getattr(settings, "TESTING", False):
@@ -901,7 +901,7 @@ def create_checkout_session(request):
 
         base_metadata = {
             "frequency": frequency,
-            "source": "website",
+            "source": "app" if is_url_only else "website",
             "gift_aid": "yes" if wants_gift_aid else "no",
             "cover_fees": "yes" if wants_cover_fees else "no",
             "donation_amount": str(donation_amount),
@@ -940,7 +940,8 @@ def create_checkout_session(request):
 
         if is_embedded:
             # Embedded Checkout — stays on the donor's page
-            session_params["ui_mode"] = "embedded_page"
+            # Stripe only accepts "embedded" as the ui_mode value
+            session_params["ui_mode"] = "embedded"
             session_params["return_url"] = (
                 return_url + "?donation=success&session_id={CHECKOUT_SESSION_ID}"
             )
@@ -1155,6 +1156,17 @@ def _handle_checkout_completed(session):
     frequency = metadata.get("frequency", "one-time")
     wants_gift_aid = metadata.get("gift_aid") == "yes"
 
+    # Use the original donation amount (before fee surcharge) for the record.
+    # Gift Aid must be calculated on the actual gift, not the gross charge.
+    donation_amount_str = metadata.get("donation_amount")
+    if donation_amount_str:
+        try:
+            donation_amount_pence = int(donation_amount_str)
+        except (ValueError, TypeError):
+            donation_amount_pence = amount_total
+    else:
+        donation_amount_pence = amount_total
+
     donation = Donation.objects.create(
         stripe_checkout_session_id=session.get("id", ""),
         stripe_payment_intent_id=session.get("payment_intent") or "",
@@ -1166,7 +1178,7 @@ def _handle_checkout_completed(session):
         donor_city=address.get("city", ""),
         donor_postcode=address.get("postal_code", ""),
         donor_country=address.get("country", "GB"),
-        amount_pence=amount_total,
+        amount_pence=donation_amount_pence,
         currency=currency,
         frequency=Donation.Frequency.MONTHLY if frequency == "monthly" else Donation.Frequency.ONE_TIME,
         source=Donation.Source.STRIPE,

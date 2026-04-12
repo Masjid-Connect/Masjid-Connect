@@ -75,13 +75,13 @@ export const AmountSelector = ({ selectedAmount, onAmountChange }: AmountSelecto
                 },
               ]}
               onPress={() => handlePreset(amount.value)}
-              accessibilityLabel={`Donate ${amount.value} pounds`}
+              accessibilityLabel={t('support.donatePounds', { amount: amount.value })}
               accessibilityRole="button"
               accessibilityState={{ selected: isSelected }}
             >
               {suggested && (
                 <View style={[styles.popularPill, { backgroundColor: goldColor }]}>
-                  <Text style={styles.popularText}>Popular</Text>
+                  <Text style={styles.popularText}>{t('support.popular')}</Text>
                 </View>
               )}
               <Text

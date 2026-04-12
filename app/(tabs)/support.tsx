@@ -142,8 +142,9 @@ export default function SupportScreen() {
       );
 
       if (stripeUrl) {
+        let browserResult: WebBrowser.WebBrowserResult | undefined;
         try {
-          await WebBrowser.openBrowserAsync(stripeUrl, {
+          browserResult = await WebBrowser.openBrowserAsync(stripeUrl, {
             dismissButtonStyle: 'close',
             presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
           });
@@ -151,9 +152,14 @@ export default function SupportScreen() {
           // Fallback: open in external browser if in-app browser fails
           await Linking.openURL(stripeUrl);
         }
-        // Show confirmation after returning from Stripe checkout
-        setConfirmedAmount(totalAmount);
-        setShowConfirmation(true);
+
+        // Only show confirmation if the browser wasn't explicitly cancelled/dismissed
+        // Note: we can't verify payment completion without deep link return,
+        // but we can at least suppress confirmation on explicit cancellation
+        if (browserResult?.type !== 'cancel') {
+          setConfirmedAmount(totalAmount);
+          setShowConfirmation(true);
+        }
       } else {
         throw new Error(t('support.errorMessage'));
       }
