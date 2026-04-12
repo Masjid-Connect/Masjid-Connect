@@ -5,6 +5,7 @@ import {
   View,
   Text,
   FlatList,
+  ScrollView,
   TouchableOpacity,
   RefreshControl,
   Pressable,
@@ -230,14 +231,20 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
       )}
 
       {filteredByDate.length === 0 && !isLoading ? (
-        <View style={[styles.centered, { flex: 1 }]}>
-          <Text style={[typography.headline, { color: colors.textSecondary, textAlign: 'center' }]}>
+        <ScrollView
+          contentContainerStyle={[styles.centered, { flex: 1 }]}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
+          }
+        >
+          <Ionicons name="calendar-outline" size={48} color={colors.textTertiary} />
+          <Text style={[typography.headline, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.lg }]}>
             {t('events.empty')}
           </Text>
           <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm }]}>
             {t('events.emptyHint')}
           </Text>
-        </View>
+        </ScrollView>
       ) : (
         <FlatList
           data={filteredByDate}

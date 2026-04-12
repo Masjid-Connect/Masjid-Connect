@@ -6,6 +6,9 @@ import {
   ScrollView,
   RefreshControl,
   PanResponder,
+  Pressable,
+  Share,
+  Platform,
   useWindowDimensions,
   type ViewStyle,
 } from 'react-native';
@@ -155,6 +158,20 @@ export default function PrayerTimesScreen() {
     setRefreshing(false);
   };
 
+  const handleSharePrayerTimes = async () => {
+    if (prayers.length === 0) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const dateLabel = isToday ? t('prayer.today') : selectedDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+    const lines = prayers
+      .map((p) => `${p.label.padEnd(10)} ${formatPrayerTime(p.time, use24h)}`)
+      .join('\n');
+    const message = `${t('prayer.mosqueName')}\n${dateLabel}\n\n${lines}\n\nsalafimasjid.app`;
+    await Share.share({
+      message,
+      ...(Platform.OS === 'ios' ? { title: t('prayer.mosqueName') } : {}),
+    });
+  };
+
   const nextPrayerData = prayers.find((p) => p.name === nextPrayer);
   const gradient = getAtmosphericGradient(nextPrayer, isDark);
 
@@ -174,6 +191,20 @@ export default function PrayerTimesScreen() {
         <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.sm, textAlign: 'center', paddingHorizontal: spacing['3xl'] }]}>
           {t('error.prayerTimesRetry')}
         </Text>
+        <Pressable
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            refresh();
+          }}
+          style={[styles.retryButton, { backgroundColor: colors.tint }]}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.tryAgain')}
+        >
+          <Ionicons name="refresh" size={18} color={colors.onPrimary} />
+          <Text style={[typography.subhead, { color: colors.onPrimary, fontWeight: '600' }]}>
+            {t('common.tryAgain')}
+          </Text>
+        </Pressable>
       </View>
     );
   }
@@ -301,25 +332,35 @@ export default function PrayerTimesScreen() {
           {...panResponder.panHandlers}
         >
           <View style={styles.timetableHeader} accessibilityRole="header">
-            <Text
-              style={[
-                typography.sectionHeader,
-                { color: colors.textSecondary },
-              ]}
-              accessibilityRole="header"
+            <View style={{ flex: 1 }}>
+              <Text
+                style={[
+                  typography.sectionHeader,
+                  { color: colors.textSecondary },
+                ]}
+                accessibilityRole="header"
+              >
+                {t('prayer.todaySchedule')}
+              </Text>
+              <Text style={[
+                typography.caption2,
+                { color: isEstimated ? colors.info : jamaahAvailable ? colors.success : colors.textTertiary },
+              ]}>
+                {isEstimated
+                  ? t('prayer.estimatedTimes')
+                  : jamaahAvailable
+                    ? t('prayer.mosqueTimes')
+                    : t('prayer.calculatedTimes')}
+              </Text>
+            </View>
+            <Pressable
+              onPress={handleSharePrayerTimes}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.share')}
+              hitSlop={8}
             >
-              {t('prayer.todaySchedule')}
-            </Text>
-            <Text style={[
-              typography.caption2,
-              { color: isEstimated ? colors.info : jamaahAvailable ? colors.success : colors.textTertiary },
-            ]}>
-              {isEstimated
-                ? t('prayer.estimatedTimes')
-                : jamaahAvailable
-                  ? t('prayer.mosqueTimes')
-                  : t('prayer.calculatedTimes')}
-            </Text>
+              <Ionicons name="share-outline" size={20} color={colors.textSecondary} />
+            </Pressable>
           </View>
 
           {prayers.map((prayer, index) => {
@@ -443,6 +484,15 @@ const styles = StyleSheet.create({
   loading: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.sm,
+    marginTop: spacing.xl,
   },
 
   // Hero — centered, atmospheric

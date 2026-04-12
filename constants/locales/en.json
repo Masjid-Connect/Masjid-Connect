@@ -400,6 +400,8 @@
     "loading": "Loading...",
     "error": "Something went wrong",
     "retry": "Retry",
+    "tryAgain": "Try Again",
+    "share": "Share",
     "cancel": "Cancel",
     "save": "Save",
     "done": "Done",

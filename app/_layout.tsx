@@ -195,7 +195,7 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={effectiveScheme === 'dark' ? MosqueDark : MosqueLight}>
-      <StatusBar hidden style={effectiveScheme === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style={effectiveScheme === 'dark' ? 'light' : 'dark'} />
       <Stack screenOptions={{ animation: 'ios_from_right' }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'none' }} />
         <Stack.Screen name="live-lesson" options={{ presentation: 'modal', headerShown: false, animation: 'slide_from_bottom' }} />
