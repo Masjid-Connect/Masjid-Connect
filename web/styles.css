@@ -3170,49 +3170,85 @@ a.contact__info-value:hover {
    ═══════════════════════════════════════════════════════════════ */
 .footer {
   background: var(--onyx-950);
-  padding: 64px 0 32px;
+  padding: 0;
   color: rgba(255,255,255,0.5);
+  position: relative;
+}
+
+/* Divine Gold accent line — sacred threshold */
+.footer::before {
+  content: '';
+  display: block;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--divine-gold) 30%, var(--divine-gold) 70%, transparent 100%);
+  opacity: 0.3;
+}
+
+.footer__inner {
+  padding: 56px 0 0;
 }
 
 .footer__grid {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr 1fr;
+  grid-template-columns: 1.5fr 1fr 1fr;
   gap: 48px;
 }
 
 .footer__col--brand {
-  padding-right: 24px;
+  padding-right: 32px;
 }
 
 .footer__logo {
   display: block;
-  height: 28px;
+  height: 32px;
   width: auto;
   filter: brightness(0) invert(1);
-  opacity: 0.8;
-  margin-bottom: 16px;
+  opacity: 0.9;
+  margin-bottom: 20px;
 }
 
 .footer__tagline {
-  font-size: 14px;
-  line-height: 1.6;
-  color: rgba(255,255,255,0.45);
-  margin-bottom: 16px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 20px;
+  font-style: italic;
 }
 
 .footer__address {
   font-style: normal;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.7;
   color: rgba(255,255,255,0.35);
+  margin-bottom: 16px;
+}
+
+.footer__contact {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer__contact li {
+  margin-bottom: 6px;
+}
+
+.footer__contact a {
+  font-size: 13px;
+  color: rgba(255,255,255,0.45);
+  transition: color 0.2s ease;
+}
+
+.footer__contact a:hover {
+  color: var(--divine-gold);
 }
 
 .footer__heading {
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.7);
+  color: rgba(255,255,255,0.4);
   margin-bottom: 20px;
 }
 
@@ -3223,7 +3259,7 @@ a.contact__info-value:hover {
 }
 
 .footer__list li {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .footer__list li:last-child {
@@ -3232,27 +3268,26 @@ a.contact__info-value:hover {
 
 .footer__link {
   font-size: 14px;
-  color: rgba(255,255,255,0.45);
+  color: rgba(255,255,255,0.55);
   transition: color 0.2s ease;
 }
 
 .footer__link:hover {
-  color: var(--divine-gold);
+  color: #fff;
 }
 
 .footer__store-badges {
   display: flex;
-  flex-direction: column;
   gap: 10px;
   margin-top: 20px;
 }
 
 .footer__store-svg {
   display: block;
-  height: 34px;
+  height: 36px;
   width: auto;
   max-width: 120px;
-  opacity: 0.7;
+  opacity: 0.6;
   transition: opacity 0.2s ease;
 }
 
@@ -3267,14 +3302,38 @@ a.contact__info-value:hover {
 
 .footer__bottom {
   margin-top: 48px;
-  padding-top: 24px;
-  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 20px 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .footer__copy {
-  font-size: 13px;
+  font-size: 12px;
   color: rgba(255,255,255,0.25);
-  text-align: center;
+}
+
+.footer__legal {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+}
+
+.footer__legal a {
+  color: rgba(255,255,255,0.25);
+  transition: color 0.2s ease;
+}
+
+.footer__legal a:hover {
+  color: rgba(255,255,255,0.5);
+}
+
+.footer__legal-sep {
+  color: rgba(255,255,255,0.12);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -3822,8 +3881,8 @@ a.contact__info-value:hover {
 
   /* Footer mobile */
   /* ─── Footer — clean, spacious, premium ──────────────── */
-  .footer {
-    padding: 48px 0 32px;
+  .footer__inner {
+    padding: 40px 0 0;
   }
 
   .footer__grid {
@@ -3925,10 +3984,17 @@ a.contact__info-value:hover {
   .footer__bottom {
     margin-top: 32px;
     padding-top: 20px;
+    flex-direction: column;
+    text-align: center;
   }
 
   .footer__copy {
-    font-size: 12px;
+    font-size: 11px;
+  }
+
+  .footer__legal {
+    font-size: 11px;
+    justify-content: center;
   }
 }
 
