@@ -484,13 +484,13 @@ export default function SupportScreen() {
             </Text>
 
             {[
-              { icon: 'home-outline' as const, title: t('support.impactMaintenance'), desc: t('support.impactMaintenanceDesc') },
-              { icon: 'book-outline' as const, title: t('support.impactEducation'), desc: t('support.impactEducationDesc') },
-              { icon: 'people-outline' as const, title: t('support.impactCommunity'), desc: t('support.impactCommunityDesc') },
+              { icon: 'home-outline' as const, title: t('support.impactMaintenance'), desc: t('support.impactMaintenanceDesc'), bg: palette.sage600 },
+              { icon: 'book-outline' as const, title: t('support.impactEducation'), desc: t('support.impactEducationDesc'), bg: palette.sapphire700 },
+              { icon: 'people-outline' as const, title: t('support.impactCommunity'), desc: t('support.impactCommunityDesc'), bg: isDark ? palette.divineGoldBright : palette.divineGold },
             ].map((item, i) => (
               <View key={i} style={[styles.impactRow, i < 2 && { borderBottomColor: colors.separator, borderBottomWidth: hairline }]}>
-                <View style={[styles.impactIcon, { backgroundColor: isDark ? colors.backgroundGrouped : colors.backgroundSecondary }]}>
-                  <Ionicons name={item.icon} size={18} color={colors.tint} />
+                <View style={[styles.impactIcon, { backgroundColor: item.bg }]}>
+                  <Ionicons name={item.icon} size={18} color={palette.white} />
                 </View>
                 <View style={styles.impactText}>
                   <Text style={[typography.subhead, { fontWeight: fontWeight.semibold, color: colors.text }]}>{item.title}</Text>

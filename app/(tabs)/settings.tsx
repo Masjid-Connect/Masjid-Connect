@@ -3,6 +3,7 @@ import {
   StyleSheet,
   View,
   Text,
+  Image,
   ScrollView,
   Alert,
   Platform,
@@ -229,6 +230,21 @@ export default function SettingsScreen() {
             {t('settings.title')}
           </Text>
         </Animated.View>
+
+        {/* Brand identity anchor */}
+        <View style={{ alignItems: 'center', marginBottom: spacing.xl, marginTop: spacing.sm }}>
+          <Image
+            source={require('@/assets/images/Masjid_Logo.png')}
+            style={{ width: 48, height: 48, borderRadius: 12 }}
+            accessibilityLabel={t('prayer.mosqueName')}
+          />
+          <Text style={[typography.headline, { color: colors.text, marginTop: spacing.sm }]}>
+            {t('prayer.mosqueName')}
+          </Text>
+          <Text style={[typography.caption2, { color: colors.textTertiary, marginTop: spacing['2xs'] }]}>
+            {t('settings.version', { version: Constants.expoConfig?.version ?? '1.0.0' })}
+          </Text>
+        </View>
 
       {/* ── Notifications & Reminders ── */}
       <SettingsSection

@@ -17,7 +17,7 @@ import { formatDistanceToNow, isToday, isThisWeek, format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 
-import { getColors, getAlpha } from '@/constants/Colors';
+import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography, borderRadius, getElevation, fontWeight, hairline } from '@/constants/Theme';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
@@ -211,6 +211,18 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
             styles.row,
             priorityBg ? { backgroundColor: priorityBg } : undefined,
           ]}>
+          {/* Priority accent bar — left edge visual cue */}
+          {isHighPriority && (
+            <View style={{
+              position: 'absolute',
+              left: 0,
+              top: 4,
+              bottom: 4,
+              width: 3,
+              borderRadius: 2,
+              backgroundColor: isJanazah ? (isDark ? palette.divineGoldBright : palette.divineGold) : palette.crimson600,
+            }} />
+          )}
           <View style={[
             styles.rowInner,
             !isLast && styles.rowSeparator,

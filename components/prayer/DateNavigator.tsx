@@ -83,7 +83,7 @@ export const DateNavigator = ({
             {dateLabel}
           </Text>
           {hijriDate && (
-            <Text style={[typography.caption1, styles.hijriText, { color: colors.textSecondary }]}>
+            <Text style={[typography.footnote, styles.hijriText, { color: isDark ? palette.divineGoldBright : palette.divineGold, letterSpacing: 0.5 }]}>
               {hijriDate}
             </Text>
           )}

@@ -63,7 +63,7 @@ import type { PrayerName } from '@/types';
 
 // ─── Grid constants ─────────────────────────────────────────────────
 // All vertical measurements derive from the spacing scale (8pt grid).
-const HERO_PADDING_BOTTOM = spacing['4xl'];   // 48
+const HERO_PADDING_BOTTOM = 80;                // Generous fade — sky dissolves into content
 const TIMETABLE_PADDING_TOP = spacing['3xl']; // 32
 const ROW_PADDING_V = spacing.lg;             // 16 (~52px row height)
 const SECTION_HEADER_MB = spacing.lg;         // 16
@@ -245,7 +245,7 @@ export default function PrayerTimesScreen() {
             isDark={isDark}
           />
 
-          {/* Islamic pattern — ultra-subtle geometric identity */}
+          {/* Islamic pattern — geometric identity */}
           <IslamicPattern
             width={heroLayout.width}
             height={heroLayout.height}
