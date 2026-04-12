@@ -957,6 +957,12 @@ def create_checkout_session(request):
 
         if is_embedded:
             publishable_key = getattr(settings, "STRIPE_PUBLISHABLE_KEY", "")
+            if not publishable_key or not publishable_key.startswith("pk_"):
+                logger.error("STRIPE_PUBLISHABLE_KEY is not configured or invalid")
+                return Response(
+                    {"detail": "Payment system is temporarily unavailable. Please try again later."},
+                    status=status.HTTP_503_SERVICE_UNAVAILABLE,
+                )
             return Response(
                 {
                     "client_secret": session.client_secret,

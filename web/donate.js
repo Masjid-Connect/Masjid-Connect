@@ -344,7 +344,7 @@
         if (!data.client_secret) {
           throw new Error('Server did not return a checkout session. Please try again.');
         }
-        if (!data.publishable_key) {
+        if (!data.publishable_key || !data.publishable_key.startsWith('pk_')) {
           throw new Error('Payment configuration incomplete. Please contact the masjid.');
         }
 
