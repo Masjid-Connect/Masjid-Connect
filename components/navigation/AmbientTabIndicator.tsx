@@ -80,8 +80,15 @@ export const AmbientTabBar = ({ state, descriptors, navigation }: BottomTabBarPr
   const alphaColors = getAlpha(effectiveScheme);
   const glowColor = isDark ? colors.accent : colors.tint;
 
-  const barHeight = layout.tabBarHeight;
-  const bottomPadding = Platform.OS === 'ios' ? insets.bottom : Platform.OS === 'web' ? spacing.xs : spacing.sm;
+  // Use real safe area insets on native platforms so the tab bar
+  // sits above the Android system navigation bar (and the iOS home indicator).
+  // On web, use a small static padding since there is no system nav bar.
+  const bottomPadding = Platform.OS === 'web' ? spacing.xs : Math.max(insets.bottom, spacing.sm);
+
+  // Tab content height (icons + labels + top padding) is fixed;
+  // total bar height grows dynamically to include the safe area inset.
+  const TAB_CONTENT_HEIGHT = Platform.OS === 'web' ? 56 : 56;
+  const barHeight = TAB_CONTENT_HEIGHT + bottomPadding;
 
   return (
     <View
