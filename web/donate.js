@@ -332,7 +332,7 @@
     });
   }
 
-  // ─── Stripe Hosted Checkout (redirect to Stripe's own page) ──
+  // ─── Stripe Embedded Checkout (inline, no redirect) ──────────
   function initCheckout() {
     if (!validateAmount()) return;
 
@@ -340,6 +340,43 @@
     hideError();
     hideSuccess();
 
+    createSession()
+      .then(function (data) {
+        if (!data.client_secret) {
+          throw new Error('Server did not return a checkout session. Please try again.');
+        }
+        return waitForStripe().then(function () {
+          return data;
+        });
+      })
+      .then(function (data) {
+        // eslint-disable-next-line no-undef
+        var stripe = Stripe(STRIPE_PK);
+        return stripe.initEmbeddedCheckout({
+          clientSecret: data.client_secret,
+        });
+      })
+      .then(function (checkout) {
+        checkoutInstance = checkout;
+        setLoading(false);
+        showCheckout();
+        checkout.mount('#checkout-container');
+      })
+      .catch(function (err) {
+        setLoading(false);
+        if (err instanceof TypeError && err.message === 'Failed to fetch') {
+          showError('Unable to connect. Please check your internet connection and try again.');
+          return;
+        }
+        // Fallback: embedded checkout failed — redirect to Stripe Hosted Checkout
+        console.warn('Embedded checkout failed, falling back to hosted redirect:', err.message);
+        fallbackToHostedCheckout();
+      });
+  }
+
+  // ─── Fallback: Stripe Hosted Checkout (redirect) ─────────────
+  function fallbackToHostedCheckout() {
+    setLoading(true);
     var returnUrl = window.location.origin + window.location.pathname;
 
     fetch(CHECKOUT_URL, {
