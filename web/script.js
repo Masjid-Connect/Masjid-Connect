@@ -177,27 +177,8 @@
     });
   }
 
-  // ─── Language segmented control ────────────────────────────
-  const langToggle = document.getElementById('lang-toggle');
 
-  if (langToggle) {
-    const savedLang = localStorage.getItem('lang') || 'en';
-    const langBtns = langToggle.querySelectorAll('.mobile-menu__seg-btn');
 
-    // Restore saved lang
-    langBtns.forEach(function (btn) {
-      btn.classList.toggle('mobile-menu__seg-btn--active', btn.dataset.lang === savedLang);
-    });
-
-    langBtns.forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        langBtns.forEach(function (b) { b.classList.remove('mobile-menu__seg-btn--active'); });
-        btn.classList.add('mobile-menu__seg-btn--active');
-        localStorage.setItem('lang', btn.dataset.lang);
-        // Language swap can be wired to i18n later
-      });
-    });
-  }
   // ─── Footer accordion toggles (mobile) ────────────────────
   const footerCols = document.querySelectorAll('.footer__col:not(.footer__col--brand)');
 

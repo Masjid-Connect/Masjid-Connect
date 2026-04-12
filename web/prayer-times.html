@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prayer Times — The Salafi Masjid, Birmingham</title>
+  <meta name="description" content="Today's prayer times at The Salafi Masjid, Birmingham. Accurate Fajr, Dhuhr, Asr, Maghrib, and Isha times with jama'ah schedule. Updated daily.">
+  <meta name="theme-color" content="#0F2D52">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://salafimasjid.app/prayer-times">
+  <meta property="og:title" content="Prayer Times — The Salafi Masjid, Birmingham">
+  <meta property="og:description" content="Today's prayer times at The Salafi Masjid, Birmingham. Accurate jama'ah schedule updated daily.">
+  <meta property="og:image" content="https://salafimasjid.app/images/og-image.png">
+  <meta property="og:site_name" content="The Salafi Masjid">
+  <meta property="og:locale" content="en_GB">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Prayer Times — The Salafi Masjid, Birmingham">
+  <meta name="twitter:description" content="Today's prayer times at The Salafi Masjid, Birmingham. Accurate jama'ah schedule updated daily.">
+  <meta name="twitter:image" content="https://salafimasjid.app/images/twitter-card.png">
+
+  <meta name="apple-itunes-app" content="app-id=6740000000">
+
+  <link rel="canonical" href="https://salafimasjid.app/prayer-times">
+  <link rel="icon" href="images/favicon.ico?v=2" sizes="any">
+  <link rel="icon" href="images/favicon.png?v=2" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="images/favicon-180.png?v=2">
+  <link rel="manifest" href="site.webmanifest?v=2">
+  <link rel="preload" as="image" href="images/Masjid_Logo.png">
+  <script>
+    (function(){var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark')}})();
+  </script>
+  <link rel="stylesheet" href="styles.css?v=4">
+
+  <style>
+    /* Prayer Times Page — Atmospheric Timetable */
+    .prayer-hero {
+      background: linear-gradient(180deg, var(--sapphire-700) 0%, var(--stone-100) 100%);
+      padding: 6rem 0 3rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    [data-theme="dark"] .prayer-hero {
+      background: linear-gradient(180deg, #1A1E3A 0%, var(--bg) 100%);
+    }
+    .prayer-hero__title {
+      font-size: 2.25rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.25rem;
+    }
+    .prayer-hero__subtitle {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 0.5rem;
+    }
+    .prayer-hero__date {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+    }
+    .prayer-hero__hijri {
+      font-size: 0.875rem;
+      color: var(--gold);
+      letter-spacing: 0.5px;
+      margin-top: 0.25rem;
+    }
+
+    .prayer-timetable {
+      max-width: 560px;
+      margin: -2rem auto 0;
+      position: relative;
+      z-index: 1;
+    }
+    .prayer-card {
+      background: var(--card-bg, #fff);
+      border-radius: 20px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      overflow: hidden;
+      border: 1px solid var(--border, #E2DFD8);
+    }
+    [data-theme="dark"] .prayer-card {
+      --card-bg: #132742;
+      --border: rgba(255,255,255,0.08);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    }
+    .prayer-card__header {
+      padding: 1.25rem 1.5rem 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .prayer-card__label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+    }
+    .prayer-card__method {
+      font-size: 0.6875rem;
+      color: var(--text-tertiary);
+    }
+    .prayer-row {
+      display: flex;
+      align-items: center;
+      padding: 0.875rem 1.5rem;
+      border-top: 1px solid var(--border, #E2DFD8);
+      transition: background 0.2s;
+    }
+    [data-theme="dark"] .prayer-row {
+      --border: rgba(255,255,255,0.06);
+    }
+    .prayer-row--active {
+      background: rgba(176, 138, 31, 0.08);
+      position: relative;
+    }
+    .prayer-row--active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 4px;
+      bottom: 4px;
+      width: 3px;
+      border-radius: 2px;
+      background: var(--gold);
+    }
+    .prayer-row--passed {
+      opacity: 0.45;
+    }
+    .prayer-row__name {
+      flex: 1;
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .prayer-row--active .prayer-row__name {
+      font-weight: 600;
+      color: var(--gold);
+    }
+    .prayer-row__start {
+      width: 5rem;
+      text-align: right;
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+    .prayer-row__jamat {
+      width: 5rem;
+      text-align: right;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+    .prayer-row--active .prayer-row__jamat {
+      color: var(--gold);
+    }
+    .prayer-col-header {
+      display: flex;
+      padding: 0 1.5rem 0.5rem;
+    }
+    .prayer-col-header span {
+      font-size: 0.625rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-tertiary);
+    }
+    .prayer-col-header span:first-child { flex: 1; }
+    .prayer-col-header span:nth-child(2) { width: 5rem; text-align: right; }
+    .prayer-col-header span:nth-child(3) { width: 5rem; text-align: right; }
+
+    .prayer-jumua {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border, #E2DFD8);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .prayer-jumua__label {
+      flex: 1;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .prayer-jumua__time {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--gold);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Loading skeleton */
+    .prayer-skeleton {
+      padding: 0.875rem 1.5rem;
+      border-top: 1px solid var(--border, #E2DFD8);
+      display: flex;
+      gap: 1rem;
+    }
+    .prayer-skeleton__bar {
+      height: 1rem;
+      border-radius: 4px;
+      background: var(--text-tertiary);
+      opacity: 0.15;
+      animation: skeleton-pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes skeleton-pulse {
+      0%, 100% { opacity: 0.15; }
+      50% { opacity: 0.3; }
+    }
+
+    .prayer-cta {
+      text-align: center;
+      margin: 2.5rem auto;
+      max-width: 560px;
+    }
+    .prayer-cta__text {
+      font-size: 0.9375rem;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+
+    .prayer-error {
+      padding: 2rem 1.5rem;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- NAVBAR -->
+  <header class="navbar navbar--solid" id="navbar">
+    <div class="container navbar__inner">
+      <a href="/" class="navbar__logo" aria-label="The Salafi Masjid — Home">
+        <img src="images/Masjid_Logo.png" alt="The Salafi Masjid" class="navbar__logo-img" width="40" height="40">
+      </a>
+      <button class="navbar__toggle" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span class="navbar__toggle-bar"></span>
+        <span class="navbar__toggle-bar"></span>
+        <span class="navbar__toggle-bar"></span>
+      </button>
+      <nav class="navbar__nav" id="nav-menu" role="navigation" aria-label="Main navigation">
+        <a href="/features" class="navbar__link">Features</a>
+        <a href="/about" class="navbar__link">About</a>
+        <a href="/contact" class="navbar__link">Contact</a>
+        <a href="/donate" class="navbar__link navbar__link--donate">Give</a>
+        <a href="/download" class="navbar__link navbar__link--cta">Download</a>
+        <!-- Mobile menu -->
+        <div class="mobile-menu">
+          <div class="mobile-menu__group">
+            <div class="mobile-menu__label">Navigation</div>
+            <div class="mobile-menu__list">
+              <a href="/prayer-times" class="mobile-menu__item mobile-menu__item--active">
+                <span class="mobile-menu__item-text">Prayer Times</span>
+                <svg class="mobile-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+              <a href="/features" class="mobile-menu__item">
+                <span class="mobile-menu__item-text">Features</span>
+                <svg class="mobile-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+              <a href="/about" class="mobile-menu__item">
+                <span class="mobile-menu__item-text">About</span>
+                <svg class="mobile-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+              <a href="/contact" class="mobile-menu__item">
+                <span class="mobile-menu__item-text">Contact</span>
+                <svg class="mobile-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+              <a href="/donate" class="mobile-menu__item mobile-menu__item--donate">
+                <span class="mobile-menu__item-text">Give</span>
+                <svg class="mobile-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+            </div>
+          </div>
+          <div class="mobile-menu__group">
+            <div class="mobile-menu__label">Preferences</div>
+            <div class="mobile-menu__list">
+              <div class="mobile-menu__item">
+                <span class="mobile-menu__item-text">Dark Mode</span>
+                <label class="mobile-menu__toggle">
+                  <input type="checkbox" id="dark-mode-toggle">
+                  <span class="mobile-menu__toggle-track"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <a href="/download" class="mobile-menu__cta">Download the App</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+
+    <!-- ATMOSPHERIC HERO -->
+    <section class="prayer-hero">
+      <div class="container">
+        <h1 class="prayer-hero__title">Prayer Times</h1>
+        <p class="prayer-hero__subtitle">The Salafi Masjid, Birmingham</p>
+        <p class="prayer-hero__date" id="prayer-date">Loading...</p>
+        <p class="prayer-hero__hijri" id="prayer-hijri"></p>
+      </div>
+    </section>
+
+    <!-- TIMETABLE CARD -->
+    <section class="page-section">
+      <div class="prayer-timetable">
+        <div class="prayer-card" id="prayer-card">
+
+          <div class="prayer-card__header">
+            <span class="prayer-card__label">Today's Schedule</span>
+            <span class="prayer-card__method">Umm Al-Qura</span>
+          </div>
+
+          <div class="prayer-col-header">
+            <span>Prayer</span>
+            <span>Begins</span>
+            <span>Jama'ah</span>
+          </div>
+
+          <!-- Prayer rows — populated by JS -->
+          <div id="prayer-rows">
+            <!-- Skeleton loading state -->
+            <div class="prayer-skeleton"><div class="prayer-skeleton__bar" style="flex:1"></div><div class="prayer-skeleton__bar" style="width:4rem"></div><div class="prayer-skeleton__bar" style="width:4rem"></div></div>
+            <div class="prayer-skeleton"><div class="prayer-skeleton__bar" style="flex:1"></div><div class="prayer-skeleton__bar" style="width:4rem"></div><div class="prayer-skeleton__bar" style="width:4rem"></div></div>
+            <div class="prayer-skeleton"><div class="prayer-skeleton__bar" style="flex:1"></div><div class="prayer-skeleton__bar" style="width:4rem"></div><div class="prayer-skeleton__bar" style="width:4rem"></div></div>
+            <div class="prayer-skeleton"><div class="prayer-skeleton__bar" style="flex:1"></div><div class="prayer-skeleton__bar" style="width:4rem"></div><div class="prayer-skeleton__bar" style="width:4rem"></div></div>
+            <div class="prayer-skeleton"><div class="prayer-skeleton__bar" style="flex:1"></div><div class="prayer-skeleton__bar" style="width:4rem"></div><div class="prayer-skeleton__bar" style="width:4rem"></div></div>
+            <div class="prayer-skeleton"><div class="prayer-skeleton__bar" style="flex:1"></div><div class="prayer-skeleton__bar" style="width:4rem"></div><div class="prayer-skeleton__bar" style="width:4rem"></div></div>
+          </div>
+
+          <!-- Jumu'ah -->
+          <div class="prayer-jumua" id="prayer-jumua" hidden>
+            <span class="prayer-jumua__label">Jumu'ah Khutbah</span>
+            <span class="prayer-jumua__time" id="jumua-time"></span>
+          </div>
+
+        </div>
+
+        <!-- App CTA -->
+        <div class="prayer-cta">
+          <p class="prayer-cta__text">
+            Get prayer time notifications, reminders before each prayer, and never miss a jama'ah.
+          </p>
+          <a href="/download" class="btn btn--primary">Download the App</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER (same as all pages) -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__col footer__col--brand">
+          <a href="/" class="footer__logo" aria-label="The Salafi Masjid — Home">
+            <img src="images/Masjid_Logo.png" alt="The Salafi Masjid Logo" class="footer__logo-img" width="40" height="40" loading="lazy">
+          </a>
+          <p class="footer__tagline">Serving the community upon the Quran and Sunnah.</p>
+          <address class="footer__address">472 Coventry Road, Small Heath, Birmingham, B10 0UG</address>
+        </div>
+        <div class="footer__col">
+          <h3 class="footer__heading">Quick Links</h3>
+          <ul class="footer__list">
+            <li><a href="/features" class="footer__link">Features</a></li>
+            <li><a href="/about" class="footer__link">About</a></li>
+            <li><a href="/contact" class="footer__link">Contact</a></li>
+            <li><a href="/download" class="footer__link">Download</a></li>
+            <li><a href="/donate" class="footer__link">Give</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h3 class="footer__heading">The App</h3>
+          <ul class="footer__list">
+            <li><a href="/prayer-times" class="footer__link">Prayer Times</a></li>
+            <li><a href="/features#community" class="footer__link">Announcements</a></li>
+            <li><a href="/features#events" class="footer__link">Events &amp; Lessons</a></li>
+            <li><a href="/features#live-lessons" class="footer__link">Live Lessons</a></li>
+            <li><a href="/privacy" class="footer__link">Privacy Policy</a></li>
+            <li><a href="/terms" class="footer__link">Terms of Service</a></li>
+            <li><a href="/sitemap" class="footer__link">Sitemap</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h3 class="footer__heading">Connect</h3>
+          <ul class="footer__list">
+            <li><a href="mailto:info@salafimasjid.app" class="footer__link">info@salafimasjid.app</a></li>
+            <li><a href="tel:+441217730033" class="footer__link">0121 773 0033</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p class="footer__copy">&copy; <span id="copyright-year">2026</span> The Salafi Masjid. Registered Charity No. 1083080. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js?v=4" data-cfasync="false"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    var API_BASE = 'https://api.salafimasjid.app';
+    var MOSQUE_NAME = 'The Salafi Masjid';
+
+    // Format date as YYYY-MM-DD
+    function formatDate(d) {
+      return d.getFullYear() + '-' +
+        String(d.getMonth() + 1).padStart(2, '0') + '-' +
+        String(d.getDate()).padStart(2, '0');
+    }
+
+    // Format "HH:MM" to 12h
+    function formatTime(timeStr) {
+      if (!timeStr) return '--:--';
+      var parts = timeStr.split(':');
+      var h = parseInt(parts[0], 10);
+      var m = parts[1];
+      if (isNaN(h)) return '--:--';
+      var period = h >= 12 ? 'PM' : 'AM';
+      var display = h === 0 ? 12 : h > 12 ? h - 12 : h;
+      return display + ':' + m + ' ' + period;
+    }
+
+    // Determine which prayer is currently active
+    function getActivePrayer(times) {
+      var now = new Date();
+      var prayers = [
+        { name: 'fajr', time: times.fajr_jamat },
+        { name: 'sunrise', time: times.sunrise },
+        { name: 'dhuhr', time: times.dhuhr_jamat },
+        { name: 'asr', time: times.asr_jamat },
+        { name: 'maghrib', time: times.maghrib_jamat },
+        { name: 'isha', time: times.isha_jamat },
+      ];
+      var active = null;
+      for (var i = prayers.length - 1; i >= 0; i--) {
+        if (!prayers[i].time) continue;
+        var parts = prayers[i].time.split(':');
+        var prayerDate = new Date(now);
+        prayerDate.setHours(parseInt(parts[0], 10), parseInt(parts[1], 10), 0);
+        if (now >= prayerDate) {
+          // Current prayer is i, next is i+1
+          active = i < prayers.length - 1 ? prayers[i + 1].name : null;
+          break;
+        }
+      }
+      // Before fajr
+      if (active === null) active = 'fajr';
+      return active;
+    }
+
+    // Render the timetable
+    function render(data) {
+      var prayers = [
+        { name: 'Fajr', start: data.fajr_start, jamat: data.fajr_jamat },
+        { name: 'Sunrise', start: data.sunrise, jamat: null },
+        { name: 'Dhuhr', start: data.dhuhr_start, jamat: data.dhuhr_jamat },
+        { name: 'Asr', start: data.asr_start, jamat: data.asr_jamat },
+        { name: 'Maghrib', start: null, jamat: data.maghrib_jamat },
+        { name: 'Isha', start: data.isha_start, jamat: data.isha_jamat },
+      ];
+
+      var active = getActivePrayer(data);
+      var now = new Date();
+      var html = '';
+
+      prayers.forEach(function (p) {
+        var key = p.name.toLowerCase();
+        var isActive = key === active;
+
+        // Determine if passed
+        var isPassed = false;
+        var timeStr = p.jamat || p.start;
+        if (timeStr) {
+          var parts = timeStr.split(':');
+          var pTime = new Date(now);
+          pTime.setHours(parseInt(parts[0], 10), parseInt(parts[1], 10), 0);
+          isPassed = now > pTime && !isActive;
+        }
+
+        var cls = 'prayer-row';
+        if (isActive) cls += ' prayer-row--active';
+        if (isPassed) cls += ' prayer-row--passed';
+
+        html += '<div class="' + cls + '">';
+        html += '<span class="prayer-row__name">' + p.name + '</span>';
+        html += '<span class="prayer-row__start">' + (p.start ? formatTime(p.start) : '') + '</span>';
+        html += '<span class="prayer-row__jamat">' + (p.jamat ? formatTime(p.jamat) : (p.name === 'Sunrise' ? formatTime(p.start) : '--:--')) + '</span>';
+        html += '</div>';
+      });
+
+      document.getElementById('prayer-rows').innerHTML = html;
+    }
+
+    // Set the date display
+    var today = new Date();
+    var options = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+    document.getElementById('prayer-date').textContent = today.toLocaleDateString('en-GB', options);
+
+    // Fetch prayer times from the API
+    var dateStr = formatDate(today);
+
+    // First: get mosque ID, then fetch prayer times
+    fetch(API_BASE + '/api/v1/mosques/?search=Salafi')
+      .then(function (res) { return res.json(); })
+      .then(function (mosques) {
+        var items = mosques.items || mosques.results || [];
+        if (items.length === 0) throw new Error('Mosque not found');
+        var mosqueId = items[0].id;
+
+        return fetch(API_BASE + '/api/v1/mosques/' + mosqueId + '/prayer-times/?date=' + dateStr);
+      })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        var items = data.items || data.results || [];
+        if (items.length === 0) throw new Error('No prayer times for today');
+        var times = items[0];
+
+        render(times);
+
+        // Show Jumu'ah time on Fridays
+        if (today.getDay() === 5 && times.dhuhr_jamat) {
+          var jumuaEl = document.getElementById('prayer-jumua');
+          var jumuaTime = document.getElementById('jumua-time');
+          if (jumuaEl && jumuaTime) {
+            jumuaTime.textContent = formatTime(times.dhuhr_jamat);
+            jumuaEl.hidden = false;
+          }
+        }
+      })
+      .catch(function (err) {
+        console.error('Failed to load prayer times:', err);
+        document.getElementById('prayer-rows').innerHTML =
+          '<div class="prayer-error">' +
+          '<p>Unable to load prayer times right now.</p>' +
+          '<p style="margin-top:0.5rem"><a href="/download" style="color:var(--gold)">Download the app</a> for offline prayer times.</p>' +
+          '</div>';
+      });
+
+    // Fetch Hijri date from Aladhan
+    fetch('https://api.aladhan.com/v1/gToH/' + dateStr.split('-').reverse().join('-'))
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        if (data.code === 200 && data.data && data.data.hijri) {
+          var h = data.data.hijri;
+          document.getElementById('prayer-hijri').textContent =
+            h.day + ' ' + h.month.en + ' ' + h.year + ' AH';
+        }
+      })
+      .catch(function () {
+        // Hijri date is nice-to-have
+      });
+  })();
+  </script>
+</body>
+</html>
