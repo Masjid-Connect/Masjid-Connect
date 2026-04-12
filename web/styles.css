@@ -197,7 +197,11 @@
   color: rgba(255, 255, 255, 0.8);
 }
 
-/* Dark: Navbar */
+/* Dark: Navbar — pre-scroll gets more opacity since hero is darker */
+[data-theme="dark"] .navbar {
+  background: rgba(10, 22, 40, 0.40);
+}
+
 [data-theme="dark"] .navbar.is-scrolled {
   background: rgba(10, 22, 40, 0.94);
   box-shadow: 0 1px 0 var(--separator);
@@ -852,7 +856,10 @@ ul {
   right: 0;
   z-index: 100;
   height: var(--nav-height);
-  transition: background 0.3s ease, box-shadow 0.3s ease;
+  transition: background 0.4s ease, box-shadow 0.3s ease;
+  /* Pre-scroll: subtle frosted glass so text is always readable
+     over any hero gradient. Feels like floating on the atmosphere. */
+  background: rgba(10, 22, 40, 0.18);
 }
 
 .navbar.is-scrolled {
@@ -870,6 +877,10 @@ ul {
 /* backdrop-filter only on desktop — on mobile it creates a containing
    block that traps the position:fixed mobile menu inside the navbar */
 @media (min-width: 769px) {
+  .navbar .navbar__inner {
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+  }
   .navbar.is-scrolled .navbar__inner {
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
