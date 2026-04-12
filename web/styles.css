@@ -186,30 +186,18 @@
   --alpha-sapphire-bg-light: rgba(91, 155, 213, 0.06);
 }
 
-/* Dark: Hero gradient — keep the hero dark in dark mode.
-   Light mode's var(--sapphire-700) resolves to deep navy, but dark mode
-   remaps it to #5B9BD5 (periwinkle), destroying contrast for navbar text
-   and hero content. Override with fixed dark values. */
-[data-theme="dark"] .hero {
-  background: linear-gradient(165deg, #0a1628 0%, #0F2D52 35%, #132742 60%, #0A1628 100%);
-}
-
-/* Dark: Hero subtitle — increase opacity for readability */
-[data-theme="dark"] .hero__subtitle {
-  color: rgba(255,255,255,0.8);
-}
-
 /* Dark: Navbar */
 [data-theme="dark"] .navbar.is-scrolled {
   background: rgba(10, 22, 40, 0.94);
+  box-shadow: 0 1px 0 var(--separator);
 }
 
 [data-theme="dark"] .navbar.is-scrolled .navbar__link {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(245, 245, 247, 0.7);
 }
 
 [data-theme="dark"] .navbar.is-scrolled .navbar__link:hover {
-  color: var(--sapphire-400);
+  color: #F5F5F7;
 }
 
 [data-theme="dark"] .navbar.is-scrolled .navbar__logo-img {
@@ -222,6 +210,7 @@
 
 [data-theme="dark"] .navbar--solid {
   background: rgba(10, 22, 40, 0.97);
+  box-shadow: 0 1px 0 var(--separator);
 }
 
 [data-theme="dark"] .navbar--solid .navbar__logo-img {
@@ -229,11 +218,11 @@
 }
 
 [data-theme="dark"] .navbar--solid .navbar__link {
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(245, 245, 247, 0.7);
 }
 
 [data-theme="dark"] .navbar--solid .navbar__link:hover {
-  color: var(--sapphire-400);
+  color: #F5F5F7;
 }
 
 [data-theme="dark"] .navbar--solid .navbar__toggle-bar {
@@ -279,6 +268,42 @@
 /* Dark: Trust / About */
 [data-theme="dark"] .trust {
   background: var(--surface-recessed);
+}
+
+/* Dark: Homepage & Features page cards (.feature-card) */
+[data-theme="dark"] .feature-card {
+  background: var(--surface-elevated);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 0 0 0.5px var(--alpha-sapphire-bg-light);
+  border-color: var(--alpha-sapphire-border-subtle);
+}
+
+[data-theme="dark"] .feature-card__title {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .feature-card__desc {
+  color: var(--onyx-600);
+}
+
+[data-theme="dark"] .feature-card__icon--sapphire {
+  background: var(--alpha-sapphire-bg);
+}
+
+[data-theme="dark"] .feature-card__icon--gold {
+  background: rgba(229, 193, 75, 0.12);
+}
+
+[data-theme="dark"] .feature-card__icon--sage {
+  background: rgba(107, 203, 155, 0.12);
+}
+
+/* Dark: Trust card titles */
+[data-theme="dark"] .trust__card-title {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .trust__icon {
+  background: var(--alpha-sapphire-bg);
 }
 
 [data-theme="dark"] .trust__card {
@@ -361,6 +386,42 @@
 /* Dark: Contact info */
 [data-theme="dark"] .contact__info {
   background: var(--surface-elevated);
+}
+
+[data-theme="dark"] .contact__info-card {
+  background: var(--surface-elevated);
+  border-color: var(--alpha-sapphire-border-subtle);
+}
+
+[data-theme="dark"] .contact__info-heading {
+  color: var(--text-primary);
+}
+
+/* Dark: About page */
+[data-theme="dark"] .about-contact-card {
+  background: var(--surface-elevated);
+}
+
+[data-theme="dark"] .about-contact-card__icon {
+  background: var(--alpha-sapphire-bg);
+}
+
+[data-theme="dark"] .about-contact-card__link:hover {
+  color: var(--sapphire-400);
+}
+
+/* Dark: Features page — notification demos */
+[data-theme="dark"] .feature-notif {
+  background: var(--surface-elevated);
+  border-color: var(--alpha-sapphire-border-subtle);
+}
+
+[data-theme="dark"] .feature-notif__icon--sapphire {
+  background: var(--alpha-sapphire-bg);
+}
+
+[data-theme="dark"] .feature-notif__icon--crimson {
+  background: rgba(248, 113, 113, 0.12);
 }
 
 /* Dark: Donate */
@@ -4099,6 +4160,12 @@ a.contact__info-value:hover {
   padding: var(--sp-3xl);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--separator);
+}
+
+[data-theme="dark"] .feature-grid__card {
+  background: var(--surface-elevated);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3), 0 0 0 0.5px var(--alpha-sapphire-bg-light);
+  border-color: var(--alpha-sapphire-border-subtle);
 }
 
 /* ─── Notification Demo (features page) ───────────────────────── */
