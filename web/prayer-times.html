@@ -521,12 +521,15 @@
       // Update source label
       var header = document.querySelector('.prayer-card__method');
       if (header && source) header.textContent = source;
-      // Show Jumu'ah on Fridays
-      if (today.getDay() === 5) {
+      // Show Jumu'ah — always visible (not just Fridays), with fixed schedule:
+      // BST (summer, UTC+1): 1:30 PM / GMT (winter, UTC+0): 12:30 PM
+      var isBST = today.getTimezoneOffset() < 0; // BST = UTC+1, offset = -60
+      var jumuahTime = isBST ? '13:30' : '12:30';
+      {
         var jumuaEl = document.getElementById('prayer-jumua');
         var jumuaTimeEl = document.getElementById('jumua-time');
         if (jumuaEl && jumuaTimeEl) {
-          jumuaTimeEl.textContent = formatTime(times.dhuhr_jamat || times.dhuhr_start);
+          jumuaTimeEl.textContent = formatTime(jumuahTime);
           jumuaEl.hidden = false;
         }
       }
