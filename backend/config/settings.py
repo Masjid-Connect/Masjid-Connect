@@ -42,8 +42,7 @@ ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 
 # Safety check: production must have explicit ALLOWED_HOSTS
 if not DEBUG and not ALLOWED_HOSTS:
-    logger = logging.getLogger("django")
-    logger.critical(
+    raise RuntimeError(
         "ALLOWED_HOSTS is empty in production. "
         "Set ALLOWED_HOSTS in your environment variables or .env file."
     )

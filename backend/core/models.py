@@ -5,6 +5,7 @@ import uuid
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
@@ -213,7 +214,8 @@ class UserSubscription(models.Model):
     notify_events = models.BooleanField(default=True, help_text="Send event notifications.")
     prayer_reminder_minutes = models.IntegerField(
         default=15,
-        help_text="How many minutes before each prayer to send the reminder (e.g. 15).",
+        validators=[MinValueValidator(0), MaxValueValidator(120)],
+        help_text="How many minutes before each prayer to send the reminder (0-120).",
     )
     created = models.DateTimeField(auto_now_add=True)
 
@@ -546,6 +548,9 @@ class Donation(models.Model):
 
     class Meta:
         ordering = ["-donation_date", "-created"]
+        indexes = [
+            models.Index(fields=["gift_aid_eligible", "donation_date"]),
+        ]
         permissions = [
             ("view_donation_details", "Can view individual donation details and donor information"),
         ]
@@ -578,7 +583,7 @@ class GiftAidDeclaration(models.Model):
 
     # Donor identity — HMRC mandatory fields
     donor_name = models.CharField(max_length=255, help_text="Full name as known to HMRC")
-    donor_email = models.EmailField(blank=True, help_text="Donor's email for correspondence.")
+    donor_email = models.EmailField(blank=True, db_index=True, help_text="Donor's email for correspondence.")
     donor_address_line1 = models.CharField(max_length=255, help_text="House number/name and street.")
     donor_address_line2 = models.CharField(max_length=255, blank=True, help_text="Second address line (optional).")
     donor_city = models.CharField(max_length=100, blank=True, help_text="City or town.")

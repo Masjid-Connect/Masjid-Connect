@@ -4,10 +4,10 @@ import logging
 import threading
 
 from django.conf import settings
-from django.core.mail import send_mail
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from .email import send_email_async
 from .models import Announcement, Event, Feedback
 
 logger = logging.getLogger(__name__)
@@ -20,23 +20,19 @@ def notify_admin_on_new_feedback(sender, instance, created, **kwargs):
         return
 
     notify_email = getattr(settings, "FEEDBACK_NOTIFY_EMAIL", "info@salafimasjid.app")
-    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@salafimasjid.app")
 
     type_label = instance.get_type_display()
     user_ref = str(instance.user.id) if instance.user else "guest"
 
     subject = f"New {type_label} — {instance.category}"
-    body = (
-        f"Type: {type_label}\n"
-        f"Category: {instance.category}\n"
-        f"From: user {user_ref}\n\n"
-        f"View details in admin: /admin/core/feedback/{instance.pk}/change/"
+    html = (
+        f"<p><strong>Type:</strong> {type_label}</p>"
+        f"<p><strong>Category:</strong> {instance.category}</p>"
+        f"<p><strong>From:</strong> user {user_ref}</p>"
+        f'<p><a href="/admin/core/feedback/{instance.pk}/change/">View in admin</a></p>'
     )
 
-    try:
-        send_mail(subject, body, from_email, [notify_email], fail_silently=False)
-    except Exception:
-        logger.exception("Failed to send feedback notification email for feedback_id=%s", instance.pk)
+    send_email_async(notify_email, subject, html)
 
 
 def _send_announcement_push(announcement_pk, announcement_title):

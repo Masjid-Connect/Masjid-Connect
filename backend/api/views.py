@@ -572,6 +572,7 @@ class EventViewSet(viewsets.ModelViewSet):
 
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
+@throttle_classes([AnonRateThrottle])
 def register_push_token(request):
     """Register or update a push token. Works for both anonymous and authenticated users."""
     token_str = request.data.get("token")
