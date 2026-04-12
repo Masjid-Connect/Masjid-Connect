@@ -379,7 +379,7 @@ export const components = {
   },
   tabGlow: {
     size: 64,
-    opacity: 0.08,
+    opacity: 0.18,
   },
   emptyState: {
     iconSize: 72,

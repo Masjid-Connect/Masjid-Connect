@@ -57,10 +57,10 @@ export const layout = {
 export const patterns = {
   /** SVG tile size for background patterns */
   tileSize: 56,
-  /** Pattern overlay opacity — visible as architectural tilework, not invisible */
-  opacity: 0.10,
+  /** Pattern overlay opacity — visible as architectural tilework, perceptible on device */
+  opacity: 0.07,
   /** Slightly less in dark mode to avoid noise on OLED */
-  opacityDark: 0.08,
+  opacityDark: 0.05,
 } as const;
 
 /**

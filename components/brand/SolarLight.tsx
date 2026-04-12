@@ -53,35 +53,35 @@ const LIGHT_CONFIGS: Record<string, LightConfig> = {
     x: 0.2,
     y: 0.85,
     color: '#C8D8E4',   // cool steel dawn light
-    opacity: 0.12,
+    opacity: 0.15,
     radiusScale: 0.7,
   },
   sunrise: {
     x: 0.5,
     y: 0.8,
     color: '#F0DCBE',   // warm golden
-    opacity: 0.15,
+    opacity: 0.20,
     radiusScale: 0.75,
   },
   dhuhr: {
     x: 0.5,
     y: 0.15,
     color: '#F0EDE6',   // warm stone white
-    opacity: 0.18,
+    opacity: 0.22,
     radiusScale: 0.8,
   },
   asr: {
     x: 0.8,
     y: 0.4,
     color: '#F0D8B0',   // amber afternoon
-    opacity: 0.15,
+    opacity: 0.18,
     radiusScale: 0.7,
   },
   maghrib: {
     x: 0.85,
     y: 0.75,
-    color: '#E8C0A0',   // low orange
-    opacity: 0.12,
+    color: '#E8C0A0',   // golden hour — most dramatic light
+    opacity: 0.22,
     radiusScale: 0.65,
   },
   isha: {

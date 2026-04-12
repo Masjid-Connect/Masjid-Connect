@@ -34,7 +34,7 @@ interface GlowDotProps {
 export const GlowDot = ({
   size = 3,
   color = palette.divineGold,
-  blurRadius = 4,
+  blurRadius = 2.5,
   animated = true,
 }: GlowDotProps) => {
   // Breathing pulse — inhale brightens, exhale dims

@@ -132,7 +132,7 @@ export default function CommunityScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Subtle Islamic pattern — sacred identity */}
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <IslamicPattern width={windowWidth} height={windowHeight} opacity={0.02} color={isDark ? palette.divineGoldBright : palette.sapphire700} />
+        <IslamicPattern width={windowWidth} height={windowHeight} opacity={isDark ? 0.04 : 0.05} color={isDark ? palette.divineGoldBright : palette.sapphire700} />
       </View>
 
       {/* Inline header — appears when large title scrolls away */}

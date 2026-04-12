@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     width: components.grabber.width,
     height: components.grabber.height,
     borderRadius: components.grabber.height / 2,
-    opacity: 0.3,
+    opacity: 0.45,
   },
   content: {
     paddingHorizontal: spacing['3xl'],

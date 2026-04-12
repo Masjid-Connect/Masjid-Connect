@@ -47,9 +47,9 @@ export const palette = {
   sage400: '#6BCB9B',       // Success states (dark mode)
 
   // ─── Gold: divine accent, prayer signal ─────────────────────────
-  divineGold: '#A68523',    // Rich matte leaf gold — accent, prayer active (4.5:1+ on Stone-100 for WCAG AA)
+  divineGold: '#B08A1F',    // Warm burnished gold — accent, prayer active (3:1+ on Stone-100 for WCAG non-text)
   divineGoldBright: '#F0D060', // Brighter variant for dark mode contrast (4.5:1+ on sapphire950)
-  divineGoldGlow: 'rgba(166, 133, 35, 0.08)', // Subtle glow for active prayer
+  divineGoldGlow: 'rgba(176, 138, 31, 0.10)', // Warm glow for active prayer
   divineGoldText: '#8A7023',        // Darker gold for text on light backgrounds (4.5:1 contrast on white)
   divineGoldTextDark: '#E0C96B',    // Lighter gold for text on dark backgrounds (4.5:1 contrast on black)
 

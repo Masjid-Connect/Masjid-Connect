@@ -186,7 +186,7 @@ export default function SupportScreen() {
     <View style={[styles.root, { backgroundColor: colors.backgroundSecondary }]}>
       {/* Subtle Islamic pattern — sacred identity */}
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <IslamicPattern width={windowWidth} height={windowHeight} opacity={0.02} color={isDark ? palette.divineGoldBright : palette.divineGold} />
+        <IslamicPattern width={windowWidth} height={windowHeight} opacity={isDark ? 0.04 : 0.05} color={isDark ? palette.divineGoldBright : palette.divineGold} />
       </View>
 
       {/* Inline header */}
@@ -397,15 +397,15 @@ export default function SupportScreen() {
           </Pressable>
         </Animated.View>
 
-        {/* Donate Now — primary CTA */}
+        {/* Donate Now — primary CTA (visually dominant) */}
         <Animated.View entering={FadeInDown.delay(380).duration(400)} style={{ marginTop: spacing['2xl'] }}>
           <Pressable
             style={[
               styles.methodCard,
               {
-                backgroundColor: colors.card,
-                borderColor: colors.separator,
-                ...getElevation('sm', isDark),
+                backgroundColor: colors.tint,
+                borderColor: colors.tint,
+                ...getElevation('md', isDark),
               },
             ]}
             onPress={handleDonate}
@@ -413,25 +413,25 @@ export default function SupportScreen() {
             accessibilityRole="button"
             accessibilityLabel={t('support.donateNow')}
           >
-            <View style={[styles.methodIcon, { backgroundColor: colors.tint }]}>
+            <View style={[styles.methodIcon, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
               <Ionicons name="card-outline" size={20} color={colors.onPrimary} />
             </View>
             <View style={styles.methodText}>
-              <Text style={[typography.headline, { color: colors.text }]}>
+              <Text style={[typography.headline, { color: colors.onPrimary }]}>
                 {isLoading ? t('support.processing') : t('support.donateNow')}
               </Text>
-              <Text style={[typography.footnote, { color: colors.textSecondary }]}>
+              <Text style={[typography.footnote, { color: colors.onPrimary, opacity: 0.8 }]}>
                 {t('support.donateNowHint')}
               </Text>
             </View>
             {!isLoading && (
               <View style={styles.methodRight}>
                 {amount && amount >= 1 && (
-                  <Text style={[typography.headline, { color: colors.tint }]}>
+                  <Text style={[typography.headline, { color: colors.onPrimary }]}>
                     £{totalAmount.toFixed(2)}
                   </Text>
                 )}
-                <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
+                <Ionicons name="chevron-forward" size={20} color={colors.onPrimary} style={{ opacity: 0.7 }} />
               </View>
             )}
           </Pressable>

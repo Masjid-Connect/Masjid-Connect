@@ -222,7 +222,7 @@ export default function PrayerTimesScreen() {
         <View
           style={[
             styles.hero,
-            { paddingTop: insets.top + (isLandscape ? spacing.lg : spacing['3xl']) },
+            { paddingTop: insets.top + (isLandscape ? spacing.lg : spacing['3xl']), minHeight: isLandscape ? 160 : Math.max(320, screenHeight * 0.50) },
             isLandscape && styles.heroLandscape,
           ]}
           onLayout={(e) => {

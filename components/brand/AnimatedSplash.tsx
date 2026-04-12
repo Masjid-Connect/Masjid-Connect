@@ -82,8 +82,8 @@ const GoldenGlow = ({
           c={vec(cx, cy)}
           r={radius}
           colors={[
-            'rgba(240, 208, 96, 0.14)',  // Divine Gold center
-            'rgba(240, 208, 96, 0.06)',  // Mid fade
+            'rgba(240, 208, 96, 0.30)',  // Divine Gold center — visible halo
+            'rgba(240, 208, 96, 0.12)',  // Mid fade
             'rgba(240, 208, 96, 0.0)',   // Fully transparent edge
           ]}
           positions={[0, 0.5, 1]}
@@ -143,7 +143,7 @@ const ShimmerGradient = ({ width, height }: { width: number; height: number }) =
           end={vec(width, 0)}
           colors={[
             'rgba(240, 208, 96, 0.0)',
-            'rgba(240, 208, 96, 0.08)',
+            'rgba(240, 208, 96, 0.22)',
             'rgba(240, 208, 96, 0.0)',
           ]}
         />
