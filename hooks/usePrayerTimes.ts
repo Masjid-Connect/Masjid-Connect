@@ -35,9 +35,54 @@ function parseTimeField(timeStr: string | null, targetDate: Date): Date {
 }
 
 /**
+ * Check whether a parsed Date came from a null/empty field (resolved to midnight).
+ * Midnight (hour 0) is the sentinel returned by parseTimeField for null inputs.
+ * Fajr genuinely occurs before sunrise but never at exactly 00:00.
+ */
+function isMidnightSentinel(date: Date): boolean {
+  return date.getHours() === 0 && date.getMinutes() === 0;
+}
+
+/**
+ * Patch any null-sentinel prayer times with values from the static timetable.
+ * This ensures the user always sees real times — never blank or noon fallbacks.
+ * The static timetable has 365 days of accurate data (±1 min year-over-year).
+ */
+function patchFromStatic(
+  times: PrayerTimesData,
+  startTimes: PrayerTimesData | undefined,
+  targetDate: Date,
+): { times: PrayerTimesData; startTimes: PrayerTimesData | undefined } {
+  const staticResult = getStaticPrayerTimes(targetDate);
+  if (!staticResult) return { times, startTimes };
+
+  const prayerKeys: (keyof PrayerTimesData)[] = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
+
+  const patched = { ...times };
+  for (const key of prayerKeys) {
+    if (isMidnightSentinel(patched[key])) {
+      patched[key] = staticResult.times[key];
+    }
+  }
+
+  let patchedStart = startTimes;
+  if (patchedStart && staticResult.startTimes) {
+    patchedStart = { ...patchedStart };
+    for (const key of prayerKeys) {
+      if (isMidnightSentinel(patchedStart[key])) {
+        patchedStart[key] = staticResult.startTimes[key];
+      }
+    }
+  }
+
+  return { times: patched, startTimes: patchedStart };
+}
+
+/**
  * Convert an API MosquePrayerTimeResponse into prayer data.
  * Masjid jama'ah times are the PRIMARY times — they're what the congregation uses.
  * Start times from the masjid timetable are optional secondary info.
+ * Any null/missing fields are patched from the static timetable.
  */
 function parseApiPrayerTimes(
   apiData: MosquePrayerTimeResponse,
@@ -64,7 +109,8 @@ function parseApiPrayerTimes(
     isha: ensurePM(parseTimeField(apiData.isha_start, targetDate)),
   } : undefined;
 
-  return { times, startTimes };
+  // Patch any null/missing fields from the static timetable
+  return patchFromStatic(times, startTimes, targetDate);
 }
 
 /**
