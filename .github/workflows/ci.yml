@@ -86,13 +86,17 @@ jobs:
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/ci_test
 
   # -----------------------------------------------------------
-  # Publish OTA update via EAS (only on push to main, after tests pass)
+  # Publish OTA update via EAS (only on push to main, after mobile tests pass)
   # Requires EXPO_TOKEN secret set in repo settings.
+  #
+  # Only depends on `frontend` (mobile tests) — backend test state is
+  # irrelevant to shipping a mobile-only JS bundle. The `deploy` job below
+  # still gates on backend tests, which is the correct coupling.
   # -----------------------------------------------------------
   eas-update:
     name: EAS Update (OTA)
     runs-on: ubuntu-latest
-    needs: [frontend, backend]
+    needs: [frontend]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
