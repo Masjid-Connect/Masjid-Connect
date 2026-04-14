@@ -46,3 +46,8 @@ google-service-account.json
 # generated native folders
 /ios
 /android
+
+# per-session scratch (research notes, sub-agent outputs, etc.)
+# memory/ and projects/ are tracked; context/ is not
+context/*
+!context/.gitkeep
