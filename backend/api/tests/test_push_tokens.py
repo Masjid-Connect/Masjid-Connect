@@ -56,13 +56,17 @@ class PushTokenTests(TestCase):
         )
 
     def test_register_push_token_unauthenticated(self):
-        """Unauthenticated request to register push token returns 401."""
+        """Anonymous users can register push tokens. The app registers early
+        (before sign-in) so announcements and prayer-time reminders reach the
+        device regardless of auth state. The stored row has user=None until a
+        later sign-in links it."""
         client = APIClient()
         response = client.post("/api/v1/push-tokens/", {
             "token": "ExponentPushToken[unauth-test]",
             "platform": "ios",
         })
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["token"], "ExponentPushToken[unauth-test]")
 
     def test_update_existing_push_token(self):
         """Re-registering the same token with a different platform updates it."""

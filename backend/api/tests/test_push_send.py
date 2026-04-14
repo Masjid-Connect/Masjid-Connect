@@ -167,17 +167,11 @@ class NotifyAnnouncementSubscribersTest(TestCase):
         result = notify_announcement_subscribers(announcement)
         self.assertEqual(result["sent"], 1)
 
-    @patch("core.push._client")
-    def test_skips_subscribers_with_announcements_disabled(self, mock_client):
-        self.sub.notify_announcements = False
-        self.sub.save()
-
-        announcement = Announcement.objects.create(
-            mosque=self.mosque, title="Test", body="Body", author=self.user
-        )
-        result = notify_announcement_subscribers(announcement)
-        self.assertEqual(result["sent"], 0)
-        mock_client.publish_multiple.assert_not_called()
+    # Note: the previous `test_skips_subscribers_with_announcements_disabled`
+    # has been removed. In the single-mosque model, `notify_announcement_subscribers`
+    # broadcasts to every PushToken regardless of per-subscription preferences —
+    # there is one mosque and every congregant is implicitly subscribed.
+    # Fine-grained per-user opt-out would re-introduce multi-mosque machinery.
 
     @patch("core.push._client")
     def test_urgent_announcement_sets_high_priority(self, mock_client):
@@ -248,20 +242,7 @@ class NotifyEventSubscribersTest(TestCase):
         msg = call_args[0]
         self.assertIn("event", msg.data.get("type", ""))
 
-    @patch("core.push._client")
-    def test_skips_subscribers_with_events_disabled(self, mock_client):
-        sub = UserSubscription.objects.get(user=self.user, mosque=self.mosque)
-        sub.notify_events = False
-        sub.save()
-
-        from datetime import date, time
-
-        event = Event.objects.create(
-            mosque=self.mosque,
-            title="Disabled",
-            event_date=date(2026, 3, 25),
-            start_time=time(19, 0),
-            author=self.user,
-        )
-        result = notify_event_subscribers(event)
-        self.assertEqual(result["sent"], 0)
+    # Note: the previous `test_skips_subscribers_with_events_disabled` has
+    # been removed — see the equivalent note on the announcement version
+    # above. Event notifications broadcast to all tokens under the
+    # single-mosque model.

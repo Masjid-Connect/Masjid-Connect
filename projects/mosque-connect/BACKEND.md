@@ -49,12 +49,7 @@ POST /api/v1/announcements/          # auth required
 GET  /api/v1/events/?mosque_ids=id1,id2&from_date=YYYY-MM-DD&category=lesson
 POST /api/v1/events/                 # auth required
 
-GET  /api/v1/subscriptions/          # auth required
-POST /api/v1/subscriptions/
-DELETE /api/v1/subscriptions/{id}/
-PATCH  /api/v1/subscriptions/{id}/
-
-POST /api/v1/push-tokens/            # Register push token
+POST /api/v1/push-tokens/            # Register push token (AllowAny — anon registrations supported so the app can receive announcements pre-sign-in; user=None until a later sign-in links the token)
 
 POST /api/v1/donate/checkout/        # Stripe Checkout Session (mobile uses url mode; web no longer calls)
 GET  /api/v1/donate/session-status/  # Verify session completion
