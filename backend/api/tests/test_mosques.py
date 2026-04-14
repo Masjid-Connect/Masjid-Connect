@@ -94,7 +94,9 @@ class MosqueNearbyTests(TestCase):
             "radius": 10,
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        results = response.data.get("results", response.data)
-        names = [m["name"] for m in results]
+        # AppPageNumberPagination returns { items, totalItems, hasMore }
+        # (see api/pagination.py) — not DRF default { results, ... }.
+        items = response.data["items"]
+        names = [m["name"] for m in items]
         self.assertIn("Close Mosque", names)
         self.assertNotIn("Far Mosque", names)
