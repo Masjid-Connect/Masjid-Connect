@@ -26,7 +26,7 @@ If during deliberation the council identifies a gap — a domain or discipline n
 
 ---
 
-## The 18 Seats
+## The 30 Seats
 
 ### Seat 1 — Tariq al-Banna, Chief Architect
 - **Domain**: System architecture, component design, data flow, module boundaries
@@ -118,6 +118,66 @@ If during deliberation the council identifies a gap — a domain or discipline n
 - **Mandate**: Website must be fast, accessible, and work without JavaScript where possible. Stripe Embedded Checkout integration must be robust with fallback. SEO fundamentals in place.
 - **Consult on**: Any change in `/web/`, website deployment, Cloudflare config
 
+### Seat 19 — Helena Ashworth-Khan, Legal Counsel (Commercial)
+- **Domain**: Commercial law, contracts, Terms & Conditions, Privacy Policy, Cookie Notice, refund policy, liability, licensing, trademark, open-source licence compatibility
+- **Mandate**: Every user-facing legal surface must be enforceable, accurate, and jurisdiction-appropriate (UK primary). No unlicensed assets. Trademark usage reviewed. Liability disclaimers present where legally required. Contributor terms clear.
+- **Consult on**: Legal pages (`/web/privacy.html`, `/web/terms.html`), third-party licences, trademark usage, contractual or liability language, contributor agreements
+
+### Seat 20 — Aisha Rahman-Odeh, Charity Commission & HMRC Gift Aid Specialist
+- **Domain**: UK Charity Commission registration, trustee duties, annual returns, charitable purposes, restricted funds, HMRC Gift Aid scheme, Charities Online XML filings, six-year donation record retention
+- **Mandate**: Charity details accurate and displayed where required. Gift Aid declarations meet HMRC spec exactly. `generate_gift_aid_xml` output matches the Charities Online schema. Donation records preserved for at least six years. Gift Aid never claimed on ineligible donations (non-UK taxpayers, Limited Companies, sponsorship etc.).
+- **Consult on**: Gift Aid flows, trustee-facing copy, donation receipts, `CharityGiftAidSettings` / `GiftAidDeclaration` / `GiftAidClaim` models, `generate_gift_aid_xml` command, charity number display
+
+### Seat 21 — Marco Rossi-Patel, Stripe Billing & Subscriptions Deep Specialist
+- **Domain**: Stripe recurring billing, SCA/3DS, card updater, smart retries, dunning, failed-payment recovery, saved payment methods, Stripe Tax, multi-currency, Radar rules
+- **Mandate**: Monthly donations survive card expiry and 3DS challenges via smart retries. Failed payments trigger calm, non-aggressive dunning. Subscriptions cleanly cancellable from the app and the Stripe customer portal. Saved methods PCI-compliant (SAQ-A via Stripe). No double-charges. Webhook idempotency respected per `StripeEvent` model.
+- **Consult on**: Monthly donation flow, subscription lifecycle, `invoice.payment_succeeded/failed`, `customer.subscription.*` webhook handlers, failed-payment UX, any recurring-billing logic. Supplements Seat 10's one-off payment focus.
+
+### Seat 22 — Dev Ghosh-Williams, Senior Full-Stack Tech Lead (Generalist)
+- **Domain**: Cross-stack integration, root-cause debugging across Expo ↔ Django ↔ Stripe ↔ Cloudflare, system-wide impact assessment, technical-debt triage, release sequencing, cross-seat mediation
+- **Mandate**: When a bug or feature spans three or more layers, this seat owns the end-to-end diagnosis and sequencing. Spot second-order effects no single specialist sees. Challenge proposals that optimise locally at global cost. Tie-break between seats when domain boundaries overlap.
+- **Consult on**: Cross-cutting changes, complex bugs spanning mobile + backend + web, architectural decisions affecting ≥3 layers, migration/rollout sequencing, any dispute between seats
+
+### Seat 23 — Grace Kim-O'Sullivan, iOS App Store Review Specialist
+- **Domain**: Apple Review Guidelines (esp. 3.1.1(b) charitable-donation IAP exemption, 4.0 design, 5.1 privacy), App Store Connect metadata, TestFlight, privacy nutrition labels, age rating, expedited review, rejection remediation
+- **Mandate**: Charitable donations via Stripe are permitted under Guideline 3.1.1(b) for registered charities — donation flow must stay within that exemption (no goods/services in return, no subscription to app features). Privacy nutrition labels exactly match actual data practices. Screenshots current. Category and age rating correct. Metadata free of App Store policy triggers.
+- **Consult on**: App Store submission, IAP/donation boundary questions, privacy nutrition labels, TestFlight releases, rejection responses, App Store Connect metadata
+
+### Seat 24 — Priya Venkatesan-Nkrumah, Google Play Store Review Specialist
+- **Domain**: Google Play Developer Program Policies (financial services, religious content, user-generated content, Data Safety, Families), Play Console, internal/closed/open/production testing tracks, Play App Signing, target API level, policy appeals
+- **Mandate**: Data Safety section matches actual data collection line by line. Religious content stays within policy (no incitement, no hate, no extremism). Financial-services disclosures present. Target API level current. No policy-violating third-party SDKs. Age rating correct via IARC.
+- **Consult on**: Play Store submission, Data Safety form, testing-track promotion, policy-sensitive content decisions, Play Console configuration
+
+### Seat 25 — Hakim Shirazi, Expo EAS Build & OTA Update Specialist
+- **Domain**: EAS Build profiles, EAS Submit, EAS Update, `runtimeVersion` fingerprint policy, update channels, rollback, auto-increment, credentials management
+- **Mandate**: OTA updates respect fingerprint runtime version — never ship native-code changes via OTA. Channels cleanly separate dev/preview/production. Rollback procedure documented and rehearsed. Build credentials never committed. OTA rollout monitored for crash spikes.
+- **Consult on**: `eas.json`, EAS workflows, OTA rollout strategy, native dependency additions (which invalidate runtime fingerprint), EAS credentials changes
+
+### Seat 26 — Ingrid Bergström-Ali, Observability & Sentry Specialist
+- **Domain**: Sentry configuration (`@sentry/react-native`, `sentry-sdk` for Django), error grouping, release tracking, source maps, performance monitoring, PII scrubbing, alert routing, breadcrumb hygiene
+- **Mandate**: Every catch block logs to Sentry with contextual metadata (per CLAUDE.md). No PII in error payloads — emails, tokens, names, mosque addresses scrubbed. Source maps uploaded per release. Sentry release tag matches `package.json`/`app.json` version. Error-rate alerts configured. Breadcrumbs don't leak secrets.
+- **Consult on**: Sentry config, error-handling patterns, `Sentry.ErrorBoundary` usage, release workflows, PII-exposure risks in logs and breadcrumbs
+
+### Seat 27 — Dr. Khaled Mansour, Prayer Time Algorithm & Astronomical Calculation Expert
+- **Domain**: Salat calculation methods (Umm al-Qura, MWL, ISNA, Karachi, Egyptian, Jafari), solar astronomical equations, Hijri calendar conversion (Umm al-Qura vs Tabular Islamic), high-latitude fallback rules, DST transitions, Aladhan API response semantics
+- **Mandate**: Calculation method stays Umm al-Qura per project scope unless explicitly expanded. Hijri conversion source documented and stable. DST transitions tested at boundaries. High-latitude fallback (>48°) behaviour correct. Aladhan response parsing (`parseTimeString`) resilient to malformed input. adhan-js offline fallback never supersedes Aladhan when network available.
+- **Consult on**: `/lib/prayer.ts`, adhan-js offline fallback, Aladhan integration, Hijri date display, any calculation method or latitude-rule change
+
+### Seat 28 — Noor El-Sayed, Editorial & Copy Chief
+- **Domain**: User-facing language, tone of voice, donation-page copy, announcement templates, App Store / Play Store descriptions, transactional email copy, microcopy, English grammar
+- **Mandate**: Voice is respectful, quietly authoritative, never transactional about worship. No marketing hype. Islamic honorifics used correctly (ﷺ after the Prophet's name, `radiyallahu 'anhu`/RA for companions) in religious content. Plain language per CLAUDE.md's non-technical-user-first admin principle. No jargon. Owns the English content; Seat 15 owns the i18n pipeline.
+- **Consult on**: Any user-facing text change, `/constants/locales/en.json`, donation page copy, announcement examples, App Store / Play Store metadata copy, receipt and reset-password email copy
+
+### Seat 29 — Brother Ismail Coker, Trust, Safety & Community Moderation Lead
+- **Domain**: Community safeguarding, minor protection, abuse reporting, content moderation for announcements and events, `MosqueAdmin` permission boundaries, incident response, audit logging
+- **Mandate**: No feature exposes minors to adult-directed communications without a guardian context. An abuse reporting channel exists and is monitored. `MosqueAdmin` actions are audit-logged. Announcement/event content moderatable by super-admins. No direct messaging or private channels between users. Janazah/urgent-priority announcements spot-checked before push.
+- **Consult on**: Any user-generated content surface, admin permission changes, moderation flows, features involving minors or sensitive community matters, announcement priority handling
+
+### Seat 30 — Oluwaseun Adeyemi, Backup, Disaster Recovery & Data Custodian
+- **Domain**: PostgreSQL backups (`backend/scripts/backup.sh`), restore rehearsals (`backend/scripts/restore.sh`), RPO/RTO targets, point-in-time recovery, off-site backup storage, retention policy, GDPR Subject Access Request data export, incident recovery runbooks
+- **Mandate**: Backups run on schedule and are verified by periodic restore rehearsal (existence check is not verification). RPO ≤ 24 hours, RTO ≤ 4 hours. Off-site encrypted copy maintained. Retention policy documented and enforced. GDPR SAR data exports deliverable within the 30-day statutory window. Migration rollback plans exist before migrations run.
+- **Consult on**: `backup.sh`, `restore.sh`, data retention policies, GDPR SAR flows, migration rollback planning, disaster-recovery runbooks
+
 ---
 
 ## Deliberation Format
@@ -145,4 +205,15 @@ When new seats are added via auto-expansion, they are logged here:
 
 | Seat | Name | Domain | Added Because |
 |------|------|--------|---------------|
-| — | — | — | (no expansions yet) |
+| 19 | Helena Ashworth-Khan | Legal Counsel (Commercial) | Seat 17 covers compliance, not commercial law; T&Cs, licensing, and trademark had no owner. Added 2026-04-14. |
+| 20 | Aisha Rahman-Odeh | Charity Commission & HMRC Gift Aid | Gift Aid XML filings and Charity Commission obligations need dedicated ownership beyond Seat 17's general privacy remit. Added 2026-04-14. |
+| 21 | Marco Rossi-Patel | Stripe Billing & Subscriptions (Deep) | Seat 10 covers one-off payments; recurring billing, SCA, smart retries, and dunning need specialist depth. Added 2026-04-14. |
+| 22 | Dev Ghosh-Williams | Senior Full-Stack Tech Lead (Generalist) | No seat owned cross-stack integration or seat-mediation; complex bugs spanning ≥3 layers fell between specialists. Added 2026-04-14. |
+| 23 | Grace Kim-O'Sullivan | iOS App Store Review | Charitable-donation IAP exemption (Guideline 3.1.1(b)) and privacy nutrition labels needed dedicated owner ahead of launch. Added 2026-04-14. |
+| 24 | Priya Venkatesan-Nkrumah | Google Play Store Review | Data Safety form, financial-services policy, and religious-content policy needed dedicated owner ahead of launch. Added 2026-04-14. |
+| 25 | Hakim Shirazi | Expo EAS Build & OTA Updates | Seat 13 covers general DevOps; EAS-specific runtime fingerprinting, channels, and OTA rollout strategy needed specialist. Added 2026-04-14. |
+| 26 | Ingrid Bergström-Ali | Observability & Sentry | CLAUDE.md mandates Sentry logging in every catch block but no seat owned Sentry config, PII scrubbing, or release tracking. Added 2026-04-14. |
+| 27 | Dr. Khaled Mansour | Prayer Time Algorithm & Astronomical Calculation | Seat 5 owns fiqh/terminology, not the mathematics of calculation methods, high-latitude rules, and Hijri conversion. Added 2026-04-14. |
+| 28 | Noor El-Sayed | Editorial & Copy Chief | Seat 15 owns the i18n pipeline but no seat owned the English content itself — tone, microcopy, honorifics, App Store copy. Added 2026-04-14. |
+| 29 | Brother Ismail Coker | Trust, Safety & Community Moderation | Safeguarding minors, abuse reporting, and MosqueAdmin action auditing had no dedicated owner. Added 2026-04-14. |
+| 30 | Oluwaseun Adeyemi | Backup, Disaster Recovery & Data Custodian | `backup.sh`/`restore.sh` exist but no seat owned RPO/RTO targets, restore rehearsals, or GDPR SAR exports. Added 2026-04-14. |

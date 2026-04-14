@@ -2,7 +2,7 @@
 
 > **Governing Doctrine**: See [DOCTRINE.md](./DOCTRINE.md) for non-negotiable project rules. All development must comply.
 
-> **Council of Experts**: See [COUNCIL.md](./COUNCIL.md) for the 18-seat expert council. **All changes must pass council deliberation before implementation.** This is non-negotiable.
+> **Council of Experts**: See [COUNCIL.md](./COUNCIL.md) for the 30-seat expert council. **All changes must pass council deliberation before implementation.** This is non-negotiable.
 
 ## Council Enforcement
 
