@@ -38,8 +38,7 @@ import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { useReadAnnouncements } from '@/hooks/useReadAnnouncements';
 import { useAdminStatus } from '@/hooks/useAdminStatus';
 import { useLiveLesson } from '@/hooks/useLiveLesson';
-
-type CommunitySegment = 'announcements' | 'events';
+import { resolveCommunitySegment, type CommunitySegment } from './community.segment';
 
 const HEADER_HEIGHT = 44;
 const LARGE_TITLE_HEIGHT = 52;
@@ -54,9 +53,9 @@ export default function CommunityScreen() {
   // Deep-link support: a `segment` search param preselects the sub-tab.
   // Push notifications (announcement/event) use this to route via app/_layout.tsx.
   const params = useLocalSearchParams<{ segment?: string }>();
-  const initialSegment: CommunitySegment =
-    params.segment === 'events' ? 'events' : 'announcements';
-  const [activeSegment, setActiveSegment] = useState<CommunitySegment>(initialSegment);
+  const [activeSegment, setActiveSegment] = useState<CommunitySegment>(() =>
+    resolveCommunitySegment(params.segment),
+  );
 
   // React to param changes when the tab is already mounted (e.g. user taps a
   // second notification without the screen unmounting).
