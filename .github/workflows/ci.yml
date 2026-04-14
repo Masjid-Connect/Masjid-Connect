@@ -77,8 +77,13 @@ jobs:
           ALLOWED_HOSTS: "*"
           DATABASE_URL: postgres://postgres:postgres@localhost:5432/ci_test
 
+      # --keepdb skips the teardown drop. settings.py sets CONN_MAX_AGE=600,
+      # which keeps connections open past the test run; without --keepdb Django
+      # then fails to drop the test DB ("database is being accessed by other
+      # users"). CI containers are ephemeral so there's no downside to keeping
+      # the DB — the whole postgres service is discarded when the job ends.
       - name: Run tests
-        run: python manage.py test api.tests
+        run: python manage.py test api.tests --keepdb
         env:
           SECRET_KEY: ci-test-key
           DEBUG: "True"
