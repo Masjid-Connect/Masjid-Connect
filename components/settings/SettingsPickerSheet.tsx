@@ -61,6 +61,9 @@ export function SettingsPickerSheet<T extends string | number>({
               !isLast && styles.optionBorder,
               !isLast && { borderBottomColor: colors.separator },
             ]}
+            accessibilityRole="radio"
+            accessibilityLabel={option.label}
+            accessibilityState={{ selected: isSelected }}
           >
             <View style={styles.optionText}>
               <Text style={[typography.body, { color: colors.text }]}>

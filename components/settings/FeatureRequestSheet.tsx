@@ -216,6 +216,9 @@ export const FeatureRequestSheet = ({ visible, onDismiss }: FeatureRequestSheetP
                 opacity: selectedCategory && !submitting ? 1 : 0.4,
               },
             ]}
+            accessibilityRole="button"
+            accessibilityLabel={submitting ? t('settings.feedbackSending') : t('settings.featureSend')}
+            accessibilityState={{ disabled: !selectedCategory || submitting }}
           >
             <Ionicons name="bulb" size={18} color={palette.white} style={{ marginEnd: spacing.sm }} />
             <Text style={[typography.headline, { color: palette.white }]}>

@@ -106,11 +106,12 @@ const ShimmerSweep = ({
   height: number;
   shimmerX: SharedValue<number>;
 }) => {
-  if (Platform.OS === 'web') return null;
-
+  // Hook must be called unconditionally (rules-of-hooks); web early-return follows.
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: shimmerX.value }],
   }));
+
+  if (Platform.OS === 'web') return null;
 
   return (
     <Animated.View

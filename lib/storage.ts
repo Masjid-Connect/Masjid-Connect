@@ -7,7 +7,6 @@ const KEYS = {
   REMINDER_MINUTES: 'reminder_minutes',
   USE_24H: 'use_24h_format',
   THEME: 'theme_preference',
-  LANGUAGE: 'language_preference',
   NOTIFY_ANNOUNCEMENTS: 'notify_announcements',
   NOTIFY_EVENTS: 'notify_events',
 };
@@ -72,15 +71,6 @@ export async function getThemePreference(): Promise<'light' | 'dark' | 'system'>
 
 export async function setThemePreference(theme: 'light' | 'dark' | 'system'): Promise<void> {
   await AsyncStorage.setItem(KEYS.THEME, theme);
-}
-
-/** Language preference */
-export async function getLanguage(): Promise<string | null> {
-  return AsyncStorage.getItem(KEYS.LANGUAGE);
-}
-
-export async function setLanguage(language: string): Promise<void> {
-  await AsyncStorage.setItem(KEYS.LANGUAGE, language);
 }
 
 /** Notification preferences */

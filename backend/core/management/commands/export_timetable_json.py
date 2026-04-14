@@ -1,8 +1,13 @@
-"""Export prayer times to a static JSON file for the mobile app fallback.
+"""Export prayer times to a static JSON file for the mobile app.
 
-Dumps all MosquePrayerTime records into a compact JSON file that gets
-bundled with the React Native app.  The app uses this as an offline
-fallback when both the backend API and Aladhan are unreachable.
+Dumps all MosquePrayerTime records into a compact JSON file that ships
+bundled with the React Native app as the **primary** source of prayer
+times. The backend API is used only as an optional overlay for ad-hoc
+schedule edits between JSON regenerations. The mobile app does not call
+any calculation-based service (e.g. Aladhan) for prayer times.
+
+Regenerated weekly by the `scrape-timetables` GitHub Action and delivered
+to installed apps via EAS OTA updates.
 
 Usage:
     python manage.py export_timetable_json

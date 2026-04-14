@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import {
   StyleSheet,
   View,
@@ -50,7 +51,20 @@ export default function CommunityScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-  const [activeSegment, setActiveSegment] = useState<CommunitySegment>('announcements');
+  // Deep-link support: a `segment` search param preselects the sub-tab.
+  // Push notifications (announcement/event) use this to route via app/_layout.tsx.
+  const params = useLocalSearchParams<{ segment?: string }>();
+  const initialSegment: CommunitySegment =
+    params.segment === 'events' ? 'events' : 'announcements';
+  const [activeSegment, setActiveSegment] = useState<CommunitySegment>(initialSegment);
+
+  // React to param changes when the tab is already mounted (e.g. user taps a
+  // second notification without the screen unmounting).
+  useEffect(() => {
+    if (params.segment === 'announcements' || params.segment === 'events') {
+      setActiveSegment(params.segment);
+    }
+  }, [params.segment]);
   const { announcements, refresh: refreshAnnouncements } = useAnnouncements();
   const { unreadCount } = useReadAnnouncements();
   const announcementUnreadCount = unreadCount(announcements.map((a) => a.id));

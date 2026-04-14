@@ -1,10 +1,11 @@
 /**
- * Hijri calendar utilities for seasonal UI hooks.
+ * Hijri calendar utilities.
  *
- * Uses the Aladhan API's Gregorian-to-Hijri conversion endpoint.
- * Cached for the current day to avoid repeated network calls.
+ * Sole remaining use of the Aladhan API in this app: Gregorian→Hijri date
+ * conversion. Prayer times come from the bundled static timetable
+ * (`constants/static-timetable.json`) — see `lib/staticTimetable.ts`.
  *
- * Primary use: Ramadan detection for seasonal theming and iftar countdowns.
+ * Results are cached per Gregorian day to avoid repeated network calls.
  */
 
 interface HijriDate {
@@ -14,33 +15,28 @@ interface HijriDate {
   year: number;
 }
 
-interface HijriCacheEntry {
-  date: string; // YYYY-MM-DD gregorian key
-  hijri: HijriDate;
-}
+type HijriCache = Map<string, HijriDate>;
 
-let _cache: HijriCacheEntry | null = null;
+const _cache: HijriCache = new Map();
 
-function todayKey(): string {
-  const d = new Date();
+function dateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
 /**
- * Fetch today's Hijri date from the Aladhan API.
- * Returns cached result if already fetched today.
+ * Fetch the Hijri date for a specific Gregorian date from the Aladhan API.
+ * Returns cached result if already fetched for that date.
  */
-export async function getHijriDate(): Promise<HijriDate | null> {
-  const key = todayKey();
-  if (_cache && _cache.date === key) return _cache.hijri;
+export async function getHijriDateFor(d: Date): Promise<HijriDate | null> {
+  const key = dateKey(d);
+  const cached = _cache.get(key);
+  if (cached) return cached;
 
   try {
-    const [dd, mm, yyyy] = [
-      new Date().getDate(),
-      new Date().getMonth() + 1,
-      new Date().getFullYear(),
-    ];
-    const url = `https://api.aladhan.com/v1/gpiToH/${dd}-${String(mm).padStart(2, '0')}-${yyyy}`;
+    const dd = d.getDate();
+    const mm = d.getMonth() + 1;
+    const yyyy = d.getFullYear();
+    const url = `https://api.aladhan.com/v1/gToH/${String(dd).padStart(2, '0')}-${String(mm).padStart(2, '0')}-${yyyy}`;
     const res = await fetch(url);
     if (!res.ok) return null;
 
@@ -55,11 +51,16 @@ export async function getHijriDate(): Promise<HijriDate | null> {
       year: Number(h.year),
     };
 
-    _cache = { date: key, hijri };
+    _cache.set(key, hijri);
     return hijri;
   } catch {
     return null;
   }
+}
+
+/** Fetch today's Hijri date. Convenience wrapper around `getHijriDateFor`. */
+export async function getHijriDate(): Promise<HijriDate | null> {
+  return getHijriDateFor(new Date());
 }
 
 /** Hijri month numbers for semantic checks */

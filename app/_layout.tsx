@@ -21,7 +21,6 @@ import { ToastProvider, useToast } from '@/contexts/ToastContext';
 import { reschedulePrayerRemindersForToday, addNotificationReceivedListener, addNotificationResponseListener } from '@/lib/notifications';
 import { initSentry, Sentry } from '@/lib/sentry';
 import '@/lib/i18n';
-import { configureRTL } from '@/lib/rtl';
 
 // Initialize Sentry before anything else renders
 initSentry();
@@ -73,7 +72,6 @@ function RootLayout() {
 
   useEffect(() => {
     if (loaded) {
-      configureRTL();
       SplashScreen.hideAsync();
     }
   }, [loaded]);
@@ -182,9 +180,9 @@ function RootLayoutNav() {
       if (!data?.type) return;
 
       if (data.type === 'announcement') {
-        router.push('/(tabs)/announcements');
+        router.push({ pathname: '/(tabs)/community', params: { segment: 'announcements' } });
       } else if (data.type === 'event') {
-        router.push('/(tabs)/events');
+        router.push({ pathname: '/(tabs)/community', params: { segment: 'events' } });
       } else if (data.type === 'live_lesson') {
         router.push('/live-lesson');
       }

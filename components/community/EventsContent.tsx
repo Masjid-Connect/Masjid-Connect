@@ -175,7 +175,7 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
         <Text style={[typography.headline, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.lg }]}>
           {t('common.networkError')}
         </Text>
-        <Pressable onPress={handleRefresh} style={[styles.retryBtn, { borderColor: colors.tint }]}>
+        <Pressable onPress={handleRefresh} style={[styles.retryBtn, { borderColor: colors.tint }]} accessibilityRole="button" accessibilityLabel={t('common.retry')}>
           <Text style={[typography.subhead, { color: colors.tint }]}>{t('common.retry')}</Text>
         </Pressable>
       </View>

@@ -319,7 +319,11 @@ export default function TermsScreen() {
             <Text style={bodyStyle}>
               If you have questions or concerns about these Terms, please contact us at:
             </Text>
-            <Pressable onPress={() => Linking.openURL(`mailto:${CONTACT_EMAIL}`)}>
+            <Pressable
+              onPress={() => Linking.openURL(`mailto:${CONTACT_EMAIL}`)}
+              accessibilityRole="link"
+              accessibilityLabel={t('a11y.emailContact', { email: CONTACT_EMAIL })}
+            >
               <Text style={[typography.callout, styles.link, { color: colors.tint }]}>
                 {CONTACT_EMAIL}
               </Text>

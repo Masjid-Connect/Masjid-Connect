@@ -284,6 +284,9 @@ export const QuickPostSheet = ({
                     },
                   ]}
                   onPress={() => { setExpiry(opt.value); Haptics.selectionAsync(); }}
+                  accessibilityRole="radio"
+                  accessibilityLabel={opt.label}
+                  accessibilityState={{ selected: expiry === opt.value }}
                 >
                   <Text style={[
                     typography.caption1,

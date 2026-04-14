@@ -3,6 +3,11 @@
 # gstack (installed globally, not tracked in repo)
 .claude/skills/gstack/
 
+# Claude Code per-machine tooling artifacts — not project-tracked
+.agents/
+.claude/
+skills-lock.json
+
 # dependencies
 node_modules/
 

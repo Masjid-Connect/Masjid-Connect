@@ -220,6 +220,9 @@ export const ReportIssueSheet = ({ visible, onDismiss }: ReportIssueSheetProps) 
                 opacity: selectedCategory && !submitting ? 1 : 0.4,
               },
             ]}
+            accessibilityRole="button"
+            accessibilityLabel={submitting ? t('settings.feedbackSending') : t('settings.reportIssueSend')}
+            accessibilityState={{ disabled: !selectedCategory || submitting }}
           >
             <Ionicons name="send" size={18} color={palette.white} style={{ marginEnd: spacing.sm }} />
             <Text style={[typography.headline, { color: palette.white }]}>

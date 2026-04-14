@@ -5,7 +5,6 @@ import {
   Text,
   Image,
   ScrollView,
-  Alert,
   Platform,
   Share,
 } from 'react-native';
@@ -36,11 +35,8 @@ import {
   setNotifyAnnouncements,
   getNotifyEvents,
   setNotifyEvents,
-  getLanguage,
-  setLanguage as persistLanguage,
 } from '@/lib/storage';
 import { reschedulePrayerRemindersForToday } from '@/lib/notifications';
-import { i18n } from '@/lib/i18n';
 import {
   SettingsSection,
   SettingsRow,
@@ -98,12 +94,9 @@ export default function SettingsScreen() {
   const [notifyAnnouncements, setNotifyAnnouncementsState] = useState(true);
   const [notifyEvents, setNotifyEventsState] = useState(true);
 
-  const [currentLanguage, setCurrentLanguage] = useState(i18n.language || 'en');
-
   // Sheet visibility
   const [showReminderPicker, setShowReminderPicker] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
-  const [showLanguagePicker, setShowLanguagePicker] = useState(false);
   const [showReportIssue, setShowReportIssue] = useState(false);
   const [showFeatureRequest, setShowFeatureRequest] = useState(false);
 
@@ -123,21 +116,6 @@ export default function SettingsScreen() {
     setNotifyAnnouncementsState(announceEnabled);
     setNotifyEventsState(eventsEnabled);
   };
-
-  const handleLanguageChange = useCallback(async (lang: string) => {
-    const isRTLChange = (lang === 'ar') !== (currentLanguage === 'ar');
-    setCurrentLanguage(lang);
-    await persistLanguage(lang);
-    await i18n.changeLanguage(lang);
-    if (isRTLChange) {
-      Alert.alert(
-        lang === 'ar' ? 'إعادة تشغيل مطلوبة' : 'Restart Required',
-        lang === 'ar'
-          ? 'يرجى إعادة تشغيل التطبيق لتطبيق تخطيط اللغة العربية.'
-          : 'Please restart the app to apply the right-to-left layout for Arabic.',
-      );
-    }
-  }, [currentLanguage]);
 
   const handleReminderChange = useCallback(async (minutes: number) => {
     setReminderMin(minutes);
@@ -297,17 +275,6 @@ export default function SettingsScreen() {
           position="first"
         />
         <SettingsRow
-          icon={{ name: 'globe', backgroundColor: palette.sapphire600 }}
-          label={t('settings.language')}
-          value={currentLanguage === 'ar' ? t('settings.languageAr') : t('settings.languageEn')}
-          accessory="disclosure"
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            setShowLanguagePicker(true);
-          }}
-          position="middle"
-        />
-        <SettingsRow
           icon={{ name: 'time', backgroundColor: palette.sapphire600 }}
           label={t('settings.use24h')}
           accessory="toggle"
@@ -389,18 +356,6 @@ export default function SettingsScreen() {
         options={reminderOptions}
         selectedValue={reminderMin}
         onSelect={handleReminderChange}
-      />
-
-      <SettingsPickerSheet
-        visible={showLanguagePicker}
-        onDismiss={() => setShowLanguagePicker(false)}
-        title={t('settings.language')}
-        options={[
-          { label: 'English', value: 'en' },
-          { label: 'العربية', value: 'ar' },
-        ]}
-        selectedValue={currentLanguage}
-        onSelect={(val: number | string) => handleLanguageChange(String(val))}
       />
 
       <ThemePreviewSheet

@@ -41,6 +41,8 @@ export const ErrorFallback = ({ error, resetError }: ErrorFallbackProps) => {
         style={[styles.button, { backgroundColor: colors.tint }]}
         onPress={handleRetry}
         activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={t('error.retry', 'Try Again')}
       >
         <Ionicons name="refresh-outline" size={20} color={colors.onPrimary} />
         <Text style={[styles.buttonText, { color: colors.onPrimary }]}>

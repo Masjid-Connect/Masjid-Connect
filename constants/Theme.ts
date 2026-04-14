@@ -189,7 +189,7 @@ export const borderRadius = {
  * Typography — Apple's Human Interface type scale.
  * System fonts with weight variation. No custom fonts needed for MVP.
  */
-export const typography: Record<string, TextStyle> = {
+export const typography = {
   largeTitle: {
     fontSize: 34,
     fontFamily: fonts.heading,
@@ -345,7 +345,7 @@ export const typography: Record<string, TextStyle> = {
     letterSpacing: 0,
     lineHeight: 16,
   },
-};
+} satisfies Record<string, TextStyle>;
 
 /**
  * Component-specific dimension tokens.

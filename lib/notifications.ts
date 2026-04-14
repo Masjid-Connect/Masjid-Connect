@@ -3,10 +3,8 @@ import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import type { PrayerTimesData, PrayerName } from '@/types';
 import { PRAYER_LABELS } from '@/types';
-import { getPrayerTimes } from '@/lib/prayer';
 import { getStaticPrayerTimes } from '@/lib/staticTimetable';
 import { getReminderMinutes } from '@/lib/storage';
-import { SALAFI_MASJID } from '@/constants/mosque';
 import { Sentry } from '@/lib/sentry';
 
 /** Configure notification handler (native only) */
@@ -141,26 +139,23 @@ export async function schedulePrayerReminders(
   }
 }
 
-/** Reschedule prayer reminders using static timetable or Aladhan for today. */
+/** Reschedule prayer reminders from the static masjid timetable for today.
+ *  If the static lookup returns nothing (should never happen given timetable
+ *  coverage through 2027), skip scheduling rather than fabricate times from
+ *  a calculation method the masjid does not use. */
 export async function reschedulePrayerRemindersForToday(): Promise<void> {
   if (Platform.OS === 'web') return;
 
-  const today = new Date();
-  let times: PrayerTimesData;
-
-  // Static timetable is primary (jama'ah times from masjid)
-  const staticResult = getStaticPrayerTimes(today);
-  if (staticResult) {
-    times = staticResult.times;
-  } else {
-    // Fallback to Aladhan calculated times
-    const { latitude: lat, longitude: lng } = SALAFI_MASJID;
-    const result = await getPrayerTimes(lat, lng, 4, 'UmmAlQura');
-    times = result.times;
+  const staticResult = getStaticPrayerTimes(new Date());
+  if (!staticResult) {
+    Sentry.captureMessage('reschedulePrayerRemindersForToday: static timetable returned no data', {
+      level: 'warning',
+    });
+    return;
   }
 
   const reminderMinutes = await getReminderMinutes();
-  await schedulePrayerReminders(times, reminderMinutes);
+  await schedulePrayerReminders(staticResult.times, reminderMinutes);
 }
 
 /** Cancel all prayer reminder notifications */

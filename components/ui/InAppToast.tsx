@@ -187,6 +187,9 @@ export const InAppToast = () => {
             currentToast.onPress?.();
             handleDismiss();
           }}
+          accessibilityRole="button"
+          accessibilityLabel={currentToast.title}
+          accessibilityHint={currentToast.subtitle}
         >
           {/* Accent dot */}
           <View style={[styles.dot, { backgroundColor: accent }]} />

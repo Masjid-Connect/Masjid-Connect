@@ -88,9 +88,6 @@
     "themeDark": "Dark mode",
     "themeSystem": "Match device",
     "use24h": "24-hour time",
-    "language": "Language",
-    "languageEn": "English",
-    "languageAr": "العربية",
     "appInfo": "App Info",
     "version": "The Salafi Masjid v{{version}}",
     "prayerSource": "Prayer times via Aladhan API",
@@ -427,5 +424,8 @@
   "notFound": {
     "title": "Page not found",
     "returnHome": "Return to Prayer Times"
+  },
+  "a11y": {
+    "emailContact": "Email {{email}}"
   }
 }

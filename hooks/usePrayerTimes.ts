@@ -1,17 +1,14 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { format, addDays, isToday as isTodayFn } from 'date-fns';
-import { getPrayerTimes, buildPrayerEntries, getNextPrayer, getCountdown, ensurePM } from '@/lib/prayer';
+import { buildPrayerEntries, getNextPrayer, getCountdown, ensurePM } from '@/lib/prayer';
 import { getReminderMinutes, getUse24h } from '@/lib/storage';
-import { SALAFI_MASJID, getMosqueId } from '@/constants/mosque';
+import { getMosqueId } from '@/constants/mosque';
 import { schedulePrayerReminders } from '@/lib/notifications';
 import { getStaticPrayerTimes } from '@/lib/staticTimetable';
+import { getHijriDateFor } from '@/lib/hijri';
 import { prayerTimes as prayerTimesApi } from '@/lib/api';
 import type { PrayerTimeEntry, PrayerName, PrayerTimesData, MosquePrayerTimeResponse } from '@/types';
-
-/** Umm Al-Qura is the only calculation method used */
-const CALCULATION_METHOD_CODE = 4;
-const CALCULATION_METHOD_NAME = 'UmmAlQura';
 
 /** Parse "HH:MM:SS" or "HH:MM" time string into a Date on the given date.
  *  Returns midnight for null/empty, noon for malformed (NaN) values.
@@ -116,21 +113,22 @@ function parseApiPrayerTimes(
 /**
  * Get the correct Hijri date, accounting for the Islamic day starting at Maghrib.
  * If current time is after Maghrib, the Hijri date should be for the *next* Gregorian day.
+ *
+ * Uses Aladhan's Gregorian→Hijri conversion endpoint via `lib/hijri.ts`.
+ * This is the only remaining use of Aladhan in the app; prayer times themselves
+ * come from the bundled static timetable.
  */
 async function getCorrectHijriDate(
   targetDate: Date,
   maghribTime: Date | undefined,
 ): Promise<string | null> {
-  const { latitude: lat, longitude: lng } = SALAFI_MASJID;
   const now = new Date();
   const isAfterMaghrib = maghribTime && isTodayFn(targetDate) && now >= maghribTime;
   const hijriQueryDate = isAfterMaghrib ? addDays(targetDate, 1) : targetDate;
 
-  const result = await getPrayerTimes(lat, lng, CALCULATION_METHOD_CODE, CALCULATION_METHOD_NAME, hijriQueryDate);
-  if (result.hijriDate && result.hijriMonth && result.hijriYear) {
-    return `${result.hijriDate} ${result.hijriMonth} ${result.hijriYear}`;
-  }
-  return null;
+  const hijri = await getHijriDateFor(hijriQueryDate);
+  if (!hijri) return null;
+  return `${hijri.day} ${hijri.monthName} ${hijri.year}`;
 }
 
 interface UsePrayerTimesResult {
@@ -143,7 +141,7 @@ interface UsePrayerTimesResult {
   isLoading: boolean;
   /** Error message when both prayer time sources fail */
   error: string | null;
-  source: 'static' | 'api' | 'offline';
+  source: 'static' | 'api';
   jamaahAvailable: boolean;
   /** True when jama'ah times are estimated (e.g. same day from last year) */
   isEstimated: boolean;
@@ -170,7 +168,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
   const [hijriDate, setHijriDate] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [source, setSource] = useState<'static' | 'api' | 'offline'>('static');
+  const [source, setSource] = useState<'static' | 'api'>('static');
   const [jamaahAvailable, setJamaahAvailable] = useState(false);
   const [isEstimated, setIsEstimated] = useState(false);
   const [use24h, setUse24hState] = useState(false);
@@ -212,7 +210,7 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     const applyPrayerData = async (
       times: PrayerTimesData,
       startTimes: PrayerTimesData | undefined,
-      dataSource: 'static' | 'api' | 'offline',
+      dataSource: 'static' | 'api',
       estimated: boolean,
       hasMasjidTimes: boolean,
     ) => {
@@ -241,7 +239,37 @@ export function usePrayerTimes(): UsePrayerTimesResult {
     };
 
     try {
-      // 1. Live API — primary source (masjid jama'ah times from backend)
+      // 1. Static bundled timetable — PRIMARY source (masjid's committee-set jama'ah
+      //    times, scraped from the masjid website and shipped with the app).
+      //    Covers 2023-01-01 through 2027-12-31; refreshed via the
+      //    `scrape-timetables` GitHub Action + EAS OTA update.
+      const staticResult = getStaticPrayerTimes(targetDate);
+      if (staticResult) {
+        await applyPrayerData(staticResult.times, staticResult.startTimes, 'static', staticResult.isEstimated, true);
+
+        // 2. Backend API overlay — if available, replaces the static data for
+        //    ad-hoc schedule edits (e.g. Ramadan changes entered by an admin
+        //    between JSON regenerations). Silent no-op on failure.
+        try {
+          const mosqueId = await getMosqueId();
+          if (mosqueId) {
+            const dateStr = format(targetDate, 'yyyy-MM-dd');
+            const apiData = await prayerTimesApi.getByDate(mosqueId, dateStr);
+            if (apiData && mountedRef.current) {
+              const { times, startTimes } = parseApiPrayerTimes(apiData, targetDate);
+              await applyPrayerData(times, startTimes, 'api', false, true);
+            }
+          }
+        } catch {
+          // Overlay is optional — static data already applied, no error surfaced
+        }
+        return;
+      }
+
+      // Static lookup returned nothing (should not happen given coverage through
+      // 2027-12-31 plus ±1 day leap-year fallback). Try the backend API as a
+      // last resort; if that also fails, surface an error rather than fabricate
+      // calculation-based times the masjid doesn't use.
       const mosqueId = await getMosqueId();
       if (mosqueId) {
         const dateStr = format(targetDate, 'yyyy-MM-dd');
@@ -253,18 +281,10 @@ export function usePrayerTimes(): UsePrayerTimesResult {
         }
       }
 
-      // 2. Static bundled timetable — offline fallback (masjid jama'ah + start times)
-      const staticResult = getStaticPrayerTimes(targetDate);
-      if (staticResult) {
-        await applyPrayerData(staticResult.times, staticResult.startTimes, 'static', staticResult.isEstimated, true);
-        return;
+      if (mountedRef.current) {
+        setError(t('error.prayerTimesRetry'));
+        setIsLoading(false);
       }
-
-      // 3. Aladhan API — last resort (calculated times only, no masjid timetable)
-      const { latitude: lat, longitude: lng } = SALAFI_MASJID;
-      const result = await getPrayerTimes(lat, lng, CALCULATION_METHOD_CODE, CALCULATION_METHOD_NAME, targetDate);
-      if (!mountedRef.current) return;
-      await applyPrayerData(result.times, undefined, result.source, false, false);
     } catch (err) {
       console.error('Failed to load prayer times:', err);
       // R2: Surface error so the UI can show a fallback instead of a blank screen

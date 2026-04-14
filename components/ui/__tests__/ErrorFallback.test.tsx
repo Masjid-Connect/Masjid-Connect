@@ -30,8 +30,10 @@ jest.mock('react-native-gesture-handler', () => {
 
 jest.mock('@expo/vector-icons/Ionicons', () => {
   const { Text } = require('react-native');
-  return (props: { name: string; size: number; color: string }) =>
+  const MockIonicons = (props: { name: string; size: number; color: string }) =>
     <Text>{props.name}</Text>;
+  MockIonicons.displayName = 'MockIonicons';
+  return MockIonicons;
 });
 
 import { render, screen, fireEvent } from '@testing-library/react-native';
