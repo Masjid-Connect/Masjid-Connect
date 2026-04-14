@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Give — The Salafi Masjid</title>
-  <meta name="description" content="Support The Salafi Masjid, Birmingham. Your donation helps maintain the masjid, fund educational programmes, and serve the community.">
+  <meta name="description" content="Support The Salafi Masjid, Birmingham via direct bank transfer. Your donation helps maintain the masjid, fund educational programmes, and serve the community.">
   <meta name="theme-color" content="#0F2D52">
 
   <meta property="og:type" content="website">
@@ -34,7 +34,6 @@
     (function(){var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark')}})();
   </script>
   <link rel="stylesheet" href="styles.css?v=5">
-  <script src="https://js.stripe.com/v3/" async></script>
 </head>
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -125,164 +124,89 @@
       </div>
     </section>
 
-    <!-- DONATION FORM -->
+    <!-- BANK DETAILS + IMPACT -->
     <section class="page-section">
       <div class="container">
         <div class="donate">
 
-          <!-- Left: Payment form -->
-          <div class="donate__form-wrap">
-            <div class="donate__form-card">
-              <!-- Honeypot — hidden from humans, bots fill it -->
-              <div class="form-hp" aria-hidden="true" tabindex="-1">
-                <label for="donate-company">Company</label>
-                <input type="text" id="donate-company" name="company" autocomplete="off" tabindex="-1">
+          <!-- Left: Bank transfer details -->
+          <div class="donate__info-card">
+            <h2 class="donate__info-title">Bank Transfer Details</h2>
+            <p class="donate__info-desc">
+              Please donate by bank transfer using the details below. Use <strong>your name</strong> as the payment reference.
+            </p>
+
+            <h4 class="bank-sheet__section-title">UK Bank Transfer</h4>
+            <div class="bank-sheet__details">
+              <div class="bank-sheet__row">
+                <span class="bank-sheet__label">Account Name</span>
+                <span class="bank-sheet__value">Salafi Bookstore &amp; Islamic Centre</span>
               </div>
-
-              <!-- Frequency -->
-              <div class="donate__step">
-                <div class="donate__frequency">
-                  <button class="donate__freq-btn donate__freq-btn--active" data-freq="one-time" type="button">One-time</button>
-                  <button class="donate__freq-btn" data-freq="monthly" type="button">Monthly</button>
-                </div>
+              <div class="bank-sheet__row">
+                <span class="bank-sheet__label">Bank</span>
+                <span class="bank-sheet__value">Lloyds</span>
               </div>
-
-              <!-- Amount -->
-              <div class="donate__step">
-                <div class="donate__amounts">
-                  <button class="donate__amount" data-amount="10" type="button">£10</button>
-                  <button class="donate__amount donate__amount--active donate__amount--suggested" data-amount="25" type="button"><span class="donate__popular-pill">Popular</span>£25</button>
-                  <button class="donate__amount" data-amount="50" type="button">£50</button>
-                  <button class="donate__amount" data-amount="100" type="button">£100</button>
-                </div>
-                <div class="donate__custom">
-                  <div class="donate__custom-input-wrap">
-                    <span class="donate__currency">£</span>
-                    <input class="donate__custom-input" type="number" id="custom-amount" min="1" max="10000" step="1" placeholder="Custom amount" inputmode="decimal" aria-label="Custom donation amount">
-                  </div>
-                </div>
-              </div>
-
-              <!-- Enhance your gift -->
-              <div class="donate__step-divider"></div>
-              <span class="donate__step-label donate__step-label--enhance">Enhance your gift</span>
-              <div class="donate__step">
-                <label class="donate__gift-aid" id="gift-aid-label">
-                  <input type="checkbox" id="gift-aid" class="donate__gift-aid-checkbox">
-                  <span class="donate__gift-aid-check">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  </span>
-                  <span class="donate__gift-aid-text">
-                    <strong>Add Gift Aid</strong> — increase your donation by 25% at no extra cost.
-                    <span class="donate__gift-aid-hint">I am a UK taxpayer and understand that if I pay less Income Tax and/or Capital Gains Tax than the amount of Gift Aid claimed on all my donations in the relevant tax year, it is my responsibility to pay any difference.</span>
-                  </span>
-                </label>
-              </div>
-
-              <!-- Step 3b: Cover processing fees -->
-              <div class="donate__step">
-                <label class="donate__cover-fees" id="cover-fees-label">
-                  <input type="checkbox" id="cover-fees" class="donate__cover-fees-checkbox">
-                  <span class="donate__cover-fees-check">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                  </span>
-                  <span class="donate__cover-fees-text">
-                    <strong>Cover processing fees</strong> — add <span id="cover-fees-amount">£1.49</span> so the masjid receives your full donation.
-                    <span class="donate__cover-fees-hint">Payment providers charge a small fee per transaction. Covering this means 100% of your donation goes to the masjid.</span>
-                  </span>
-                </label>
-              </div>
-
-              <!-- Live total -->
-              <div class="donate__live-total" id="live-total">
-                <div class="donate__live-total-row">
-                  <span class="donate__live-total-label">Your donation</span>
-                  <span class="donate__live-total-value" id="live-total-base">£25</span>
-                </div>
-                <div class="donate__live-total-row donate__live-total-row--fee" id="live-total-fee-row" hidden>
-                  <span class="donate__live-total-label">Processing fee</span>
-                  <span class="donate__live-total-value" id="live-total-fee">£0.00</span>
-                </div>
-                <div class="donate__live-total-row donate__live-total-row--gift-aid" id="live-total-gift-aid-row" hidden>
-                  <span class="donate__live-total-label">Gift Aid (25%)</span>
-                  <span class="donate__live-total-value" id="live-total-gift-aid">£0.00</span>
-                </div>
-                <div class="donate__live-total-divider"></div>
-                <div class="donate__live-total-row donate__live-total-row--total">
-                  <span class="donate__live-total-label">Total</span>
-                  <span class="donate__live-total-value" id="live-total-amount">£25.00</span>
-                </div>
-              </div>
-
-              <!-- Step 4: Choose payment method -->
-              <div class="donate__step" id="donate-step-pay">
-                <span class="donate__step-label">Payment method</span>
-
-                <div class="donate__methods">
-                  <!-- Stripe Embedded Checkout — all methods (Card, PayPal, Apple Pay, Google Pay, Pay by Bank) managed via Stripe Dashboard -->
-                  <button class="donate__method-btn donate__method-btn--card" type="button" id="pay-card">
-                    <div class="donate__method-icons">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                    </div>
-                    <div class="donate__method-info">
-                      <span class="donate__method-label">Donate Now</span>
-                      <span class="donate__method-desc">Card, PayPal, Apple Pay, Google Pay or Bank</span>
-                    </div>
-                    <svg class="donate__method-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                  </button>
-
-                  <!-- Manual Bank Transfer (shows bank details for direct transfer) -->
-                  <button class="donate__method-btn donate__method-btn--bank" type="button" id="pay-bank">
-                    <div class="donate__method-icons">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/><path d="M4 10v11"/><path d="M20 10v11"/><path d="M8 14v3"/><path d="M12 14v3"/><path d="M16 14v3"/></svg>
-                    </div>
-                    <div class="donate__method-info">
-                      <span class="donate__method-label">Bank Transfer</span>
-                      <span class="donate__method-desc">Direct transfer to the masjid account</span>
-                    </div>
-                    <svg class="donate__method-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              <div class="bank-sheet__row">
+                <span class="bank-sheet__label">Sort Code</span>
+                <div class="bank-sheet__copyable">
+                  <span class="bank-sheet__value" data-copy="309309">30-93-09</span>
+                  <button class="bank-sheet__copy-btn" type="button" data-copy="309309" aria-label="Copy sort code">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    <span class="bank-sheet__copy-label">Copy</span>
                   </button>
                 </div>
               </div>
-
-              <div class="donate__trust-badge">
-                <div class="donate__trust-icon">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <div class="bank-sheet__row">
+                <span class="bank-sheet__label">Account Number</span>
+                <div class="bank-sheet__copyable">
+                  <span class="bank-sheet__value" data-copy="00231260">00231260</span>
+                  <button class="bank-sheet__copy-btn" type="button" data-copy="00231260" aria-label="Copy account number">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    <span class="bank-sheet__copy-label">Copy</span>
+                  </button>
                 </div>
-                <div class="donate__trust-text">
-                  <strong>Secure payments</strong>
-                  <span>256-bit encryption · PCI compliant · Charity No. 1083080</span>
+              </div>
+              <div class="bank-sheet__row">
+                <span class="bank-sheet__label">Reference</span>
+                <div class="bank-sheet__copyable">
+                  <span class="bank-sheet__value" data-copy="Masjid Donation">Masjid Donation</span>
+                  <button class="bank-sheet__copy-btn" type="button" data-copy="Masjid Donation" aria-label="Copy reference">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    <span class="bank-sheet__copy-label">Copy</span>
+                  </button>
                 </div>
-                <svg class="donate__trust-shield" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </div>
             </div>
 
-            <!-- Donation summary — shown between form and checkout, keeps context -->
-            <div class="donate__summary" id="checkout-summary" hidden>
-              <div class="donate__summary-details">
-                <span class="donate__summary-amount" id="summary-amount">£25</span>
-                <span class="donate__summary-meta" id="summary-meta">One-time donation</span>
+            <h4 class="bank-sheet__section-title">International Transfer</h4>
+            <div class="bank-sheet__details">
+              <div class="bank-sheet__row">
+                <span class="bank-sheet__label">IBAN</span>
+                <div class="bank-sheet__copyable">
+                  <span class="bank-sheet__value" data-copy="GB14LOYD30930900231260">GB14 LOYD 3093 0900 2312 60</span>
+                  <button class="bank-sheet__copy-btn" type="button" data-copy="GB14LOYD30930900231260" aria-label="Copy IBAN">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    <span class="bank-sheet__copy-label">Copy</span>
+                  </button>
+                </div>
               </div>
-              <button class="donate__summary-change" type="button" id="checkout-back">Change</button>
-            </div>
-
-            <!-- Stripe Embedded Checkout container -->
-            <div id="checkout-container" hidden></div>
-
-            <!-- Success state -->
-            <div class="donate__status donate__status--success" id="donate-success" hidden>
-              <div class="donate__status-icon">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <div class="bank-sheet__row">
+                <span class="bank-sheet__label">BIC / SWIFT</span>
+                <div class="bank-sheet__copyable">
+                  <span class="bank-sheet__value" data-copy="LOYDGB21282">LOYDGB21282</span>
+                  <button class="bank-sheet__copy-btn" type="button" data-copy="LOYDGB21282" aria-label="Copy BIC/SWIFT">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    <span class="bank-sheet__copy-label">Copy</span>
+                  </button>
+                </div>
               </div>
-              <strong>JazakAllahu khairan!</strong>
-              <p>Your donation has been processed successfully. May Allah reward you abundantly.</p>
+              <div class="bank-sheet__row">
+                <span class="bank-sheet__label">Branch</span>
+                <span class="bank-sheet__value">Erdington, Birmingham, UK</span>
+              </div>
             </div>
 
-            <!-- Error state -->
-            <div class="donate__status donate__status--error" id="donate-error" hidden>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-              <span id="donate-error-text">Something went wrong. Please try again.</span>
-            </div>
+            <p class="bank-sheet__note">Questions? Contact <a href="mailto:info@salafimasjid.app">info@salafimasjid.app</a> or call <a href="tel:+441217730033">0121 773 0033</a>.</p>
           </div>
 
           <!-- Right: Impact info -->
@@ -402,98 +326,8 @@
     </div>
   </footer>
 
-  <!-- Bank Transfer Bottom Sheet -->
-  <div class="bank-sheet" id="bank-sheet" hidden>
-    <div class="bank-sheet__backdrop" id="bank-sheet-backdrop"></div>
-    <div class="bank-sheet__panel">
-      <div class="bank-sheet__handle"></div>
-      <h3 class="bank-sheet__title">Bank Transfer Details</h3>
-      <p class="bank-sheet__desc">Transfer directly to the masjid account using your banking app or online banking. The account is registered under the masjid's official entity name.</p>
-
-      <ol class="bank-sheet__steps">
-        <li>Open your banking app or log in to online banking</li>
-        <li>Set up a new payment using the details below</li>
-        <li>Use <strong>your name</strong> as the payment reference</li>
-      </ol>
-
-      <h4 class="bank-sheet__section-title">UK Bank Transfer</h4>
-      <div class="bank-sheet__details">
-        <div class="bank-sheet__row">
-          <span class="bank-sheet__label">Account Name</span>
-          <span class="bank-sheet__value">Salafi Bookstore &amp; Islamic Centre</span>
-        </div>
-        <div class="bank-sheet__row">
-          <span class="bank-sheet__label">Bank</span>
-          <span class="bank-sheet__value">Lloyds</span>
-        </div>
-        <div class="bank-sheet__row">
-          <span class="bank-sheet__label">Sort Code</span>
-          <div class="bank-sheet__copyable">
-            <span class="bank-sheet__value" data-copy="309309">30-93-09</span>
-            <button class="bank-sheet__copy-btn" type="button" data-copy="309309" aria-label="Copy sort code">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              <span class="bank-sheet__copy-label">Copy</span>
-            </button>
-          </div>
-        </div>
-        <div class="bank-sheet__row">
-          <span class="bank-sheet__label">Account Number</span>
-          <div class="bank-sheet__copyable">
-            <span class="bank-sheet__value" data-copy="00231260">00231260</span>
-            <button class="bank-sheet__copy-btn" type="button" data-copy="00231260" aria-label="Copy account number">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              <span class="bank-sheet__copy-label">Copy</span>
-            </button>
-          </div>
-        </div>
-        <div class="bank-sheet__row">
-          <span class="bank-sheet__label">Reference</span>
-          <div class="bank-sheet__copyable">
-            <span class="bank-sheet__value" data-copy="Masjid Donation">Masjid Donation</span>
-            <button class="bank-sheet__copy-btn" type="button" data-copy="Masjid Donation" aria-label="Copy reference">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              <span class="bank-sheet__copy-label">Copy</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <h4 class="bank-sheet__section-title">International Transfer</h4>
-      <div class="bank-sheet__details">
-        <div class="bank-sheet__row">
-          <span class="bank-sheet__label">IBAN</span>
-          <div class="bank-sheet__copyable">
-            <span class="bank-sheet__value" data-copy="GB14LOYD30930900231260">GB14 LOYD 3093 0900 2312 60</span>
-            <button class="bank-sheet__copy-btn" type="button" data-copy="GB14LOYD30930900231260" aria-label="Copy IBAN">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              <span class="bank-sheet__copy-label">Copy</span>
-            </button>
-          </div>
-        </div>
-        <div class="bank-sheet__row">
-          <span class="bank-sheet__label">BIC / SWIFT</span>
-          <div class="bank-sheet__copyable">
-            <span class="bank-sheet__value" data-copy="LOYDGB21282">LOYDGB21282</span>
-            <button class="bank-sheet__copy-btn" type="button" data-copy="LOYDGB21282" aria-label="Copy BIC/SWIFT">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              <span class="bank-sheet__copy-label">Copy</span>
-            </button>
-          </div>
-        </div>
-        <div class="bank-sheet__row">
-          <span class="bank-sheet__label">Branch</span>
-          <span class="bank-sheet__value">Erdington, Birmingham, UK</span>
-        </div>
-      </div>
-
-      <p class="bank-sheet__note">Contact <a href="mailto:info@salafimasjid.app">info@salafimasjid.app</a> to confirm your transfer or if you need any help.</p>
-
-      <button class="bank-sheet__close" type="button" id="bank-sheet-close">Close</button>
-    </div>
-  </div>
-
   <script src="script.js?v=4" data-cfasync="false"></script>
-  <script src="donate.js?v=11" data-cfasync="false"></script>
+  <script src="donate.js?v=12" data-cfasync="false"></script>
 <!-- Cloudflare Web Analytics (free, cookieless, privacy-respecting) -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "YOUR_CF_ANALYTICS_TOKEN"}'></script>
 </body>
