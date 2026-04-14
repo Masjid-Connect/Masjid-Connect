@@ -63,6 +63,7 @@ jobs:
           ALLOWED_HOSTS: "*"
 
       - name: Commit updated timetable JSON
+        id: commit
         working-directory: .
         run: |
           git config user.name "github-actions[bot]"
@@ -70,20 +71,20 @@ jobs:
           git add constants/static-timetable.json
           if git diff --cached --quiet; then
             echo "No timetable changes to commit"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
           else
             git commit -m "chore: update static timetable from scraped data"
             git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Trigger EAS Update (optional)
-        if: ${{ hashFiles('constants/static-timetable.json') != '' }}
-        continue-on-error: true
-        run: |
-          if command -v npx &> /dev/null && [ -f ../package.json ]; then
-            cd ..
-            npx eas-cli update --branch production --message "Update prayer timetable" --non-interactive
-          else
-            echo "EAS CLI not available — skipping OTA update"
-          fi
+      # Only fire an OTA when the timetable actually changed. Previously
+      # this step ran every scheduled scrape (the hashFiles check only
+      # verified the file existed), burning an update slot and bumping
+      # EAS version for no change.
+      - name: Trigger EAS Update
+        if: steps.commit.outputs.changed == 'true'
+        working-directory: .
+        run: npx eas-cli update --branch production --message "Update prayer timetable" --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
