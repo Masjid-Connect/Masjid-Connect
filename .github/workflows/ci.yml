@@ -40,6 +40,24 @@ jobs:
       run:
         working-directory: backend
 
+    # Postgres service container — backend/config/settings.py defaults to
+    # postgres://localhost:5432/masjid_connect, so CI needs a running
+    # instance. Credentials are ephemeral and match DATABASE_URL below.
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ci_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -57,6 +75,7 @@ jobs:
           SECRET_KEY: ci-test-key
           DEBUG: "True"
           ALLOWED_HOSTS: "*"
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/ci_test
 
       - name: Run tests
         run: python manage.py test api.tests
@@ -64,6 +83,7 @@ jobs:
           SECRET_KEY: ci-test-key
           DEBUG: "True"
           ALLOWED_HOSTS: "*"
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/ci_test
 
   # -----------------------------------------------------------
   # Publish OTA update via EAS (only on push to main, after tests pass)
