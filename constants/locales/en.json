@@ -157,7 +157,7 @@
   },
   "privacy": {
     "title": "Privacy Policy",
-    "lastUpdated": "Last updated: March 2026",
+    "lastUpdated": "Last updated: April 2026",
     "intro": "The Salafi Masjid App is committed to protecting your privacy. This policy explains what information we collect, how we use it, and your rights regarding your data. We collect only what is necessary to provide you with prayer times, announcements, and event information.",
     "dataCollectionTitle": "Information We Collect",
     "dataCollection": "When you create an account, we collect your name, email address, and an encrypted password. We do not collect location data — the masjid's printed timetable is bundled with the app, so no location access is needed. We store your notification preferences and app settings locally on your device.",
@@ -399,7 +399,7 @@
   "legal": {
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
-    "lastUpdated": "Last updated: March 2026"
+    "lastUpdated": "Last updated: April 2026"
   },
   "notFound": {
     "title": "Page not found",

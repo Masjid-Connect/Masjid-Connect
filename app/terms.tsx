@@ -142,10 +142,13 @@ export default function TermsScreen() {
             dividerColor={colors.separator}
           >
             <Text style={bodyStyle}>
-              Prayer times are calculated using the Aladhan API and, when offline, the adhan-js library.
-              While we strive for accuracy, prayer times are provided as a convenience and should not be
-              considered a definitive religious ruling. We recommend consulting your local mosque or
-              scholar for confirmation.
+              Prayer times displayed in the App come directly from the masjid&rsquo;s own printed
+              timetable &mdash; the jama&rsquo;ah times set by the committee of The Salafi Masjid,
+              Birmingham. The timetable is bundled with the App and covers the years published by
+              the masjid. Occasional discrepancies with the masjid&rsquo;s latest printout may occur
+              shortly before a new year&rsquo;s timetable is synced into the App. We recommend
+              verifying prayer times with the masjid&rsquo;s printed timetable or notice board
+              when in doubt.
             </Text>
           </TermsSection>
 
@@ -209,9 +212,10 @@ export default function TermsScreen() {
             dividerColor={colors.separator}
           >
             <Text style={bodyStyle}>
-              The App integrates with third-party services including the Aladhan API, Apple and Google
-              for authentication, and the Expo Push Notification Service. Your use of these services is
-              subject to their respective terms and privacy policies.
+              The App integrates with a small set of third-party services: the Aladhan API (used
+              only to convert Gregorian dates to Hijri &mdash; only the calendar date is sent),
+              Apple and Google for authentication, and the Expo Push Notification Service. Your
+              use of these services is subject to their respective terms and privacy policies.
             </Text>
           </TermsSection>
 
