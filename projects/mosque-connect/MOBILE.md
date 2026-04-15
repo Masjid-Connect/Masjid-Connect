@@ -13,6 +13,7 @@ React Native + Expo. File-based routing via Expo Router. TypeScript strict.
 - **Icons**: `@expo/vector-icons/Ionicons` (outline/filled pairs — no FontAwesome)
 - **Date**: date-fns
 - **i18n**: i18next + react-i18next (English only)
+- **Fonts**: **Fraunces** (variable serif, SIL OFL) as the display face — loaded via `expo-font` from `assets/fonts/`. Applied only to `prayerCountdown`, `prayerName`, `largeTitle`, `title1`, `title2`. System fonts elsewhere. See `DESIGN.md` § Typography.
 - **Prayer Times**: Aladhan API (primary, online) + adhan-js (offline fallback only)
 - **Push**: Expo Notifications + Expo Push Service
 - **In-app Browser**: expo-web-browser (Stripe Hosted Checkout redirect)
