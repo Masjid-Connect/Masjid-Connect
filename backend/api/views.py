@@ -971,10 +971,13 @@ def create_checkout_session(request):
                 status=status.HTTP_200_OK,
             )
         elif is_url_only:
-            # URL-only mode — return checkout URL as JSON (for mobile apps
-            # where fetch redirect: 'manual' returns an opaque response)
+            # URL-only mode — return checkout URL + session_id as JSON.
+            # Mobile clients use session_id to verify completion via
+            # /donate/session-status/ after the browser closes, since
+            # expo-web-browser can't distinguish "cancelled" from
+            # "completed" — both return the same dismiss signal.
             return Response(
-                {"checkout_url": session.url},
+                {"checkout_url": session.url, "session_id": session.id},
                 status=status.HTTP_200_OK,
             )
         else:

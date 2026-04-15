@@ -31,6 +31,7 @@ import { spacing, borderRadius, typography, getElevation, fontWeight, hairline }
 import { AmountSelector, BankDetailsSheet, DonationConfirmationSheet, TrustBadge } from '@/components/support';
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { donations } from '@/lib/api';
+import { Sentry } from '@/lib/sentry';
 
 // Fee calculation: blended 2.5% + 20p estimate
 const FEE_PERCENT = 0.025;
@@ -133,32 +134,50 @@ export default function SupportScreen() {
     setIsLoading(true);
 
     try {
-      const stripeUrl = await donations.createCheckoutUrl(
+      const checkout = await donations.createCheckoutUrl(
         amount * 100, // Convert pounds to pence
         'gbp',
         frequency,
         { giftAid, coverFees },
       );
 
-      if (stripeUrl) {
-        let browserResult: WebBrowser.WebBrowserResult | undefined;
+      if (checkout) {
         try {
-          browserResult = await WebBrowser.openBrowserAsync(stripeUrl, {
+          await WebBrowser.openBrowserAsync(checkout.url, {
             dismissButtonStyle: 'close',
             presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
           });
         } catch {
           // Fallback: open in external browser if in-app browser fails
-          await Linking.openURL(stripeUrl);
+          await Linking.openURL(checkout.url);
         }
 
-        // Only show confirmation if the browser wasn't explicitly cancelled/dismissed
-        // Note: we can't verify payment completion without deep link return,
-        // but we can at least suppress confirmation on explicit cancellation
-        if (browserResult?.type !== 'cancel') {
-          setConfirmedAmount(totalAmount);
-          setShowConfirmation(true);
+        // Browser closed — but `expo-web-browser` can't tell us whether
+        // the user completed payment or cancelled (both paths return
+        // `dismiss`/`cancel` depending on platform, with no distinction
+        // between "I paid" and "I hit back"). Verify via Stripe's
+        // session-status endpoint before showing any confirmation.
+        //
+        // Without this check, we'd optimistically show "JazakAllahu
+        // Khairan!" every time the browser closed — false claim on a
+        // sacred transaction when the user cancelled. Unacceptable.
+        if (checkout.sessionId) {
+          try {
+            const statusRes = await donations.getSessionStatus(checkout.sessionId);
+            if (statusRes?.status === 'complete') {
+              setConfirmedAmount(totalAmount);
+              setShowConfirmation(true);
+            }
+            // Any status other than 'complete' (e.g. 'open', 'expired'):
+            // silently return to the donation form. No false success,
+            // no false error — the user can try again if they want.
+          } catch (err) {
+            // Status check failed — be silent rather than claim anything.
+            Sentry.captureException(err, { extra: { context: 'donation session-status check' } });
+          }
         }
+        // If no sessionId available (legacy fallback path from api.ts),
+        // suppress confirmation entirely rather than show false success.
       } else {
         throw new Error(t('support.errorMessage'));
       }

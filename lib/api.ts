@@ -452,7 +452,7 @@ export const donations = {
     currency: string,
     frequency: 'one-time' | 'monthly',
     options?: { giftAid?: boolean; coverFees?: boolean },
-  ): Promise<string | null> {
+  ): Promise<{ url: string; sessionId: string | null } | null> {
     const returnUrl = 'https://salafimasjid.app/donate';
     const url = `${API_URL}/donate/checkout/`;
 
@@ -482,17 +482,22 @@ export const donations = {
     }
     clearTimeout(timeoutId);
 
-    // If backend returned JSON with checkout_url (ui_mode=url supported)
+    // If backend returned JSON with checkout_url (ui_mode=url supported).
+    // session_id is now included so the mobile client can verify
+    // completion via /donate/session-status/ after the browser closes.
     const contentType = response.headers.get('Content-Type') || '';
     if (response.ok && contentType.includes('application/json')) {
       const body = await response.json();
-      if (body.checkout_url) return body.checkout_url;
+      if (body.checkout_url) {
+        return { url: body.checkout_url, sessionId: body.session_id ?? null };
+      }
     }
 
     // Fallback: fetch auto-followed the 303 redirect to Stripe's hosted page.
-    // response.url contains the final destination URL after redirect.
+    // No session_id available in this path — confirmation sheet will be
+    // suppressed (honest) rather than show a false "success".
     if (response.url && response.url.includes('checkout.stripe.com')) {
-      return response.url;
+      return { url: response.url, sessionId: null };
     }
 
     // Error response
