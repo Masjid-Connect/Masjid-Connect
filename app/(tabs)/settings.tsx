@@ -3,10 +3,10 @@ import {
   StyleSheet,
   View,
   Text,
-  Image,
   ScrollView,
   Share,
 } from 'react-native';
+import MasjidLogo from '@/assets/images/Masjid-Logo-App.svg';
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
@@ -208,11 +208,7 @@ export default function SettingsScreen() {
 
         {/* Brand identity anchor */}
         <View style={{ alignItems: 'center', marginBottom: spacing.xl, marginTop: spacing.sm }}>
-          <Image
-            source={require('@/assets/images/Masjid_Logo.png')}
-            style={{ width: 48, height: 48, borderRadius: 12 }}
-            accessibilityLabel={t('prayer.mosqueName')}
-          />
+          <MasjidLogo width={56} height={56} />
           <Text style={[typography.headline, { color: colors.text, marginTop: spacing.sm }]}>
             {t('prayer.mosqueName')}
           </Text>

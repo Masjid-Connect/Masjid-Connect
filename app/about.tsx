@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, ScrollView, Text, View, Image } from 'react-native';
+import { StyleSheet, ScrollView, Text, View } from 'react-native';
+import MasjidLogo from '@/assets/images/Masjid-Logo-App.svg';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -45,11 +46,7 @@ export default function AboutScreen() {
       >
         {/* Hero — logo IS the identity, no redundant text */}
         <Animated.View entering={FadeIn.duration(400)} style={styles.hero}>
-          <Image
-            source={require('@/assets/images/Masjid_Logo.png')}
-            style={[styles.logo, isDark && { tintColor: colors.text }]}
-            resizeMode="contain"
-          />
+          <MasjidLogo width={140} height={140} />
           <View style={[styles.versionPill, { backgroundColor: isDark ? colors.backgroundGrouped : colors.background }]}>
             <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: fontWeight.medium }]}>
               {t('about.version')} {Constants.expoConfig?.version ?? '1.0.0'}
@@ -136,10 +133,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: spacing['4xl'],
     paddingBottom: spacing.xl,
-  },
-  logo: {
-    width: 220,
-    height: 220 * 0.28,
   },
   versionPill: {
     marginTop: spacing.md,

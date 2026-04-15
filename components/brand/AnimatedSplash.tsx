@@ -11,7 +11,7 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Image, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, {
   Easing,
   type SharedValue,
@@ -30,9 +30,11 @@ import { springs, borderRadius } from '@/constants/Theme';
 import { patterns } from '@/lib/layoutGrid';
 import { breath, breathEasing } from '@/lib/breathMotion';
 import { IslamicPattern } from './IslamicPattern';
+import MasjidLogo from '@/assets/images/Masjid-Logo-App.svg';
 
-/** Logo max width cap */
-const LOGO_MAX_WIDTH = 360;
+/** Logo max width cap — larger than before for the "full-screen splash"
+ *  feel. Square SVG (viewBox 495.5×495.5) scales cleanly at any size. */
+const LOGO_MAX_WIDTH = 520;
 
 /** Timing constants (ms) */
 const PAUSE_BEFORE_REVEAL = 500;
@@ -161,7 +163,11 @@ export const AnimatedSplash = ({
   const isWeb = Platform.OS === 'web';
   const reducedMotion = useReducedMotion();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-  const logoWidth = Math.min(windowWidth * 0.75, LOGO_MAX_WIDTH);
+  // Bigger logo presence per "full-screen splash" direction. Capped at
+  // min(viewport shorter edge) × 0.85 to never spill off any orientation,
+  // and at LOGO_MAX_WIDTH on very large screens so it doesn't dwarf on tablets.
+  const shortEdge = Math.min(windowWidth, windowHeight);
+  const logoWidth = Math.min(windowWidth * 0.7, shortEdge * 0.85, LOGO_MAX_WIDTH);
 
   // Animation shared values
   const logoOpacity = useSharedValue(0);
@@ -290,8 +296,9 @@ export const AnimatedSplash = ({
     opacity: glowOpacity.value,
   }));
 
+  // Logo is now a square SVG (1:1), so glow follows the same aspect.
   const glowWidth = logoWidth * GLOW_SCALE;
-  const glowHeight = logoWidth * 0.6 * GLOW_SCALE;
+  const glowHeight = logoWidth * GLOW_SCALE;
 
   // On web, skip the splash animation — the Animated.View wrappers
   // break Expo Router's LinkingContext on web.
@@ -335,22 +342,20 @@ export const AnimatedSplash = ({
           />
         </Animated.View>
 
-        {/* The logo — centered, fades in with scale */}
-        <Animated.View style={[styles.logoContainer, logoAnimatedStyle]} accessibilityLabel="Mosque Connect">
-          {/* Shimmer sweep layer */}
-          <View style={[styles.shimmerClip, { width: logoWidth, height: logoWidth * 0.6 }]}>
+        {/* The logo — centered, fades in with scale.
+            Square SVG brand mark (Masjid-Logo-App.svg). No tinting — the
+            SVG has its own final colours baked in via react-native-svg. */}
+        <Animated.View style={[styles.logoContainer, logoAnimatedStyle]} accessibilityLabel="The Salafi Masjid">
+          {/* Shimmer sweep layer — sized to the square logo */}
+          <View style={[styles.shimmerClip, { width: logoWidth, height: logoWidth }]}>
             <ShimmerSweep
               width={logoWidth}
-              height={logoWidth * 0.6}
+              height={logoWidth}
               shimmerX={shimmerX}
             />
           </View>
 
-          <Image
-            source={require('@/assets/images/Masjid_Logo.png')}
-            style={{ width: logoWidth, height: logoWidth * 0.6, tintColor: palette.snow }}
-            resizeMode="contain"
-          />
+          <MasjidLogo width={logoWidth} height={logoWidth} />
         </Animated.View>
       </Animated.View>
     </View>
