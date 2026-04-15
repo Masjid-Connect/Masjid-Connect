@@ -224,12 +224,19 @@ export const auth = {
 
 };
 
-// ── Paginated response shape from DRF ────────────────────────────────
+// ── Paginated response shape — matches backend AppPageNumberPagination
+// (see backend/api/pagination.py). The custom class replaces DRF's default
+// { count, next, previous, results } with { items, totalItems, hasMore }.
+// Call sites below use `data.items`, `data.totalItems`, `data.hasMore`.
+//
+// If you find yourself reading `.results` or `.count` anywhere, the call
+// is against the old shape and must be updated — the whole backend
+// returns the new shape uniformly.
 
 interface PaginatedResponse<T> {
-  count: number;
-  next: string | null;
-  results: T[];
+  items: T[];
+  totalItems: number;
+  hasMore: boolean;
 }
 
 // ── Mosques ──────────────────────────────────────────────────────────
@@ -261,8 +268,9 @@ export const mosques = {
     const params = search ? `?search=${encodeURIComponent(search)}` : '';
     const data = await request<PaginatedResponse<Record<string, unknown>>>(`/mosques/${params}`);
     return {
-      items: data.results.map(mapMosque),
-      totalItems: data.count,
+      items: data.items.map(mapMosque),
+      totalItems: data.totalItems,
+      hasMore: data.hasMore,
     };
   },
 
@@ -306,9 +314,9 @@ export const announcements = {
     const params = parts.length > 0 ? `?${parts.join('&')}` : '';
     const data = await request<PaginatedResponse<Record<string, unknown>>>(`/announcements/${params}`);
     return {
-      items: data.results.map(mapAnnouncement),
-      totalItems: data.count,
-      hasMore: data.next !== null,
+      items: data.items.map(mapAnnouncement),
+      totalItems: data.totalItems,
+      hasMore: data.hasMore,
     };
   },
 
@@ -374,9 +382,9 @@ export const events = {
     const params = parts.length > 0 ? `?${parts.join('&')}` : '';
     const data = await request<PaginatedResponse<Record<string, unknown>>>(`/events/${params}`);
     return {
-      items: data.results.map(mapEvent),
-      totalItems: data.count,
-      hasMore: data.next !== null,
+      items: data.items.map(mapEvent),
+      totalItems: data.totalItems,
+      hasMore: data.hasMore,
     };
   },
 
@@ -543,7 +551,7 @@ export const prayerTimes = {
       const data = await request<PaginatedResponse<MosquePrayerTimeResponse>>(
         `/mosques/${mosqueId}/prayer-times/?date=${date}`,
       );
-      return data.results.length > 0 ? data.results[0] : null;
+      return data.items.length > 0 ? data.items[0] : null;
     } catch (err) {
       Sentry.captureException(err, { extra: { mosqueId, date, context: 'prayer times fetch' } });
       return null;
@@ -557,7 +565,7 @@ export const prayerTimes = {
     const data = await request<PaginatedResponse<MosquePrayerTimeResponse>>(
       `/mosques/${mosqueId}/prayer-times/?from_date=${fromDate}&to_date=${toDate}`,
     );
-    return data.results;
+    return data.items;
   },
 };
 
