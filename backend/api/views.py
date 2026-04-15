@@ -980,10 +980,35 @@ def create_checkout_session(request):
         else:
             # 303 See Other — browser converts POST to GET for Stripe's hosted page
             return _redirect_303(session.url)
+    except stripe_lib.error.StripeError as exc:
+        # A Stripe-side failure: bad key, account misconfigured, parameter
+        # rejected, declined card, etc. Surface the Stripe error code and
+        # a sanitised user message so the client (and we, in logs) can tell
+        # WHY the donation failed instead of "something went wrong".
+        logger.exception(
+            "Stripe Checkout Session creation failed: %s [code=%s]",
+            getattr(exc, "user_message", None) or str(exc),
+            getattr(exc, "code", "unknown"),
+        )
+        # Stripe's `user_message` is the human-friendly version Stripe
+        # itself recommends showing; falls back to the exception text if
+        # not present. `code` is a stable machine-readable identifier
+        # (e.g. "amount_too_small", "api_key_expired", "parameter_invalid").
+        user_msg = getattr(exc, "user_message", None) or "We couldn't reach our payment partner. Try again, or give directly via bank transfer below."
+        return Response(
+            {
+                "detail": user_msg,
+                "stripe_code": getattr(exc, "code", None),
+                "stripe_type": exc.__class__.__name__,
+            },
+            status=status.HTTP_502_BAD_GATEWAY,
+        ) if is_json_mode else _error(user_msg, for_redirect=True)
     except Exception as exc:
-        logger.exception("Stripe Checkout Session creation failed")
+        # Non-Stripe error — local bug, network blip, etc. Keep the
+        # opaque message but log full traceback for diagnosis.
+        logger.exception("Donation checkout failed (non-Stripe): %s", exc)
         return _error(
-            "Unable to process donation at this time. Please try again later.",
+            "We couldn't reach our payment partner. Try again, or give directly via bank transfer below.",
             for_redirect=not is_json_mode,
         )
 
