@@ -236,7 +236,7 @@
    Light mode's var(--sapphire-700) is deep navy, but dark mode remaps it to #5B9BD5
    (periwinkle), destroying contrast. Override with fixed dark values. */
 [data-theme="dark"] .hero {
-  background: linear-gradient(165deg, #0a1628 0%, #0F2D52 35%, #132742 60%, #0A1628 100%);
+  background: linear-gradient(165deg, var(--midnight-950) 0%, var(--midnight-900) 35%, var(--midnight-800) 60%, var(--midnight-950) 100%);
 }
 
 [data-theme="dark"] .hero__subtitle {
@@ -373,7 +373,7 @@
 
 /* Dark: Download CTA */
 [data-theme="dark"] .download {
-  background: linear-gradient(165deg, #0a1628 0%, #122a4a 50%, #0F2D52 100%);
+  background: linear-gradient(165deg, var(--midnight-950) 0%, var(--midnight-900) 50%, var(--midnight-800) 100%);
 }
 
 /* Dark: Phone mockup */
@@ -1041,7 +1041,7 @@ ul {
   min-height: 100vh;
   display: flex;
   align-items: center;
-  background: linear-gradient(165deg, #0a1628 0%, var(--sapphire-700) 35%, #183d6e 60%, #1a4a7a 100%);
+  background: linear-gradient(165deg, var(--midnight-950) 0%, var(--midnight-900) 40%, var(--midnight-800) 75%, var(--sapphire-700) 100%);
   overflow-x: clip;
   padding-top: var(--nav-height);
 }
@@ -1059,7 +1059,7 @@ ul {
   transform: translateX(-50%);
   width: 800px;
   height: 800px;
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(212, 160, 58, 0.14) 0%, transparent 70%);
   pointer-events: none;
 }
 
@@ -1180,7 +1180,7 @@ ul {
 
 .phone__screen--prayer,
 .phone__screen--prayer-detail {
-  background: linear-gradient(180deg, #1a3a5c 0%, #0f2d52 40%, #0a1628 100%);
+  background: linear-gradient(180deg, var(--midnight-800) 0%, var(--midnight-900) 40%, var(--midnight-950) 100%);
 }
 
 .phone__screen--community,
@@ -1558,7 +1558,7 @@ ul {
 .download {
   position: relative;
   padding: 100px 0;
-  background: linear-gradient(165deg, #0a1628 0%, var(--sapphire-700) 50%, #183d6e 100%);
+  background: linear-gradient(165deg, var(--midnight-950) 0%, var(--midnight-900) 50%, var(--midnight-800) 100%);
   text-align: center;
   overflow: hidden;
 }
@@ -4079,7 +4079,7 @@ a.contact__info-value:hover {
 .page-hero {
   position: relative;
   padding: 160px 0 80px;
-  background: linear-gradient(165deg, #0a1628 0%, var(--sapphire-700) 50%, #183d6e 100%);
+  background: linear-gradient(165deg, var(--midnight-950) 0%, var(--midnight-900) 50%, var(--midnight-800) 100%);
   text-align: center;
   overflow: hidden;
 }
