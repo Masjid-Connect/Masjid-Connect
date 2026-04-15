@@ -16,6 +16,7 @@
     "maghrib": "Maghrib",
     "isha": "Isha",
     "nextPrayer": "Next Prayer",
+    "upNext": "Up next",
     "timeRemaining": "in {{countdown}}",
     "minutesRemaining": "{{minutes}}m remaining",
     "cached": "Cached times",

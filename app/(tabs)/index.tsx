@@ -269,14 +269,24 @@ export default function PrayerTimesScreen() {
             accessibilityRole="header"
             accessibilityLabel={nextPrayerData ? `${t('prayer.nextPrayer')}: ${t(`prayer.${nextPrayerData.name}`)}, ${countdown || ''}` : undefined}
           >
-            {/* THE dominant element: next prayer name */}
+            {/* Editorial asymmetric composition (2026-04-15 recompose).
+                Left-anchored, not centered, to break SaaS-default
+                visual language. Fadwa (Seat 30) specifically flagged
+                centered giant countdowns as the register of anxiety
+                timers; left-anchor reads as editorial reference. */}
             {nextPrayerData && (
               <>
+                {/* Eyebrow — small-caps context label */}
+                <Text style={[styles.eyebrow, { color: colors.textSecondary }]}>
+                  {t('prayer.upNext')}
+                </Text>
+
+                {/* Prayer name — display face, supporting weight */}
                 <Text style={[styles.prayerName, { color: colors.text }]} accessibilityRole="header">
                   {t(`prayer.${nextPrayerData.name}`)}
                 </Text>
 
-                {/* Countdown — large ultralight, spring scale on prayer transition */}
+                {/* Countdown — the hero number, left-anchored */}
                 {countdown ? (
                   <Animated.View style={countdownAnimatedStyle}>
                     <Text style={[
@@ -289,9 +299,9 @@ export default function PrayerTimesScreen() {
                   </Animated.View>
                 ) : null}
 
-                {/* Prayer time — tertiary, gold accent */}
+                {/* Prayer time — tracked caps, tertiary weight */}
                 <Text style={[styles.prayerTime, {
-                  color: colors.accentText,
+                  color: colors.textTertiary,
                 }]}>
                   {formatPrayerTime(nextPrayerData.time, use24h)}
                 </Text>
@@ -551,24 +561,31 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl, // 20 — tighter in landscape
   },
   heroContent: {
-    alignItems: 'center',
+    alignItems: 'flex-start',  // left-anchor per 2026-04-15 recompose
+  },
+  eyebrow: {
+    fontSize: 11,
+    fontWeight: fontWeight.semibold,
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    marginBottom: spacing.md, // 12
   },
   prayerName: {
     ...typography.prayerName,
-    textAlign: 'center',
+    // textAlign removed — container alignItems controls position
   },
   countdown: {
     ...typography.prayerCountdown,
     fontVariant: ['tabular-nums'],
     marginTop: spacing.xs, // 4
-    textAlign: 'center',
   },
   prayerTime: {
-    ...typography.headline,
+    ...typography.footnote,
     fontVariant: ['tabular-nums'],
     marginTop: spacing.md, // 12
-    textAlign: 'center',
     fontWeight: fontWeight.semibold,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
   },
 
   // Gradient fade from hero to content
