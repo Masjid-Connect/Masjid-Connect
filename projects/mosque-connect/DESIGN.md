@@ -4,12 +4,39 @@ Premium, serene, rooted in Islamic geometric art and calligraphic tradition. **G
 
 ## Brand Identity
 
-- **Logo**: `Masjid-Logo-App.svg` (`assets/images/` for mobile, `web/images/` for web). Square SVG (viewBox 495.5×495.5), Illustrator-exported with its own colour styles baked in. Loaded as a React component on mobile via `react-native-svg-transformer` (`import MasjidLogo from '@/assets/images/Masjid-Logo-App.svg'`), as `<img src>` on web. Used on splash, about screen, settings header, web navbar, web footer, web hero.
-- **Native splash (pre-JS boot)**: `Masjid-Logo-App.png` (84KB, same brand mark) — set in `app.json` `splash.image`. RN's native splash requires raster; the SVG is used for the in-app splash (`AnimatedSplash.tsx`) once JS boots.
-- **JS splash size**: full-screen presence — logo sized at `min(viewport-width × 0.7, short-edge × 0.85, 520px)`. Square SVG scales cleanly at any size.
+**Two distinct brand marks — use the right one for the surface.**
+
+### 1. Square icon mark — `Masjid-Logo-App.svg`
+
+- Square SVG, viewBox 495.5×495.5. Sapphire `#133244` background, cream `#efe7d4` Arabic/Latin typography ("المسجد السلفي / Salafi Masjid" stacked).
+- Used wherever the brand needs to sit in a **square or near-square container**: mobile splash, About screen hero, Settings header anchor, iOS home-screen icon, Android adaptive icon, native pre-JS splash.
+- On mobile loaded as a React component via `react-native-svg-transformer`:
+  ```ts
+  import MasjidLogo from '@/assets/images/Masjid-Logo-App.svg';
+  <MasjidLogo width={140} height={140} />
+  ```
+- On the **native splash** (pre-JS), the PNG sibling `Masjid-Logo-App.png` is referenced from `app.json`'s `splash.image` on a `#0A1628` sapphire-950 background — RN's native splash requires raster.
+- On **web**, the square icon may be used where a square container is called for (favicon, PWA icon) — but **not** the navbar/footer. See the wordmark below.
+
+### 2. Horizontal wordmark — `Masjid_Logo.png`
+
+- Wide horizontal wordmark, dark charcoal typography on transparent background. Aspect ~4:1 ("المسجد السلفي / The Salafi Masjid" side by side).
+- Used **on the web** for the navbar logo, footer logo, and landing hero — places where a horizontal strip is the natural container.
+- CSS: `.navbar__logo-img { height: 28px; width: auto; }` + `filter: brightness(0) invert(1)` for white-on-dark hero state, removed on `.navbar.is-scrolled` for dark-on-light state.
+- **Do NOT use the square icon in the web navbar** — a square sapphire-filled logo fights the horizontal-strip container and the hero gradient. The wordmark is the right pattern.
+
+### Sizing
+
+- **JS splash (mobile)**: logo sized at `min(viewport-width × 0.7, short-edge × 0.85, 520px)`. Square SVG scales cleanly at any size.
+- **About screen hero (mobile)**: 140×140.
+- **Settings anchor (mobile)**: 56×56.
+- **Web navbar**: 28px tall, width auto.
+- **Web footer**: 36px tall, width auto.
+
+### Other
+
 - **Notification badge**: Divine Gold circle, never red. `GoldBadge` auto-selects `divineGoldBright` in dark mode for contrast.
 - **Prayer numerals**: tabular, tightened tracking, set in the display face (see Typography).
-- **Old logo file** `Masjid_Logo.png` is retained but unused — kept for git-history safety; can be deleted in a follow-up.
 
 ## Colour Palette — "Timeless Sanctuary"
 
