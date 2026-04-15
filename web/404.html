@@ -5,26 +5,34 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Page Not Found — The Salafi Masjid</title>
   <meta name="description" content="The page you were looking for could not be found.">
-  <meta name="theme-color" content="#0F2D52">
+  <meta name="theme-color" content="#06101F">
+  <meta name="robots" content="noindex">
   <link rel="canonical" href="https://salafimasjid.app/">
   <link rel="icon" href="/images/favicon.ico?v=2" sizes="any">
   <link rel="icon" href="/images/favicon.png?v=2" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="/images/favicon-180.png?v=2">
-  <link rel="stylesheet" href="/styles.css?v=13">
-  <script>
-    (function(){var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark')}})();
-  </script>
   <link rel="preload" as="font" href="/fonts/eb-garamond-v32-latin.woff2" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/styles.css?v=14">
 </head>
-<body>
-  <main>
-    <section class="page-section" style="min-height:70vh;display:flex;align-items:center;justify-content:center;text-align:center">
-      <div class="container">
-        <h1 style="font-size:4rem;font-weight:700;margin-bottom:0.5rem">404</h1>
-        <p style="font-size:1.25rem;margin-bottom:2rem;opacity:0.7">The page you were looking for could not be found.</p>
-        <a href="/" class="btn btn--primary">Go to Homepage</a>
+<body class="not-found-body">
+  <main class="not-found">
+    <a href="/" class="not-found__mark" aria-label="The Salafi Masjid — Home">
+      <img src="/images/Masjid_Logo.png" alt="" width="140" height="40">
+    </a>
+
+    <div class="not-found__content">
+      <div class="not-found__eyebrow">404</div>
+      <h1 class="not-found__title">We couldn&rsquo;t find that page.</h1>
+      <p class="not-found__body">
+        You may have followed an old link, or the page may have moved.
+        Nothing is broken — just misplaced.
+      </p>
+
+      <div class="not-found__actions">
+        <a href="/" class="not-found__primary">Return home</a>
+        <a href="/prayer-times" class="not-found__secondary">Prayer times</a>
       </div>
-    </section>
+    </div>
   </main>
 </body>
 </html>
