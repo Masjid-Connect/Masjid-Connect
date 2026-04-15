@@ -3,6 +3,19 @@
    "Timeless Sanctuary" Design System → CSS Custom Properties
    ═══════════════════════════════════════════════════════════════ */
 
+/* ─── Display face: Fraunces (variable, SIL OFL) ─────────────── */
+/* Self-hosted; one variable file covers weights 300–700. Latin only —
+   the site is English-only (see memory/CONSTRAINTS.md). font-display:
+   swap so first paint isn't blocked. See DESIGN.md § Typography. */
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url('/fonts/fraunces-v38-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 /* ─── View Transitions (Apple-style cross-fade between pages) ── */
 @view-transition {
   navigation: auto;
@@ -89,6 +102,11 @@
   --radius-lg: 20px;
   --radius-xl: 28px;
   --radius-full: 9999px;
+
+  /* Font families — two-face system per DESIGN.md § Typography */
+  --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
 
   /* Font weights */
   --fw-light: 300;
@@ -1034,9 +1052,10 @@ ul {
 }
 
 .hero__title {
+  font-family: var(--font-display);
   font-size: clamp(36px, 5vw, 56px);
-  font-weight: 700;
-  line-height: 1.1;
+  font-weight: 500;
+  line-height: 1.05;
   letter-spacing: -1.5px;
   color: #fff;
   margin-bottom: var(--sp-2xl);
@@ -2048,7 +2067,7 @@ ul {
   line-height: 1;
   color: var(--divine-gold);
   opacity: 0.35;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-display);
   pointer-events: none;
 }
 
@@ -4036,8 +4055,9 @@ a.contact__info-value:hover {
 }
 
 .page-hero__title {
+  font-family: var(--font-display);
   font-size: clamp(32px, 5vw, 48px);
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: -1px;
   color: #fff;
   margin-bottom: var(--sp-lg);
@@ -4096,8 +4116,9 @@ a.contact__info-value:hover {
 }
 
 .feature-detail__title {
+  font-family: var(--font-display);
   font-size: 28px;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: -0.5px;
   line-height: 1.2;
   margin-bottom: var(--sp-lg);
@@ -4252,8 +4273,9 @@ a.contact__info-value:hover {
    ABOUT PAGE
    ═══════════════════════════════════════════════════════════════ */
 .about-block__title {
+  font-family: var(--font-display);
   font-size: 28px;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: -0.5px;
   margin-bottom: var(--sp-2xl);
   color: var(--onyx-900);

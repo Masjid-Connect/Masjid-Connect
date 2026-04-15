@@ -1,15 +1,35 @@
 import { PixelRatio, Platform, StyleSheet, TextStyle, ViewStyle } from 'react-native';
 
 /**
- * Font families — system-first strategy.
- * Apple uses one family (SF Pro) with weight variation. We do the same:
- * system fonts for everything, SpaceMono for technical accents only.
+ * Font families — two-face system per DESIGN.md § Typography.
+ *
+ * Display face: **Fraunces** (variable serif, SIL OFL). Loaded via
+ * `@expo-google-fonts/fraunces` in `app/_layout.tsx`. Applied only to
+ * prayerCountdown, prayerName, largeTitle, title1, title2.
+ *
+ * Body / UI: system fonts (SF Pro / Roboto) via `undefined` sentinel —
+ * everywhere else.
+ *
+ * SpaceMono: technical accents only (timestamps in debug contexts,
+ * monospace numeric where tabular doesn't suffice).
  */
 export const fonts = {
-  heading: undefined, // system default (SF Pro / Roboto)
+  // Display (Fraunces) — use at specific weights since expo-google-fonts
+  // ships static faces, not the variable axis. React Native mixes named
+  // families + fontWeight poorly; reference the weighted family by name
+  // and omit `fontWeight` at the usage site.
+  displayLight: 'Fraunces-Light' as const,        // 300
+  displayRegular: 'Fraunces-Regular' as const,    // 400
+  displayMedium: 'Fraunces-Medium' as const,      // 500
+  displaySemiBold: 'Fraunces-SemiBold' as const,  // 600
+
+  // Body / UI — system defaults
+  heading: undefined,
   headingSemiBold: undefined,
   body: undefined,
   bodyMedium: undefined,
+
+  // Technical
   mono: 'SpaceMono',
 } as const;
 
@@ -190,25 +210,30 @@ export const borderRadius = {
  * System fonts with weight variation. No custom fonts needed for MVP.
  */
 export const typography = {
+  // ─── Display-class tokens — Fraunces display face ────────────────
+  // Per DESIGN.md § Typography. fontWeight is omitted deliberately —
+  // the weighted Fraunces family is selected by name; mixing a named
+  // font with a fontWeight triggers RN's synthetic-bold path which
+  // looks wrong on a serif.
   largeTitle: {
     fontSize: 34,
-    fontFamily: fonts.heading,
-    fontWeight: '700',
-    letterSpacing: 0.37,
+    fontFamily: fonts.displaySemiBold,
+    letterSpacing: 0.2,
     lineHeight: 41,
   },
   title1: {
     fontSize: 28,
-    fontWeight: '700',
-    letterSpacing: 0.36,
+    fontFamily: fonts.displaySemiBold,
+    letterSpacing: 0.15,
     lineHeight: 34,
   },
   title2: {
     fontSize: 22,
-    fontWeight: '700',
-    letterSpacing: 0.35,
+    fontFamily: fonts.displaySemiBold,
+    letterSpacing: 0.1,
     lineHeight: 28,
   },
+  // ─── System-font tokens ────────────────────────────────────────
   title3: {
     fontSize: 20,
     fontWeight: '600',
@@ -300,11 +325,11 @@ export const typography = {
     letterSpacing: -0.08,
     lineHeight: 18,
   },
-  // Special purpose
+  // ─── Special purpose display — Fraunces ──────────────────────────
   prayerCountdown: {
     fontSize: 54,
-    fontWeight: '200',
-    letterSpacing: -1.5,
+    fontFamily: fonts.displayLight,  // Fraunces @ 300
+    letterSpacing: -2.5,              // tightened per DESIGN.md typography table
     lineHeight: 60,
   },
   prayerTime: {
@@ -327,8 +352,8 @@ export const typography = {
   },
   prayerName: {
     fontSize: 40,
-    fontWeight: '300',
-    letterSpacing: 0.4,
+    fontFamily: fonts.displayLight,  // Fraunces @ 300
+    letterSpacing: -0.5,
     lineHeight: 48,
   },
   // Legacy aliases for compatibility

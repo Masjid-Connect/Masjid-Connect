@@ -61,8 +61,15 @@ const MosqueDark = {
 
 function RootLayout() {
   const { t } = useTranslation();
+  // Fraunces is the display face — applied only to prayer countdown,
+  // prayer names, and screen titles per DESIGN.md § Typography.
+  // System fonts carry body and UI.
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    'Fraunces-Light': require('@expo-google-fonts/fraunces/300Light/Fraunces_300Light.ttf'),
+    'Fraunces-Regular': require('@expo-google-fonts/fraunces/400Regular/Fraunces_400Regular.ttf'),
+    'Fraunces-Medium': require('@expo-google-fonts/fraunces/500Medium/Fraunces_500Medium.ttf'),
+    'Fraunces-SemiBold': require('@expo-google-fonts/fraunces/600SemiBold/Fraunces_600SemiBold.ttf'),
   });
   const [showSplash, setShowSplash] = useState(true);
 
