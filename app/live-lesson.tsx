@@ -118,7 +118,7 @@ export default function LiveLessonScreen() {
         <View style={styles.headerCenter}>
           <View style={styles.liveIndicatorRow}>
             <View style={styles.headerLiveDot} />
-            <Text style={[styles.headerLiveLabel, { color: '#E53E3E' }]}>
+            <Text style={[styles.headerLiveLabel, { color: goldColor }]}>
               {t('liveLesson.live')}
             </Text>
           </View>
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#E53E3E',
+    backgroundColor: palette.divineGoldBright,
   },
   headerLiveLabel: {
     fontSize: 11,

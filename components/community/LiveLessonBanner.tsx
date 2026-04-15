@@ -34,7 +34,7 @@ interface LiveLessonBannerProps {
   broadcastTitle: string;
 }
 
-/** Pulsing red dot animation cycle (ms) */
+/** Pulsing gold dot animation cycle (ms) */
 const PULSE_DURATION = 1200;
 
 export const LiveLessonBanner = ({ broadcastTitle }: LiveLessonBannerProps) => {
@@ -126,7 +126,7 @@ export const LiveLessonBanner = ({ broadcastTitle }: LiveLessonBannerProps) => {
         {/* Text content */}
         <View style={styles.textContainer}>
           <View style={styles.liveRow}>
-            <Text style={[styles.liveLabel, { color: '#E53E3E' }]}>
+            <Text style={[styles.liveLabel, { color: goldColor }]}>
               {t('liveLesson.live')}
             </Text>
             <Text style={[typography.footnote, { color: colors.textSecondary }]}>
@@ -196,13 +196,13 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: '#E53E3E',
+    backgroundColor: palette.divineGoldBright,
   },
   liveDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#E53E3E',
+    backgroundColor: palette.divineGoldBright,
   },
   textContainer: {
     flex: 1,
