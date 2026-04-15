@@ -872,7 +872,12 @@ ul {
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
+  /* Elevated above all page content. Previously 100 — but .navbar
+     creates a stacking context (has z-index + position: fixed), so its
+     descendants (including the mobile menu sheet at z-index: 200) were
+     clamped relative to any page section with its own stacking context
+     ≥ 100. 1000 puts site-chrome safely above every page-level element. */
+  z-index: 1000;
   height: var(--nav-height);
   transition: background 0.4s ease, box-shadow 0.3s ease;
   /* Pre-scroll: subtle frosted glass so text is always readable
