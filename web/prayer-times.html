@@ -318,7 +318,7 @@
 
           <div class="prayer-card__header">
             <span class="prayer-card__label">Today's Schedule</span>
-            <span class="prayer-card__method">Umm Al-Qura</span>
+            <span class="prayer-card__method">Masjid Timetable</span>
           </div>
 
           <div class="prayer-col-header">
@@ -531,7 +531,7 @@
     // ── Data sources (in priority order) ──────────────────────
     // 1. Bundled static timetable (always available, real masjid jama'ah times)
     // 2. Backend API (live, may have updated times)
-    // 3. Aladhan API (calculated only — last resort)
+    // (Aladhan retained below for Hijri date conversion only.)
     var dateStr = formatDate(today);
 
     function showTimes(times, source) {
