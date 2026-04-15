@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.admin.views.decorators import staff_member_required
 from django.urls import include, path
 from django.conf import settings
 from django.conf.urls.static import static
@@ -28,11 +29,12 @@ def health(request):
 
 
 def api_root(request):
-    """Root endpoint — friendly landing for anyone hitting the base URL."""
+    """Root endpoint — friendly landing for anyone hitting the base URL.
+    Docs at /api/docs/ are gated behind a Django staff session; not
+    advertised to unauthenticated callers."""
     return JsonResponse({
         "name": "The Salafi Masjid API",
         "status": "ok",
-        "docs": "/api/docs/",
         "health": "/health/",
         "api": "/api/v1/",
     })
@@ -45,8 +47,15 @@ urlpatterns = [
     path("health/", health),
     path("privacy/", TemplateView.as_view(template_name="legal/privacy_policy.html"), name="privacy-policy"),
     path("terms/", TemplateView.as_view(template_name="legal/terms.html"), name="terms"),
-    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
-    path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    # API schema + Swagger UI — gated behind Django staff session
+    # (staff_member_required redirects anonymous / non-staff requests to
+    # /admin/login/). This closes the public exposure of the full endpoint
+    # map, including admin-adjacent routes like /api/v1/gift-aid/summary/
+    # and /api/v1/auth/admin-roles/. Both routes must be gated — Swagger UI
+    # fetches the schema client-side; if only /api/docs/ is gated, attackers
+    # hit /api/schema/ directly and bypass.
+    path("api/schema/", staff_member_required(SpectacularAPIView.as_view()), name="schema"),
+    path("api/docs/", staff_member_required(SpectacularSwaggerView.as_view(url_name="schema")), name="swagger-ui"),
 ]
 
 if settings.DEBUG:

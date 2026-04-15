@@ -59,8 +59,8 @@ GET  /api/v1/gift-aid/summary/       # Admin-only
 POST /api/v1/contact/                # Contact form
 POST /api/v1/feedback/               # User feedback
 
-GET  /api/schema/                    # OpenAPI schema
-GET  /api/docs/                      # Swagger UI
+GET  /api/schema/                    # OpenAPI schema — staff session required
+GET  /api/docs/                      # Swagger UI — staff session required
 
 GET  /health/                        # Health check
 GET  /admin/                         # Django admin (Unfold)
@@ -132,6 +132,14 @@ python manage.py test_push
 
 - Django admin at `/admin/` with Unfold theme (Sacred Blue brand colours).
 - Designed for non-technical users — see `DESIGN.md` § Admin UX.
+
+## API docs access
+
+`/api/docs/` (Swagger UI) and `/api/schema/` (OpenAPI YAML) are **gated behind a Django staff session** (`staff_member_required`). Anonymous and non-staff authenticated requests are redirected to `/admin/login/`.
+
+Why: exposing the schema publicly hands attackers the full endpoint map, including admin-adjacent routes (`/api/v1/gift-aid/summary/`, `/api/v1/auth/admin-roles/`). Developers who need the docs log into `/admin/` first with a staff account, then `/api/docs/` is accessible via the same session cookie.
+
+Both routes are gated because Swagger UI fetches the schema client-side — a public schema endpoint alone defeats the gate on the UI.
 
 ## Deployment
 
