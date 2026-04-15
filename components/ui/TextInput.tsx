@@ -118,6 +118,7 @@ export const TextInput = React.forwardRef<RNTextInput, TextInputProps>(
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               accessibilityRole="button"
               accessibilityLabel={showPassword ? t('common.hidePassword') : t('common.showPassword')}
+              accessibilityHint={showPassword ? 'Masks password characters' : 'Reveals password characters'}
             >
               <Ionicons
                 name={showPassword ? 'eye-off-outline' : 'eye-outline'}

@@ -15,6 +15,7 @@ import Animated, {
   FadeInDown,
   FadeOutUp,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withRepeat,
   withSequence,
@@ -43,22 +44,27 @@ export const LiveLessonBanner = ({ broadcastTitle }: LiveLessonBannerProps) => {
   const isDark = effectiveScheme === 'dark';
   const router = useRouter();
   const { t } = useTranslation();
+  const reducedMotion = useReducedMotion();
 
   // ─── Breathing gold glow ────────────────────────────────────────
-  const glowOpacity = useSharedValue(0.3);
+  // Reduced-motion: hold at mid opacity (0.4), skip infinite loop.
+  const glowOpacity = useSharedValue(reducedMotion ? 0.4 : 0.3);
 
   useEffect(() => {
+    if (reducedMotion) return;
     withBreathing(glowOpacity, 0.2, 0.6);
-  }, [glowOpacity]);
+  }, [glowOpacity, reducedMotion]);
 
   const glowStyle = useAnimatedStyle(() => ({
     opacity: glowOpacity.value,
   }));
 
   // ─── Pulsing live dot ───────────────────────────────────────────
+  // Reduced-motion: skip the repeat; dot stays at scale 1 (static indicator).
   const dotScale = useSharedValue(1);
 
   useEffect(() => {
+    if (reducedMotion) return;
     dotScale.value = withRepeat(
       withSequence(
         withTiming(1.4, { duration: PULSE_DURATION / 2, easing: Easing.out(Easing.ease) }),
@@ -67,7 +73,7 @@ export const LiveLessonBanner = ({ broadcastTitle }: LiveLessonBannerProps) => {
       -1,
       false,
     );
-  }, [dotScale]);
+  }, [dotScale, reducedMotion]);
 
   const dotPulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: dotScale.value }],

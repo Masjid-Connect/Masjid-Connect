@@ -126,7 +126,13 @@ export const BottomSheet = ({ visible, onDismiss, children, maxHeight }: BottomS
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-      <Pressable style={StyleSheet.absoluteFill} onPress={animateOut} accessibilityRole="button" accessibilityLabel="Dismiss">
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={animateOut}
+        accessibilityRole="button"
+        accessibilityLabel="Close sheet"
+        accessibilityHint="Dismisses the current sheet and returns to the previous screen"
+      >
         <Animated.View
           style={[
             styles.backdrop,
