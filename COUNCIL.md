@@ -2,7 +2,7 @@
 
 > **Authority**: The Council is the supreme review body for all changes to the Masjid Connect project. No code, design, architecture, or configuration change proceeds without council deliberation. This is referenced and enforced by `CLAUDE.md`.
 
-> **Current size**: 27 seats. Seats 25–27 added 2026-04-15 (image-prompt engineering discipline).
+> **Current size**: 29 seats. Seats 25–27 added 2026-04-15 (image-prompt engineering discipline). Seats 28–29 added 2026-04-15 (security deepening — adversarial and mobile/supply-chain disciplines).
 
 ---
 
@@ -28,7 +28,7 @@ If during deliberation the council identifies a gap — a domain or discipline n
 
 ---
 
-## The 27 Seats
+## The 29 Seats
 
 ### Seat 1 — Tariq al-Banna, Chief Architect
 - **Domain**: System architecture, component design, data flow, module boundaries
@@ -165,6 +165,16 @@ If during deliberation the council identifies a gap — a domain or discipline n
 - **Mandate**: Every prompt starts with the surface it's for, not the subject matter. "This asset lives at 8% opacity behind a 400×240 hadith card with 48px body text overlaid; must not compete with the text, must be darker in the upper-left quadrant where the text sits, palette locked to stone-100 + gilt at 20% saturation." Rejects prompts that describe *subjects* without describing *placement*. Enforces incrementalism — one asset, one surface, verify at opacity in context, *then* consider a set. Distinct from Seat 19 (Ines, visual direction) and Seat 22 (Liam, web composition) — Stasia is specifically about translating their direction into prompt constraints the model will actually respect.
 - **Consult on**: Any generative-imagery placement decision, prompt that needs compositional constraints, asset-to-surface mapping, opacity/colour-lock requirements, rollout sequencing for an imagery programme
 
+### Seat 28 — Samir Al-Khalifi, Adversarial Security Engineer
+- **Domain**: Threat modelling, red-team mindset, application-layer vulnerability research, OWASP ASVS, logical flaws (IDOR, race conditions, business-logic abuse), API abuse patterns, server-side attack surface, authenticated-user abuse cases, pen-testing methodology
+- **Mandate**: Think like an attacker. Where Seat 9 (Elena) defines the defensive posture — input validation, rate limiting, webhook signature verification — Samir stress-tests it. Specialises in finding the vulnerabilities defenders miss because they're too close to their own code. No assumption goes untested. Threat-models every new public endpoint, every authenticated flow, every third-party integration. Asks "what happens if a malicious mosque admin publishes 50,000 announcements in a loop" rather than "does the publish endpoint work." Flags implicit trust boundaries. Distinct from Seat 9 — Elena builds the walls; Samir tries to climb them.
+- **Consult on**: Any new public endpoint, auth flow change, third-party integration, user-upload surface, permission-model change, admin-privilege change, rate-limit decisions
+
+### Seat 29 — Yara Demir, Mobile Security & Supply Chain Engineer
+- **Domain**: Mobile-specific security (iOS/Android binary integrity, certificate pinning, deep-link hijacking, permission abuse, local storage protection, keychain/keystore hygiene, jailbreak/root detection awareness), dependency supply chain (CVE monitoring, lockfile integrity, typosquatting vigilance, npm/PyPI audit), build-time vs runtime secrets distinction
+- **Mandate**: Mobile apps ship as distributable binaries — they carry their secrets with them. Anything embedded in the JS bundle or native resources is readable by any attacker with five minutes and apktool/Hopper. Holds the line: no secrets in the mobile bundle, no secrets in `app.json`, no secrets in committed config. Monitors the dependency tree for published CVEs and new maintainer transfers (supply-chain signal). Audits deep-link handlers — `/live-lesson` opened from a push payload is a hijack vector if the payload isn't validated. Rejects "it builds so it's fine" — the real question is "what does an attacker with a decompiled binary and a malicious-link campaign see?"
+- **Consult on**: Any env var used in mobile code, deep-link handler changes, package installs or major-version bumps, lockfile diffs, `app.json` / `eas.json` changes, any secret flowing toward the mobile app, any attacker-facing surface on distributed binaries
+
 ---
 
 ## Deliberation Format
@@ -201,3 +211,5 @@ When new seats are added via auto-expansion, they are logged here:
 | 25 | Kira Takahashi | Technical Prompt Engineering | 2026-04-15: generative-imagery pipeline. Runware API key handed to the project; nobody owned model mechanics, seed discipline, batch economics. Seat 9 owns secrets but not prompt craft. |
 | 26 | Noor Rahman | Heritage Prompt Engineering | 2026-04-15: generative-imagery pipeline. Seat 23 (Khadija) reviews output for tradition-fidelity; writing prompts that *produce* tradition-faithful output was a gap upstream. Prevents orientalist pastiche at the source. |
 | 27 | Stasia Kowalski | Editorial Prompt Engineering | 2026-04-15: generative-imagery pipeline. Seats 19/22 hold visual direction; translating that direction into prompt constraints (negative space, crop, opacity, palette-lock) the model will respect was unowned. |
+| 28 | Samir Al-Khalifi | Adversarial Security | 2026-04-15: user noted only one security seat on a council of 27. Seat 9 owns defensive posture; adversarial thinking (threat-modelling, red-team, business-logic abuse) is a distinct discipline that was uncovered. |
+| 29 | Yara Demir | Mobile Security & Supply Chain | 2026-04-15: same deliberation. Seat 9 is backend-weighted. Mobile binaries expose their bundles; supply-chain CVE/typosquat vigilance is continuous, not one-off. Both were unowned. |
