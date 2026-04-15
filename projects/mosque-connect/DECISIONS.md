@@ -103,3 +103,18 @@ Format: short title → decision → why → trade-off accepted.
 - **What went away**: `web/donate.html`, `web/donate.js`, navbar "Give" link, mobile-menu "Give" item, footer "Give" link, sitemap entries (HTML tree + XML), and the sitemap's Donate branch.
 - **What stayed**: the backend `/api/v1/donate/*` endpoints (mobile uses them), Stripe CSP entries in `web/_headers` (mobile-relevant + cheap), Stripe references in `privacy.html` / `terms.html` (mobile still uses Stripe). Copy-to-clipboard logic moved from `donate.js` → `script.js` and auto-binds on any page that surfaces bank-sheet controls.
 - **Trade-off**: no dedicated donation landing page; giving from the web is one click deeper (About → Support section). Acceptable given mobile is the primary donation surface.
+
+---
+
+## Backend deploy pipeline
+
+**Consolidated backend deploy on Coolify, with CI tests as the gate (2026-04-15).**
+- **Why**: two mechanisms were trying to deploy the same backend — a broken SSH `deploy:` job in GitHub Actions (pointing at `/home/mosque/...`, a path that doesn't exist on the box) and Coolify's own git watcher. Having two deploy systems fight each other is how you get silent races, inconsistent prod state, and late-night debugging sessions.
+- **New topology**: GitHub Actions owns tests + lint + Expo OTA + **triggering the deploy**. Coolify owns the actual deploy (Dockerfile build, env vars, migrate-on-boot, rolling restart). The CI `deploy-backend` job fires a single `curl -X POST` against Coolify's deploy webhook after `frontend` + `backend` tests pass. Coolify's native "auto deploy on push" is turned OFF; the CI webhook is the sole trigger.
+- **What this buys**: tests gate deploy. A red CI means no webhook call means no deploy. Previously Coolify's auto-on-push could have shipped a failing-test commit before CI finished.
+- **Considered and rejected**:
+  - Pure auto-deploy via Coolify (no CI gate) — Seats 13 and 16 blocked. "No deploying with failing tests" is non-negotiable.
+  - Tag-based releases — overkill for a single-mosque app.
+  - Ripping Coolify out and doing Docker builds in CI — regresses Coolify's rollback/env-var UI; not worth it.
+- **What changed in code**: `.github/workflows/ci.yml` — replaced the SSH `deploy:` job with a two-line `deploy-backend:` webhook job. `backend/scripts/deploy.sh` — re-captioned as emergency-only manual fallback (still works, no longer the routine path).
+- **Orphan cleanup (your hands)**: delete `SERVER_HOST` / `SERVER_USER` / `SERVER_SSH_KEY` secrets from GitHub repo settings. They have no consumer left.

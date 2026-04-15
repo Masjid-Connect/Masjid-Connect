@@ -120,21 +120,23 @@ jobs:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
   # -----------------------------------------------------------
-  # Deploy to production (only on push to main, after tests pass)
+  # Backend deploy — triggers Coolify via its deploy webhook.
+  #
+  # Coolify owns the actual deploy mechanics (Dockerfile build, env var
+  # injection, migrate-on-boot, rolling restart). This job exists only
+  # to gate that deploy on green tests — Coolify's own "auto deploy on
+  # push" is disabled so this webhook is the sole trigger.
+  #
+  # The COOLIFY_DEPLOY_WEBHOOK_URL secret is the full webhook URL
+  # (including uuid + token query params) copied from
+  # Coolify → <app> → Settings → Deploy Webhook.
   # -----------------------------------------------------------
-  deploy:
-    name: Deploy to Production
+  deploy-backend:
+    name: Trigger Coolify deploy
     runs-on: ubuntu-latest
     needs: [frontend, backend]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script: |
-            cd /home/mosque/Masjid-Connect/backend
-            ./scripts/deploy.sh
+      - name: POST to Coolify webhook
+        run: curl -fSs -X POST "${{ secrets.COOLIFY_DEPLOY_WEBHOOK_URL }}"

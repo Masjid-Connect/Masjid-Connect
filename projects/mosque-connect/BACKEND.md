@@ -132,3 +132,33 @@ python manage.py test_push
 
 - Django admin at `/admin/` with Unfold theme (Sacred Blue brand colours).
 - Designed for non-technical users — see `DESIGN.md` § Admin UX.
+
+## Deployment
+
+The backend runs as a Docker container managed by **Coolify** on the Digital Ocean host. There is exactly one routine deploy pathway; everything else is emergency-only.
+
+### Responsibility split
+
+| System | Owns |
+|---|---|
+| **GitHub Actions** (`.github/workflows/ci.yml`) | `tsc --noEmit`, `eslint .`, Jest, Django migrate + test, Expo OTA, **triggering the Coolify deploy** |
+| **Coolify** | Dockerfile build, env var injection, database connection, migrate-on-boot, rolling container restart |
+
+### Deploy flow (push → prod)
+
+1. Commit pushed to `main`.
+2. CI runs `frontend` + `backend` jobs (in parallel).
+3. On green from both, the `deploy-backend` job in CI fires a single `curl -X POST` against the Coolify deploy webhook (`secrets.COOLIFY_DEPLOY_WEBHOOK_URL`).
+4. Coolify receives the webhook, pulls `main`, rebuilds the image, applies migrations, restarts containers.
+5. If CI is red, the webhook is never called → no deploy.
+
+Coolify's own **"auto deploy on push"** toggle is **OFF**. The CI webhook is the sole deploy trigger. This prevents the "two steering wheels" problem where Coolify's git watcher and a separate CI deploy step race each other.
+
+### Webhook configuration
+
+- `COOLIFY_DEPLOY_WEBHOOK_URL` — GitHub Actions secret. Full webhook URL from Coolify → backend app → Settings → Deploy Webhook. The URL embeds the app UUID and auth token in its query string.
+- No other deploy secrets in GitHub. (The old `SERVER_HOST` / `SERVER_USER` / `SERVER_SSH_KEY` secrets from the pre-Coolify SSH pipeline should be deleted from the repo settings — they are orphaned.)
+
+### Emergency manual deploy
+
+If Coolify is unreachable and a backend deploy cannot wait for it to come back, `backend/scripts/deploy.sh` is preserved as a manual fallback. It SSHes nowhere by itself — you have to be on the host already. It reproduces what Coolify does (pull, build, migrate, restart) via `docker-compose.prod.yml`. Do not use it as the routine path; if you find yourself running it more than once a quarter, fix the Coolify pipeline instead.

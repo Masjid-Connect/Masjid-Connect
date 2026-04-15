@@ -1,23 +1,32 @@
 #!/usr/bin/env bash
 # =============================================================
-# Masjid Connect — Deploy Script
+# Masjid Connect — EMERGENCY Deploy Script (manual fallback only)
 # =============================================================
-# WHAT THIS DOES:
-#   Pulls the latest code, rebuilds the app, runs database
-#   updates, and restarts everything. Takes about 2 minutes.
+# ⚠️  ROUTINE BACKEND DEPLOYS ARE OWNED BY COOLIFY.
+#     Every push to main triggers a deploy via the Coolify webhook
+#     (fired by the `deploy-backend` job in .github/workflows/ci.yml).
+#     You should not need to run this script during normal operation.
 #
-# HOW TO USE:
-#   1. SSH into your server:  ssh mosque@your-server-ip
-#   2. Go to the project:     cd /home/mosque/Masjid-Connect/backend
-#   3. Run this script:       ./scripts/deploy.sh
+# WHEN TO RUN THIS SCRIPT:
+#   - Coolify is down / unreachable and a deploy is urgent
+#   - You're doing a migration hotfix that can't wait for CI
+#   - You've logged into a self-hosted box where Coolify isn't set up
 #
-# WHAT HAPPENS:
+# HOW TO USE (emergency only):
+#   1. SSH to the host running the backend (path varies per environment)
+#   2. cd into the backend directory of the cloned repo
+#   3. Run this script:  ./scripts/deploy.sh
+#
+# WHAT THIS DOES (if run):
 #   1. Pulls latest code from GitHub
-#   2. Builds a new Docker image
+#   2. Builds a new Docker image (docker-compose.prod.yml)
 #   3. Runs database migrations (if any)
 #   4. Collects static files (admin CSS/JS)
 #   5. Restarts containers
 #   6. Checks that everything is working
+#
+# If you find yourself running this script more than once a quarter,
+# something is wrong with the Coolify pipeline — fix that instead.
 # =============================================================
 
 set -euo pipefail
