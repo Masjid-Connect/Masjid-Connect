@@ -19,11 +19,17 @@
  */
 
 export const palette = {
-  // ─── Stone: warm marble backgrounds (light mode) ────────────────
-  stone100: '#F9F7F2',      // Main background — clean masjid marble floor (unchanged — canvas stays pale)
-  stone200: '#F0EDE6',      // Secondary surface — slightly deeper warmth
-  stone300: '#D9D0B9',      // Grouped/tertiary — warmer sand (was #E5E0D3, too pale to register as distinct tier)
-  stone400: '#BFB49A',      // NEW — bolder accent surface, editorial dividers, feature-card accents
+  // ─── Stone: warm paper backgrounds (light mode) ─────────────────
+  // Deep & Cinematic pass (Candidate A, 2026-04-15): canvas deepened
+  // from cool off-white #F9F7F2 to warm paper #F2EBD8. Gives surfaces
+  // more presence and a real cream character. Seat 19's diagnosis:
+  // the "pale" complaint was a hierarchy problem — stone couldn't
+  // dominate AND feel weighted; warming the canvas lets it carry
+  // weight without fighting darker accents.
+  stone100: '#F2EBD8',      // Main background — warm paper (was #F9F7F2)
+  stone200: '#ECE3CC',      // Secondary surface — slightly deeper
+  stone300: '#D9D0B9',      // Grouped/tertiary
+  stone400: '#BFB49A',      // Bolder accent surface
 
   // ─── Onyx: organic dark tones for light-mode text ───────────────
   onyx900: '#121216',       // Primary text on light backgrounds
@@ -33,14 +39,23 @@ export const palette = {
   // ─── Sapphire: deep blue — brand primary & dark mode surfaces ───
   // Sapphire IS the dark mode. "Midnight in the Masjid" = midnight navy,
   // not black. Every dark surface lives in the sapphire family.
-  sapphire950: '#0A1628',   // Dark mode main background — deepest midnight navy
-  sapphire900: '#0F1E34',   // Dark mode secondary surface
-  sapphire850: '#132742',   // Dark mode elevated cards
-  sapphire800: '#18304E',   // Dark mode grouped list backgrounds
+  // Deep & Cinematic pass: midnight values are deeper + more
+  // saturated than the previous sapphire-navy tier. These surfaces
+  // are meant to carry HERO moments (splash, live lesson, prayer
+  // countdown backdrop, support hadith card) as full surfaces, not
+  // just tints. Token names preserved to avoid a downstream rename.
+  sapphire950: '#06101F',   // Dark mode canvas — deepest midnight (was #0A1628)
+  sapphire900: '#0E1E38',   // Dark mode secondary surface
+  sapphire850: '#17304F',   // Dark mode elevated cards
+  sapphire800: '#1A3E5E',   // Dark mode grouped list backgrounds
   sapphire700: '#0F2D52',   // Brand primary (light mode tint, tab selection)
   sapphire600: '#1A3F6B',   // Slightly lighter for interactive states
-  sapphire500: '#2B5580',   // NEW — saturated mid-tone. Missing "weight" color between 400 (too pale) and 700 (too dark). Use for icon backgrounds, filled pills, hover states, CTA accents. 7.9:1 on white (WCAG AAA).
+  sapphire500: '#2B5580',   // Saturated mid-tone for icon bgs, filled pills, hover states. 7.9:1 on white (WCAG AAA).
   sapphire400: '#6BABE5',   // Dark mode tint (lighter for dark backgrounds, WCAG AA on sapphire850+)
+  // Deep & Cinematic accent — saturated, weighted blue for hero CTAs
+  // and moments that need to feel "lit." Distinct from sapphire-500
+  // (which is a surface accent).
+  lapis500: '#1E68B8',      // NEW — Deep & Cinematic saturated accent (Candidate A)
   sapphireLight: '#EBF2FA', // Tint background (light mode)
   sapphireSeparator: '#1E3B5A', // Dark mode dividers — visible on navy
 
@@ -49,11 +64,15 @@ export const palette = {
   sage400: '#6BCB9B',       // Success states (dark mode)
 
   // ─── Gold: divine accent, prayer signal ─────────────────────────
-  // Bolder-palette pass (2026-04-15): previous #B08A1F read as muted
-  // tan, not gold; #F0D060 read as lemon on dark. New values push toward
-  // "architectural gilt" / burnished-but-present without going saturated.
-  divineGold: '#C99A2E',    // Richer warm gold — accent, prayer active indicator (3.18:1 on Stone-100 — WCAG 3:1 non-text)
-  divineGoldBright: '#E6C24A', // Deeper brighter variant for dark mode — less lemon, more gold
+  // Two gold variants for the Deep & Cinematic direction (Candidate A):
+  //   - `divineGold` stays at #C99A2E for accents on LIGHT (paper) surfaces
+  //     — maintains 3.18:1 on stone-100 (WCAG 3:1 non-text).
+  //   - `gilt` is the new richer gilt for gold glinting on MIDNIGHT dark
+  //     surfaces (hero moments, live lesson, splash). Brighter, lifts
+  //     against the deep-sapphire backgrounds where #C99A2E disappears.
+  divineGold: '#C99A2E',    // Warm gold for light-surface accents
+  divineGoldBright: '#E6C24A', // Dark-mode variant for existing gold usage
+  gilt: '#D4A03A',          // NEW — gold-on-midnight hero accent (Candidate A)
   divineGoldGlow: 'rgba(201, 154, 46, 0.10)', // Warm glow (tracks divineGold)
   divineGoldText: '#8A7023',        // Darker gold for text on light backgrounds (4.5:1 contrast on white)
   divineGoldTextDark: '#E0C96B',    // Lighter gold for text on dark backgrounds (4.5:1 contrast on black)

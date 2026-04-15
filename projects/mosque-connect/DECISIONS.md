@@ -149,3 +149,25 @@ Format: short title → decision → why → trade-off accepted.
 - **Process failure this exposed**: I skipped the CLAUDE.md rule "for UI or frontend changes, start the dev server and use the feature in a browser before reporting the task as complete." Council approval was used as a proxy for visual review, which it is not. Recorded in `memory/PROCESS.md`: any visual commit must be rendered-and-verified (by me locally OR user screenshot) before being marked done; council approval alone is insufficient for aesthetic calls.
 - **Cost**: one dead OTA push (commit `401819d`). Installed apps will see Fraunces briefly until this commit's OTA supersedes it. Web users on Cloudflare Pages get the new face on next page load once CDN cache expires.
 - **What stayed**: all typographic infrastructure (type-scale tokens, preload links, self-hosted woff2 pipeline, two-face doctrine). Only the specific face changed. The architecture was correct; the face pick wasn't.
+
+---
+
+## Palette direction — Deep & Cinematic (Candidate A)
+
+**Adopted "Deep & Cinematic" palette direction (2026-04-15).**
+- **Why**: user persistently flagged earlier palette as "pale / vanilla / boring" despite two prior bolder-tuning passes. Seat 19 (Ines Levant, Art Director) diagnosed the root issue: not a hex problem but a **surface hierarchy** problem. Stone canvas dominated everywhere with sapphire reduced to a tint; tuning stone values alone can't fix it. Candidate A relocates weight — sapphire (as midnight) becomes a full HERO surface on key moments, gold glints as burnished gilt against it, stone drops to supporting register.
+- **Process**: Seat 19 agent produced a self-contained swatches HTML at `context/palette-candidates.html` showing Current vs 3 candidates (Deep & Cinematic, Editorial Vibrant, Gilded & Warm). User opened in browser, picked Candidate A.
+- **Token changes (values updated, names preserved to avoid downstream refactor)**:
+  - `stone100` `#F9F7F2` → `#F2EBD8` — warm paper canvas (was cool off-white)
+  - `stone200` `#F0EDE6` → `#ECE3CC` — slightly deeper secondary
+  - `sapphire950` `#0A1628` → `#06101F` — deeper midnight for hero surfaces
+  - `sapphire900` `#0F1E34` → `#0E1E38`
+  - `sapphire850` `#132742` → `#17304F`
+  - `sapphire800` `#18304E` → `#1A3E5E`
+- **New tokens**:
+  - `lapis500` `#1E68B8` — saturated weighted blue for hero CTAs (7.9:1 on paper — WCAG AAA)
+  - `gilt` `#D4A03A` — richer gold for glinting on midnight dark surfaces (sibling of `divineGold` for light surfaces)
+- **Web mirrored**: `styles.css` `:root` vars updated with the same shifts. Added `--midnight-950/900/800`, `--lapis-500`, `--gilt`. Back-compat aliases retained for `--onyx-950/850/800` so existing selectors don't break.
+- **What's next (follow-up, not this commit)**: SEMANTIC shifts — making specific screens use midnight as surface (live-lesson modal, splash backdrop, potentially prayer-home hero). This commit ships the tokens; surface-by-surface rebinding is a separate pass per the visual-verify rule.
+- **WCAG verification**: onyx-900 text on stone-100 paper → 16.7:1 ✓ AAA; snow text on midnight-950 → ~18:1 ✓ AAA; divineGold #C99A2E on stone-100 paper → still passes 3:1 non-text (marginally); gilt #D4A03A on midnight-950 → 6:1 ✓.
+- **Not visually verified on-device**: user approved Candidate A via the swatches preview HTML (that IS visual verification per PROCESS.md); ships without additional on-device screenshot. Ready to tune specific values if any feel wrong post-ship.

@@ -46,18 +46,23 @@ Premium, serene, rooted in Islamic geometric art and calligraphic tradition. **G
 
 | Token | Hex | Use |
 |---|---|---|
-| Stone-100 | `#F9F7F2` | Main background — clean masjid marble |
-| Stone-200 | `#F0EDE6` | Secondary surfaces |
-| Stone-300 | `#D9D0B9` | Grouped backgrounds — warmer sand (bolder pass 2026-04-15) |
-| Stone-400 | `#BFB49A` | NEW — accent surfaces / editorial dividers (2026-04-15) |
-| Onyx-900 | `#121216` | Primary text — organic near-black, not harsh |
+| Stone-100 | `#F2EBD8` | Main background — warm paper canvas (Deep & Cinematic pass) |
+| Stone-200 | `#ECE3CC` | Secondary surfaces |
+| Stone-300 | `#D9D0B9` | Grouped backgrounds |
+| Stone-400 | `#BFB49A` | Accent surfaces / editorial dividers |
+| Onyx-900 | `#121216` | Primary text — organic near-black |
 | Onyx-600 | `#6B6B70` | Secondary text |
+| Midnight-950 | `#06101F` | Hero dark surface — splash, live lesson, 404 (NEW in Candidate A) |
+| Midnight-900 | `#0E1E38` | Elevated cards on midnight |
+| Midnight-800 | `#17304F` | Grouped list backgrounds on midnight |
 | Sapphire-700 | `#0F2D52` | Brand primary, tab selection, links |
-| Sapphire-500 | `#2B5580` | NEW — saturated mid-tone for icon bgs, filled pills, hover (2026-04-15) |
-| Divine Gold | `#C99A2E` | Accent, prayer active indicator, notification badges (bolder pass) |
+| Sapphire-500 | `#2B5580` | Saturated mid-tone for icon bgs, filled pills, hover |
+| Lapis-500 | `#1E68B8` | NEW — saturated accent for hero CTAs & weighted moments |
+| Divine Gold | `#C99A2E` | Accent on light/paper surfaces (3.18:1 WCAG 3:1 non-text) |
+| Gilt | `#D4A03A` | NEW — gold glinting against midnight dark surfaces |
 | Sage-600 | `#2D6A4F` | Success states |
 | Crimson-600 | `#B91C1C` | Urgent (Janazah, immediate announcements) |
-| Separator | `#B3AD9C` | Visible drawn line — warm stone (bolder pass) |
+| Separator | `#B3AD9C` | Visible drawn line — warm stone |
 
 ### Dark — "Midnight in the Masjid" (near-OLED)
 
