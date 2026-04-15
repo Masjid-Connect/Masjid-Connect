@@ -3,25 +3,32 @@ import { PixelRatio, Platform, StyleSheet, TextStyle, ViewStyle } from 'react-na
 /**
  * Font families — two-face system per DESIGN.md § Typography.
  *
- * Display face: **Fraunces** (variable serif, SIL OFL). Loaded via
- * `@expo-google-fonts/fraunces` in `app/_layout.tsx`. Applied only to
- * prayerCountdown, prayerName, largeTitle, title1, title2.
+ * Display face: **EB Garamond** (classical scholarly serif, SIL OFL).
+ * Loaded via `@expo-google-fonts/eb-garamond` in `app/_layout.tsx`.
+ * Applied only to prayerCountdown, prayerName, largeTitle, title1,
+ * title2. Italic available for specific moments (about-page tagline).
  *
  * Body / UI: system fonts (SF Pro / Roboto) via `undefined` sentinel —
  * everywhere else.
  *
  * SpaceMono: technical accents only (timestamps in debug contexts,
  * monospace numeric where tabular doesn't suffice).
+ *
+ * History: Fraunces was adopted briefly (2026-04-15) but its quirky,
+ * editorial character read as too "designery" for a sacred context.
+ * Replaced same day with EB Garamond for the scholarly/serene register.
+ * See projects/mosque-connect/DECISIONS.md.
  */
 export const fonts = {
-  // Display (Fraunces) — use at specific weights since expo-google-fonts
-  // ships static faces, not the variable axis. React Native mixes named
-  // families + fontWeight poorly; reference the weighted family by name
-  // and omit `fontWeight` at the usage site.
-  displayLight: 'Fraunces-Light' as const,        // 300
-  displayRegular: 'Fraunces-Regular' as const,    // 400
-  displayMedium: 'Fraunces-Medium' as const,      // 500
-  displaySemiBold: 'Fraunces-SemiBold' as const,  // 600
+  // Display (EB Garamond). EB Garamond has no 300 Light weight; the
+  // lightest is 400 Regular. `displayLight` is aliased to Regular for
+  // token-level compatibility — at 54pt prayer countdown, Regular is
+  // sturdier than Fraunces Light was, and reads more dignified.
+  displayLight: 'EBGaramond-Regular' as const,      // 400 (aliased)
+  displayRegular: 'EBGaramond-Regular' as const,    // 400
+  displayMedium: 'EBGaramond-Medium' as const,      // 500
+  displaySemiBold: 'EBGaramond-SemiBold' as const,  // 600
+  displayItalic: 'EBGaramond-Italic' as const,      // 400 italic
 
   // Body / UI — system defaults
   heading: undefined,
@@ -210,11 +217,11 @@ export const borderRadius = {
  * System fonts with weight variation. No custom fonts needed for MVP.
  */
 export const typography = {
-  // ─── Display-class tokens — Fraunces display face ────────────────
+  // ─── Display-class tokens — EB Garamond display face ────────────
   // Per DESIGN.md § Typography. fontWeight is omitted deliberately —
-  // the weighted Fraunces family is selected by name; mixing a named
-  // font with a fontWeight triggers RN's synthetic-bold path which
-  // looks wrong on a serif.
+  // the weighted EB Garamond family is selected by name; mixing a
+  // named font with a fontWeight triggers RN's synthetic-bold path
+  // which looks wrong on a serif.
   largeTitle: {
     fontSize: 34,
     fontFamily: fonts.displaySemiBold,
@@ -325,11 +332,11 @@ export const typography = {
     letterSpacing: -0.08,
     lineHeight: 18,
   },
-  // ─── Special purpose display — Fraunces ──────────────────────────
+  // ─── Special purpose display — EB Garamond ──────────────────────
   prayerCountdown: {
     fontSize: 54,
-    fontFamily: fonts.displayLight,  // Fraunces @ 300
-    letterSpacing: -2.5,              // tightened per DESIGN.md typography table
+    fontFamily: fonts.displayRegular,  // EB Garamond @ 400 (lightest available)
+    letterSpacing: -1.5,                // gentler than Fraunces — Garamond is a more traditional face
     lineHeight: 60,
   },
   prayerTime: {
@@ -352,8 +359,8 @@ export const typography = {
   },
   prayerName: {
     fontSize: 40,
-    fontFamily: fonts.displayLight,  // Fraunces @ 300
-    letterSpacing: -0.5,
+    fontFamily: fonts.displayRegular,  // EB Garamond @ 400
+    letterSpacing: -0.25,
     lineHeight: 48,
   },
   // Legacy aliases for compatibility

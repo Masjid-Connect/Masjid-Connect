@@ -44,10 +44,11 @@ Premium, serene, rooted in Islamic geometric art and calligraphic tradition. **G
 
 **Two-face system — one display, one body.** System fonts alone are definitional SaaS typography and incompatible with the "god-tier" aspiration. One carefully-chosen display face carries the moments of elevation; system fonts carry body and UI for performance and familiarity.
 
-### Display face — **Fraunces** (variable)
+### Display face — **EB Garamond** (variable)
 
-- **Why Fraunces**: free (SIL Open Font License), variable axes (weight + optical size + softness), contemporary yet serif-traditional, holds up at 54px prayer-countdown and at 28px title size. Roughly 80KB per variable-font file. Loaded once, cached.
-- **Loaded via**: `expo-font` on mobile (at `assets/fonts/Fraunces-VariableFont_SOFT,WONK,opsz,wght.ttf`), `@font-face` + `<link rel="preload">` on web (woff2 served from `/web/fonts/`). `font-display: swap` so first paint isn't blocked.
+- **Why EB Garamond**: free (SIL Open Font License), variable weight axis 400–800, classical Garamond heritage (16th-c. Claude Garamond), scholarly/manuscript register. Used across Islamic scholarly publishing in English. Serene, unadorned, never designery. Does not call attention to itself — which for sacred content is the right stance. ~40KB woff2 latin subset.
+- **Loaded via**: `@expo-google-fonts/eb-garamond` on mobile (static faces at 400/500/600 + 400 italic), `@font-face` + `<link rel="preload">` on web (self-hosted variable woff2 at `/web/fonts/eb-garamond-v32-latin.woff2`). `font-display: swap` so first paint isn't blocked.
+- **Historical note**: Fraunces was adopted briefly (2026-04-15) but its quirky, contemporary-editorial character read as too "designery" for a sacred context and was reverted the same day. Recorded in `DECISIONS.md`.
 - **Applied at** (and nowhere else):
   - Mobile: `prayerCountdown`, `prayerName`, `largeTitle`, `title1`, `title2` (hero/screen titles only — not list rows, not buttons, not body copy).
   - Web: `h1`, `h2`, section hero titles, prayer-time numerals on `/prayer-times`, principle numerals on `/about`.
@@ -63,12 +64,12 @@ Named tokens live in `constants/Theme.ts` (mobile) and as `--fs-*` CSS custom pr
 
 | Token | Mobile size / weight | Web size / weight | Face | Use |
 |---|---|---|---|---|
-| `prayerCountdown` | 54 / 250, tracking -2.5 | — | Fraunces | Active-prayer countdown (single most-viewed numeral) |
-| `prayerTimeLarge` | — | clamp(32, 4vw, 48) / 300, tabular | Fraunces | Web `/prayer-times` jama'ah times |
-| `largeTitle` | 34 / 600 | clamp(44, 6vw, 72) / 500 | Fraunces | Screen / page titles |
-| `title1` | 28 / 600 | 32 / 500 | Fraunces | Section titles |
-| `title2` | 22 / 600 | 24 / 500 | Fraunces | Subsections |
-| `title3` | 20 / 600 | 20 / 500 | Fraunces | Card titles, picker headers |
+| `prayerCountdown` | 54 / 400, tracking -1.5 | — | EB Garamond | Active-prayer countdown (single most-viewed numeral) |
+| `prayerTimeLarge` | — | clamp(32, 4vw, 48) / 400, tabular | EB Garamond | Web `/prayer-times` jama'ah times |
+| `largeTitle` | 34 / 600 | clamp(44, 6vw, 72) / 500 | EB Garamond | Screen / page titles |
+| `title1` | 28 / 600 | 32 / 500 | EB Garamond | Section titles |
+| `title2` | 22 / 600 | 24 / 500 | EB Garamond | Subsections |
+| `title3` | 20 / 600 | 20 / 500 | EB Garamond | Card titles, picker headers |
 | `headline` | 17 / 600 | 17 / 600 | System | Row headlines, emphasised body |
 | `body` | 17 / 400 | 17 / 400, line-height 1.6 | System | Default paragraph |
 | `callout` | 16 / 400 | 16 / 400 | System | Secondary paragraph |

@@ -42,9 +42,9 @@ Lives in the mobile app, not the website — documented here for the full pictur
 
 ## Typography
 
-**Fraunces** (variable serif, SIL OFL) is the display face for `h1`, `h2`, section hero titles, prayer-time numerals on `/prayer-times`, and principle numerals on `/about`. System fonts carry body text, buttons, and UI.
+**EB Garamond** (classical serif, SIL OFL) is the display face for `h1`, `h2`, section hero titles, prayer-time numerals on `/prayer-times`, and principle numerals on `/about`. System fonts carry body text, buttons, and UI.
 
-Loaded via `@font-face` + `<link rel="preload">` from `/web/fonts/` with `font-display: swap`. Roughly 80KB woff2, cached aggressively.
+Loaded via `@font-face` + `<link rel="preload">` from `/web/fonts/eb-garamond-v32-latin.woff2` (41KB, variable weight 400–800 axis) with `font-display: swap`.
 
 The type scale in `styles.css` uses named `--fs-*` custom properties — no arbitrary `font-size` values in individual rules. See `DESIGN.md` § Typography for the full scale.
 

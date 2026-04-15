@@ -14,7 +14,7 @@
     "version:bump": "./scripts/bump-version.sh"
   },
   "dependencies": {
-    "@expo-google-fonts/fraunces": "0.4.1",
+    "@expo-google-fonts/eb-garamond": "0.4.2",
     "@expo/vector-icons": "15.0.2",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/datetimepicker": "9.1.0",
