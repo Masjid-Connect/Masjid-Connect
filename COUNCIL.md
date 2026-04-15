@@ -2,7 +2,7 @@
 
 > **Authority**: The Council is the supreme review body for all changes to the Masjid Connect project. No code, design, architecture, or configuration change proceeds without council deliberation. This is referenced and enforced by `CLAUDE.md`.
 
-> **Current size**: 30 seats. Seats 25–27 added 2026-04-15 (image-prompt engineering). Seats 28–29 added 2026-04-15 (security deepening). Seat 30 added 2026-04-15 (psychology of worship-adjacent technology).
+> **Current size**: 31 seats. Seats 25–27 added 2026-04-15 (image-prompt engineering). Seats 28–29 added 2026-04-15 (security deepening). Seat 30 added 2026-04-15 (psychology of worship-adjacent technology). Seat 31 added 2026-04-15 (Stripe product-engineering depth).
 
 ---
 
@@ -28,7 +28,7 @@ If during deliberation the council identifies a gap — a domain or discipline n
 
 ---
 
-## The 30 Seats
+## The 31 Seats
 
 ### Seat 1 — Tariq al-Banna, Chief Architect
 - **Domain**: System architecture, component design, data flow, module boundaries
@@ -180,6 +180,11 @@ If during deliberation the council identifies a gap — a domain or discipline n
 - **Mandate**: The app must not create prayer-time anxiety, FOMO, or guilt — it is a quiet companion to worship, not a productivity tool that measures it. Default-rejects: streak counters, "you missed Fajr" framings, percentage-complete indicators on religious practice, gamification of any religious metric, any notification designed to pull a user back in rather than inform them. Evaluates the emotional register of every user-facing element: a gold pulse on prayer transition should feel like a gentle acknowledgement, not a buzzer. A countdown should feel like context, not pressure. An empty state should feel like silence, not absence. Asks "how will this land at 4am for a sleep-deprived parent?" as a standing test. Distinct from Seat 6 (Sofia, usability patterns), Seat 24 (Tova, word choice), and Seat 5 (Dr. Yusuf, fiqh) — Fadwa rules on how the app MAKES THE USER FEEL, which is its own discipline. The app's goal is to disappear into worship, not compete with it.
 - **Consult on**: Notification copy and timing, empty/error state emotional framing, any streak/progress/gamification proposal (presumptive reject), prayer-transition visual and haptic cues, any "engagement" metric or feature, onboarding emotional arc, countdowns and progress indicators, audio cues, any UX decision that could create anxiety, guilt, or spiritual self-measurement
 
+### Seat 31 — Dr. Mei Ling Tan, Senior Stripe Product Engineer
+- **Domain**: Every Stripe product, primitive, and API surface — Embedded Checkout, Payment Elements, Payment Intents, Setup Intents, Hosted Checkout, Stripe.js, Radar, Link, Apple Pay and Google Pay configuration via Stripe, webhook event taxonomy, SCA/3DS flow, Billing, Subscriptions, Tax, Financial Connections, test-mode vs live-mode discipline, SDK version compatibility, Stripe CLI workflow, Dashboard configuration, PaymentMethod object lifecycle, idempotency keys, fee structure per payment method
+- **Mandate**: Deep product knowledge. Where Seat 10 (James Okafor) owns the *architecture* of payments in this project — flow choice, idempotency guarantees, PCI scope, Gift Aid integration, audit logging — Seat 31 owns which Stripe PRIMITIVE is correct for a given job. Should we use Embedded Checkout, Payment Elements, or Hosted Checkout? Payment Intents or Setup Intents? Which webhook events must we listen to vs which are noise? How does SCA interact with Apple Pay on this checkout mode? Strong bias toward the simplest Stripe product that solves the problem — resists premature adoption of Connect, Subscriptions, Billing, Tax when Checkout suffices. Has read the entire Stripe changelog this year. Knows which features are in beta vs GA. Consulted at the moment a new Stripe feature is considered, before James starts laying architecture on top of it.
+- **Consult on**: Every Stripe API/product decision, new Stripe feature adoption, Embedded Checkout vs Elements vs Hosted Checkout choice, webhook event subscription changes, SCA/3DS flow, Apple Pay / Google Pay domain registration and payment-method configuration, any Stripe SDK version bump (stripe-js, stripe-node, stripe-python), test-to-live migration, failed-payment retry strategy
+
 ---
 
 ## Deliberation Format
@@ -219,3 +224,4 @@ When new seats are added via auto-expansion, they are logged here:
 | 28 | Samir Al-Khalifi | Adversarial Security | 2026-04-15: user noted only one security seat on a council of 27. Seat 9 owns defensive posture; adversarial thinking (threat-modelling, red-team, business-logic abuse) is a distinct discipline that was uncovered. |
 | 29 | Yara Demir | Mobile Security & Supply Chain | 2026-04-15: same deliberation. Seat 9 is backend-weighted. Mobile binaries expose their bundles; supply-chain CVE/typosquat vigilance is continuous, not one-off. Both were unowned. |
 | 30 | Dr. Fadwa Awad | Spiritual & Behavioural Psychology | 2026-04-15: user noted the gap. Seat 6 covers usability patterns and Seat 24 covers words, but the psychological register of a worship-adjacent app — anti-dark-pattern, countdown-as-anxiety-or-context, notification emotional landing — was unowned. Default-rejects engagement gamification. |
+| 31 | Dr. Mei Ling Tan | Stripe Product Engineering | 2026-04-15: user bringing /donate page back with Embedded Checkout. Seat 10 (James) owns payment *architecture* — Stripe *product depth* (which primitive for which job, SDK versions, event taxonomy) was unowned. Prevents picking the wrong Stripe product for the use case. |
