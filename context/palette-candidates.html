@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Palette Direction Candidates — The Salafi Masjid</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --page-bg: #1a1a1c;
+      --page-fg: #e8e6e1;
+      --muted: #8e8a82;
+      --rule: rgba(255,255,255,0.08);
+      --font-display: 'EB Garamond', Georgia, serif;
+      --font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'SF Mono', ui-monospace, Menlo, monospace;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--page-bg); color: var(--page-fg); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+    body { padding: 48px 40px 120px; }
+    .wrap { max-width: 1480px; margin: 0 auto; }
+
+    /* ── Prose ── */
+    .prose { max-width: 760px; margin: 0 auto 56px; }
+    .prose .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+    .prose h1 { font-family: var(--font-display); font-weight: 500; font-size: 46px; line-height: 1.08; letter-spacing: -0.01em; margin: 0 0 18px; }
+    .prose p { font-size: 15.5px; line-height: 1.65; color: #c9c6bf; margin: 0 0 14px; }
+    .prose p.lede { font-size: 17px; color: #dad7d0; }
+    .prose h2 { font-family: var(--font-display); font-weight: 500; font-size: 24px; letter-spacing: 0.005em; margin: 34px 0 8px; }
+    .prose h2 .tag { font-family: var(--font-mono); font-size: 10.5px; color: var(--muted); letter-spacing: 0.16em; text-transform: uppercase; margin-left: 10px; vertical-align: middle; }
+    .prose .tradeoff { font-size: 13.5px; color: #a8a49c; border-left: 2px solid rgba(212,175,55,0.5); padding: 4px 0 4px 14px; margin: 10px 0 4px; }
+    .prose .verdict { margin-top: 40px; padding: 22px 24px; border: 1px solid rgba(212,175,55,0.35); background: rgba(212,175,55,0.04); border-radius: 6px; }
+    .prose .verdict h2 { margin-top: 0; color: #e6c24a; }
+    .prose .verdict p { color: #dad7d0; }
+
+    /* ── Grid of palettes ── */
+    .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; align-items: start; }
+    @media (max-width: 1200px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 640px)  { .grid { grid-template-columns: 1fr; } }
+
+    .col { display: flex; flex-direction: column; gap: 12px; }
+    .col > header h3 { font-family: var(--font-display); font-weight: 500; font-size: 22px; margin: 0 0 4px; letter-spacing: 0.005em; color: #f2efe8; }
+    .col > header .sub { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+    .col > header .note { font-size: 13px; color: #a8a49c; margin-top: 8px; line-height: 1.5; }
+
+    /* ── Swatch strips ── */
+    .stripe { border-radius: 4px; overflow: hidden; border: 1px solid var(--rule); }
+    .stripe .row { display: flex; align-items: center; justify-content: space-between; padding: 14px 14px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.02em; }
+    .stripe .label { opacity: 0.85; }
+    .stripe .hex { opacity: 0.75; }
+
+    /* ── Hero panel (canvas + card + hero + prayer row) ── */
+    .panel { border-radius: 10px; overflow: hidden; border: 1px solid var(--rule); }
+    .panel .canvas { padding: 22px 20px 24px; }
+    .panel .eyebrow-in { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.55; margin-bottom: 10px; }
+    .panel .title { font-family: var(--font-display); font-weight: 500; font-size: 30px; line-height: 1.1; letter-spacing: -0.005em; margin: 0 0 6px; }
+    .panel .dek { font-family: var(--font-body); font-size: 13.5px; line-height: 1.5; margin: 0 0 18px; opacity: 0.78; }
+    .panel .sep { height: 1px; width: 100%; margin: 16px 0; }
+    .panel .btn { display: inline-block; font-family: var(--font-body); font-weight: 600; font-size: 13.5px; padding: 10px 18px; border-radius: 999px; letter-spacing: 0.01em; }
+    .panel .btn + .btn { margin-left: 8px; }
+    .panel .card { margin-top: 18px; border-radius: 8px; padding: 14px 14px; display: flex; align-items: center; gap: 12px; }
+    .panel .card .bar { width: 3px; height: 28px; border-radius: 2px; }
+    .panel .card .pname { font-family: var(--font-display); font-size: 18px; font-weight: 500; flex: 1; }
+    .panel .card .ptime { font-family: var(--font-body); font-variant-numeric: tabular-nums; font-weight: 600; font-size: 16px; }
+    .panel .card .pctr  { font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.18em; opacity: 0.6; margin-left: auto; }
+
+    .footer-note { margin-top: 56px; text-align: center; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="prose">
+    <div class="eyebrow">Seat 19 · Ines Levant · Art Direction</div>
+    <h1>Palette Direction — three candidates, not three tunings</h1>
+    <p class="lede">
+      You called the current palette pale and vanilla. That's a direction problem, not a
+      saturation-slider problem. Before we touch <code>Colors.ts</code> or <code>styles.css</code>, here are
+      three genuinely different personas to choose between. Pick the lane first, then we tune.
+    </p>
+    <p>
+      Ground rules I am holding: WCAG AA on body copy stays non-negotiable (we do not weaken the
+      16:1 onyx-on-stone we have today); this is a sacred space, not a fintech app, so "vibrant"
+      here means richer pigment and tonal confidence — not Pantone-of-the-year or Muslim-Pro neon.
+      Every jewel tone below references an actual Islamic material tradition (zellige, manuscript
+      illumination, tile, gilt) rather than a trending gradient.
+    </p>
+
+    <h2>Candidate A — Deep &amp; Cinematic <span class="tag">evening prayer</span></h2>
+    <p>
+      Sapphire stops being a tint and becomes a <em>surface</em>. Hero moments — splash, prayer
+      countdown, announcement detail — sit on a deep midnight-navy canvas with a warmer, richer
+      gold as the single ornamental move. Stone becomes the secondary mode, not primary. The
+      posture is Linear's dark-first elegance crossed with the lit interior of Süleymaniye at
+      isha. References: Linear's marketing surfaces, Apple Weather's nighttime palette, the
+      Athan Pro dark theme done with twice the confidence.
+    </p>
+    <p class="tradeoff"><b>Gain:</b> immediate drama, photographic weight, gold actually glints. Feels like a place, not a list. <b>Lose:</b> light mode becomes the "secondary" experience, which breaks older congregants' default expectation; battery/OLED implications are a plus but UX decision must be deliberate.</p>
+
+    <h2>Candidate B — Editorial Jewel <span class="tag">illuminated page</span></h2>
+    <p>
+      Cream canvas stays, but everything on top of it gets weight. Deeper indigo replaces the
+      current sapphire, a richer burnished gold replaces the muted tan, and we add one restrained
+      jewel accent — a deep zellige emerald — used sparingly for success, live-now states, and
+      one editorial moment per screen. Think <em>The New York Times</em> magazine spread meets an
+      Ottoman manuscript frontispiece. References: Quran.com's restrained confidence, Teenage
+      Engineering's tonal discipline, Rauno Freiberg's "structural color" approach where one
+      saturated hue does all the heavy lifting.
+    </p>
+    <p class="tradeoff"><b>Gain:</b> preserves the light-first sanctuary feel while pushing contrast up hard; emerald introduces tradition without neon; closest to "scholarly / not designery". <b>Lose:</b> risks looking like the current palette unless stone tiers deepen meaningfully — requires courage on stone-300/400.</p>
+
+    <h2>Candidate C — Gilded Warm <span class="tag">illuminated manuscript</span></h2>
+    <p>
+      The stones themselves deepen into parchment and terracotta territory, and gold expands from
+      accent to occasional surface (section headers, hero card tops, the prayer-active bar). This
+      is the warmest candidate — closer to the feel of a worn mus-haf cover than to a screen.
+      References: the Alhambra's ochre interior light, the Topkapı manuscripts wing, and — the
+      outlier — <em>Hallow</em>'s deeply confident warm direction, which is the one religious app
+      that broke its category and did not look like everyone else in the store.
+    </p>
+    <p class="tradeoff"><b>Gain:</b> unmistakable identity, warmth that survives screenshots, gold earns the "divine" label. <b>Lose:</b> least versatile for dense content (schedules, event lists) — can read as decorative; hardest to keep readable at small type sizes.</p>
+
+    <div class="verdict">
+      <h2>Recommendation — Candidate A (Deep &amp; Cinematic)</h2>
+      <p>
+        The screenshots that triggered your "pale / vanilla" note were almost all light mode hero
+        surfaces where the canvas dominates and sapphire only appears as a small tint. That is a
+        <em>surface hierarchy</em> problem, not a hex problem. A is the only candidate that fixes it at
+        the root, by letting sapphire own the hero. B is the safer follow-up if A feels too much of a
+        pivot — it reaches the same weight without moving off the cream canvas. C I would hold in
+        reserve for a Ramadan Mode variant rather than the default theme.
+      </p>
+    </div>
+  </section>
+
+  <section class="grid">
+
+    <!-- ─────────────────────────── CURRENT ─────────────────────────── -->
+    <div class="col">
+      <header>
+        <h3>Current</h3>
+        <div class="sub">Timeless Sanctuary · bolder-pass</div>
+        <div class="note">Stone canvas, sapphire tint, muted gold. Post-#e90dd37. The baseline to beat.</div>
+      </header>
+
+      <div class="stripe">
+        <div class="row" style="background:#F9F7F2;color:#121216;"><span class="label">canvas · stone-100</span><span class="hex">#F9F7F2</span></div>
+        <div class="row" style="background:#F0EDE6;color:#121216;"><span class="label">surface · stone-200</span><span class="hex">#F0EDE6</span></div>
+        <div class="row" style="background:#D9D0B9;color:#121216;"><span class="label">grouped · stone-300</span><span class="hex">#D9D0B9</span></div>
+        <div class="row" style="background:#0F2D52;color:#F9F7F2;"><span class="label">brand · sapphire-700</span><span class="hex">#0F2D52</span></div>
+        <div class="row" style="background:#C99A2E;color:#121216;"><span class="label">accent · gold</span><span class="hex">#C99A2E</span></div>
+        <div class="row" style="background:#0A1628;color:#F5F5F7;"><span class="label">dark · sapphire-950</span><span class="hex">#0A1628</span></div>
+      </div>
+
+      <div class="panel">
+        <div class="canvas" style="background:#F9F7F2;color:#121216;">
+          <div class="eyebrow-in" style="color:#6B6B70;">Maghrib</div>
+          <h4 class="title">A time for quiet return.</h4>
+          <p class="dek" style="color:#6B6B70;">The sun has set; the community gathers.</p>
+          <a class="btn" style="background:#0F2D52;color:#fff;">Open prayer times</a>
+          <a class="btn" style="background:transparent;color:#0F2D52;border:1px solid #B3AD9C;">Announcements</a>
+          <div class="sep" style="background:#B3AD9C;"></div>
+          <div class="card" style="background:#fff;border:1px solid #B3AD9C;">
+            <span class="bar" style="background:#C99A2E;"></span>
+            <span class="pname">Maghrib</span>
+            <span class="ptime">7:42 PM</span>
+            <span class="pctr" style="color:#C99A2E;">LIVE</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────── A · DEEP & CINEMATIC ──────────────────── -->
+    <div class="col">
+      <header>
+        <h3>A · Deep &amp; Cinematic</h3>
+        <div class="sub">sapphire-as-surface · burnished gilt</div>
+        <div class="note">Dark navy owns hero moments. Stone becomes secondary, not primary. Gold reads as architectural gilt, not tan.</div>
+      </header>
+
+      <div class="stripe">
+        <div class="row" style="background:#06101F;color:#F2EFE8;"><span class="label">canvas · midnight-950</span><span class="hex">#06101F</span></div>
+        <div class="row" style="background:#0E1E38;color:#F2EFE8;"><span class="label">surface · midnight-900</span><span class="hex">#0E1E38</span></div>
+        <div class="row" style="background:#17304F;color:#F2EFE8;"><span class="label">elevated · midnight-800</span><span class="hex">#17304F</span></div>
+        <div class="row" style="background:#1E68B8;color:#F2EFE8;"><span class="label">accent · lapis-500</span><span class="hex">#1E68B8</span></div>
+        <div class="row" style="background:#D4A03A;color:#121216;"><span class="label">gilt · burnished-gold</span><span class="hex">#D4A03A</span></div>
+        <div class="row" style="background:#F2EBD8;color:#121216;"><span class="label">paper (light mode)</span><span class="hex">#F2EBD8</span></div>
+      </div>
+
+      <div class="panel">
+        <div class="canvas" style="background:#06101F;color:#F2EFE8;">
+          <div class="eyebrow-in" style="color:#D4A03A;">Maghrib</div>
+          <h4 class="title">A time for quiet return.</h4>
+          <p class="dek" style="color:#A8B5C9;">The sun has set; the community gathers.</p>
+          <a class="btn" style="background:#D4A03A;color:#06101F;">Open prayer times</a>
+          <a class="btn" style="background:transparent;color:#F2EFE8;border:1px solid rgba(212,160,58,0.55);">Announcements</a>
+          <div class="sep" style="background:rgba(212,160,58,0.25);"></div>
+          <div class="card" style="background:#0E1E38;border:1px solid rgba(212,160,58,0.2);">
+            <span class="bar" style="background:#D4A03A;"></span>
+            <span class="pname" style="color:#F2EFE8;">Maghrib</span>
+            <span class="ptime" style="color:#F2EFE8;">7:42 PM</span>
+            <span class="pctr" style="color:#D4A03A;">LIVE</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────── B · EDITORIAL JEWEL ──────────────────── -->
+    <div class="col">
+      <header>
+        <h3>B · Editorial Jewel</h3>
+        <div class="sub">cream canvas · indigo · zellige emerald</div>
+        <div class="note">Light-first stays. Indigo replaces sapphire, a single emerald jewel does live-state work, gold deepens to burnished.</div>
+      </header>
+
+      <div class="stripe">
+        <div class="row" style="background:#F3EDDC;color:#121216;"><span class="label">canvas · cream-100</span><span class="hex">#F3EDDC</span></div>
+        <div class="row" style="background:#E6DDC2;color:#121216;"><span class="label">surface · cream-200</span><span class="hex">#E6DDC2</span></div>
+        <div class="row" style="background:#CDC09B;color:#121216;"><span class="label">grouped · cream-300</span><span class="hex">#CDC09B</span></div>
+        <div class="row" style="background:#1B2A57;color:#F3EDDC;"><span class="label">brand · indigo-700</span><span class="hex">#1B2A57</span></div>
+        <div class="row" style="background:#0F5F4A;color:#F3EDDC;"><span class="label">jewel · zellige-emerald</span><span class="hex">#0F5F4A</span></div>
+        <div class="row" style="background:#B8862A;color:#121216;"><span class="label">gilt · burnished-gold</span><span class="hex">#B8862A</span></div>
+      </div>
+
+      <div class="panel">
+        <div class="canvas" style="background:#F3EDDC;color:#121216;">
+          <div class="eyebrow-in" style="color:#1B2A57;">Maghrib</div>
+          <h4 class="title">A time for quiet return.</h4>
+          <p class="dek" style="color:#5A5448;">The sun has set; the community gathers.</p>
+          <a class="btn" style="background:#1B2A57;color:#F3EDDC;">Open prayer times</a>
+          <a class="btn" style="background:transparent;color:#1B2A57;border:1px solid #A89E80;">Announcements</a>
+          <div class="sep" style="background:#A89E80;"></div>
+          <div class="card" style="background:#FBF7EA;border:1px solid #A89E80;">
+            <span class="bar" style="background:#B8862A;"></span>
+            <span class="pname" style="color:#121216;">Maghrib</span>
+            <span class="ptime" style="color:#121216;">7:42 PM</span>
+            <span class="pctr" style="color:#0F5F4A;">LIVE</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─────────────────────── C · GILDED WARM ──────────────────── -->
+    <div class="col">
+      <header>
+        <h3>C · Gilded &amp; Warm</h3>
+        <div class="sub">parchment · terracotta · gold as surface</div>
+        <div class="note">Deepest warmth; gold expands to surfaces. Closest reference: the Alhambra interior and Hallow's warm discipline.</div>
+      </header>
+
+      <div class="stripe">
+        <div class="row" style="background:#EEE4CA;color:#1E1407;"><span class="label">canvas · parchment-100</span><span class="hex">#EEE4CA</span></div>
+        <div class="row" style="background:#DFD0A8;color:#1E1407;"><span class="label">surface · parchment-200</span><span class="hex">#DFD0A8</span></div>
+        <div class="row" style="background:#BFA574;color:#1E1407;"><span class="label">grouped · parchment-300</span><span class="hex">#BFA574</span></div>
+        <div class="row" style="background:#9B6B3F;color:#F3EDDC;"><span class="label">earth · terracotta-700</span><span class="hex">#9B6B3F</span></div>
+        <div class="row" style="background:#B8862A;color:#1E1407;"><span class="label">gilt · burnished-gold</span><span class="hex">#B8862A</span></div>
+        <div class="row" style="background:#3A2A18;color:#F3EDDC;"><span class="label">ink · walnut-900</span><span class="hex">#3A2A18</span></div>
+      </div>
+
+      <div class="panel">
+        <div class="canvas" style="background:#EEE4CA;color:#1E1407;">
+          <div class="eyebrow-in" style="color:#9B6B3F;">Maghrib</div>
+          <h4 class="title">A time for quiet return.</h4>
+          <p class="dek" style="color:#5A4630;">The sun has set; the community gathers.</p>
+          <a class="btn" style="background:#3A2A18;color:#EEE4CA;">Open prayer times</a>
+          <a class="btn" style="background:transparent;color:#3A2A18;border:1px solid #9B6B3F;">Announcements</a>
+          <div class="sep" style="background:#BFA574;"></div>
+          <div class="card" style="background:linear-gradient(180deg,#F7EFD4 0%,#EEE4CA 100%);border:1px solid #BFA574;">
+            <span class="bar" style="background:#B8862A;"></span>
+            <span class="pname" style="color:#1E1407;">Maghrib</span>
+            <span class="ptime" style="color:#1E1407;">7:42 PM</span>
+            <span class="pctr" style="color:#9B6B3F;">LIVE</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <div class="footer-note">Preview only · no production files touched · open in any modern browser</div>
+</div>
+</body>
+</html>

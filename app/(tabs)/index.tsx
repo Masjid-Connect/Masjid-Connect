@@ -373,6 +373,35 @@ export default function PrayerTimesScreen() {
             </Pressable>
           </View>
 
+          {/* Column headers — matches the web's BEGINS / JAMĀ'AH pattern
+              so the mobile table reads as a proper schedule, not a
+              single-value list. Uses sectionHeader style (uppercase,
+              tracked, muted) so it doesn't fight the row content below. */}
+          <View style={styles.columnHeaderRow}>
+            <View style={styles.dotCol} />
+            <Text style={[typography.sectionHeader, { color: colors.textTertiary, flex: 1 }]}>
+              {t('prayer.prayerLabel')}
+            </Text>
+            <Text
+              style={[
+                typography.sectionHeader,
+                { color: colors.textTertiary, textAlign: 'right' },
+                styles.beginsCol,
+              ]}
+            >
+              {t('prayer.beginsColumn')}
+            </Text>
+            <Text
+              style={[
+                typography.sectionHeader,
+                { color: colors.textTertiary, textAlign: 'right' },
+                styles.jamaatCol,
+              ]}
+            >
+              {t('prayer.jamaatColumn')}
+            </Text>
+          </View>
+
           {prayers.map((prayer, index) => {
             const isNext = prayer.name === nextPrayer;
             const isPassed = !isNext && prayer.time < new Date();
@@ -434,8 +463,27 @@ export default function PrayerTimesScreen() {
                   {t(`prayer.${prayer.name}`)}
                 </Text>
 
-                {/* Time — right-aligned, tabular */}
-                <View style={styles.timeCol}>
+                {/* Begins — supporting data, lighter weight. Matches
+                    the web's BEGINS column so mobile and web users
+                    see the same information at the same hierarchy. */}
+                <View style={styles.beginsCol}>
+                  {prayer.startTime && prayer.startTime.getTime() !== prayer.time.getTime() ? (
+                    <Text style={[
+                      typography.footnote,
+                      {
+                        color: colors.textSecondary,
+                        fontVariant: ['tabular-nums'],
+                        textAlign: 'right',
+                        opacity: isPassed ? 0.4 : 0.75,
+                      },
+                    ]}>
+                      {formatPrayerTime(prayer.startTime, use24h)}
+                    </Text>
+                  ) : null}
+                </View>
+
+                {/* Jamā'ah — primary, full weight, right-most column */}
+                <View style={styles.jamaatCol}>
                   <Text style={[
                     typography.prayerTime,
                     {
@@ -447,20 +495,6 @@ export default function PrayerTimesScreen() {
                   ]}>
                     {formatPrayerTime(prayer.time, use24h)}
                   </Text>
-                  {prayer.startTime && prayer.startTime.getTime() !== prayer.time.getTime() && (
-                    <Text style={[
-                      typography.caption2,
-                      {
-                        color: colors.textSecondary,
-                        fontVariant: ['tabular-nums'],
-                        textAlign: 'right',
-                        opacity: isPassed ? 0.3 : 0.5,
-                        marginTop: 0,
-                      },
-                    ]}>
-                      {formatPrayerTime(prayer.startTime, use24h)}
-                    </Text>
-                  )}
                 </View>
 
                 {/* Active row progress bar — thin gold line at bottom */}
@@ -582,8 +616,19 @@ const styles = StyleSheet.create({
     width: spacing.xl, // 20
     alignItems: 'center',
   },
-  timeCol: {
+  beginsCol: {
+    width: 72,             // fixed so column headers align with row data
     alignItems: 'flex-end',
+  },
+  jamaatCol: {
+    width: 88,             // slightly wider since jamaat is the primary emphasis
+    alignItems: 'flex-end',
+  },
+  columnHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
   },
 
   // Active row progress bar

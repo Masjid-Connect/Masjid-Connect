@@ -31,6 +31,9 @@
     "today": "Today",
     "tomorrowSchedule": "Tomorrow",
     "yesterdaySchedule": "Yesterday",
+    "prayerLabel": "Prayer",
+    "beginsColumn": "Begins",
+    "jamaatColumn": "Jamā'ah",
     "previousDay": "Previous day",
     "nextDay": "Next day",
     "jumpToToday": "Jump to today"
