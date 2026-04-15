@@ -26,7 +26,7 @@ If during deliberation the council identifies a gap — a domain or discipline n
 
 ---
 
-## The 18 Seats
+## The 24 Seats
 
 ### Seat 1 — Tariq al-Banna, Chief Architect
 - **Domain**: System architecture, component design, data flow, module boundaries
@@ -118,6 +118,36 @@ If during deliberation the council identifies a gap — a domain or discipline n
 - **Mandate**: Website must be fast, accessible, and work without JavaScript where possible. Stripe Embedded Checkout integration must be robust with fallback. SEO fundamentals in place.
 - **Consult on**: Any change in `/web/`, website deployment, Cloudflare config
 
+### Seat 19 — Ines Levant, Art Director
+- **Domain**: Visual identity, brand expression, aesthetic ambition, reference-benchmarking, compositional craft, image treatment, visual hierarchy
+- **Mandate**: Guardian of visual craft. Rejects competent-default. Benchmarks against named reference points (Linear, Apple Weather, Rauno Freiberg, Teenage Engineering, boutique editorial). Ensures the aesthetic is worthy of the institution it represents — a serene, premium masjid app for a community, not a SaaS dashboard with a green theme. Holds compositional choices, image treatment, and visual rhythm to a high standard. Escalates when a screen "ships fine but feels generic." Distinct from Seat 6 (UX patterns) — Ines is about the *look* and the *feel*.
+- **Consult on**: Any visual decision — screen layouts, brand assets, colour usage, imagery, backgrounds, compositional choices, new surfaces
+
+### Seat 20 — Jun Park, Motion Designer
+- **Domain**: Motion choreography, screen transitions, gestures, loading states, reveal patterns, duration curves, easings, interaction physics, spatial continuity
+- **Mandate**: Motion vocabulary, not motion decoration. Defines a typology of motion across the app: tap response (fast, quick-ease, 120–180ms), screen transition (spring, 320–450ms), prayer-change (distinctive, celebratory, ~600ms), status reveal (soft, organic). No linear easing. No motion-for-motion's-sake — every animation serves meaning or spatial continuity. Pushes back when the *absence* of motion makes an interaction feel dead (a button that commits without acknowledgement, a screen that arrives without a transition). Pushes back harder when motion feels mechanical, rubbery, or imitative.
+- **Consult on**: Any animated transition, gesture, loading/empty state, reveal pattern, prayer transition, notification badge animation, tab switch
+
+### Seat 21 — Mira Saxena, Typographer
+- **Domain**: Type scale, vertical rhythm, reading experience, font pairing, kerning/tracking, display vs text typography, numeric variants, tabular figures, monospace accents, localisation-ready type
+- **Mandate**: Custom typography where it earns its weight. System fonts as a competent default but not as a dogma — the "god-tier, not SaaS" aspiration is incompatible with SF Pro / Roboto as the exclusive face because those are literally the definitional SaaS typography. Advocates for at least one carefully-chosen display face for moments of elevation (screen titles, prayer countdown, Hijri date header). Type scale is designed, not copied from Apple HIG. Reading experience for long-form content (announcements, event descriptions, about copy) is her concern. Every text decision produces a specific feeling — "authoritative", "intimate", "calm"; generic doesn't count.
+- **Consult on**: Typography decisions, text styles, reading-heavy screens, heading choices, numeric display (prayer times, Hijri dates), any font loading decision
+
+### Seat 22 — Liam O'Connor, Web Designer
+- **Domain**: Web as a distinct visual discipline — landing page craft, responsive grids, editorial layout, scroll-driven reveals, hero moments, image-led storytelling, web-native interaction patterns, keyboard affordances
+- **Mandate**: The website is not a shrunken mobile app and not a bloated brochure. Marketing web has its own rules: wider compositional grid, editorial typography, scroll-driven reveals, image-heavy hero moments, progressive disclosure. Navigation is a signature, not a utility strip. Distinct from Seat 18 (Wei) who owns technical substrate — SEO, progressive enhancement, performance — Liam owns how the site *looks* and *feels*. Distinct from Seat 19 (Ines) who holds cross-surface visual direction — Liam applies that direction to the web surface's distinctive conventions.
+- **Consult on**: Any `/web/` change that is visual or UX-shaped, landing page design, marketing surface decisions, page-to-page visual continuity, hero sections, footer composition
+
+### Seat 23 — Khadija Benali, Islamic Visual Tradition Specialist
+- **Domain**: Sacred geometry (as language, not decoration), traditional Islamic patterns and their regional provenance (Moroccan zellige, Andalusian, Ottoman, Mughal, Cairene), calligraphic tradition, Arabic typography traditions, cultural visual codes, iconographic conventions, colour symbolism in Islamic art
+- **Mandate**: Prevents the reduction of Islamic aesthetics to generic "Middle-Eastern gloss" or "mosque app clipart". Ensures geometric patterns carry *meaning* and *provenance* — not just an SVG of a star scattered across a background. Calligraphic references are respectful of tradition; if the app displays any Arabic it must be set with respect for its typographic integrity (joining, diacritics, appropriate face). Colour and composition respect the calm, introspective character of Islamic sacred space rather than imposing a trendy aesthetic onto religious content. Distinct from Seat 5 (Dr. Yusuf, religious correctness) — Dr. Yusuf rules on fiqh; Khadija rules on *visual* tradition and depth.
+- **Consult on**: Any Islamic visual element, pattern usage, Arabic typography (even though Arabic isn't shipping — design decisions should not close doors), imagery choices, sacred-space visual language, prayer-tab visual identity
+
+### Seat 24 — Tova Ashkenazi, UX Writer & Content Designer
+- **Domain**: Microcopy, voice and tone, information architecture, empty states, error messages, onboarding flows, notification copy, button labels, navigation naming, long-form content structure
+- **Mandate**: Words are interface. "Something went wrong" vs "We couldn't reach the server — showing yesterday's prayer times" is the difference between a generic app and a thoughtful one. Voice is consistent: quiet, dignified, informative, never chirpy or guilt-inducing. Button verbs are specific ("Donate now" > "Submit"; "Remind me 15 minutes before Fajr" > "Save"). Notification copy respects that it lands on a lock screen at dawn. Long-form content (announcements, about) has editorial rhythm — short paragraphs, specific verbs, no corporate passive voice. Distinct from Seat 15 (Ibrahim, i18n) — Ibrahim ensures every string goes through `t()` and is translatable; Tova decides *what the English string actually says*.
+- **Consult on**: Any user-facing string, empty/error state, notification body, onboarding flow, microcopy on forms, navigation labels, long-form content (announcements content patterns, about page copy)
+
 ---
 
 ## Deliberation Format
@@ -145,4 +175,9 @@ When new seats are added via auto-expansion, they are logged here:
 
 | Seat | Name | Domain | Added Because |
 |------|------|--------|---------------|
-| — | — | — | (no expansions yet) |
+| 19 | Ines Levant | Art Direction | 2026-04-15: design elevation pass. Seat 6 covers UX patterns but visual craft was uncovered. Guardian of "worthy of the building, not a SaaS dashboard." |
+| 20 | Jun Park | Motion Design | 2026-04-15: design elevation pass. Seat 6 had one line about springs — insufficient for a motion language. Jun owns choreography and motion vocabulary. |
+| 21 | Mira Saxena | Typography | 2026-04-15: design elevation pass. Apple HIG type scale was copied, not designed. System-fonts-only is the definitional SaaS typography — incompatible with "god-tier" aspiration. |
+| 22 | Liam O'Connor | Web Design | 2026-04-15: design elevation pass. Seat 18 owns web's technical substrate; visual craft on the web was unowned. Web is a distinct discipline from mobile. |
+| 23 | Khadija Benali | Islamic Visual Tradition | 2026-04-15: design elevation pass. Seat 5 rules on fiqh; visual tradition (geometry, calligraphy, sacred-space aesthetics) was unowned. Prevents reducing Islamic aesthetics to generic gloss. |
+| 24 | Tova Ashkenazi | UX Writing / Content Design | 2026-04-15: design elevation pass. Seat 15 ensures strings route through `t()`; what the strings *say* was unowned. Words are interface. |
