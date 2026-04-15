@@ -138,5 +138,12 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
+      # Bearer header is required by recent Coolify versions even when the
+      # webhook URL already carries a UUID query param — URL identifies the
+      # app, token authenticates the caller. Harmless (ignored) if the URL
+      # is self-authenticating.
       - name: POST to Coolify webhook
-        run: curl -fSs -X POST "${{ secrets.COOLIFY_DEPLOY_WEBHOOK_URL }}"
+        run: |
+          curl -fSs -X POST \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_API_TOKEN }}" \
+            "${{ secrets.COOLIFY_DEPLOY_WEBHOOK_URL }}"
