@@ -995,13 +995,18 @@ def create_checkout_session(request):
         # not present. `code` is a stable machine-readable identifier
         # (e.g. "amount_too_small", "api_key_expired", "parameter_invalid").
         user_msg = getattr(exc, "user_message", None) or "We couldn't reach our payment partner. Try again, or give directly via bank transfer below."
+        # Use 400 Bad Request, not 5xx. Any 5xx is intercepted by
+        # Cloudflare (and most proxies) which replaces the body with a
+        # stock "error code: 502" HTML page — the mobile client then
+        # can't parse the JSON, can't read stripe_code, and falls back
+        # to a generic error. 400 passes through proxies unchanged.
         return Response(
             {
                 "detail": user_msg,
                 "stripe_code": getattr(exc, "code", None),
                 "stripe_type": exc.__class__.__name__,
             },
-            status=status.HTTP_502_BAD_GATEWAY,
+            status=status.HTTP_400_BAD_REQUEST,
         ) if is_json_mode else _error(user_msg, for_redirect=True)
     except Exception as exc:
         # Non-Stripe error — local bug, network blip, etc. Keep the

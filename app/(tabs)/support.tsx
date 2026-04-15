@@ -215,12 +215,10 @@ export default function SupportScreen() {
           </Text>
         </Animated.View>
 
-        {/* Subtitle */}
-        <Animated.View entering={FadeInDown.delay(100).duration(400)}>
-          <Text style={[typography.body, styles.subtitle, { color: colors.textSecondary }]}>
-            {t('support.subtitle')}
-          </Text>
-        </Animated.View>
+        {/* Subtitle intentionally removed per Tova's voice guide —
+            "Your generosity keeps our doors open" was charity-fundraiser
+            cliché sitting under a hadith that does the framing better.
+            The hadith below is the intentional spiritual framing. */}
 
         {/* Hadith — spiritual framing before the ask */}
         <Animated.View entering={FadeInDown.delay(150).duration(400)}>
@@ -554,9 +552,6 @@ const styles = StyleSheet.create({
   content: {
     paddingBottom: spacing['5xl'],
     paddingHorizontal: spacing['3xl'],
-  },
-  subtitle: {
-    marginBottom: spacing.lg,
   },
   frequencyContainer: {
     flexDirection: 'row',
