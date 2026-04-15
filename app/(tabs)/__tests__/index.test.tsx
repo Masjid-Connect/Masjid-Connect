@@ -1,6 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 
+// --- Tests ---
+
+import PrayerTimesScreen from '@/app/(tabs)/index';
+
 // --- Mocks ---
 
 jest.mock('react-i18next', () => ({
@@ -88,10 +92,6 @@ jest.mock('@/components/brand/IslamicPattern', () => ({
 jest.mock('@/hooks/useReadAnnouncements', () => ({
   useReadAnnouncements: () => ({ unreadCount: 0 }),
 }));
-
-// --- Tests ---
-
-import PrayerTimesScreen from '@/app/(tabs)/index';
 
 describe('PrayerTimesScreen', () => {
   it('renders without crashing', () => {

@@ -1,5 +1,8 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 
+import { useAdminStatus } from '@/hooks/useAdminStatus';
+import { adminRoles } from '@/lib/api';
+
 let mockIsLoggedIn = false;
 
 jest.mock('@/lib/api', () => ({
@@ -12,9 +15,6 @@ jest.mock('@/lib/api', () => ({
     list: jest.fn(),
   },
 }));
-
-import { useAdminStatus } from '@/hooks/useAdminStatus';
-import { adminRoles } from '@/lib/api';
 
 const mockAdminRolesList = adminRoles.list as jest.Mock;
 

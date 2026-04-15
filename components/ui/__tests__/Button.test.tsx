@@ -1,5 +1,9 @@
 import React from 'react';
 
+import { render, screen, fireEvent } from '@testing-library/react-native';
+import * as Haptics from 'expo-haptics';
+import { Button } from '@/components/ui/Button';
+
 // Mock dependencies before imports
 jest.mock('@/contexts/ThemeContext', () => ({
   useTheme: () => ({
@@ -35,10 +39,6 @@ jest.mock('react-native-gesture-handler', () => {
     GestureDetector: ({ children }: { children: React.ReactNode }) => children,
   };
 });
-
-import { render, screen, fireEvent } from '@testing-library/react-native';
-import * as Haptics from 'expo-haptics';
-import { Button } from '@/components/ui/Button';
 
 describe('Button', () => {
   afterEach(() => {

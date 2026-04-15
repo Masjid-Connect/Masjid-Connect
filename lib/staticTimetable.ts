@@ -33,11 +33,11 @@ interface StaticDayEntry {
 type StaticTimetable = Record<string, StaticDayEntry>;
 
 // Load the bundled JSON at module init
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+ 
 let timetable: StaticTimetable = {};
 try {
   // require() so Metro bundles the JSON at build time
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+   
   timetable = require('@/constants/static-timetable.json') as StaticTimetable;
 } catch {
   // JSON not yet generated — static fallback unavailable

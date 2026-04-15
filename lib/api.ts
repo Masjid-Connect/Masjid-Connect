@@ -6,7 +6,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { Sentry } from '@/lib/sentry';
-import type { Mosque, Announcement, MosqueEvent, MosqueAdminRole, AnnouncementCreatePayload, EventCreatePayload } from '@/types';
+import type { Mosque, Announcement, MosqueEvent, MosqueAdminRole, AnnouncementCreatePayload, EventCreatePayload , MosquePrayerTimeResponse } from '@/types';
+
+// ── Prayer Times ────────────────────────────────────────────────────
+
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://api.salafimasjid.app/api/v1';
 
@@ -269,7 +272,7 @@ export const mosques = {
   },
 
   async nearby(latitude: number, longitude: number, radiusKm: number = 50) {
-    const data = await request<Array<Record<string, unknown> & { distance: number }>>(
+    const data = await request<(Record<string, unknown> & { distance: number })[]>(
       `/mosques/nearby/?lat=${latitude}&lng=${longitude}&radius=${radiusKm}`
     );
     return data.map((m) => ({ ...mapMosque(m), distance: m.distance }));
@@ -516,7 +519,7 @@ export const adminRoles = {
   async list(): Promise<MosqueAdminRole[]> {
     if (!auth.isLoggedIn) return [];
     try {
-      const data = await request<Array<{ id: string; mosque: string; user: string; role: string; created: string }>>('/auth/admin-roles/');
+      const data = await request<{ id: string; mosque: string; user: string; role: string; created: string }[]>('/auth/admin-roles/');
       return data.map((r) => ({
         id: r.id,
         mosque: r.mosque,
@@ -529,10 +532,6 @@ export const adminRoles = {
     }
   },
 };
-
-// ── Prayer Times ────────────────────────────────────────────────────
-
-import type { MosquePrayerTimeResponse } from '@/types';
 
 export const prayerTimes = {
   /**

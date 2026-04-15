@@ -1,5 +1,10 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 
+import { useEvents } from '@/hooks/useEvents';
+import { events as eventsApi } from '@/lib/api';
+import { getCachedData, setCachedData } from '@/lib/storage';
+import { Sentry } from '@/lib/sentry';
+
 jest.mock('@/lib/api', () => ({
   events: {
     list: jest.fn(),
@@ -24,11 +29,6 @@ jest.mock('@/constants/mosque', () => ({
 jest.mock('date-fns', () => ({
   format: jest.fn().mockReturnValue('2026-03-22'),
 }));
-
-import { useEvents } from '@/hooks/useEvents';
-import { events as eventsApi } from '@/lib/api';
-import { getCachedData, setCachedData } from '@/lib/storage';
-import { Sentry } from '@/lib/sentry';
 
 const mockEventsList = eventsApi.list as jest.Mock;
 const mockGetCachedData = getCachedData as jest.Mock;

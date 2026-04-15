@@ -1,5 +1,8 @@
 import React from 'react';
 
+import { render, screen, fireEvent } from '@testing-library/react-native';
+import { ErrorFallback } from '@/components/ui/ErrorFallback';
+
 // Mock dependencies before imports
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -35,9 +38,6 @@ jest.mock('@expo/vector-icons/Ionicons', () => {
   MockIonicons.displayName = 'MockIonicons';
   return MockIonicons;
 });
-
-import { render, screen, fireEvent } from '@testing-library/react-native';
-import { ErrorFallback } from '@/components/ui/ErrorFallback';
 
 describe('ErrorFallback', () => {
   it('renders error title and message', () => {

@@ -1,5 +1,9 @@
 import React from 'react';
 
+import { render, screen } from '@testing-library/react-native';
+import { Text } from 'react-native';
+import { BottomSheet } from '@/components/ui/BottomSheet';
+
 // Mock dependencies before imports
 jest.mock('@/contexts/ThemeContext', () => ({
   useTheme: () => ({
@@ -54,10 +58,6 @@ jest.mock('react-native-reanimated', () => {
     useReducedMotion: () => true,
   };
 });
-
-import { render, screen } from '@testing-library/react-native';
-import { Text } from 'react-native';
-import { BottomSheet } from '@/components/ui/BottomSheet';
 
 describe('BottomSheet', () => {
   it('returns null when visible=false', () => {
