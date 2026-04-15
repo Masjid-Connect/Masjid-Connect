@@ -7,34 +7,29 @@ Static HTML/CSS/JS deployed to Cloudflare Pages.
 ```
 /web
   index.html            # Landing
-  donate.html           # Bank transfer details (Stripe removed — see DECISIONS.md)
-  donate.js             # Hadith rotation + tap-to-copy bank details
   prayer-times.html     # Prayer timetable
   features.html         # App features showcase
-  about.html            # About the masjid
+  about.html            # About the masjid — includes "Support the Masjid" section (bank transfer details)
   contact.html          # Contact form (POSTs to /api/v1/contact/)
   download.html         # App download links
   privacy.html
   terms.html
   sitemap.html
   styles.css            # Global styles
-  script.js             # Shared site JS — nav, scroll reveal, dark mode, prefetch, spam protection
+  script.js             # Shared site JS — nav, scroll reveal, dark mode, prefetch, spam protection, bank-detail tap-to-copy
   site.webmanifest      # PWA manifest
   _headers              # Cloudflare Pages headers (CSP, cache control)
   /data                 # Static data (e.g. timetable.json)
   /images
 ```
 
-## Donation Flow (Website)
+## Donations (Website)
 
-**Current state: bank transfer only.** Stripe was removed pending fixes — see `DECISIONS.md`.
+**The website has no dedicated donation page.** There is no `/donate` route and no "Give" navigation item. Anyone who wants to donate via the web does so through the **"Support the Masjid"** section on `/about#support` — a bank-transfer-only block with UK + International account details and tap-to-copy.
 
-1. User visits `/donate`.
-2. Page shows bank transfer details (UK + International) with tap-to-copy.
-3. "Where your donation goes" card explains charitable use.
-4. Daily rotating hadith provides spiritual framing (deterministic by day-of-year).
+History: `/donate` existed as a Stripe embedded checkout, then as a bank-transfer-only page, and was removed entirely on 2026-04-15. See `DECISIONS.md`.
 
-The Stripe CSP entries in `_headers` and Stripe references in `privacy.html` / `terms.html` are intentionally retained — the mobile app still uses Stripe, and Stripe will return to the website once the issues are resolved.
+The Stripe CSP entries in `_headers` and Stripe references in `privacy.html` / `terms.html` are intentionally retained — the mobile app still uses Stripe, and web Stripe may return later.
 
 ## Donation Flow (Mobile App)
 

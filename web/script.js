@@ -396,6 +396,43 @@
     }, true); // capture phase — runs before any Stripe handler
   }
 
+  // ─── Tap-to-copy bank details ──────────────────────────
+  // Auto-binds any `.bank-sheet__copy-btn[data-copy]` on the page.
+  // Previously lived in the deleted donate.js; now shared infra for any
+  // page that surfaces bank details (e.g. /about's "Support the Masjid").
+  function copyToClipboard(text, btn) {
+    if (!text || !navigator.clipboard) return;
+    navigator.clipboard.writeText(text).then(function () {
+      var copyLabel = btn.querySelector('.bank-sheet__copy-label');
+      var svg = btn.querySelector('svg');
+      if (!copyLabel) return;
+      copyLabel.textContent = 'Copied!';
+      btn.classList.add('bank-sheet__copy-btn--copied');
+      if (svg) svg.style.display = 'none';
+      setTimeout(function () {
+        copyLabel.textContent = 'Copy';
+        btn.classList.remove('bank-sheet__copy-btn--copied');
+        if (svg) svg.style.display = '';
+      }, 1500);
+    });
+  }
+
+  document.querySelectorAll('.bank-sheet__copy-btn[data-copy]').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.stopPropagation();
+      copyToClipboard(btn.getAttribute('data-copy'), btn);
+    });
+  });
+
+  document.querySelectorAll('.bank-sheet__value[data-copy]').forEach(function (el) {
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', function () {
+      var row = el.closest('.bank-sheet__copyable');
+      var btn = row ? row.querySelector('.bank-sheet__copy-btn') : null;
+      if (btn) copyToClipboard(el.getAttribute('data-copy'), btn);
+    });
+  });
+
   // ─── Dynamic copyright year ──────────────────────────────
   var yearEl = document.getElementById('copyright-year');
   if (yearEl) yearEl.textContent = new Date().getFullYear().toString();

@@ -92,3 +92,14 @@ Format: short title → decision → why → trade-off accepted.
 - **Why**: single file had grown to ~25KB and was being ignored. Surgical edits became risky.
 - **New structure**: `projects/mosque-connect/{PROJECT,MOBILE,BACKEND,WEBSITE,DESIGN,BUSINESS,DECISIONS,STATUS}.md` + `memory/` + minimal `CLAUDE.md`.
 - **Trade-off**: more files to navigate, but each file is focused and maintainable.
+
+---
+
+## Website donations surface
+
+**Removed `/donate` page and "Give" navigation entirely (2026-04-15).**
+- **Why**: the mobile app handles donations via Stripe Hosted Checkout. The website's donate page had already been stripped of Stripe (2026-04-14) and reduced to bank-transfer-only; keeping it as a dedicated top-level nav item added surface without enough value to justify it.
+- **Where bank details live now**: `/about#support` — a "Support the Masjid" section with UK + International transfer details and tap-to-copy. No new route.
+- **What went away**: `web/donate.html`, `web/donate.js`, navbar "Give" link, mobile-menu "Give" item, footer "Give" link, sitemap entries (HTML tree + XML), and the sitemap's Donate branch.
+- **What stayed**: the backend `/api/v1/donate/*` endpoints (mobile uses them), Stripe CSP entries in `web/_headers` (mobile-relevant + cheap), Stripe references in `privacy.html` / `terms.html` (mobile still uses Stripe). Copy-to-clipboard logic moved from `donate.js` → `script.js` and auto-binds on any page that surfaces bank-sheet controls.
+- **Trade-off**: no dedicated donation landing page; giving from the web is one click deeper (About → Support section). Acceptable given mobile is the primary donation surface.
