@@ -11,7 +11,7 @@
  */
 
 import React, { useEffect } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,

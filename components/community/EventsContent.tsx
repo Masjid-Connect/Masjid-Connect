@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Dimensions,
   StyleSheet,
   View,
   Text,
@@ -19,9 +18,9 @@ import { format } from 'date-fns';
 import { Calendar, DateData } from 'react-native-calendars';
 import { useTranslation } from 'react-i18next';
 
-import { getColors, palette } from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, getElevation, borderRadius, typography, components, fontWeight, hairline } from '@/constants/Theme';
+import { spacing, borderRadius, typography, components, fontWeight, hairline } from '@/constants/Theme';
 import { useEvents } from '@/hooks/useEvents';
 import { BottomSheet } from '@/components/ui/BottomSheet';
 import { Card } from '@/components/ui/Card';

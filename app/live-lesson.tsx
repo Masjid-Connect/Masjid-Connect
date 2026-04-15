@@ -8,7 +8,6 @@
 
 import React, { useRef, useState } from 'react';
 import {
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -26,7 +25,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, getElevation, layout } from '@/constants/Theme';
+import { spacing, typography, borderRadius, getElevation } from '@/constants/Theme';
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { MIXLR_EMBED_URL, MIXLR_CHANNEL_URL } from '@/lib/mixlr';
 

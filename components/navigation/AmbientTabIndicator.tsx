@@ -28,7 +28,6 @@ import Animated, {
 import { getColors, getAlpha } from '@/constants/Colors';
 import { springs, spacing, typography, components, fontWeight } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
-import { layout } from '@/lib/layoutGrid';
 
 /** Glow indicator dimensions */
 const GLOW_SIZE = components.tabGlow.size;
@@ -40,8 +39,6 @@ export const AmbientTabBar = ({ state, descriptors, navigation }: BottomTabBarPr
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
   const insets = useSafeAreaInsets();
-
-  const tabCount = state.routes.length;
 
   // Animated horizontal position of the glow
   const glowX = useSharedValue(0);

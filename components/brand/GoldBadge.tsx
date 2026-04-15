@@ -9,7 +9,7 @@
 import React from 'react';
 import { StyleSheet, View, Text, ViewStyle } from 'react-native';
 
-import { palette, getColors } from '@/constants/Colors';
+import { palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, fontWeight } from '@/constants/Theme';
 

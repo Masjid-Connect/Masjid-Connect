@@ -64,9 +64,7 @@ import type { PrayerName } from '@/types';
 // ─── Grid constants ─────────────────────────────────────────────────
 // All vertical measurements derive from the spacing scale (8pt grid).
 const HERO_PADDING_BOTTOM = 80;                // Generous fade — sky dissolves into content
-const TIMETABLE_PADDING_TOP = spacing['3xl']; // 32
 const ROW_PADDING_V = spacing.lg;             // 16 (~52px row height)
-const SECTION_HEADER_MB = spacing.lg;         // 16
 
 export default function PrayerTimesScreen() {
   const insets = useSafeAreaInsets();
@@ -80,7 +78,7 @@ export default function PrayerTimesScreen() {
   const reducedMotion = useReducedMotion();
   const {
     prayers, nextPrayer, countdown, windowProgress, hijriDate,
-    isLoading, error: prayerError, source, jamaahAvailable, isEstimated, use24h, refresh,
+    isLoading, error: prayerError, jamaahAvailable, isEstimated, use24h, refresh,
     selectedDate, isToday, goToNextDay, goToPrevDay, goToToday,
   } = usePrayerTimes();
 

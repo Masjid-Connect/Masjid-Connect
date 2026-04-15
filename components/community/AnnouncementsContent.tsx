@@ -19,7 +19,7 @@ import * as Haptics from 'expo-haptics';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, getElevation, fontWeight, hairline } from '@/constants/Theme';
+import { spacing, typography, borderRadius, fontWeight, hairline } from '@/constants/Theme';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { useReadAnnouncements } from '@/hooks/useReadAnnouncements';
 import { BottomSheet } from '@/components/ui/BottomSheet';
@@ -78,7 +78,7 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
   const { t } = useTranslation();
   const reducedMotion = useReducedMotion();
   const { announcements, isLoading, error, refresh } = useAnnouncements();
-  const { isUnread, markRead, unreadCount } = useReadAnnouncements();
+  const { isUnread, markRead } = useReadAnnouncements();
   const [refreshing, setRefreshing] = useState(false);
   const [expandedItem, setExpandedItem] = useState<Announcement | null>(null);
 

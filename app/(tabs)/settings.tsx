@@ -5,7 +5,6 @@ import {
   Text,
   Image,
   ScrollView,
-  Platform,
   Share,
 } from 'react-native';
 import Animated, {
@@ -24,7 +23,6 @@ import Constants from 'expo-constants';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useAdminStatus } from '@/hooks/useAdminStatus';
 import { spacing, typography, hairline } from '@/constants/Theme';
 import {
   getReminderMinutes,
@@ -58,7 +56,6 @@ export default function SettingsScreen() {
   const { effectiveScheme, themePreference, setThemePreference } = useTheme();
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
-  const { isAdmin } = useAdminStatus();
   const insets = useSafeAreaInsets();
 
   // ─── Large title collapse animation ────────────────────────────

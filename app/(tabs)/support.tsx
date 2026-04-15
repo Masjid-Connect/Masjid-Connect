@@ -17,7 +17,6 @@ import Animated, {
   interpolate,
   Extrapolation,
   FadeInDown,
-  FadeIn,
   ZoomIn,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

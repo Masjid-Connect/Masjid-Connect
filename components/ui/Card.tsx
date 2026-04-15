@@ -16,7 +16,7 @@ import { StyleSheet, View, type ViewStyle } from 'react-native';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, borderRadius, getElevation } from '@/constants/Theme';
+import { borderRadius, getElevation } from '@/constants/Theme';
 
 type CardVariant = 'elevated' | 'grouped' | 'flat';
 type ElevationLevel = 'sm' | 'md' | 'lg';

@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, useColorScheme } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { getColors, palette } from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import { typography, spacing, borderRadius } from '@/constants/Theme';
 
 interface ErrorFallbackProps {

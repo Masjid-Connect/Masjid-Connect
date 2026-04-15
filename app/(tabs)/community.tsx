@@ -6,7 +6,6 @@ import {
   Text,
   Pressable,
   Share,
-  Platform,
   LayoutChangeEvent,
   useWindowDimensions,
 } from 'react-native';

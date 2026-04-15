@@ -21,7 +21,7 @@ import * as Haptics from 'expo-haptics';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, springs, layout, hairline } from '@/constants/Theme';
+import { spacing, springs, hairline } from '@/constants/Theme';
 
 interface ListRowProps {
   children: React.ReactNode;

@@ -27,7 +27,7 @@ import { useTranslation } from 'react-i18next';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, getElevation, springs } from '@/constants/Theme';
+import { spacing, typography, borderRadius, getElevation } from '@/constants/Theme';
 import { withBreathing } from '@/lib/breathMotion';
 
 interface LiveLessonBannerProps {

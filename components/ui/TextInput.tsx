@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 import Animated, {
   useSharedValue,
-  useAnimatedStyle,
   withTiming,
   FadeIn,
   FadeOut,

@@ -31,7 +31,7 @@ export async function onRequest(context) {
   let upstreamResponse;
   try {
     upstreamResponse = await fetch(targetUrl.toString(), init);
-  } catch (err) {
+  } catch {
     return new Response(
       JSON.stringify({ detail: "Payment service temporarily unavailable." }),
       {
