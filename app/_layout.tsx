@@ -7,6 +7,7 @@ import * as Updates from 'expo-updates';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, AppState, Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 
@@ -134,22 +135,30 @@ function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <WebContainer>
-        <Sentry.ErrorBoundary fallback={({ error, resetError }) => (
-          <ErrorFallback error={error} resetError={resetError} />
-        )}>
-          <AuthProvider>
-            <AnimatedSplash isVisible={showSplash} onAnimationComplete={handleSplashComplete}>
-              <AppThemeProvider>
-                <ToastProvider>
-                  <RootLayoutNav />
-                  <InAppToast />
-                </ToastProvider>
-              </AppThemeProvider>
-            </AnimatedSplash>
-          </AuthProvider>
-        </Sentry.ErrorBoundary>
-      </WebContainer>
+      {/* SafeAreaProvider is explicit (belt + braces) — expo-router's
+          Stack provides one implicitly, but the chain is fragile
+          across remounts + custom tab bars like AmbientTabBar.
+          Without a reliable SafeAreaProvider, useSafeAreaInsets()
+          returns zeros and the tab bar collides with the system
+          gesture bar / iOS home indicator. */}
+      <SafeAreaProvider>
+        <WebContainer>
+          <Sentry.ErrorBoundary fallback={({ error, resetError }) => (
+            <ErrorFallback error={error} resetError={resetError} />
+          )}>
+            <AuthProvider>
+              <AnimatedSplash isVisible={showSplash} onAnimationComplete={handleSplashComplete}>
+                <AppThemeProvider>
+                  <ToastProvider>
+                    <RootLayoutNav />
+                    <InAppToast />
+                  </ToastProvider>
+                </AppThemeProvider>
+              </AnimatedSplash>
+            </AuthProvider>
+          </Sentry.ErrorBoundary>
+        </WebContainer>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

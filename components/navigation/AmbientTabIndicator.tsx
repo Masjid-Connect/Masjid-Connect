@@ -77,10 +77,23 @@ export const AmbientTabBar = ({ state, descriptors, navigation }: BottomTabBarPr
   const alphaColors = getAlpha(effectiveScheme);
   const glowColor = isDark ? colors.accent : colors.tint;
 
-  // Use real safe area insets on native platforms so the tab bar
-  // sits above the Android system navigation bar (and the iOS home indicator).
-  // On web, use a small static padding since there is no system nav bar.
-  const bottomPadding = Platform.OS === 'web' ? spacing.xs : Math.max(insets.bottom, spacing.sm);
+  // Bottom padding must clear BOTH the iOS home indicator (34pt on
+  // modern iPhones) AND the Android gesture navigation bar (varies —
+  // often 24–48dp). Strategy:
+  //   - Web: small static pad, no system gesture area
+  //   - Native with insets.bottom reported > 0: trust it + 4px buffer
+  //     so taps aren't flush against the home pill
+  //   - Native with insets.bottom === 0 (briefly, during remount /
+  //     orientation change, or if SafeAreaProvider hasn't hydrated):
+  //     fall back to 34pt which matches iOS and covers most Android
+  //     gesture bars. 8px (the old spacing.sm floor) was too small
+  //     and caused tab-button taps to land on the home-swipe area.
+  const IOS_HOME_INDICATOR = 34;
+  const bottomPadding = Platform.OS === 'web'
+    ? spacing.xs
+    : insets.bottom > 0
+      ? insets.bottom + spacing.xs
+      : IOS_HOME_INDICATOR;
 
   // Tab content height (icons + labels + top padding) is fixed;
   // total bar height grows dynamically to include the safe area inset.
