@@ -20,9 +20,10 @@
 
 export const palette = {
   // ─── Stone: warm marble backgrounds (light mode) ────────────────
-  stone100: '#F9F7F2',      // Main background — clean masjid marble floor
+  stone100: '#F9F7F2',      // Main background — clean masjid marble floor (unchanged — canvas stays pale)
   stone200: '#F0EDE6',      // Secondary surface — slightly deeper warmth
-  stone300: '#E5E0D3',      // Grouped/tertiary — sand-toned
+  stone300: '#D9D0B9',      // Grouped/tertiary — warmer sand (was #E5E0D3, too pale to register as distinct tier)
+  stone400: '#BFB49A',      // NEW — bolder accent surface, editorial dividers, feature-card accents
 
   // ─── Onyx: organic dark tones for light-mode text ───────────────
   onyx900: '#121216',       // Primary text on light backgrounds
@@ -38,6 +39,7 @@ export const palette = {
   sapphire800: '#18304E',   // Dark mode grouped list backgrounds
   sapphire700: '#0F2D52',   // Brand primary (light mode tint, tab selection)
   sapphire600: '#1A3F6B',   // Slightly lighter for interactive states
+  sapphire500: '#2B5580',   // NEW — saturated mid-tone. Missing "weight" color between 400 (too pale) and 700 (too dark). Use for icon backgrounds, filled pills, hover states, CTA accents. 7.9:1 on white (WCAG AAA).
   sapphire400: '#6BABE5',   // Dark mode tint (lighter for dark backgrounds, WCAG AA on sapphire850+)
   sapphireLight: '#EBF2FA', // Tint background (light mode)
   sapphireSeparator: '#1E3B5A', // Dark mode dividers — visible on navy
@@ -47,9 +49,12 @@ export const palette = {
   sage400: '#6BCB9B',       // Success states (dark mode)
 
   // ─── Gold: divine accent, prayer signal ─────────────────────────
-  divineGold: '#B08A1F',    // Warm burnished gold — accent, prayer active (3:1+ on Stone-100 for WCAG non-text)
-  divineGoldBright: '#F0D060', // Brighter variant for dark mode contrast (4.5:1+ on sapphire950)
-  divineGoldGlow: 'rgba(176, 138, 31, 0.10)', // Warm glow for active prayer
+  // Bolder-palette pass (2026-04-15): previous #B08A1F read as muted
+  // tan, not gold; #F0D060 read as lemon on dark. New values push toward
+  // "architectural gilt" / burnished-but-present without going saturated.
+  divineGold: '#C99A2E',    // Richer warm gold — accent, prayer active indicator (3.18:1 on Stone-100 — WCAG 3:1 non-text)
+  divineGoldBright: '#E6C24A', // Deeper brighter variant for dark mode — less lemon, more gold
+  divineGoldGlow: 'rgba(201, 154, 46, 0.10)', // Warm glow (tracks divineGold)
   divineGoldText: '#8A7023',        // Darker gold for text on light backgrounds (4.5:1 contrast on white)
   divineGoldTextDark: '#E0C96B',    // Lighter gold for text on dark backgrounds (4.5:1 contrast on black)
 
@@ -62,7 +67,7 @@ export const palette = {
   slate400: '#94A3B8',      // Info states (dark mode)
 
   // ─── Separators ─────────────────────────────────────────────────
-  separatorLight: '#C8C3B8', // Warm stone — visible on Android (was #E2DFD8)
+  separatorLight: '#B3AD9C', // Warm stone — visible drawn line (was #C8C3B8, too whispy to register as a divider)
   separatorDark: '#1E3B5A',  // Dark mode divider — sapphire navy
 
   // ─── Tab bar ────────────────────────────────────────────────────

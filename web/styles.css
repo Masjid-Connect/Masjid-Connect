@@ -49,10 +49,14 @@
 
 /* ─── Design Tokens ──────────────────────────────────────────── */
 :root {
-  /* Stone — warm marble backgrounds */
+  /* Stone — warm marble backgrounds. Bolder-palette pass
+     2026-04-15: stone-300 deepened, stone-400 added — previous
+     stones were too uniformly pale to register distinct surface
+     tiers. */
   --stone-100: #F9F7F2;
   --stone-200: #F0EDE6;
-  --stone-300: #E5E0D3;
+  --stone-300: #D9D0B9;
+  --stone-400: #BFB49A;
 
   /* Onyx — organic dark tones */
   --onyx-950: #090B11;
@@ -62,15 +66,20 @@
   --onyx-600: #6B6B70;
   --onyx-400: #A8A8AD;
 
-  /* Sapphire — brand primary */
+  /* Sapphire — brand primary. Added sapphire-500 2026-04-15 as the
+     missing "weight" mid-tone between 400 (too pale) and 700 (too
+     dark). Use for icon backgrounds, filled pills, hover states. */
   --sapphire-700: #0F2D52;
   --sapphire-600: #1A3F6B;
+  --sapphire-500: #2B5580;
   --sapphire-400: #5B9BD5;
 
-  /* Divine Gold — accent */
-  --divine-gold: #D4AF37;
-  --divine-gold-bright: #E5C14B;
-  --divine-gold-glow: rgba(212, 175, 55, 0.08);
+  /* Divine Gold — accent. 2026-04-15: bolder gold (was #D4AF37 but
+     read as muted tan in context); brighter variant deepened from
+     #E5C14B (too lemon) to #E6C24A. Paired with mobile palette. */
+  --divine-gold: #C99A2E;
+  --divine-gold-bright: #E6C24A;
+  --divine-gold-glow: rgba(201, 154, 46, 0.08);
 
   /* Sage — success */
   --sage-600: #2D6A4F;
@@ -78,8 +87,10 @@
   /* Crimson — urgent */
   --crimson-600: #B91C1C;
 
-  /* Separator */
-  --separator: #E2DFD8;
+  /* Separator. 2026-04-15: deepened from #E2DFD8 — previous wisp was
+     invisible against stone-100 in many contexts. #B3AD9C reads as an
+     actual drawn line without becoming harsh. */
+  --separator: #B3AD9C;
 
   /* Spacing (8pt grid) */
   --sp-2xs: 2px;
