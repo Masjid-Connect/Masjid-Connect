@@ -29,6 +29,8 @@
     "upcoming": "Next",
     "todaySchedule": "Today",
     "today": "Today",
+    "tomorrowSchedule": "Tomorrow",
+    "yesterdaySchedule": "Yesterday",
     "previousDay": "Previous day",
     "nextDay": "Next day",
     "jumpToToday": "Jump to today"

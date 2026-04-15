@@ -1335,8 +1335,11 @@ ul {
 }
 
 .features__grid {
+  /* 2×2 with 4 feature cards. Was 3×N which left an orphan card on
+     row 2 with two empty slots — visibly odd. Symmetric 2×2 keeps
+     all 4 cards, each card wider, no orphan. */
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--sp-3xl);
 }
 

@@ -25,6 +25,7 @@ import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
+import { isTomorrow, isYesterday, format as formatDate } from 'date-fns';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -338,7 +339,18 @@ export default function PrayerTimesScreen() {
                 ]}
                 accessibilityRole="header"
               >
-                {t('prayer.todaySchedule')}
+                {/* Dynamic section label per Tova's voice guide:
+                    today → "Today", tomorrow → "Tomorrow",
+                    yesterday → "Yesterday", otherwise short date
+                    (e.g. "THU 16 APR" — sectionHeader style is
+                    already uppercase + tracked). */}
+                {isToday
+                  ? t('prayer.todaySchedule')
+                  : isTomorrow(selectedDate)
+                  ? t('prayer.tomorrowSchedule')
+                  : isYesterday(selectedDate)
+                  ? t('prayer.yesterdaySchedule')
+                  : formatDate(selectedDate, 'EEE d MMM')}
               </Text>
               <Text style={[
                 typography.caption2,
