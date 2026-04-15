@@ -1377,7 +1377,7 @@ ul {
 }
 
 .feature-card {
-  background: #fff;
+  background: var(--surface-card);
   border-radius: var(--radius-lg);
   padding: var(--sp-3xl);
   box-shadow: var(--shadow-sm);
@@ -2422,7 +2422,7 @@ ul {
   max-height: 90vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  background: #fff;
+  background: var(--surface-card);
   border-radius: 20px 20px 0 0;
   padding: 12px 20px 36px;
   transform: translateY(100%);
@@ -3136,7 +3136,7 @@ a.contact__info-value:hover {
 
 /* Single branch card */
 .sitemap__branch {
-  background: #fff;
+  background: var(--surface-card);
   border: 1px solid var(--separator);
   border-radius: 16px;
   overflow: hidden;
@@ -4205,7 +4205,7 @@ a.contact__info-value:hover {
 }
 
 .feature-grid__card {
-  background: #fff;
+  background: var(--surface-card);
   border-radius: var(--radius-lg);
   padding: var(--sp-3xl);
   box-shadow: var(--shadow-sm);
@@ -4230,7 +4230,7 @@ a.contact__info-value:hover {
   display: flex;
   align-items: flex-start;
   gap: var(--sp-md);
-  background: #fff;
+  background: var(--surface-card);
   border-radius: var(--radius-md);
   padding: var(--sp-lg);
   box-shadow: var(--shadow-md);
@@ -4458,7 +4458,7 @@ a.contact__info-value:hover {
 }
 
 .download-platform {
-  background: #fff;
+  background: var(--surface-card);
   border-radius: var(--radius-lg);
   padding: var(--sp-4xl) var(--sp-3xl);
   box-shadow: var(--shadow-sm);
@@ -4470,8 +4470,8 @@ a.contact__info-value:hover {
   width: 72px;
   height: 72px;
   border-radius: var(--radius-lg);
-  background: rgba(15, 45, 82, 0.06);
-  color: var(--onyx-900);
+  background: rgba(91, 155, 213, 0.12);
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4479,7 +4479,7 @@ a.contact__info-value:hover {
 }
 
 .download-platform__icon--android {
-  background: rgba(45, 106, 79, 0.08);
+  background: rgba(107, 203, 155, 0.14);
   color: var(--sage-600);
 }
 
@@ -4488,13 +4488,13 @@ a.contact__info-value:hover {
   font-weight: 700;
   letter-spacing: -0.3px;
   margin-bottom: var(--sp-sm);
-  color: var(--onyx-900);
+  color: var(--text-primary);
 }
 
 .download-platform__desc {
   font-size: 15px;
   line-height: 1.5;
-  color: var(--onyx-600);
+  color: var(--text-secondary);
   margin-bottom: var(--sp-2xl);
 }
 
