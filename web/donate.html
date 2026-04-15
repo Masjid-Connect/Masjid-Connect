@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Give — The Salafi Masjid</title>
+  <meta name="description" content="Give to The Salafi Masjid, Birmingham. Your donation helps maintain the masjid, fund educational programmes, and serve the community.">
+  <meta name="theme-color" content="#06101F">
+
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://salafimasjid.app/donate">
+  <meta property="og:title" content="Give — The Salafi Masjid">
+  <meta property="og:description" content="Support The Salafi Masjid, Birmingham. Your donation helps maintain the masjid and serve the community.">
+  <meta property="og:image" content="https://salafimasjid.app/images/og-image.png">
+  <meta property="og:site_name" content="The Salafi Masjid">
+  <meta property="og:locale" content="en_GB">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Give — The Salafi Masjid">
+  <meta name="twitter:description" content="Support The Salafi Masjid, Birmingham. Your donation helps maintain the masjid and serve the community.">
+  <meta name="twitter:image" content="https://salafimasjid.app/images/twitter-card.png">
+
+  <meta name="apple-itunes-app" content="app-id=6740000000">
+
+  <link rel="canonical" href="https://salafimasjid.app/donate">
+  <link rel="icon" href="images/favicon.ico?v=2" sizes="any">
+  <link rel="icon" href="images/favicon.png?v=2" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="images/favicon-180.png?v=2">
+  <link rel="manifest" href="site.webmanifest?v=2">
+  <link rel="preload" as="image" href="images/Masjid_Logo.png">
+  <script>
+    (function(){var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.setAttribute('data-theme','dark')}})();
+  </script>
+  <link rel="preload" as="font" href="/fonts/eb-garamond-v32-latin.woff2" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css?v=16">
+  <script src="https://js.stripe.com/v3/" async></script>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- NAVBAR -->
+  <header class="navbar navbar--solid" id="navbar">
+    <div class="container navbar__inner">
+      <a href="/" class="navbar__logo" aria-label="The Salafi Masjid — Home">
+        <img src="images/Masjid_Logo.png" alt="The Salafi Masjid" class="navbar__logo-img" width="40" height="40">
+      </a>
+      <button class="navbar__toggle" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span class="navbar__toggle-bar"></span>
+        <span class="navbar__toggle-bar"></span>
+        <span class="navbar__toggle-bar"></span>
+      </button>
+      <nav class="navbar__nav" id="nav-menu" role="navigation" aria-label="Main navigation">
+        <a href="/prayer-times" class="navbar__link">Prayer Times</a>
+        <a href="/features" class="navbar__link">Features</a>
+        <a href="/about" class="navbar__link">About</a>
+        <a href="/contact" class="navbar__link">Contact</a>
+        <a href="/donate" class="navbar__link navbar__link--donate navbar__link--active">Give</a>
+        <a href="/download" class="navbar__link navbar__link--cta">Download</a>
+        <!-- Mobile menu (iOS Settings sheet) -->
+        <div class="mobile-menu">
+          <div class="mobile-menu__group">
+            <div class="mobile-menu__label">Navigation</div>
+            <div class="mobile-menu__list">
+              <a href="/prayer-times" class="mobile-menu__item">
+                <span class="mobile-menu__item-text">Prayer Times</span>
+                <svg class="mobile-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+              <a href="/features" class="mobile-menu__item">
+                <span class="mobile-menu__item-text">Features</span>
+                <svg class="mobile-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+              <a href="/about" class="mobile-menu__item">
+                <span class="mobile-menu__item-text">About</span>
+                <svg class="mobile-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+              <a href="/contact" class="mobile-menu__item">
+                <span class="mobile-menu__item-text">Contact</span>
+                <svg class="mobile-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+              <a href="/donate" class="mobile-menu__item mobile-menu__item--donate mobile-menu__item--active">
+                <span class="mobile-menu__item-text">Give</span>
+                <svg class="mobile-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+              </a>
+            </div>
+          </div>
+          <div class="mobile-menu__group">
+            <div class="mobile-menu__label">Preferences</div>
+            <div class="mobile-menu__list">
+              <div class="mobile-menu__item">
+                <span class="mobile-menu__item-text">Dark Mode</span>
+                <label class="mobile-menu__toggle">
+                  <input type="checkbox" id="dark-mode-toggle">
+                  <span class="mobile-menu__toggle-track"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <a href="/download" class="mobile-menu__cta">Download the App</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+
+    <!-- PAGE HERO -->
+    <section class="page-hero">
+      <div class="container">
+        <h1 class="page-hero__title">Give to the Masjid</h1>
+        <p class="page-hero__subtitle">
+          Donations go directly to The Salafi Masjid, Birmingham. Every
+          contribution is a <em>sadaqah jaariyah</em>.
+        </p>
+      </div>
+    </section>
+
+    <!-- HADITH — spiritual framing before the ask -->
+    <section class="donate__hadith-hero">
+      <div class="container">
+        <blockquote class="donate__hadith donate__hadith--hero">
+          <p id="hadith-text-hero">"The most beloved of deeds to Allah are those that are most consistent, even if they are small."</p>
+          <cite id="hadith-source-hero">— Sahih al-Bukhari</cite>
+        </blockquote>
+      </div>
+    </section>
+
+    <!-- DONATION FORM -->
+    <section class="page-section">
+      <div class="container">
+        <div class="donate">
+
+          <!-- Left: Payment form -->
+          <div class="donate__form-wrap">
+            <div class="donate__form-card">
+              <!-- Honeypot — hidden from humans, bots fill it -->
+              <div class="form-hp" aria-hidden="true" tabindex="-1">
+                <label for="donate-company">Company</label>
+                <input type="text" id="donate-company" name="company" autocomplete="off" tabindex="-1">
+              </div>
+
+              <!-- Frequency -->
+              <div class="donate__step">
+                <div class="donate__frequency">
+                  <button class="donate__freq-btn donate__freq-btn--active" data-freq="one-time" type="button">One-time</button>
+                  <button class="donate__freq-btn" data-freq="monthly" type="button">Monthly</button>
+                </div>
+              </div>
+
+              <!-- Amount -->
+              <div class="donate__step">
+                <div class="donate__amounts">
+                  <button class="donate__amount" data-amount="10" type="button">£10</button>
+                  <button class="donate__amount donate__amount--active donate__amount--suggested" data-amount="25" type="button"><span class="donate__popular-pill">Popular</span>£25</button>
+                  <button class="donate__amount" data-amount="50" type="button">£50</button>
+                  <button class="donate__amount" data-amount="100" type="button">£100</button>
+                </div>
+                <div class="donate__custom">
+                  <div class="donate__custom-input-wrap">
+                    <span class="donate__currency">£</span>
+                    <input class="donate__custom-input" type="number" id="custom-amount" min="1" max="10000" step="1" placeholder="Custom amount" inputmode="decimal" aria-label="Custom donation amount">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Enhance your gift -->
+              <div class="donate__step-divider"></div>
+              <span class="donate__step-label donate__step-label--enhance">Enhance your gift</span>
+              <div class="donate__step">
+                <label class="donate__gift-aid" id="gift-aid-label">
+                  <input type="checkbox" id="gift-aid" class="donate__gift-aid-checkbox">
+                  <span class="donate__gift-aid-check">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </span>
+                  <span class="donate__gift-aid-text">
+                    <strong>Add Gift Aid</strong> — increase your donation by 25% at no extra cost.
+                    <span class="donate__gift-aid-hint">I am a UK taxpayer and understand that if I pay less Income Tax and/or Capital Gains Tax than the amount of Gift Aid claimed on all my donations in the relevant tax year, it is my responsibility to pay any difference.</span>
+                  </span>
+                </label>
+              </div>
+
+              <!-- Step 3b: Cover processing fees -->
+              <div class="donate__step">
+                <label class="donate__cover-fees" id="cover-fees-label">
+                  <input type="checkbox" id="cover-fees" class="donate__cover-fees-checkbox">
+                  <span class="donate__cover-fees-check">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </span>
+                  <span class="donate__cover-fees-text">
+                    <strong>Cover processing fees</strong> — add <span id="cover-fees-amount">£1.49</span> so the masjid receives your full donation.
+                    <span class="donate__cover-fees-hint">Payment providers charge a small fee per transaction. Covering this means 100% of your donation goes to the masjid.</span>
+                  </span>
+                </label>
+              </div>
+
+              <!-- Live total -->
+              <div class="donate__live-total" id="live-total">
+                <div class="donate__live-total-row">
+                  <span class="donate__live-total-label">Your donation</span>
+                  <span class="donate__live-total-value" id="live-total-base">£25</span>
+                </div>
+                <div class="donate__live-total-row donate__live-total-row--fee" id="live-total-fee-row" hidden>
+                  <span class="donate__live-total-label">Processing fee</span>
+                  <span class="donate__live-total-value" id="live-total-fee">£0.00</span>
+                </div>
+                <div class="donate__live-total-row donate__live-total-row--gift-aid" id="live-total-gift-aid-row" hidden>
+                  <span class="donate__live-total-label">Gift Aid (25%)</span>
+                  <span class="donate__live-total-value" id="live-total-gift-aid">£0.00</span>
+                </div>
+                <div class="donate__live-total-divider"></div>
+                <div class="donate__live-total-row donate__live-total-row--total">
+                  <span class="donate__live-total-label">Total</span>
+                  <span class="donate__live-total-value" id="live-total-amount">£25.00</span>
+                </div>
+              </div>
+
+              <!-- Step 4: Choose payment method -->
+              <div class="donate__step" id="donate-step-pay">
+                <span class="donate__step-label">Payment method</span>
+
+                <div class="donate__methods">
+                  <!-- Stripe Embedded Checkout — all methods (Card, PayPal, Apple Pay, Google Pay, Pay by Bank) managed via Stripe Dashboard -->
+                  <button class="donate__method-btn donate__method-btn--card" type="button" id="pay-card">
+                    <div class="donate__method-icons">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    </div>
+                    <div class="donate__method-info">
+                      <span class="donate__method-label">Donate Now</span>
+                      <span class="donate__method-desc">Card, PayPal, Apple Pay, Google Pay or Bank</span>
+                    </div>
+                    <svg class="donate__method-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+
+                  <!-- Manual Bank Transfer (shows bank details for direct transfer) -->
+                  <button class="donate__method-btn donate__method-btn--bank" type="button" id="pay-bank">
+                    <div class="donate__method-icons">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M3 10h18"/><path d="M5 6l7-3 7 3"/><path d="M4 10v11"/><path d="M20 10v11"/><path d="M8 14v3"/><path d="M12 14v3"/><path d="M16 14v3"/></svg>
+                    </div>
+                    <div class="donate__method-info">
+                      <span class="donate__method-label">Bank Transfer</span>
+                      <span class="donate__method-desc">Direct transfer to the masjid account</span>
+                    </div>
+                    <svg class="donate__method-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="donate__trust-badge">
+                <div class="donate__trust-icon">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <div class="donate__trust-text">
+                  <strong>Secure payments</strong>
+                  <span>256-bit encryption · PCI compliant · Charity No. 1083080</span>
+                </div>
+                <svg class="donate__trust-shield" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
+            </div>
+
+            <!-- Donation summary — shown between form and checkout, keeps context -->
+            <div class="donate__summary" id="checkout-summary" hidden>
+              <div class="donate__summary-details">
+                <span class="donate__summary-amount" id="summary-amount">£25</span>
+                <span class="donate__summary-meta" id="summary-meta">One-time donation</span>
+              </div>
+              <button class="donate__summary-change" type="button" id="checkout-back">Change</button>
+            </div>
+
+            <!-- Stripe Embedded Checkout container -->
+            <div id="checkout-container" hidden></div>
+
+            <!-- Success state -->
+            <div class="donate__status donate__status--success" id="donate-success" hidden>
+              <div class="donate__status-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+              <strong>JazakAllahu Khairan</strong>
+              <p>Your donation has been received. May Allah reward you.</p>
+            </div>
+
+            <!-- Error state -->
+            <div class="donate__status donate__status--error" id="donate-error" hidden>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              <span id="donate-error-text">Something went wrong. Please try again.</span>
+            </div>
+          </div>
+
+          <!-- Right: Impact info -->
+          <div class="donate__info">
+            <div class="donate__info-card">
+              <h2 class="donate__info-title">Where your donation goes</h2>
+              <p class="donate__info-desc">All donations go directly to The Salafi Masjid, Birmingham — part of Salafi Bookstore and Islamic Centre (Registered Charity No. 1083080).</p>
+
+              <div class="donate__impact-list">
+                <div class="donate__impact">
+                  <div class="donate__impact-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 class="donate__impact-title">Masjid Maintenance</h3>
+                    <p class="donate__impact-desc">Utilities, repairs, cleaning, and keeping the masjid open for all five daily prayers.</p>
+                  </div>
+                </div>
+
+                <div class="donate__impact">
+                  <div class="donate__impact-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 class="donate__impact-title">Education & Da'wah</h3>
+                    <p class="donate__impact-desc">Weekly lessons, Quran circles, youth programmes, and da'wah materials.</p>
+                  </div>
+                </div>
+
+                <div class="donate__impact">
+                  <div class="donate__impact-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 class="donate__impact-title">Community Services</h3>
+                    <p class="donate__impact-desc">Supporting families, Ramadan iftars, Eid celebrations, and community welfare.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__grid">
+        <div class="footer__col footer__col--brand">
+          <img src="images/Masjid_Logo.png" alt="The Salafi Masjid" class="footer__logo" width="40" height="40" loading="lazy">
+          <p class="footer__tagline">Upon the Quran and Sunnah, according to the understanding of the Salaf.</p>
+          <address class="footer__address">Wright Street, Small Heath<br>Birmingham, B10 0UG</address>
+        </div>
+        <div class="footer__col">
+          <h3 class="footer__heading">Quick Links</h3>
+          <ul class="footer__list">
+            <li><a href="/features" class="footer__link">Features</a></li>
+            <li><a href="/about" class="footer__link">About</a></li>
+            <li><a href="/contact" class="footer__link">Contact</a></li>
+            <li><a href="/download" class="footer__link">Download</a></li>
+            <li><a href="/donate" class="footer__link">Give</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h3 class="footer__heading">The App</h3>
+          <ul class="footer__list">
+            <li><a href="/prayer-times" class="footer__link">Prayer Times</a></li>
+            <li><a href="/features#community" class="footer__link">Announcements</a></li>
+            <li><a href="/features#events" class="footer__link">Events &amp; Lessons</a></li>
+            <li><a href="/privacy" class="footer__link">Privacy Policy</a></li>
+            <li><a href="/terms" class="footer__link">Terms of Service</a></li>
+            <li><a href="/sitemap" class="footer__link">Sitemap</a></li>
+          </ul>
+        </div>
+        <div class="footer__col">
+          <h3 class="footer__heading">Connect</h3>
+          <ul class="footer__list">
+            <li><a href="mailto:info@salafimasjid.app" class="footer__link">info@salafimasjid.app</a></li>
+            <li><a href="tel:+441217730033" class="footer__link">0121 773 0033</a></li>
+          </ul>
+          <div class="footer__store-badges">
+            <a href="/download" aria-label="Download on the App Store" target="_blank" rel="noopener">
+              <svg viewBox="0 0 120 40" class="footer__store-svg" role="img" aria-hidden="true">
+                <rect width="120" height="40" rx="6" fill="#000"/>
+                <rect x="0.5" y="0.5" width="119" height="39" rx="5.5" fill="none" stroke="#555" stroke-width="1"/>
+                <g transform="translate(10, 7)" fill="#fff"><path d="M18.9 10.2c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2.1-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.3-.9-1.7 0-3.3 1-4.1 2.5-1.8 3.1-.5 7.6 1.3 10.1.8 1.2 1.9 2.6 3.2 2.5 1.3-.1 1.8-.8 3.3-.8 1.5 0 2 .8 3.3.8 1.4 0 2.3-1.2 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.7-1-2.8-4.1zM16.3 2.8c.7-.9 1.2-2.1 1.1-3.3-1 0-2.3.7-3 1.6-.6.7-1.2 2-1 3.1 1.2.1 2.3-.6 2.9-1.4z" transform="scale(0.85)"/></g>
+                <text x="44" y="14" fill="#fff" font-size="6.5" font-family="system-ui, -apple-system, sans-serif">Download on the</text>
+                <text x="44" y="27" fill="#fff" font-size="14" font-weight="600" font-family="system-ui, -apple-system, sans-serif">App Store</text>
+              </svg>
+            </a>
+            <a href="/download" aria-label="Get it on Google Play" target="_blank" rel="noopener">
+              <svg viewBox="0 0 135 40" class="footer__store-svg" role="img" aria-hidden="true">
+                <rect width="135" height="40" rx="6" fill="#000"/>
+                <rect x="0.5" y="0.5" width="134" height="39" rx="5.5" fill="none" stroke="#555" stroke-width="1"/>
+                <g transform="translate(10, 7)"><path d="M3 1.5L3 24.5L18 13L3 1.5Z" fill="#4285F4"/><path d="M3 1.5L13 10L18 5L3 1.5Z" fill="#EA4335"/><path d="M3 24.5L13 16L18 21L3 24.5Z" fill="#34A853"/><path d="M13 10L18 5L18 21L13 16L13 10Z" fill="#FBBC04"/></g>
+                <text x="36" y="14" fill="#fff" font-size="6.5" font-family="system-ui, -apple-system, sans-serif">GET IT ON</text>
+                <text x="36" y="27" fill="#fff" font-size="14" font-weight="600" font-family="system-ui, -apple-system, sans-serif">Google Play</text>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <p class="footer__copy">&copy; <span id="copyright-year">2026</span> The Salafi Masjid. Registered Charity No. 1083080. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bank Transfer Bottom Sheet -->
+  <div class="bank-sheet" id="bank-sheet" hidden>
+    <div class="bank-sheet__backdrop" id="bank-sheet-backdrop"></div>
+    <div class="bank-sheet__panel">
+      <div class="bank-sheet__handle"></div>
+      <h3 class="bank-sheet__title">Bank Transfer Details</h3>
+      <p class="bank-sheet__desc">Transfer directly to the masjid account using your banking app or online banking. The account is registered under the masjid's official entity name.</p>
+
+      <ol class="bank-sheet__steps">
+        <li>Open your banking app or log in to online banking</li>
+        <li>Set up a new payment using the details below</li>
+        <li>Use <strong>your name</strong> as the payment reference</li>
+      </ol>
+
+      <h4 class="bank-sheet__section-title">UK Bank Transfer</h4>
+      <div class="bank-sheet__details">
+        <div class="bank-sheet__row">
+          <span class="bank-sheet__label">Account Name</span>
+          <span class="bank-sheet__value">Salafi Bookstore &amp; Islamic Centre</span>
+        </div>
+        <div class="bank-sheet__row">
+          <span class="bank-sheet__label">Bank</span>
+          <span class="bank-sheet__value">Lloyds</span>
+        </div>
+        <div class="bank-sheet__row">
+          <span class="bank-sheet__label">Sort Code</span>
+          <div class="bank-sheet__copyable">
+            <span class="bank-sheet__value" data-copy="309309">30-93-09</span>
+            <button class="bank-sheet__copy-btn" type="button" data-copy="309309" aria-label="Copy sort code">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span class="bank-sheet__copy-label">Copy</span>
+            </button>
+          </div>
+        </div>
+        <div class="bank-sheet__row">
+          <span class="bank-sheet__label">Account Number</span>
+          <div class="bank-sheet__copyable">
+            <span class="bank-sheet__value" data-copy="00231260">00231260</span>
+            <button class="bank-sheet__copy-btn" type="button" data-copy="00231260" aria-label="Copy account number">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span class="bank-sheet__copy-label">Copy</span>
+            </button>
+          </div>
+        </div>
+        <div class="bank-sheet__row">
+          <span class="bank-sheet__label">Reference</span>
+          <div class="bank-sheet__copyable">
+            <span class="bank-sheet__value" data-copy="Masjid Donation">Masjid Donation</span>
+            <button class="bank-sheet__copy-btn" type="button" data-copy="Masjid Donation" aria-label="Copy reference">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span class="bank-sheet__copy-label">Copy</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <h4 class="bank-sheet__section-title">International Transfer</h4>
+      <div class="bank-sheet__details">
+        <div class="bank-sheet__row">
+          <span class="bank-sheet__label">IBAN</span>
+          <div class="bank-sheet__copyable">
+            <span class="bank-sheet__value" data-copy="GB14LOYD30930900231260">GB14 LOYD 3093 0900 2312 60</span>
+            <button class="bank-sheet__copy-btn" type="button" data-copy="GB14LOYD30930900231260" aria-label="Copy IBAN">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span class="bank-sheet__copy-label">Copy</span>
+            </button>
+          </div>
+        </div>
+        <div class="bank-sheet__row">
+          <span class="bank-sheet__label">BIC / SWIFT</span>
+          <div class="bank-sheet__copyable">
+            <span class="bank-sheet__value" data-copy="LOYDGB21282">LOYDGB21282</span>
+            <button class="bank-sheet__copy-btn" type="button" data-copy="LOYDGB21282" aria-label="Copy BIC/SWIFT">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span class="bank-sheet__copy-label">Copy</span>
+            </button>
+          </div>
+        </div>
+        <div class="bank-sheet__row">
+          <span class="bank-sheet__label">Branch</span>
+          <span class="bank-sheet__value">Erdington, Birmingham, UK</span>
+        </div>
+      </div>
+
+      <p class="bank-sheet__note">Contact <a href="mailto:info@salafimasjid.app">info@salafimasjid.app</a> to confirm your transfer or if you need any help.</p>
+
+      <button class="bank-sheet__close" type="button" id="bank-sheet-close">Close</button>
+    </div>
+  </div>
+
+  <script src="script.js?v=5" data-cfasync="false"></script>
+  <script src="donate.js?v=12" data-cfasync="false"></script>
+<!-- Cloudflare Web Analytics (free, cookieless, privacy-respecting) -->
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "YOUR_CF_ANALYTICS_TOKEN"}'></script>
+</body>
+</html>
