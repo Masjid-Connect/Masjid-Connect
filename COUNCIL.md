@@ -2,6 +2,8 @@
 
 > **Authority**: The Council is the supreme review body for all changes to the Masjid Connect project. No code, design, architecture, or configuration change proceeds without council deliberation. This is referenced and enforced by `CLAUDE.md`.
 
+> **Current size**: 27 seats. Seats 25–27 added 2026-04-15 (image-prompt engineering discipline).
+
 ---
 
 ## Protocol
@@ -26,7 +28,7 @@ If during deliberation the council identifies a gap — a domain or discipline n
 
 ---
 
-## The 24 Seats
+## The 27 Seats
 
 ### Seat 1 — Tariq al-Banna, Chief Architect
 - **Domain**: System architecture, component design, data flow, module boundaries
@@ -148,6 +150,21 @@ If during deliberation the council identifies a gap — a domain or discipline n
 - **Mandate**: Words are interface. "Something went wrong" vs "We couldn't reach the server — showing yesterday's prayer times" is the difference between a generic app and a thoughtful one. Voice is consistent: quiet, dignified, informative, never chirpy or guilt-inducing. Button verbs are specific ("Donate now" > "Submit"; "Remind me 15 minutes before Fajr" > "Save"). Notification copy respects that it lands on a lock screen at dawn. Long-form content (announcements, about) has editorial rhythm — short paragraphs, specific verbs, no corporate passive voice. Distinct from Seat 15 (Ibrahim, i18n) — Ibrahim ensures every string goes through `t()` and is translatable; Tova decides *what the English string actually says*.
 - **Consult on**: Any user-facing string, empty/error state, notification body, onboarding flow, microcopy on forms, navigation labels, long-form content (announcements content patterns, about page copy)
 
+### Seat 25 — Kira Takahashi, Technical Prompt Engineer
+- **Domain**: Generative-image model mechanics (Flux, SDXL, Imagen, Nano Banana, Runware infrastructure), prompt syntax, seed control, negative prompts, conditioning, ControlNet/IP-Adapter, determinism across re-runs, model-specific quirks, batch generation economics
+- **Mandate**: Treats prompts as engineering artefacts. Knows which model is right for which task — Flux for editorial line-art, Nano Banana for photorealism, SDXL with ControlNet for geometric-consistency work. Enforces fixed seeds where continuity across a set matters. Builds reusable negative-prompt libraries for the tropes this project must avoid (human figures, explicit domes/minarets, generic "Middle-Eastern" clipart). Budgets candidate generations upfront so iteration is cheap, not open-ended. Holds Runware API key handling to secrets-management standards (Seat 9's domain). Distinct from Seat 26 (aesthetic framing) and Seat 27 (editorial fit) — Kira owns the *machinery*; the other two own meaning and composition.
+- **Consult on**: Any image-generation request, model selection, prompt-engineering workflow, API key handling, batch economics, consistency across a set
+
+### Seat 26 — Noor Rahman, Heritage Prompt Engineer
+- **Domain**: Art-historical grounding of generative prompts — writing prompts that specify provenance (Marinid zellige, Aghlabid kufic, Andalusian muqarnas, Hijazi simple form, Cairene geometry), period, medium, regional material palette. Knowledge of how generative models hallucinate Islamic patterns when under-specified vs when grounded in named traditions with photographic reference. Boundary-drawing around what SHOULD be generated vs what should be commissioned from a human craftsperson.
+- **Mandate**: Refuses prompts that would produce "generic Middle-Eastern" output. Every prompt names a specific tradition, material, era, and light condition. Advocates STRONGLY against generating anything meant to represent a specific sacred space, calligraphy, or architectural facade — those require real reference material and human review, not model guessing. Safe territory: abstract tessellated patterns from named traditions used at watermark opacity. Unsafe: figurative illustration, architectural representation, calligraphic text, anything signed "by a calligrapher". Works upstream of Seat 23 (Khadija) — Noor writes prompts so that Khadija's review is a confirmation, not a rescue.
+- **Consult on**: Any image-generation prompt touching Islamic visual tradition, model output auditing for orientalist pastiche, decisions about what can be AI-generated vs must be commissioned or photographed
+
+### Seat 27 — Stasia Kowalski, Editorial Prompt Engineer
+- **Domain**: Image generation as part of a layout, not as isolated artwork — composition for overlay text, negative-space reservation, crop ratios, colour-palette constraints passed into prompts, opacity targets for watermark / ambient / hero tiers, continuity across an asset family. Ex-magazine art direction background, now translates that discipline into generative prompts.
+- **Mandate**: Every prompt starts with the surface it's for, not the subject matter. "This asset lives at 8% opacity behind a 400×240 hadith card with 48px body text overlaid; must not compete with the text, must be darker in the upper-left quadrant where the text sits, palette locked to stone-100 + gilt at 20% saturation." Rejects prompts that describe *subjects* without describing *placement*. Enforces incrementalism — one asset, one surface, verify at opacity in context, *then* consider a set. Distinct from Seat 19 (Ines, visual direction) and Seat 22 (Liam, web composition) — Stasia is specifically about translating their direction into prompt constraints the model will actually respect.
+- **Consult on**: Any generative-imagery placement decision, prompt that needs compositional constraints, asset-to-surface mapping, opacity/colour-lock requirements, rollout sequencing for an imagery programme
+
 ---
 
 ## Deliberation Format
@@ -181,3 +198,6 @@ When new seats are added via auto-expansion, they are logged here:
 | 22 | Liam O'Connor | Web Design | 2026-04-15: design elevation pass. Seat 18 owns web's technical substrate; visual craft on the web was unowned. Web is a distinct discipline from mobile. |
 | 23 | Khadija Benali | Islamic Visual Tradition | 2026-04-15: design elevation pass. Seat 5 rules on fiqh; visual tradition (geometry, calligraphy, sacred-space aesthetics) was unowned. Prevents reducing Islamic aesthetics to generic gloss. |
 | 24 | Tova Ashkenazi | UX Writing / Content Design | 2026-04-15: design elevation pass. Seat 15 ensures strings route through `t()`; what the strings *say* was unowned. Words are interface. |
+| 25 | Kira Takahashi | Technical Prompt Engineering | 2026-04-15: generative-imagery pipeline. Runware API key handed to the project; nobody owned model mechanics, seed discipline, batch economics. Seat 9 owns secrets but not prompt craft. |
+| 26 | Noor Rahman | Heritage Prompt Engineering | 2026-04-15: generative-imagery pipeline. Seat 23 (Khadija) reviews output for tradition-fidelity; writing prompts that *produce* tradition-faithful output was a gap upstream. Prevents orientalist pastiche at the source. |
+| 27 | Stasia Kowalski | Editorial Prompt Engineering | 2026-04-15: generative-imagery pipeline. Seats 19/22 hold visual direction; translating that direction into prompt constraints (negative space, crop, opacity, palette-lock) the model will respect was unowned. |
