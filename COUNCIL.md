@@ -2,7 +2,7 @@
 
 > **Authority**: The Council is the supreme review body for all changes to the Masjid Connect project. No code, design, architecture, or configuration change proceeds without council deliberation. This is referenced and enforced by `CLAUDE.md`.
 
-> **Current size**: 29 seats. Seats 25–27 added 2026-04-15 (image-prompt engineering discipline). Seats 28–29 added 2026-04-15 (security deepening — adversarial and mobile/supply-chain disciplines).
+> **Current size**: 30 seats. Seats 25–27 added 2026-04-15 (image-prompt engineering). Seats 28–29 added 2026-04-15 (security deepening). Seat 30 added 2026-04-15 (psychology of worship-adjacent technology).
 
 ---
 
@@ -28,7 +28,7 @@ If during deliberation the council identifies a gap — a domain or discipline n
 
 ---
 
-## The 29 Seats
+## The 30 Seats
 
 ### Seat 1 — Tariq al-Banna, Chief Architect
 - **Domain**: System architecture, component design, data flow, module boundaries
@@ -175,6 +175,11 @@ If during deliberation the council identifies a gap — a domain or discipline n
 - **Mandate**: Mobile apps ship as distributable binaries — they carry their secrets with them. Anything embedded in the JS bundle or native resources is readable by any attacker with five minutes and apktool/Hopper. Holds the line: no secrets in the mobile bundle, no secrets in `app.json`, no secrets in committed config. Monitors the dependency tree for published CVEs and new maintainer transfers (supply-chain signal). Audits deep-link handlers — `/live-lesson` opened from a push payload is a hijack vector if the payload isn't validated. Rejects "it builds so it's fine" — the real question is "what does an attacker with a decompiled binary and a malicious-link campaign see?"
 - **Consult on**: Any env var used in mobile code, deep-link handler changes, package installs or major-version bumps, lockfile diffs, `app.json` / `eas.json` changes, any secret flowing toward the mobile app, any attacker-facing surface on distributed binaries
 
+### Seat 30 — Dr. Fadwa Awad, Spiritual & Behavioural Psychologist
+- **Domain**: Psychology of worship-adjacent technology, cognitive load and attention budget, emotional register of interfaces, anti-dark-pattern stance (no streaks, no guilt-loops, no engagement-maximisation), perception of time and countdowns, ritual attention versus app attention, how notifications land emotionally (at 5am, at sunset, during salah), empty-state framing, onboarding emotional arc
+- **Mandate**: The app must not create prayer-time anxiety, FOMO, or guilt — it is a quiet companion to worship, not a productivity tool that measures it. Default-rejects: streak counters, "you missed Fajr" framings, percentage-complete indicators on religious practice, gamification of any religious metric, any notification designed to pull a user back in rather than inform them. Evaluates the emotional register of every user-facing element: a gold pulse on prayer transition should feel like a gentle acknowledgement, not a buzzer. A countdown should feel like context, not pressure. An empty state should feel like silence, not absence. Asks "how will this land at 4am for a sleep-deprived parent?" as a standing test. Distinct from Seat 6 (Sofia, usability patterns), Seat 24 (Tova, word choice), and Seat 5 (Dr. Yusuf, fiqh) — Fadwa rules on how the app MAKES THE USER FEEL, which is its own discipline. The app's goal is to disappear into worship, not compete with it.
+- **Consult on**: Notification copy and timing, empty/error state emotional framing, any streak/progress/gamification proposal (presumptive reject), prayer-transition visual and haptic cues, any "engagement" metric or feature, onboarding emotional arc, countdowns and progress indicators, audio cues, any UX decision that could create anxiety, guilt, or spiritual self-measurement
+
 ---
 
 ## Deliberation Format
@@ -213,3 +218,4 @@ When new seats are added via auto-expansion, they are logged here:
 | 27 | Stasia Kowalski | Editorial Prompt Engineering | 2026-04-15: generative-imagery pipeline. Seats 19/22 hold visual direction; translating that direction into prompt constraints (negative space, crop, opacity, palette-lock) the model will respect was unowned. |
 | 28 | Samir Al-Khalifi | Adversarial Security | 2026-04-15: user noted only one security seat on a council of 27. Seat 9 owns defensive posture; adversarial thinking (threat-modelling, red-team, business-logic abuse) is a distinct discipline that was uncovered. |
 | 29 | Yara Demir | Mobile Security & Supply Chain | 2026-04-15: same deliberation. Seat 9 is backend-weighted. Mobile binaries expose their bundles; supply-chain CVE/typosquat vigilance is continuous, not one-off. Both were unowned. |
+| 30 | Dr. Fadwa Awad | Spiritual & Behavioural Psychology | 2026-04-15: user noted the gap. Seat 6 covers usability patterns and Seat 24 covers words, but the psychological register of a worship-adjacent app — anti-dark-pattern, countdown-as-anxiety-or-context, notification emotional landing — was unowned. Default-rejects engagement gamification. |
