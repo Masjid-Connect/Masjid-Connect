@@ -113,7 +113,7 @@
     <!-- LAST UPDATED -->
     <section class="page-section">
       <div class="container">
-        <p class="legal__updated">Last updated: 23 March 2026</p>
+        <p class="legal__updated">Last updated: 15 April 2026</p>
 
         <div class="legal__content reveal" data-reveal-threshold="0.05">
 
@@ -149,10 +149,10 @@
 
             <h3 class="legal__subheading">2.3 Location Data</h3>
             <p>
-              If you grant permission, we access your device's location to calculate prayer times
-              and find nearby mosques. Your location is processed
-              on-device and sent only to the Aladhan API (a free, open prayer times service) to
-              calculate accurate prayer times. We do not store your location on our servers.
+              The App does not request or use your device's location. Prayer times
+              are supplied by a timetable bundled with the App — the official printed
+              timetable of The Salafi Masjid, Birmingham — so no location data is
+              needed, accessed, or collected.
             </p>
 
             <h3 class="legal__subheading">2.4 Push Notification Tokens</h3>
@@ -195,8 +195,6 @@
             <ul class="legal__list">
               <li>Deliver prayer time notifications and reminders you have opted into</li>
               <li>Send mosque announcements and event notifications from your subscribed mosques</li>
-              <li>Calculate accurate prayer times based on your location</li>
-              <li>Find nearby mosques based on your location</li>
               <li>Respond to your contact form enquiries</li>
               <li>Process donations via Stripe</li>
             </ul>
@@ -221,7 +219,7 @@
             <h2 class="legal__heading">6. Third-Party Services</h2>
             <p>We use a minimal number of third-party services, each for a specific purpose:</p>
             <ul class="legal__list">
-              <li><strong>Aladhan API</strong> — calculates prayer times from coordinates (no account required, no tracking)</li>
+              <li><strong>Aladhan API</strong> — converts Gregorian dates to Hijri dates for display (no account required, no tracking). Only the calendar date is sent; never your location.</li>
               <li><strong>Expo Push Service</strong> — delivers push notifications to your device</li>
               <li><strong>Sentry</strong> — crash and error reporting to help us fix bugs and improve app stability. Sentry receives error messages, device type, and app version. We scrub all personally identifiable information (email addresses, IP addresses, and authentication tokens) before data is sent to Sentry. Sentry's servers are located in the US; data transfers are governed by Standard Contractual Clauses (SCCs) as approved under UK GDPR. See <a href="https://sentry.io/privacy/" class="legal__link" target="_blank" rel="noopener noreferrer">Sentry's Privacy Policy</a>.</li>
               <li><strong>Stripe</strong> — processes donations securely</li>
