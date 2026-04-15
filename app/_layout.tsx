@@ -69,7 +69,7 @@ function RootLayout() {
     'EBGaramond-Regular': require('@expo-google-fonts/eb-garamond/400Regular/EBGaramond_400Regular.ttf'),
     'EBGaramond-Medium': require('@expo-google-fonts/eb-garamond/500Medium/EBGaramond_500Medium.ttf'),
     'EBGaramond-SemiBold': require('@expo-google-fonts/eb-garamond/600SemiBold/EBGaramond_600SemiBold.ttf'),
-    'EBGaramond-Italic': require('@expo-google-fonts/eb-garamond/400Italic/EBGaramond_400Italic.ttf'),
+    'EBGaramond-Italic': require('@expo-google-fonts/eb-garamond/400Regular_Italic/EBGaramond_400Regular_Italic.ttf'),
   });
   const [showSplash, setShowSplash] = useState(true);
 
