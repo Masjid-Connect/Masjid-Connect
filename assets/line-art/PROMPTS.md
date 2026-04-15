@@ -1,39 +1,62 @@
 # Line-Art Asset Prompts
 
-Authoritative prompts for AI-generated line art assets — run on **Runware** or **Google Nano Banana 2 (Gemini 3 Pro Image)**.
+Authoritative prompts for AI-generated line art assets. Governed by `projects/mosque-connect/DESIGN.md` § Imagery. Reviewed by Seat 23 (Khadija Benali) before landing in the repo.
 
-Every asset is one motif, palette-matched, regional-provenance-grounded. Reviewed by Seat 23 (Khadija Benali, Islamic Visual Tradition) before landing. See `projects/mosque-connect/DESIGN.md` § Imagery for the governing doctrine.
+## Status (2026-04-15)
 
-## Palette reference for prompts
+Council narrowed the line-art programme. Current policy:
 
-- **Ground**: warm off-white `#F9F7F2` (Stone-100) — "aged paper" or "masjid marble"
-- **Line (primary)**: deep sapphire `#0F2D52` (Sapphire-700) or near-black `#121216` (Onyx-900)
-- **Line (accent)**: divine gold `#D4AF37` — use sparingly, for a single emphasis element
+- **Active**: Asset 1 only (Marinid zellige watermark for `support.tsx` hadith card). Test the pipeline end-to-end on one asset, see it on-device, decide whether to expand.
+- **Deferred (not blocked)**: Assets 2, 3, 5 — abstract geometric / calligraphic-form patterns. Pipeline-ready; only ship after Asset 1 is validated.
+- **BLOCKED by Seat 23 (Khadija)**: Assets 4 and 6 (Masjid exterior, minbar silhouette). AI-generated architectural representation risks orientalist pastiche. Re-consider only with a named photographic reference and a human review pass.
+
+## Model policy (Option B, chosen 2026-04-15)
+
+Right tool per job, not one-model-for-everything:
+
+- **Geometric / pattern work (Asset 1, 2)**: **Flux** on Runware (model `runware:100@1`), ideally with a real zellige/girih photo as image-conditioning reference so the pattern comes from the tradition, not from model invention.
+- **Calligraphic-form work (Asset 3)**: Flux with strict negative prompting on "readable Arabic" — no model attempts legible Arabic text on this project.
+- **Photoreal / editorial imagery (Assets 4-6 when unblocked)**: **Google Nano Banana 2** (`gemini-3.0-pro-image`) on Runware. Stronger for scene composition; layout-aware.
+- **Never use**: generic "Midjourney-default" style. Never prompt without a named tradition (Marinid, Safavid, etc.).
+
+Authority: Seat 25 (Kira Takahashi, Technical Prompt Engineering). This split is written into COUNCIL.md seat mandates and is not a per-asset judgement call.
+
+## Palette reference for prompts (Candidate A, shipped 2026-04-15)
+
+- **Ground (paper)**: warm paper `#F2EBD8` (Stone-100). Older value `#F9F7F2` is obsolete.
+- **Line (primary)**: deep sapphire `#0F2D52` (Sapphire-700) or midnight `#06101F` (Midnight-950) for on-midnight surfaces
+- **Line (accent) on paper**: divine gold `#C99A2E` — use sparingly, one emphasis element max
+- **Line (accent) on midnight**: gilt `#D4A03A` — reserved for midnight surfaces
 - **Forbidden**: gradients, full-colour fills, photorealistic textures, outer glow, emboss, shadow stacks
 
 ## Output spec
 
-- **Dimensions**: 2048×2048 (square); crop as needed downstream. For full-bleed heroes, generate 2560×1440 landscape variant.
-- **Format**: PNG with transparent background where possible (Runware supports this). WebP for final web delivery (converted downstream).
-- **Style**: line art only. No shading, no fill, no gradient. Think "restrained woodcut" or "architectural drawing."
+- **Dimensions**: 2048×2048 square (tile-able); for full-bleed heroes, 2560×1440 landscape.
+- **Format**: PNG with transparent background. WebP for final web delivery (converted downstream).
+- **Style**: line art only. No shading, no fill, no gradient. "Restrained woodcut" or "architectural drawing" register.
 
 ---
 
-## Asset 1 — Moroccan zellige geometric pattern (`pattern-zellige-fez.png`)
+## Asset 1 — Marinid zellige geometric tile (`pattern-zellige-fez.png`) — **ACTIVE**
 
-**Use**: mobile prayer hero backdrop at 8–10% opacity (single visible moment), about-page section divider, web landing atmospheric watermark. Replaces the generic 8-point star pattern currently used as wallpaper.
+**Status**: Council-approved for generation. First asset to ship.
 
-**Runware / Nano Banana prompt**:
+**Use**: `support.tsx` hadith card background at 8% opacity — decorative paper-texture watermark behind the hadith text. Other potential uses (web about section divider, mobile splash ambient) require a separate review after Asset 1 ships and is validated in context.
+
+**Model**: **Flux** on Runware (`runware:100@1`). Not Nano Banana — geometric patterns respond better to Flux, especially with an image-conditioning reference photo of real Fes zellige.
+
+**Runware prompt** (Flux):
 
 ```
-Moroccan zellige geometric pattern, Fez tradition, 8-fold rotational
-symmetry, interlocking stars and polygons, single tile repeat pattern,
-1.5px hairline line art on warm off-white ground (#F9F7F2), lines in
-deep sapphire blue (#0F2D52), no fill, no shading, no gradient, no
-color beyond line and ground, flat vector illustration style,
-traditional zellige tilework precision, Alhambra-adjacent aesthetic,
-architectural drawing quality, minimal, elegant, 2048x2048 square tile,
-transparent background
+Moroccan zellige geometric tile, Marinid Fes tradition 13th-14th c.,
+8-fold rotational symmetry, interlocking 8-pointed stars and hexagonal
+polygons, single tile repeat pattern photographed flat on a limewashed
+wall, natural daylight single source no harsh shadows, 1.5px hairline
+line art on warm paper ground (#F2EBD8), lines in deep sapphire blue
+(#0F2D52), no fill, no colour beyond line and ground, flat vector
+illustration style, traditional zellige tilework precision, Qarawiyyin
+mosque reference aesthetic, architectural drawing quality, minimal,
+elegant, 2048x2048 square tile, transparent background
 ```
 
 **Negative prompt** (if the platform accepts one):
@@ -46,9 +69,13 @@ generic islamic pattern, clipart, tourist art, oversaturated
 
 ---
 
-## Asset 2 — Persian girih strapwork (`pattern-girih-isfahan.png`)
+## Asset 2 — Persian girih strapwork (`pattern-girih-isfahan.png`) — **DEFERRED**
+
+**Status**: Pipeline-ready, awaiting Asset 1 validation before generating.
 
 **Use**: splash screen ambient pattern (replaces current 8-point star on splash). Prayer-change transition overlay at 10–12% opacity during the sacred-moment sequence (see DESIGN.md § Motion Vocabulary).
+
+**Model**: Flux on Runware — same reasoning as Asset 1.
 
 **Runware / Nano Banana prompt**:
 
@@ -66,9 +93,13 @@ quality, minimal, 2048x2048 square, transparent background
 
 ---
 
-## Asset 3 — Cufic square calligraphic composition (`pattern-kufic-square.png`)
+## Asset 3 — Cufic square calligraphic composition (`pattern-kufic-square.png`) — **DEFERRED**
+
+**Status**: Pipeline-ready, awaiting Asset 1 validation before generating.
 
 **Use**: about page section dividers, 404 page atmospheric element, prayer-tab ambient texture on live-lesson screen.
+
+**Model**: Flux on Runware with strict negative prompting on readable Arabic (see note below).
 
 **Runware / Nano Banana prompt**:
 
@@ -89,9 +120,11 @@ aesthetic, minimal, 2048x2048 square, transparent background
 
 ---
 
-## Asset 4 — Masjid exterior line drawing (`masjid-exterior-line.png`)
+## Asset 4 — Masjid exterior line drawing (`masjid-exterior-line.png`) — **BLOCKED**
 
-**Use**: full-bleed moment on web `/about.html` (replaces the absent photography), section break on web `/index.html`. Optional: mobile welcome screen background at 15% opacity.
+**Status**: BLOCKED by Seat 23 (Khadija Benali, Islamic Visual Tradition) on 2026-04-15. AI-generated architectural representation of a specific masjid risks orientalist pastiche, even with the "no dome, no minaret" guardrail. Unblocking requires a real photographic reference of the actual Salafi Masjid Birmingham building and a human review pass. Not a modelling failure — a doctrine choice.
+
+**Use (if/when unblocked)**: full-bleed moment on web `/about.html` (replaces the absent photography), section break on web `/index.html`. Optional: mobile welcome screen background at 15% opacity.
 
 **Runware / Nano Banana prompt**:
 
@@ -114,9 +147,13 @@ drawn by an architect not a tourist
 
 ---
 
-## Asset 5 — Mihrab arch line detail (`mihrab-arch-line.png`)
+## Asset 5 — Mihrab arch line detail (`mihrab-arch-line.png`) — **DEFERRED**
 
-**Use**: web `/404.html` as the single visual moment — a quiet architectural detail over the sapphire field. Mobile splash alternative variant.
+**Status**: Pipeline-ready, awaiting Asset 1 validation. Weaker orientalism risk than Assets 4/6 because the mihrab is a universal-classical Islamic architectural element rather than a representation of a specific building.
+
+**Use**: web `/404.html` as the single visual moment — a quiet architectural detail over the midnight field. Mobile splash alternative variant.
+
+**Model**: Nano Banana 2 — architectural composition benefits from the photoreal/editorial model. Still prompted with line-art style directive.
 
 **Runware / Nano Banana prompt**:
 
@@ -135,9 +172,11 @@ precision, Alhambra-adjacent
 
 ---
 
-## Asset 6 — Minbar silhouette (`minbar-silhouette-line.png`)
+## Asset 6 — Minbar silhouette (`minbar-silhouette-line.png`) — **BLOCKED**
 
-**Use**: web `/about.html` section break between "The Masjid" and "Why This App Exists." Possibly mobile `/about.tsx` section divider.
+**Status**: BLOCKED by Seat 23 on 2026-04-15. Same reasoning as Asset 4: architectural representation requires real reference, not model invention. A minbar is too specific a liturgical object to AI-generate in its first pass. Unblocking requires a photo reference of a minbar in a comparable Salafi tradition.
+
+**Use (if/when unblocked)**: web `/about.html` section break. Possibly mobile `/about.tsx` section divider.
 
 **Runware / Nano Banana prompt**:
 
