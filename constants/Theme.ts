@@ -332,11 +332,17 @@ export const typography = {
     letterSpacing: -0.08,
     lineHeight: 18,
   },
-  // ─── Special purpose display — EB Garamond ──────────────────────
+  // ─── Special purpose display ────────────────────────────────────
+  // Countdown intentionally uses system font, NOT the EB Garamond
+  // display face. User feedback 2026-04-16: serif display on the
+  // countdown reads as "bookish" and doesn't fit the at-a-glance
+  // utility role this number plays. System font reads as cleaner
+  // and more native to the phone. Prayer name still uses EB Garamond
+  // (serif is right there — it's a name, not a number).
   prayerCountdown: {
     fontSize: 54,
-    fontFamily: fonts.displayRegular,  // EB Garamond @ 400 (lightest available)
-    letterSpacing: -1.5,                // gentler than Fraunces — Garamond is a more traditional face
+    fontWeight: '300' as const,
+    letterSpacing: -1.5,
     lineHeight: 60,
   },
   prayerTime: {

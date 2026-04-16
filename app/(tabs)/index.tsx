@@ -349,17 +349,14 @@ export default function PrayerTimesScreen() {
                 ]}
                 accessibilityRole="header"
               >
-                {/* Dynamic section label per Tova's voice guide:
-                    today → "Today", tomorrow → "Tomorrow",
-                    yesterday → "Yesterday", otherwise short date
-                    (e.g. "THU 16 APR" — sectionHeader style is
-                    already uppercase + tracked). */}
+                {/* Today gets a named label; any other day shows the
+                    short date ("FRI 17 APR"). Previously "Tomorrow"
+                    and "Yesterday" were named too but user preferred
+                    just the date — less redundant with the date-
+                    navigator header above, which already says "Today"
+                    in pill form when relevant. */}
                 {isToday
                   ? t('prayer.todaySchedule')
-                  : isTomorrow(selectedDate)
-                  ? t('prayer.tomorrowSchedule')
-                  : isYesterday(selectedDate)
-                  ? t('prayer.yesterdaySchedule')
                   : formatDate(selectedDate, 'EEE d MMM')}
               </Text>
               <Text style={[

@@ -5,8 +5,8 @@ import {
   Text,
   ScrollView,
   Share,
+  Image,
 } from 'react-native';
-import MasjidLogo from '@/assets/images/Masjid-Logo-App.svg';
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
@@ -206,13 +206,17 @@ export default function SettingsScreen() {
           </Text>
         </Animated.View>
 
-        {/* Brand identity anchor */}
+        {/* Brand identity anchor — horizontal wordmark, no duplicate
+            "The Salafi Masjid" text below since the wordmark already
+            carries the name in Arabic + English. */}
         <View style={{ alignItems: 'center', marginBottom: spacing.xl, marginTop: spacing.sm }}>
-          <MasjidLogo width={56} height={56} />
-          <Text style={[typography.headline, { color: colors.text, marginTop: spacing.sm }]}>
-            {t('prayer.mosqueName')}
-          </Text>
-          <Text style={[typography.caption2, { color: colors.textTertiary, marginTop: spacing['2xs'] }]}>
+          <Image
+            source={require('@/assets/images/Masjid_Logo.png')}
+            style={{ width: 220, height: 60, tintColor: colors.text }}
+            resizeMode="contain"
+            accessibilityLabel={t('prayer.mosqueName')}
+          />
+          <Text style={[typography.caption2, { color: colors.textTertiary, marginTop: spacing.md }]}>
             {t('settings.version', { version: Constants.expoConfig?.version ?? '1.0.0' })}
           </Text>
         </View>

@@ -150,7 +150,7 @@ export const FeatureRequestSheet = ({ visible, onDismiss }: FeatureRequestSheetP
                   style={[
                     styles.categoryPill,
                     {
-                      backgroundColor: isSelected ? colors.tintLight : colors.background,
+                      backgroundColor: isSelected ? colors.tintLight : colors.backgroundGrouped,
                       borderColor: isSelected ? colors.tint : colors.separator,
                       borderWidth: isSelected ? 2 : hairline,
                     },
@@ -192,12 +192,12 @@ export const FeatureRequestSheet = ({ visible, onDismiss }: FeatureRequestSheetP
               typography.body,
               {
                 color: colors.text,
-                backgroundColor: colors.background,
+                backgroundColor: colors.backgroundGrouped,
                 borderColor: colors.separator,
               },
             ]}
             placeholder={t('settings.featureDescriptionPlaceholder')}
-            placeholderTextColor={colors.textTertiary}
+            placeholderTextColor={colors.textSecondary}
             value={description}
             onChangeText={setDescription}
             multiline
