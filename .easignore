@@ -34,3 +34,8 @@ coverage/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Native folders — regenerated fresh on every EAS build via Expo prebuild.
+# Keeping them out of the upload avoids platform-specific fingerprint drift.
+android/
+ios/
