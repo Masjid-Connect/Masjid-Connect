@@ -37,7 +37,6 @@
         }
       },
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "The Salafi Masjid app uses your location to calculate accurate prayer times and find nearby mosques.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -58,10 +57,7 @@
           "backgroundColor": "#06101F"
         }
       },
-      "permissions": [
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
-      ]
+      "permissions": []
     },
     "web": {
       "bundler": "metro",
@@ -83,12 +79,6 @@
           "sounds": [
             "./assets/sounds/adhan.wav"
           ]
-        }
-      ],
-      [
-        "expo-location",
-        {
-          "locationWhenInUsePermission": "The Salafi Masjid app uses your location to calculate prayer times."
         }
       ]
     ],
