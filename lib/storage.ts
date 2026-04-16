@@ -9,6 +9,7 @@ const KEYS = {
   THEME: 'theme_preference',
   NOTIFY_ANNOUNCEMENTS: 'notify_announcements',
   NOTIFY_EVENTS: 'notify_events',
+  PLAY_ADHAN: 'play_adhan_at_prayer_time',
 };
 
 /** User location */
@@ -90,6 +91,20 @@ export async function getNotifyEvents(): Promise<boolean> {
 
 export async function setNotifyEvents(enabled: boolean): Promise<void> {
   await AsyncStorage.setItem(KEYS.NOTIFY_EVENTS, enabled.toString());
+}
+
+/** Play the masjid's adhan as the prayer-time notification sound.
+ *  When false, the "prayer time has entered" push is suppressed entirely —
+ *  the 15-minute reminder still fires, but the adhan itself doesn't.
+ *  Default: true (adhan on) — users who want silence opt out.
+ */
+export async function getPlayAdhan(): Promise<boolean> {
+  const raw = await AsyncStorage.getItem(KEYS.PLAY_ADHAN);
+  return raw !== 'false'; // default true
+}
+
+export async function setPlayAdhan(enabled: boolean): Promise<void> {
+  await AsyncStorage.setItem(KEYS.PLAY_ADHAN, enabled.toString());
 }
 
 /** Read announcements tracking */

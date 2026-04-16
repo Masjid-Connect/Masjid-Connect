@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 import type { PrayerTimesData, PrayerName } from '@/types';
 import { PRAYER_LABELS } from '@/types';
 import { getStaticPrayerTimes } from '@/lib/staticTimetable';
-import { getReminderMinutes } from '@/lib/storage';
+import { getReminderMinutes, getPlayAdhan } from '@/lib/storage';
 import { Sentry } from '@/lib/sentry';
 
 /** Configure notification handler (native only) */
@@ -86,6 +86,12 @@ export async function schedulePrayerReminders(
   // Cancel all existing prayer reminders
   await cancelPrayerReminders();
 
+  // Whether to schedule the 'at-prayer-time' adhan notification.
+  // User-controlled toggle (Settings → Notifications → Adhan at prayer time).
+  // Default true; when false the at-prayer-time push is skipped entirely
+  // (the 15-minute reminder still fires regardless).
+  const playAdhan = await getPlayAdhan();
+
   const now = new Date();
   const prayers: PrayerName[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
@@ -115,8 +121,10 @@ export async function schedulePrayerReminders(
       Sentry.captureException(err, { extra: { context: 'schedule prayer reminder', prayer } });
     }
 
-    // Schedule "at prayer time" notification with adhan sound
-    if (targetTime > now) {
+    // Schedule "at prayer time" notification with adhan sound.
+    // Gated on the playAdhan preference — if off, the adhan push is
+    // suppressed entirely. User's 15-minute reminder above still fires.
+    if (playAdhan && targetTime > now) {
       try {
         await Notifications.scheduleNotificationAsync({
           content: {

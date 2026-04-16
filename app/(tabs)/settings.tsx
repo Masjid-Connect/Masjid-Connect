@@ -33,6 +33,8 @@ import {
   setNotifyAnnouncements,
   getNotifyEvents,
   setNotifyEvents,
+  getPlayAdhan,
+  setPlayAdhan,
 } from '@/lib/storage';
 import { reschedulePrayerRemindersForToday } from '@/lib/notifications';
 import {
@@ -90,6 +92,7 @@ export default function SettingsScreen() {
   const [use24h, setUse24hState] = useState(false);
   const [notifyAnnouncements, setNotifyAnnouncementsState] = useState(true);
   const [notifyEvents, setNotifyEventsState] = useState(true);
+  const [playAdhan, setPlayAdhanState] = useState(true);
 
   // Sheet visibility
   const [showReminderPicker, setShowReminderPicker] = useState(false);
@@ -102,16 +105,18 @@ export default function SettingsScreen() {
   }, []);
 
   const loadSettings = async () => {
-    const [mins, h24, announceEnabled, eventsEnabled] = await Promise.all([
+    const [mins, h24, announceEnabled, eventsEnabled, adhanEnabled] = await Promise.all([
       getReminderMinutes(),
       getUse24h(),
       getNotifyAnnouncements(),
       getNotifyEvents(),
+      getPlayAdhan(),
     ]);
     setReminderMin(mins);
     setUse24hState(h24);
     setNotifyAnnouncementsState(announceEnabled);
     setNotifyEventsState(eventsEnabled);
+    setPlayAdhanState(adhanEnabled);
   };
 
   const handleReminderChange = useCallback(async (minutes: number) => {
@@ -123,6 +128,15 @@ export default function SettingsScreen() {
   const handleToggle24h = useCallback(async (value: boolean) => {
     setUse24hState(value);
     await setUse24h(value);
+  }, []);
+
+  const handleTogglePlayAdhan = useCallback(async (value: boolean) => {
+    setPlayAdhanState(value);
+    await setPlayAdhan(value);
+    // Re-run the scheduler so the change takes effect immediately for
+    // today's remaining prayers — rescheduling cancels existing athan
+    // notifications and re-schedules (or skips) based on the new flag.
+    await reschedulePrayerRemindersForToday();
   }, []);
 
   const handleNotifyAnnouncementsChange = useCallback(async (value: boolean) => {
@@ -236,6 +250,14 @@ export default function SettingsScreen() {
             setShowReminderPicker(true);
           }}
           position="first"
+        />
+        <SettingsRow
+          icon={{ name: 'musical-notes', backgroundColor: palette.divineGold }}
+          label={t('settings.playAdhan')}
+          accessory="toggle"
+          toggleValue={playAdhan}
+          onToggleChange={handleTogglePlayAdhan}
+          position="middle"
         />
         <SettingsRow
           icon={{ name: 'megaphone', backgroundColor: palette.sapphire700 }}
