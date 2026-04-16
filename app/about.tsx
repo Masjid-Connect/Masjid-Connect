@@ -1,6 +1,5 @@
 import React from 'react';
-import { StyleSheet, ScrollView, Text, View } from 'react-native';
-import MasjidLogo from '@/assets/images/Masjid-Logo-App.svg';
+import { StyleSheet, ScrollView, Text, View, Image } from 'react-native';
 import Animated, { FadeInDown, FadeIn } from 'react-native-reanimated';
 import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -44,10 +43,17 @@ export default function AboutScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Hero — logo IS the identity, no redundant text */}
+        {/* Hero — horizontal wordmark (Masjid_Logo.png, Arabic + English).
+            The square SVG is the APP-LAUNCHER icon only; in-app surfaces
+            use the wordmark. Tinted to colors.text so it theme-adapts. */}
         <Animated.View entering={FadeIn.duration(400)} style={styles.hero}>
-          <MasjidLogo width={140} height={140} />
-          <View style={[styles.versionPill, { backgroundColor: isDark ? colors.backgroundGrouped : colors.background }]}>
+          <Image
+            source={require('@/assets/images/Masjid_Logo.png')}
+            style={{ width: 240, height: 70, tintColor: colors.text }}
+            resizeMode="contain"
+            accessibilityLabel={t('about.appName')}
+          />
+          <View style={[styles.versionPill, { backgroundColor: isDark ? colors.backgroundGrouped : colors.background, marginTop: spacing.lg }]}>
             <Text style={[typography.caption1, { color: colors.textSecondary, fontWeight: fontWeight.medium }]}>
               {t('about.version')} {Constants.expoConfig?.version ?? '1.0.0'}
             </Text>
