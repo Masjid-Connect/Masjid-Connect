@@ -172,6 +172,16 @@ export default function LiveLessonScreen() {
               bounces={false}
               onError={() => setWebViewError(true)}
               onHttpError={() => setWebViewError(true)}
+              onShouldStartLoadWithRequest={(request) => {
+                const url = request.url;
+                if (url === 'about:blank' || url.startsWith('about:')) return true;
+                try {
+                  const { hostname } = new URL(url);
+                  return hostname === 'mixlr.com' || hostname.endsWith('.mixlr.com');
+                } catch {
+                  return false;
+                }
+              }}
             />
           ) : (
             <View style={styles.errorContainer}>

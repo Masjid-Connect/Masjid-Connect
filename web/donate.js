@@ -399,8 +399,10 @@
       }
       return res.json();
     }).then(function (data) {
-      if (data && data.checkout_url) {
+      if (data && data.checkout_url && data.checkout_url.startsWith('https://checkout.stripe.com/')) {
         window.location.href = data.checkout_url;
+      } else if (data && data.checkout_url) {
+        throw new Error('Invalid checkout URL returned.');
       } else {
         throw new Error('Could not create checkout session. Please try again.');
       }
@@ -598,8 +600,10 @@
     showError('Donation was cancelled. You can try again whenever you\u2019re ready.');
     window.history.replaceState({}, '', window.location.pathname);
   } else if (donation === 'error') {
-    var msg = params.get('msg') || 'Something went wrong. Please try again.';
-    showError(msg);
+    // Never reflect the URL's ?msg= into the page — an attacker can
+    // craft a link with an arbitrary phishing message that appears on
+    // the legitimate domain. Use a fixed error string.
+    showError('Something went wrong. Please try again or use bank transfer below.');
     window.history.replaceState({}, '', window.location.pathname);
   }
 })();

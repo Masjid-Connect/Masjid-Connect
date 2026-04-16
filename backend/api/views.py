@@ -132,8 +132,12 @@ class IsMosqueAdminOrReadOnly(permissions.BasePermission):
         mosque_id = request.data.get("mosque")
         if mosque_id:
             return MosqueAdmin.objects.filter(user=request.user, mosque_id=mosque_id).exists()
-        # If no mosque specified, let the serializer handle validation
-        return True
+        # If no mosque specified in a write request, deny. Previously
+        # returned True (deferring to serializer), but this allowed any
+        # authenticated user past the permission layer for create ops.
+        # The serializer should ALSO validate, but defence in depth
+        # means the permission layer should not have a hole.
+        return False
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
@@ -1080,8 +1084,22 @@ def checkout_session_status(request):
 # ── Stripe Webhook ───────────────────────────────────────────────────
 
 
+class WebhookRateThrottle(AnonRateThrottle):
+    """Rate-limit webhook endpoint to prevent DoS via crafted payloads.
+    Higher than DonationRateThrottle because Stripe may legitimately
+    retry several events in quick succession. Invalid signatures are
+    rejected by construct_event() but still consume CPU."""
+    rate = "120/minute"
+
+    def allow_request(self, request, view):
+        if getattr(settings, "TESTING", False):
+            return True
+        return super().allow_request(request, view)
+
+
 @api_view(["POST"])
 @permission_classes([permissions.AllowAny])
+@throttle_classes([WebhookRateThrottle])
 def stripe_webhook(request):
     """
     Handle Stripe webhook events.
