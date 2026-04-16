@@ -95,10 +95,21 @@ export const DateNavigator = ({
               onPress={handleToday}
               style={[styles.todayPill, {
                 backgroundColor: getAlpha(effectiveScheme).accentPill,
+                borderColor: isDark ? palette.divineGoldBright : palette.divineGold,
               }]}
               accessibilityRole="button"
               accessibilityLabel={t('prayer.jumpToToday')}
             >
+              {/* Return-arrow icon + label reads as an ACTION, not a
+                  redundant date label. Previously just the word 'Today'
+                  was confusingly adjacent to 'Sat 18 Apr' and users
+                  read it as 'today = Saturday 18 April'. */}
+              <Ionicons
+                name="arrow-undo"
+                size={12}
+                color={isDark ? palette.divineGoldBright : palette.divineGoldText}
+                style={{ marginEnd: spacing.xs }}
+              />
               <Text style={[styles.todayText, {
                 color: isDark ? palette.divineGoldBright : palette.divineGoldText,
               }]}>
@@ -157,9 +168,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   todayPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.md,
+    borderWidth: 1,
   },
   todayText: {
     fontSize: typography.caption1.fontSize,

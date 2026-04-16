@@ -64,7 +64,11 @@ import type { PrayerName } from '@/types';
 
 // ─── Grid constants ─────────────────────────────────────────────────
 // All vertical measurements derive from the spacing scale (8pt grid).
-const HERO_PADDING_BOTTOM = 80;                // Generous fade — sky dissolves into content
+// Hero bottom breathing room. 80 was too much after the countdown
+// grew to 72pt — user 2026-04-16: 'gap between countdown and calendar
+// card looks massive'. 40 keeps a soft fade between sky and content
+// without a visual gulf.
+const HERO_PADDING_BOTTOM = 40;
 const ROW_PADDING_V = spacing.lg;             // 16 (~52px row height)
 
 export default function PrayerTimesScreen() {
