@@ -49,14 +49,15 @@
 
 /* ─── Design Tokens ──────────────────────────────────────────── */
 :root {
-  /* Stone — warm paper backgrounds. Deep & Cinematic pass
-     (Candidate A, 2026-04-15): canvas deepened from cool off-white
-     #F9F7F2 to warm paper #F2EBD8 so stone can carry weight as a
-     canvas without fighting darker accents. */
-  --stone-100: #F2EBD8;
-  --stone-200: #ECE3CC;
-  --stone-300: #D9D0B9;
-  --stone-400: #BFB49A;
+  /* Neutrals — iOS-family cool off-whites (2026-04-16 shift from
+     Candidate A warm paper). Previous 'warm paper' read as desert/
+     sand, which trades modern for orientalist-lazy. 'Stone' name
+     kept for back-compat; values are now cool neutrals matching
+     iOS systemGray6/5/4. Brand tones (sapphire, gold) unchanged. */
+  --stone-100: #F5F5F7;
+  --stone-200: #EFEFF4;
+  --stone-300: #E5E5EA;
+  --stone-400: #D1D1D6;
 
   /* Onyx — organic near-black for text (foreground). These are NOT
      dark-mode surfaces — see --midnight-* for hero surfaces. */

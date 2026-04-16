@@ -26,10 +26,16 @@ export const palette = {
   // the "pale" complaint was a hierarchy problem — stone couldn't
   // dominate AND feel weighted; warming the canvas lets it carry
   // weight without fighting darker accents.
-  stone100: '#F2EBD8',      // Main background — warm paper (was #F9F7F2)
-  stone200: '#ECE3CC',      // Secondary surface — slightly deeper
-  stone300: '#D9D0B9',      // Grouped/tertiary
-  stone400: '#BFB49A',      // Bolder accent surface
+  // Neutrals — iOS-family cool off-whites (2026-04-16 shift from
+  // warm-paper Candidate A). User feedback: 'warm paper' register
+  // landed as desert/sand, which reads as orientalist shorthand
+  // rather than modern. Reference: iOS systemGray6/5/4, Apple Notes,
+  // Linear. The 'stone' naming is retained for backward compat but
+  // these are now cool neutrals, not literal stone-paper.
+  stone100: '#F5F5F7',      // Main background — iOS system gray, very soft cool neutral
+  stone200: '#EFEFF4',      // Secondary surface — one step deeper
+  stone300: '#E5E5EA',      // Grouped/tertiary
+  stone400: '#D1D1D6',      // Bolder neutral surface
 
   // ─── Onyx: organic dark tones for light-mode text ───────────────
   onyx900: '#121216',       // Primary text on light backgrounds
@@ -99,7 +105,9 @@ export const palette = {
 
   // ─── Fixed colors (theme-independent) ───────────────────────────
   white: '#FFFFFF',
-  paperCard: '#FAF4E0',     // Card surface for light mode — warm off-white, sits softly above stone-100 paper bg rather than the stark white-on-beige look (2026-04-16)
+  // Card surface in light mode is plain white now — the bg shifted
+  // from warm paper to cool neutral (stone-100 = #F5F5F7), so
+  // white-on-gray reads as crisp modern elevation, not stark beige.
   googleBlue: '#4285F4',
   backdrop: 'rgba(0,0,0,0.4)',
   darkCardBorder: '#1E3B5A',
@@ -180,7 +188,7 @@ const Colors = {
     background: palette.stone100,
     backgroundSecondary: palette.stone200,
     backgroundGrouped: palette.stone300,
-    card: palette.paperCard,
+    card: palette.white,
     cardBorder: palette.separatorLight,
     tint: palette.sapphire700,
     tintLight: palette.sapphireLight,

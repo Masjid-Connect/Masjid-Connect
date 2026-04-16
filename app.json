@@ -71,7 +71,7 @@
       "shortName": "Salafi Masjid",
       "description": "Prayer times, announcements, and events from The Salafi Masjid.",
       "themeColor": "#0F2D52",
-      "backgroundColor": "#F2EBD8"
+      "backgroundColor": "#F5F5F7"
     },
     "plugins": [
       "@sentry/react-native/expo",
