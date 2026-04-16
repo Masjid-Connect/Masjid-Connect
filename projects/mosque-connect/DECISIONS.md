@@ -171,3 +171,102 @@ Format: short title → decision → why → trade-off accepted.
 - **What's next (follow-up, not this commit)**: SEMANTIC shifts — making specific screens use midnight as surface (live-lesson modal, splash backdrop, potentially prayer-home hero). This commit ships the tokens; surface-by-surface rebinding is a separate pass per the visual-verify rule.
 - **WCAG verification**: onyx-900 text on stone-100 paper → 16.7:1 ✓ AAA; snow text on midnight-950 → ~18:1 ✓ AAA; divineGold #C99A2E on stone-100 paper → still passes 3:1 non-text (marginally); gilt #D4A03A on midnight-950 → 6:1 ✓.
 - **Not visually verified on-device**: user approved Candidate A via the swatches preview HTML (that IS visual verification per PROCESS.md); ships without additional on-device screenshot. Ready to tune specific values if any feel wrong post-ship.
+
+---
+
+## Candidate A warm-paper REVERTED to cool neutrals (2026-04-16)
+
+**Replaced warm-paper palette with iOS-family cool neutrals.**
+- **Why**: user flagged warm-paper beige (#F2EBD8) as "ugly sand colour — Islam in the desert?" Seat 23 (Khadija) concurred: sand/beige is orientalist shorthand. Contemporary Islamic design uses restrained cool neutrals + a single accent.
+- **New values**: stone-100 #F5F5F7 (iOS system gray), stone-200 #EFEFF4, stone-300 #E5E5EA, stone-400 #D1D1D6. Card surface back to pure white #FFFFFF (crisp on cool-gray bg). Dark mode unchanged (midnight sapphire already modern). Sapphire + gold brand untouched (universal, not orientalist).
+- **Trade-off**: lost the warm-paper editorial feel Candidate A was aiming for. The warmth was a design gamble that didn't survive real-device feedback.
+
+---
+
+## Voice sweep (2026-04-15/16)
+
+**Rewrote user-facing copy across web + mobile to Tova's register.**
+- **Why**: marketing copy had accumulated SaaS-generic and loss-averse patterns ("Never miss a prayer", "all in one place", "your choice, your control"). Also caught post-Aladhan factual errors (web still claimed "Umm Al-Qura calculation method" after Aladhan was removed).
+- **What changed**: hero H1 "Never Miss a Prayer" → "Your masjid, at hand"; 7 feature-card rewrites; showcase body tightened; "Made with ihsan" → "Built with care" (self-ascribing Islamic virtues is theologically off); legal docs updated to match code reality.
+- **Rule locked**: "Don't self-ascribe Islamic virtues" saved as persistent memory. "JazakAllahu Khairan" (no exclamation) established as the standard.
+
+---
+
+## Prayer-home hero — centered + system sans 72pt SemiBold (2026-04-16)
+
+**Final composition after 3 iterations.**
+- Attempt 1: left-anchor editorial recompose with EB Garamond (rejected — user preferred centered)
+- Attempt 2: centered + system font 300 ultralight (rejected — user wanted serif back, then corrected to sans)
+- Final: centered stack, prayer name in EB Garamond, countdown in system sans at 72pt SemiBold. Hero gap (HERO_PADDING_BOTTOM) reduced 80→40 to tighten the sky-to-timetable transition.
+- **Trade-off**: the editorial left-anchor was architecturally correct per Seat 19 but the user's visual taste is the final authority.
+
+---
+
+## EAS build: fingerprint → appVersion + fully managed workflow (2026-04-16)
+
+**Switched runtimeVersion policy from fingerprint to appVersion.**
+- **Why**: Expo fingerprint hashes node_modules content including platform-specific prebuilt binaries (react-native-skia ships arm64 locally, x86_64 on EAS Linux). Fingerprint can NEVER match cross-platform. Build failure was a 6-build debugging odyssey.
+- **Also**: untracked android/ios native files from git (bare-workflow residue), added /android /ios to .easignore. Fully managed Expo workflow — EAS regenerates native from app.json every build.
+- **Also**: added `channel: "production"` to eas.json so OTA updates are bindable to the native binary.
+- **Trade-off**: appVersion requires manual version bump when native deps change (autoIncrement handles versionCode). Low risk for single-masjid app with rare native changes.
+
+---
+
+## Sentry upgraded 6.5.0 → 8.7.0 (2026-04-16)
+
+**Jumped two major versions to fix Gradle 9 compatibility.**
+- **Why**: sentry.gradle used `Project.exec()` which was removed in Gradle 9. EAS workers run Gradle 9. Build failed repeatedly at the sentry upload task.
+- **6.22.0 didn't fix it** (same pattern, different line number). 8.7.0 uses the correct `ExecOperations.exec` via @Inject — confirmed by code reading, not guessing.
+- **Auto-upload disabled** via SENTRY_DISABLE_AUTO_UPLOAD=true in eas.json env. sentry-cli needs SENTRY_AUTH_TOKEN to upload source maps; token not configured on EAS. Source maps can be uploaded manually post-release. Runtime error reporting unaffected.
+- **Trade-off**: source maps not auto-uploaded means production stack traces show minified JS until manually uploaded. Low risk for a small team.
+
+---
+
+## Donate page restored with Stripe Embedded Checkout (2026-04-16)
+
+**Brought /donate back after earlier removal.**
+- **Why**: the earlier removal was due to "Stripe on web caused more problems than it solved" — but the root cause was an expired Stripe key, not an integration problem. Key rotated; embedded checkout works.
+- **What shipped**: restored from git history (commit 4ac079b), updated to Candidate A → cool-neutrals palette, Tova voice, EB Garamond preloaded, current footer structure, "Give" link in navbar + footer across all pages.
+- **Trade-off**: re-introduces a Stripe dependency on web. Acceptable — the backend already supports embedded mode and the CSP already allows Stripe origins.
+
+---
+
+## Notifications: one per prayer, adhan toggle, Maghrib exception (2026-04-16)
+
+**Consolidated two-notification scheme into one per prayer.**
+- **Previous**: silent 15-min reminder + at-prayer-time adhan. Two notifications per prayer.
+- **New**: single notification fires at jamaah − reminderMinutes (default 15). Adhan.wav is the sound when user's "Adhan at prayer time" toggle is on. Maghrib fires AT jamaah time (no lead) because the prayer window is too short for a heads-up.
+- **Why**: user asked "adhan should be 15 mins before the prayer, except for maghrib". One notification is cleaner and matches the user's mental model.
+- **Trade-off**: users who want BOTH a reminder AND a separate at-prayer-time athan now get only one notification. None have complained yet.
+
+---
+
+## Security audit — 7 findings fixed (2026-04-16)
+
+**Three-agent parallel audit by seats 9, 28, 29. 5 HIGH + 2 MEDIUM fixed in code.**
+- H2: open redirect on checkout_url → validated against checkout.stripe.com
+- H3: reflected URL ?msg= parameter → hardcoded error string
+- H4: Cloudflare beacon placeholder → removed
+- H5: WebView navigation unguarded → restricted to *.mixlr.com
+- M1: Stripe webhook unthrottled → 120/min rate limit
+- M2: permission fallback return True → return False
+- H1 (user action): backend secrets in .env → removed, MUST BE ROTATED
+- Deferred: CSP unsafe-inline, OTA code signing, push token auth
+
+---
+
+## Unused dependencies removed (2026-04-16)
+
+**expo-sensors + expo-location uninstalled.**
+- expo-sensors: pulled ACTIVITY_RECOGNITION permission → Google Play flagged app as "Health app".
+- expo-location: pulled ACCESS_*_LOCATION permissions + stale NSLocationWhenInUseUsageDescription claiming prayer-time calculation. Neither package was imported anywhere in source code.
+- **Trade-off**: none. Zero runtime impact.
+
+---
+
+## AI-generated imagery programme scrapped (2026-04-16)
+
+**Tried Runware/Flux for Marinid zellige line-art. User rejected after first batch.**
+- **Why stopped**: "lets scrap the image generation its whack". User's prerogative.
+- **What remains**: COUNCIL.md seats 25-27 (prompt engineering) stay as dormant specialists. No generated asset ever shipped — review gate held.
+- **Memory rule saved**: don't propose AI imagery for this project unless user raises it first.
