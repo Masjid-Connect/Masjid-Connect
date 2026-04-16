@@ -44,8 +44,11 @@ const HOLD_DURATION = 700;
 const CONTENT_FADE_DURATION = 800;
 const SHIMMER_DURATION = 1400;
 
-/** Glow sizing relative to logo */
-const GLOW_SCALE = 1.8;
+/** Glow sizing relative to logo — tightened to sit on the wordmark
+ *  text only (not radiate as a wide background halo). User 2026-04-16:
+ *  'the glow should only be on the words'. 1.1 gives a soft bleed
+ *  just past the letterforms without spreading across the whole screen. */
+const GLOW_SCALE = 1.1;
 
 interface AnimatedSplashProps {
   /** Called when the splash animation is complete and content should appear */
@@ -85,11 +88,11 @@ const GoldenGlow = ({
           c={vec(cx, cy)}
           r={radius}
           colors={[
-            'rgba(240, 208, 96, 0.38)',  // Divine Gold center — slight intensity tweak 2026-04-16
-            'rgba(240, 208, 96, 0.15)',  // Mid fade
-            'rgba(240, 208, 96, 0.0)',   // Fully transparent edge
+            'rgba(240, 208, 96, 0.40)',  // Divine Gold center — concentrated on the text
+            'rgba(240, 208, 96, 0.12)',  // Tight mid fade
+            'rgba(240, 208, 96, 0.0)',   // Clean transparent edge
           ]}
-          positions={[0, 0.5, 1]}
+          positions={[0, 0.4, 0.85]}
         />
       </Circle>
     </Canvas>
