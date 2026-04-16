@@ -99,6 +99,7 @@ export const palette = {
 
   // ─── Fixed colors (theme-independent) ───────────────────────────
   white: '#FFFFFF',
+  paperCard: '#FAF4E0',     // Card surface for light mode — warm off-white, sits softly above stone-100 paper bg rather than the stark white-on-beige look (2026-04-16)
   googleBlue: '#4285F4',
   backdrop: 'rgba(0,0,0,0.4)',
   darkCardBorder: '#1E3B5A',
@@ -179,7 +180,7 @@ const Colors = {
     background: palette.stone100,
     backgroundSecondary: palette.stone200,
     backgroundGrouped: palette.stone300,
-    card: palette.white,
+    card: palette.paperCard,
     cardBorder: palette.separatorLight,
     tint: palette.sapphire700,
     tintLight: palette.sapphireLight,

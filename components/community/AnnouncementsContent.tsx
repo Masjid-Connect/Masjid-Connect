@@ -392,14 +392,11 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
               {expandedItem.title}
             </Text>
 
-            {expandedItem.published_at && (
-              <Text
-                style={[typography.footnote, { color: colors.textTertiary, marginTop: spacing.sm }]}>
-                {t('announcements.publishedOn', {
-                  date: format(new Date(expandedItem.published_at), 'EEEE, d MMMM yyyy'),
-                })}
-              </Text>
-            )}
+            {/* "Published on [date]" line removed 2026-04-16 per user
+                feedback — the list view already shows a relative
+                time-ago (e.g. "2 hours ago") beneath each card; a
+                verbose "Published Thursday, 16 April 2026" inside
+                the expanded sheet is redundant and adds clutter. */}
 
             <Text
               style={[

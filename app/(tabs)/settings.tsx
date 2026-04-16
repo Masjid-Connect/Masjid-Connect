@@ -336,11 +336,11 @@ export default function SettingsScreen() {
       </SettingsSection>
 
       {/* ── Footer ── */}
+      {/* Version line removed from footer 2026-04-16 — it was duplicate
+          with the brand anchor at the top of the screen. Prayer-source
+          attribution stays here since it's a separate fact. */}
       <View style={styles.footer}>
         <Text style={[typography.caption1, { color: colors.textTertiary, textAlign: 'center' }]}>
-          {t('settings.version', { version: Constants.expoConfig?.version ?? '1.0.0' })}
-        </Text>
-        <Text style={[typography.caption1, { color: colors.textTertiary, textAlign: 'center', marginTop: spacing.xs }]}>
           {t('settings.prayerSource')}
         </Text>
       </View>

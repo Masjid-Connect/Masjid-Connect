@@ -416,7 +416,12 @@ export default function PrayerTimesScreen() {
             return (
               <Animated.View
                 key={prayer.name}
-                entering={reducedMotion ? FadeIn.duration(300) : FadeInDown.delay(Math.min(index * 40, 300)).duration(300).springify()}
+                // Staggered entrance removed 2026-04-16 — on data-refresh
+                // re-renders the rows would briefly appear blank mid-
+                // stagger (user reported 'blank times sometimes').
+                // Parallel FadeIn still gives the soft arrival without
+                // a per-row delay window where one row is invisible.
+                entering={FadeIn.duration(220)}
                 accessibilityLabel={`${t(`prayer.${prayer.name}`)}, ${formatPrayerTime(prayer.time, use24h)}${isNext ? `, ${t('prayer.nextPrayer')}` : ''}`}
                 style={[
                   styles.row,

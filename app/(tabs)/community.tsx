@@ -249,37 +249,11 @@ export default function CommunityScreen() {
           </Animated.View>
         )}
 
-        {/* Share the App — prominent CTA */}
-        <Pressable
-          onPress={handleShareReward}
-          style={[styles.shareCard, {
-            backgroundColor: alphaColors.communityShareBg,
-            borderColor: alphaColors.communityShareBorder,
-          }]}
-          accessibilityRole="button"
-          accessibilityLabel={t('community.shareApp')}
-        >
-          <Ionicons
-            name="gift-outline"
-            size={24}
-            color={isDark ? palette.divineGoldBright : palette.divineGold}
-          />
-          <View style={styles.shareTextCol}>
-            <Text style={[typography.headline, {
-              color: isDark ? palette.divineGoldBright : palette.divineGoldText,
-            }]}>
-              {t('community.shareApp')}
-            </Text>
-            <Text style={[typography.footnote, { color: colors.textSecondary, marginTop: 2 }]}>
-              {t('community.shareHint')}
-            </Text>
-          </View>
-          <Ionicons
-            name="share-outline"
-            size={20}
-            color={colors.textSecondary}
-          />
-        </Pressable>
+        {/* Share the App CTA removed from Community tab 2026-04-16
+            per user feedback — lives in Settings (shareApp row) only.
+            Community tab should be about content (announcements/events),
+            not cross-promotion. handleShareReward + styles.shareCard
+            kept in case we need to restore. */}
       </View>
 
       {/* Admin FAB — only visible to mosque administrators */}
