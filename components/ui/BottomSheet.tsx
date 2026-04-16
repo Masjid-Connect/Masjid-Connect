@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
+  Modal,
   StyleSheet,
   View,
   Pressable,
@@ -125,6 +126,19 @@ export const BottomSheet = ({ visible, onDismiss, children, maxHeight }: BottomS
   if (!mounted) return null;
 
   return (
+    // Native Modal pulls the sheet out of the React tree and renders it
+    // at the window level — immune to being mounted inside a ScrollView
+    // where StyleSheet.absoluteFill would only fill the scroll content.
+    // transparent so backdrop + sheet show over existing UI without a
+    // white fullscreen flash. animationType='none' because we handle
+    // the slide-up animation ourselves via reanimated.
+    <Modal
+      visible={mounted}
+      transparent
+      animationType="none"
+      onRequestClose={animateOut}
+      statusBarTranslucent
+    >
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
       <Pressable
         style={StyleSheet.absoluteFill}
@@ -168,6 +182,7 @@ export const BottomSheet = ({ visible, onDismiss, children, maxHeight }: BottomS
         </Animated.View>
       </GestureDetector>
     </View>
+    </Modal>
   );
 };
 

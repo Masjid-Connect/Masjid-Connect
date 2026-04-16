@@ -345,7 +345,17 @@ export default function SettingsScreen() {
         </Text>
       </View>
 
+    </AnimatedScrollView>
+
       {/* ── Bottom Sheets ── */}
+      {/* Sheets MUST be siblings of the ScrollView, not children. When
+          nested inside AnimatedScrollView, BottomSheet's StyleSheet
+          .absoluteFill fills the scroll content area — so the sheet
+          positions at bottom:0 of the scroll CONTENT, which is far
+          below the visible viewport when the user has scrolled. User
+          taps 'Light / Dark mode' row, sheet opens, but renders way
+          off-screen. Appears as if the tap did nothing.
+          (Bug reported 2026-04-16; moved to root here.) */}
       <SettingsPickerSheet
         visible={showReminderPicker}
         onDismiss={() => setShowReminderPicker(false)}
@@ -371,8 +381,6 @@ export default function SettingsScreen() {
         visible={showFeatureRequest}
         onDismiss={() => setShowFeatureRequest(false)}
       />
-
-    </AnimatedScrollView>
     </View>
   );
 }
