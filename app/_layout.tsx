@@ -62,9 +62,11 @@ const MosqueDark = {
 
 function RootLayout() {
   const { t } = useTranslation();
-  // EB Garamond is the display face — applied only to prayer countdown,
-  // prayer names, and screen titles per DESIGN.md § Typography.
-  // System fonts carry body and UI.
+  // EB Garamond is the display face — applied to prayer NAMES and
+  // screen titles. The prayer COUNTDOWN uses the system font (not
+  // EB Garamond, not Lora) per user 2026-04-16: 'I need a sans serif,
+  // plain and easy to read'. System font (SF Pro on iOS, Roboto on
+  // Android) is the plainest legible choice.
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     'EBGaramond-Regular': require('@expo-google-fonts/eb-garamond/400Regular/EBGaramond_400Regular.ttf'),
