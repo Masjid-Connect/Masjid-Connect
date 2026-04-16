@@ -96,53 +96,48 @@ export async function schedulePrayerReminders(
   const prayers: PrayerName[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
   for (const prayer of prayers) {
-    const targetTime = times[prayer];
-    const reminderTime = new Date(targetTime.getTime() - reminderMinutes * 60 * 1000);
+    const targetTime = times[prayer]; // jama'ah time
 
-    // Skip if reminder time has already passed
-    if (reminderTime <= now) continue;
+    // Maghrib exception: fire AT jama'ah time, no lead. Maghrib's
+    // window is short (sunset to Isha) so a 15-min-before cue would
+    // suggest a window that doesn't exist. Every other prayer uses
+    // reminderMinutes as the lead so the adhan plays as a prepare-
+    // for-prayer cue. User 2026-04-16: 'adhan should be 15 mins
+    // before the prayer, except for maghrib'.
+    const leadMinutes = prayer === 'maghrib' ? 0 : reminderMinutes;
+    const fireAt = new Date(targetTime.getTime() - leadMinutes * 60 * 1000);
 
-    // Schedule "X minutes before" reminder
+    // Skip if fire time has already passed
+    if (fireAt <= now) continue;
+
     try {
+      const body = leadMinutes === 0
+        ? `${PRAYER_LABELS[prayer].ar} — Prayer time has entered`
+        : `Jama'ah in ${leadMinutes} minutes`;
+
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: `${PRAYER_LABELS[prayer].en} in ${reminderMinutes} minutes`,
-          body: `${PRAYER_LABELS[prayer].ar} — Jama'ah starts soon`,
-          data: { type: 'prayer_reminder', prayer },
-          ...(Platform.OS === 'android' && { channelId: 'prayer-reminders' }),
+          title: `${PRAYER_LABELS[prayer].en} — ${PRAYER_LABELS[prayer].ar}`,
+          body,
+          // Only set `sound` when adhan is enabled — else rely on
+          // channel default (silent-or-default system sound).
+          ...(playAdhan && { sound: 'adhan.wav' }),
+          data: { type: playAdhan ? 'prayer_athan' : 'prayer_reminder', prayer },
+          // Android requires the right channel to play adhan.wav as
+          // the ringtone. prayer-athan channel has sound: 'adhan.wav';
+          // prayer-reminders uses system default.
+          ...(Platform.OS === 'android' && {
+            channelId: playAdhan ? 'prayer-athan' : 'prayer-reminders',
+          }),
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DATE,
-          date: reminderTime,
+          date: fireAt,
         },
-        identifier: `prayer-reminder-${prayer}`,
+        identifier: `prayer-${prayer}`,
       });
     } catch (err) {
-      Sentry.captureException(err, { extra: { context: 'schedule prayer reminder', prayer } });
-    }
-
-    // Schedule "at prayer time" notification with adhan sound.
-    // Gated on the playAdhan preference — if off, the adhan push is
-    // suppressed entirely. User's 15-minute reminder above still fires.
-    if (playAdhan && targetTime > now) {
-      try {
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: `${PRAYER_LABELS[prayer].en} — ${PRAYER_LABELS[prayer].ar}`,
-            body: 'Prayer time has entered',
-            sound: 'adhan.wav',
-            data: { type: 'prayer_athan', prayer },
-            ...(Platform.OS === 'android' && { channelId: 'prayer-athan' }),
-          },
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: targetTime,
-          },
-          identifier: `prayer-athan-${prayer}`,
-        });
-      } catch (err) {
-        Sentry.captureException(err, { extra: { context: 'schedule prayer athan', prayer } });
-      }
+      Sentry.captureException(err, { extra: { context: 'schedule prayer notification', prayer } });
     }
   }
 }
@@ -166,14 +161,19 @@ export async function reschedulePrayerRemindersForToday(): Promise<void> {
   await schedulePrayerReminders(staticResult.times, reminderMinutes);
 }
 
-/** Cancel all prayer reminder notifications */
+/** Cancel all prayer notifications, including legacy identifier patterns
+ *  left over from the previous two-notification scheme (reminder + athan).
+ *  Users upgrading from older builds have those still sitting in the
+ *  system queue; sweep them here so they don't fire stale copies alongside
+ *  the new unified 'prayer-{name}' notification. */
 export async function cancelPrayerReminders(): Promise<void> {
   if (Platform.OS === 'web') return;
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
   for (const notification of scheduled) {
     if (
       notification.identifier.startsWith('prayer-reminder-') ||
-      notification.identifier.startsWith('prayer-athan-')
+      notification.identifier.startsWith('prayer-athan-') ||
+      /^prayer-(fajr|dhuhr|asr|maghrib|isha)$/.test(notification.identifier)
     ) {
       await Notifications.cancelScheduledNotificationAsync(notification.identifier);
     }
