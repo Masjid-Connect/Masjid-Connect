@@ -286,7 +286,10 @@ export default function PrayerTimesScreen() {
                     <Text style={[
                       styles.countdown,
                       { color: colors.text },
-                      isLandscape && { fontSize: typography.largeTitle.fontSize - 2, lineHeight: 38 },
+                      // Landscape: scale the hero countdown down to fit
+                      // the reduced vertical space. Portrait bump to 72pt
+                      // would overflow landscape on most phones.
+                      isLandscape && { fontSize: 48, lineHeight: 54 },
                     ]}>
                       {countdown}
                     </Text>

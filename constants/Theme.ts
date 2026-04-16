@@ -332,16 +332,25 @@ export const typography = {
     letterSpacing: -0.08,
     lineHeight: 18,
   },
-  // ─── Special purpose display — EB Garamond ──────────────────────
-  // Countdown uses EB Garamond as the display face. User reaffirmed
-  // 2026-04-16: 'the font we used previously' — EB Garamond — is the
-  // correct register for this number. Previous attempt to revert to
-  // system font was a misread of the original feedback.
+  // ─── Special purpose display ────────────────────────────────────
+  // Countdown: system font, hero size. User 2026-04-16: 'increase
+  // the size and boldness of the countdown, it is the hero. I do
+  // not like the font now, what did we use before Garamond' — the
+  // answer is system font (SF Pro on iOS / Roboto on Android) at
+  // ultralight weight 200. Bumping to SemiBold + larger per the
+  // 'bolder, bigger, hero' brief.
+  //   Size:   54 -> 72 (hero-dominant, fits "2:14:32" comfortably at
+  //           modern phone widths even in portrait)
+  //   Weight: 200 ultralight -> 600 SemiBold (genuine hero weight,
+  //           not timid)
+  //   Family: fonts.displayRegular (EB Garamond) -> system font
+  //           (omitted — RN falls back to platform default)
+  //   Tracking: tightened -1.5 -> -2 to match the larger size
   prayerCountdown: {
-    fontSize: 54,
-    fontFamily: fonts.displayRegular,  // EB Garamond @ 400
-    letterSpacing: -1.5,
-    lineHeight: 60,
+    fontSize: 72,
+    fontWeight: '600' as const,
+    letterSpacing: -2,
+    lineHeight: 78,
   },
   prayerTime: {
     fontSize: 17,
