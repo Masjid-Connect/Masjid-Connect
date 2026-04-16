@@ -1,4 +1,4 @@
-import { resolveCommunitySegment } from '../community.segment';
+import { resolveCommunitySegment } from '@/lib/community-segment';
 
 describe('resolveCommunitySegment', () => {
   it('returns "events" when the param is exactly "events"', () => {

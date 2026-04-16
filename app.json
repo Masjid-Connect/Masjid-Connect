@@ -20,7 +20,7 @@
     "splash": {
       "image": "./assets/images/Masjid-Logo-App.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0A1628"
+      "backgroundColor": "#06101F"
     },
     "ios": {
       "supportsTablet": true,
@@ -29,11 +29,11 @@
       "splash": {
         "image": "./assets/images/Masjid-Logo-App.png",
         "resizeMode": "contain",
-        "backgroundColor": "#0A1628",
+        "backgroundColor": "#06101F",
         "dark": {
           "image": "./assets/images/Masjid-Logo-App.png",
           "resizeMode": "contain",
-          "backgroundColor": "#0A1628"
+          "backgroundColor": "#06101F"
         }
       },
       "infoPlist": {
@@ -43,20 +43,19 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#F9F7F2",
+        "backgroundColor": "#06101F",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "package": "app.salafimasjid",
       "splash": {
         "image": "./assets/images/Masjid-Logo-App.png",
         "resizeMode": "contain",
-        "backgroundColor": "#0A1628",
+        "backgroundColor": "#06101F",
         "dark": {
           "image": "./assets/images/Masjid-Logo-App.png",
           "resizeMode": "contain",
-          "backgroundColor": "#0A1628"
+          "backgroundColor": "#06101F"
         }
       },
       "permissions": [
@@ -72,7 +71,7 @@
       "shortName": "Salafi Masjid",
       "description": "Prayer times, announcements, and events from The Salafi Masjid.",
       "themeColor": "#0F2D52",
-      "backgroundColor": "#F9F7F2"
+      "backgroundColor": "#F2EBD8"
     },
     "plugins": [
       "@sentry/react-native/expo",

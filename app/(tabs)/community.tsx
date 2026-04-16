@@ -37,7 +37,7 @@ import { useAnnouncements } from '@/hooks/useAnnouncements';
 import { useReadAnnouncements } from '@/hooks/useReadAnnouncements';
 import { useAdminStatus } from '@/hooks/useAdminStatus';
 import { useLiveLesson } from '@/hooks/useLiveLesson';
-import { resolveCommunitySegment, type CommunitySegment } from './community.segment';
+import { resolveCommunitySegment, type CommunitySegment } from '@/lib/community-segment';
 
 const HEADER_HEIGHT = 44;
 const LARGE_TITLE_HEIGHT = 52;

@@ -11,7 +11,7 @@
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Image, Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, {
   Easing,
   type SharedValue,
@@ -30,11 +30,12 @@ import { springs, borderRadius } from '@/constants/Theme';
 import { patterns } from '@/lib/layoutGrid';
 import { breath, breathEasing } from '@/lib/breathMotion';
 import { IslamicPattern } from './IslamicPattern';
-import MasjidLogo from '@/assets/images/Masjid-Logo-App.svg';
 
-/** Logo max width cap — larger than before for the "full-screen splash"
- *  feel. Square SVG (viewBox 495.5×495.5) scales cleanly at any size. */
-const LOGO_MAX_WIDTH = 520;
+/** Logo max width cap — the horizontal wordmark (Arabic + English) sits
+ *  comfortably at 360 on phones, doesn't dominate like the square SVG did. */
+const LOGO_MAX_WIDTH = 360;
+/** Wordmark aspect ratio — height is 60% of width. */
+const LOGO_ASPECT = 0.6;
 
 /** Timing constants (ms) */
 const PAUSE_BEFORE_REVEAL = 500;
@@ -84,8 +85,8 @@ const GoldenGlow = ({
           c={vec(cx, cy)}
           r={radius}
           colors={[
-            'rgba(240, 208, 96, 0.30)',  // Divine Gold center — visible halo
-            'rgba(240, 208, 96, 0.12)',  // Mid fade
+            'rgba(240, 208, 96, 0.38)',  // Divine Gold center — slight intensity tweak 2026-04-16
+            'rgba(240, 208, 96, 0.15)',  // Mid fade
             'rgba(240, 208, 96, 0.0)',   // Fully transparent edge
           ]}
           positions={[0, 0.5, 1]}
@@ -296,9 +297,9 @@ export const AnimatedSplash = ({
     opacity: glowOpacity.value,
   }));
 
-  // Logo is now a square SVG (1:1), so glow follows the same aspect.
+  // Wordmark is horizontal (aspect 0.6), so the glow follows that shape.
   const glowWidth = logoWidth * GLOW_SCALE;
-  const glowHeight = logoWidth * GLOW_SCALE;
+  const glowHeight = logoWidth * LOGO_ASPECT * GLOW_SCALE;
 
   // On web, skip the splash animation — the Animated.View wrappers
   // break Expo Router's LinkingContext on web.
@@ -343,19 +344,23 @@ export const AnimatedSplash = ({
         </Animated.View>
 
         {/* The logo — centered, fades in with scale.
-            Square SVG brand mark (Masjid-Logo-App.svg). No tinting — the
-            SVG has its own final colours baked in via react-native-svg. */}
+            Horizontal wordmark (Masjid_Logo.png — Arabic + English),
+            tinted snow so it reads bright on the midnight backdrop. */}
         <Animated.View style={[styles.logoContainer, logoAnimatedStyle]} accessibilityLabel="The Salafi Masjid">
-          {/* Shimmer sweep layer — sized to the square logo */}
-          <View style={[styles.shimmerClip, { width: logoWidth, height: logoWidth }]}>
+          {/* Shimmer sweep layer — sized to the wordmark aspect */}
+          <View style={[styles.shimmerClip, { width: logoWidth, height: logoWidth * LOGO_ASPECT }]}>
             <ShimmerSweep
               width={logoWidth}
-              height={logoWidth}
+              height={logoWidth * LOGO_ASPECT}
               shimmerX={shimmerX}
             />
           </View>
 
-          <MasjidLogo width={logoWidth} height={logoWidth} />
+          <Image
+            source={require('@/assets/images/Masjid_Logo.png')}
+            style={{ width: logoWidth, height: logoWidth * LOGO_ASPECT, tintColor: palette.snow }}
+            resizeMode="contain"
+          />
         </Animated.View>
       </Animated.View>
     </View>
