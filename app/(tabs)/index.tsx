@@ -381,10 +381,11 @@ export default function PrayerTimesScreen() {
             </Pressable>
           </View>
 
-          {/* Column headers — matches the web's BEGINS / JAMĀ'AH pattern
-              so the mobile table reads as a proper schedule, not a
-              single-value list. Uses sectionHeader style (uppercase,
-              tracked, muted) so it doesn't fight the row content below. */}
+          {/* Column headers. Begins time stacks beneath the jamā'ah
+              time in each row (narrow-device layouts couldn't fit two
+              columns without the jamā'ah time wrapping), so the header
+              shows just PRAYER | JAMĀ'AH. The sub-line in the row is
+              self-labelled ("Begins 4:28 AM"). */}
           <View style={styles.columnHeaderRow}>
             <View style={styles.dotCol} />
             <Text style={[typography.sectionHeader, { color: colors.textTertiary, flex: 1 }]}>
@@ -394,16 +395,7 @@ export default function PrayerTimesScreen() {
               style={[
                 typography.sectionHeader,
                 { color: colors.textTertiary, textAlign: 'right' },
-                styles.beginsCol,
-              ]}
-            >
-              {t('prayer.beginsColumn')}
-            </Text>
-            <Text
-              style={[
-                typography.sectionHeader,
-                { color: colors.textTertiary, textAlign: 'right' },
-                styles.jamaatCol,
+                styles.timeCol,
               ]}
             >
               {t('prayer.jamaatColumn')}
@@ -415,15 +407,15 @@ export default function PrayerTimesScreen() {
             const isPassed = !isNext && prayer.time < new Date();
 
             return (
-              <Animated.View
+              <View
                 key={prayer.name}
-                // Staggered entrance removed 2026-04-16 — on data-refresh
-                // re-renders the rows would briefly appear blank mid-
-                // stagger (user reported 'blank times sometimes').
-                // Parallel FadeIn still gives the soft arrival without
-                // a per-row delay window where one row is invisible.
-                entering={FadeIn.duration(220)}
-                accessibilityLabel={`${t(`prayer.${prayer.name}`)}, ${formatPrayerTime(prayer.time, use24h)}${isNext ? `, ${t('prayer.nextPrayer')}` : ''}`}
+                // No entering animation on rows — Reanimated's FadeIn
+                // replays on parent re-renders on Android (data-refresh
+                // from the two-phase static→API load + the 30s countdown
+                // interval), flashing rows to opacity 0 for ~220ms. User
+                // saw this as "blank rows sometimes". Skeleton → data
+                // handoff is already the soft reveal.
+                accessibilityLabel={`${t(`prayer.${prayer.name}`)}, ${formatPrayerTime(prayer.time, use24h)}${prayer.startTime && prayer.startTime.getTime() !== prayer.time.getTime() ? `, ${t('prayer.beginsColumn').toLowerCase()} ${formatPrayerTime(prayer.startTime, use24h)}` : ''}${isNext ? `, ${t('prayer.nextPrayer')}` : ''}`}
                 style={[
                   styles.row,
                   index < prayers.length - 1 && !isNext && {
@@ -476,27 +468,13 @@ export default function PrayerTimesScreen() {
                   {t(`prayer.${prayer.name}`)}
                 </Text>
 
-                {/* Begins — supporting data, lighter weight. Matches
-                    the web's BEGINS column so mobile and web users
-                    see the same information at the same hierarchy. */}
-                <View style={styles.beginsCol}>
-                  {prayer.startTime && prayer.startTime.getTime() !== prayer.time.getTime() ? (
-                    <Text style={[
-                      typography.footnote,
-                      {
-                        color: colors.textSecondary,
-                        fontVariant: ['tabular-nums'],
-                        textAlign: 'right',
-                        opacity: isPassed ? 0.4 : 0.75,
-                      },
-                    ]}>
-                      {formatPrayerTime(prayer.startTime, use24h)}
-                    </Text>
-                  ) : null}
-                </View>
-
-                {/* Jamā'ah — primary, full weight, right-most column */}
-                <View style={styles.jamaatCol}>
+                {/* Time column — jamā'ah primary, begins stacked
+                    beneath as a self-labelled caption. Stacked layout
+                    introduced 2026-04-19 after a user report on a
+                    narrow Samsung device where a separate BEGINS
+                    column crammed against JAMĀ'AH and caused times
+                    like "10:15 PM" to wrap to two lines. */}
+                <View style={styles.timeCol}>
                   <Text style={[
                     typography.prayerTime,
                     {
@@ -508,6 +486,20 @@ export default function PrayerTimesScreen() {
                   ]}>
                     {formatPrayerTime(prayer.time, use24h)}
                   </Text>
+                  {prayer.startTime && prayer.startTime.getTime() !== prayer.time.getTime() ? (
+                    <Text style={[
+                      typography.caption2,
+                      {
+                        color: colors.textTertiary,
+                        fontVariant: ['tabular-nums'],
+                        textAlign: 'right',
+                        marginTop: 2,
+                        opacity: isPassed ? 0.4 : 0.75,
+                      },
+                    ]}>
+                      {t('prayer.beginsColumn')} {formatPrayerTime(prayer.startTime, use24h)}
+                    </Text>
+                  ) : null}
                 </View>
 
                 {/* Active row progress bar — thin gold line at bottom */}
@@ -524,7 +516,7 @@ export default function PrayerTimesScreen() {
                     />
                   </View>
                 )}
-              </Animated.View>
+              </View>
             );
           })}
         </View>
@@ -629,12 +621,8 @@ const styles = StyleSheet.create({
     width: spacing.xl, // 20
     alignItems: 'center',
   },
-  beginsCol: {
-    width: 72,             // fixed so column headers align with row data
-    alignItems: 'flex-end',
-  },
-  jamaatCol: {
-    width: 88,             // slightly wider since jamaat is the primary emphasis
+  timeCol: {
+    width: 96,             // single right column; jamā'ah primary with begins stacked beneath
     alignItems: 'flex-end',
   },
   columnHeaderRow: {
