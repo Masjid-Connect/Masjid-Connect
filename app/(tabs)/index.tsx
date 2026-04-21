@@ -415,6 +415,11 @@ export default function PrayerTimesScreen() {
                 // interval), flashing rows to opacity 0 for ~220ms. User
                 // saw this as "blank rows sometimes". Skeleton → data
                 // handoff is already the soft reveal.
+                // collapsable={false} prevents Android view-flattening,
+                // which with the active-row overflow:hidden + border-
+                // radius combo could blank the child Text entirely
+                // (2026-04-21 Dhuhr-row report).
+                collapsable={false}
                 accessibilityLabel={`${t(`prayer.${prayer.name}`)}, ${formatPrayerTime(prayer.time, use24h)}${prayer.startTime && prayer.startTime.getTime() !== prayer.time.getTime() ? `, ${t('prayer.beginsColumn').toLowerCase()} ${formatPrayerTime(prayer.startTime, use24h)}` : ''}${isNext ? `, ${t('prayer.nextPrayer')}` : ''}`}
                 style={[
                   styles.row,
@@ -469,34 +474,42 @@ export default function PrayerTimesScreen() {
                 </Text>
 
                 {/* Time column — jamā'ah primary, begins stacked
-                    beneath as a self-labelled caption. Stacked layout
-                    introduced 2026-04-19 after a user report on a
-                    narrow Samsung device where a separate BEGINS
-                    column crammed against JAMĀ'AH and caused times
-                    like "10:15 PM" to wrap to two lines. */}
+                    beneath as a self-labelled caption. Width 144 is
+                    wide enough for "10:15 PM" + "Begins 10:15 PM" up
+                    to ~1.3x system font scaling without needing auto-
+                    shrink. Previously used adjustsFontSizeToFit +
+                    minimumFontScale (iOS-only) — those blanked the
+                    active-row Text on Android (2026-04-21 report);
+                    removed, relying on width + numberOfLines alone. */}
                 <View style={styles.timeCol}>
-                  <Text style={[
-                    typography.prayerTime,
-                    {
-                      color: isNext ? colors.prayerActive : isPassed ? colors.textTertiary : colors.text,
-                      fontVariant: ['tabular-nums'],
-                      textAlign: 'right',
-                      opacity: isPassed ? 0.5 : 1,
-                    },
-                  ]}>
+                  <Text
+                    numberOfLines={1}
+                    allowFontScaling
+                    style={[
+                      typography.prayerTime,
+                      {
+                        color: isNext ? colors.prayerActive : isPassed ? colors.textTertiary : colors.text,
+                        fontVariant: ['tabular-nums'],
+                        textAlign: 'right',
+                        opacity: isPassed ? 0.5 : 1,
+                      },
+                    ]}>
                     {formatPrayerTime(prayer.time, use24h)}
                   </Text>
                   {prayer.startTime && prayer.startTime.getTime() !== prayer.time.getTime() ? (
-                    <Text style={[
-                      typography.caption2,
-                      {
-                        color: colors.textTertiary,
-                        fontVariant: ['tabular-nums'],
-                        textAlign: 'right',
-                        marginTop: 2,
-                        opacity: isPassed ? 0.4 : 0.75,
-                      },
-                    ]}>
+                    <Text
+                      numberOfLines={1}
+                      allowFontScaling
+                      style={[
+                        typography.caption2,
+                        {
+                          color: colors.textTertiary,
+                          fontVariant: ['tabular-nums'],
+                          textAlign: 'right',
+                          marginTop: 2,
+                          opacity: isPassed ? 0.4 : 0.75,
+                        },
+                      ]}>
                       {t('prayer.beginsColumn')} {formatPrayerTime(prayer.startTime, use24h)}
                     </Text>
                   ) : null}
@@ -622,7 +635,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timeCol: {
-    width: 96,             // single right column; jamā'ah primary with begins stacked beneath
+    width: 144,            // wide enough for "10:15 PM" + "Begins 10:15 PM" at ~1.3x font scaling; no auto-shrink needed
     alignItems: 'flex-end',
   },
   columnHeaderRow: {
