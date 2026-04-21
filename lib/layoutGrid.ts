@@ -51,6 +51,14 @@ export const layout = {
 
   /** Compact button / picker option height */
   compactRowHeight: 44,
+
+  /** Tablet breakpoint — width ≥ this switches from full-bleed to constrained content */
+  tabletBreakpoint: 768,
+
+  /** Max content width on tablet — prevents prayer timetable + settings list
+   *  from stretching across a 1366pt iPad. Matches Apple's readable-content
+   *  guide plus a bit of breathing room. */
+  tabletMaxContentWidth: 720,
 } as const;
 
 /** Islamic geometric pattern defaults */

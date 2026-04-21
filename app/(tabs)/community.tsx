@@ -27,6 +27,7 @@ import * as Haptics from 'expo-haptics';
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography, borderRadius, fontWeight, springs, getElevation, hairline } from '@/constants/Theme';
+import { layout } from '@/lib/layoutGrid';
 import { AnnouncementsContent } from '@/components/community/AnnouncementsContent';
 import { EventsContent } from '@/components/community/EventsContent';
 import { LiveLessonBanner } from '@/components/community/LiveLessonBanner';
@@ -167,7 +168,17 @@ export default function CommunityScreen() {
       </View>
 
       {/* Content area */}
-      <View style={[styles.contentArea, { paddingTop: insets.top + HEADER_HEIGHT }]}>
+      <View
+        style={[
+          styles.contentArea,
+          { paddingTop: insets.top + HEADER_HEIGHT },
+          windowWidth >= layout.tabletBreakpoint && {
+            maxWidth: layout.tabletMaxContentWidth,
+            width: '100%',
+            alignSelf: 'center',
+          },
+        ]}
+      >
         {/* Large title */}
         <Animated.View style={[styles.largeTitleContainer, largeTitleStyle]}>
           <Text style={[typography.largeTitle, { color: colors.text }]}>

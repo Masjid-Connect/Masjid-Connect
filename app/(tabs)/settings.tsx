@@ -6,6 +6,7 @@ import {
   ScrollView,
   Share,
   Image,
+  useWindowDimensions,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -24,6 +25,7 @@ import Constants from 'expo-constants';
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography, hairline } from '@/constants/Theme';
+import { layout } from '@/lib/layoutGrid';
 import {
   getReminderMinutes,
   setReminderMinutes,
@@ -59,6 +61,7 @@ export default function SettingsScreen() {
   const colors = getColors(effectiveScheme);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
 
   // ─── Large title collapse animation ────────────────────────────
   const scrollY = useSharedValue(0);
@@ -208,7 +211,15 @@ export default function SettingsScreen() {
 
       <AnimatedScrollView
         style={styles.container}
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + HEADER_HEIGHT }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: insets.top + HEADER_HEIGHT },
+          windowWidth >= layout.tabletBreakpoint && {
+            maxWidth: layout.tabletMaxContentWidth,
+            width: '100%',
+            alignSelf: 'center',
+          },
+        ]}
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}
         scrollEventThrottle={16}

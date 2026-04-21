@@ -320,6 +320,12 @@ export default function PrayerTimesScreen() {
           style={[styles.heroFade, isLandscape && { height: spacing.xl }]}
         />
 
+        {/* Tablet-constrained content wrapper. Hero stays full-bleed
+            (atmospheric sky fills the screen), but the date navigator +
+            timetable card centre to a readable column on iPad so the
+            row doesn't stretch with a 600px empty middle. */}
+        <View style={screenWidth >= layout.tabletBreakpoint ? styles.tabletContent : undefined}>
+
         {/* ── Date Navigator ─────────────────────────────────────── */}
         <DateNavigator
           selectedDate={selectedDate}
@@ -533,6 +539,9 @@ export default function PrayerTimesScreen() {
             );
           })}
         </View>
+
+        {/* Close tablet-constrained wrapper */}
+        </View>
       </ScrollView>
     </View>
   );
@@ -542,6 +551,13 @@ export default function PrayerTimesScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  // Tablet-width constraint — applied only when screen ≥ 768pt so the
+  // card doesn't stretch across iPad landscape. Hero stays full-bleed.
+  tabletContent: {
+    width: '100%',
+    maxWidth: layout.tabletMaxContentWidth,
+    alignSelf: 'center',
   },
   loading: {
     justifyContent: 'center',

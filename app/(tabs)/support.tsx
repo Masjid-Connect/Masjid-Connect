@@ -28,6 +28,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, borderRadius, typography, getElevation, fontWeight, hairline } from '@/constants/Theme';
+import { layout } from '@/lib/layoutGrid';
 import { AmountSelector, BankDetailsSheet, DonationConfirmationSheet, TrustBadge } from '@/components/support';
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { donations } from '@/lib/api';
@@ -221,7 +222,15 @@ export default function SupportScreen() {
 
       <AnimatedScrollView
         style={styles.container}
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + HEADER_HEIGHT }]}
+        contentContainerStyle={[
+          styles.content,
+          { paddingTop: insets.top + HEADER_HEIGHT },
+          windowWidth >= layout.tabletBreakpoint && {
+            maxWidth: layout.tabletMaxContentWidth,
+            width: '100%',
+            alignSelf: 'center',
+          },
+        ]}
         showsVerticalScrollIndicator={false}
         onScroll={onScroll}
         scrollEventThrottle={16}
