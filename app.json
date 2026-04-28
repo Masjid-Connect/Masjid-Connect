@@ -57,7 +57,10 @@
           "backgroundColor": "#06101F"
         }
       },
-      "permissions": []
+      "permissions": [],
+      "blockedPermissions": [
+        "android.permission.ACTIVITY_RECOGNITION"
+      ]
     },
     "web": {
       "bundler": "metro",
