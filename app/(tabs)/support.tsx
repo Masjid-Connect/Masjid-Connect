@@ -62,7 +62,7 @@ export default function SupportScreen() {
 
   // State
   const [frequency, setFrequency] = useState<Frequency>('one-time');
-  const [amount, setAmount] = useState<number | null>(25);
+  const [amount, setAmount] = useState<number | null>(10);
   const [isLoading, setIsLoading] = useState(false);
   const [showBankDetails, setShowBankDetails] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
