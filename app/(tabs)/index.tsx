@@ -433,14 +433,44 @@ export default function PrayerTimesScreen() {
                     borderBottomWidth: hairline,
                     borderBottomColor: colors.separator,
                   },
-                  isNext && [
-                    styles.activeRow,
-                    {
-                      backgroundColor: alphaColors.prayerActiveRowBg,
-                    },
-                  ],
+                  isNext && styles.activeRowLayout,
                 ]}
               >
+                {/* Active-row background layer.
+                    Owns borderRadius + overflow:hidden + the progress
+                    bar, so the text-bearing row View doesn't sit under
+                    an overflow-clipping ancestor. Android intermittently
+                    zeroes child Text layout under that combo when
+                    absolutely-positioned siblings exist (Dhuhr report
+                    2026-04-21, Maghrib report 2026-04-28). Previous fix
+                    (collapsable={false} + drop adjustsFontSizeToFit)
+                    addressed view-flattening + iOS-only props but left
+                    the combo on the text-bearing View; this isolates
+                    it. */}
+                {isNext && (
+                  <View
+                    pointerEvents="none"
+                    style={[
+                      styles.activeRowBg,
+                      { backgroundColor: alphaColors.prayerActiveRowBg },
+                    ]}
+                  >
+                    {isToday && (
+                      <View style={styles.progressBarContainer}>
+                        <View
+                          style={[
+                            styles.progressBarFill,
+                            {
+                              width: `${Math.round(windowProgress * 100)}%`,
+                              backgroundColor: alphaColors.prayerProgressFill,
+                            } as ViewStyle,
+                          ]}
+                        />
+                      </View>
+                    )}
+                  </View>
+                )}
+
                 {/* Gold accent bar for active prayer */}
                 {isNext && (
                   <View style={[
@@ -521,20 +551,6 @@ export default function PrayerTimesScreen() {
                   ) : null}
                 </View>
 
-                {/* Active row progress bar — thin gold line at bottom */}
-                {isNext && isToday && (
-                  <View style={styles.progressBarContainer}>
-                    <View
-                      style={[
-                        styles.progressBarFill,
-                        {
-                          width: `${Math.round(windowProgress * 100)}%`,
-                          backgroundColor: alphaColors.prayerProgressFill,
-                        } as ViewStyle,
-                      ]}
-                    />
-                  </View>
-                )}
               </View>
             );
           })}
@@ -632,10 +648,13 @@ const styles = StyleSheet.create({
     paddingVertical: ROW_PADDING_V,
     paddingHorizontal: spacing.xl, // 20
   },
-  activeRow: {
-    borderRadius: borderRadius.sm, // 10
+  activeRowLayout: {
     marginHorizontal: spacing.sm,  // 8
     paddingHorizontal: spacing.lg, // 16
+  },
+  activeRowBg: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: borderRadius.sm, // 10
     overflow: 'hidden',
   },
   activeAccentBar: {
