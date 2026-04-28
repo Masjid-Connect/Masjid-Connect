@@ -23,7 +23,7 @@
   const STRIPE_PK = 'pk_live_jhdJimpenQpkL3cvCMC8wSa700y5o67fj1';
 
   // ─── State ───────────────────────────────────────────────────
-  let selectedAmount = 25;
+  let selectedAmount = 10;
   let frequency = 'one-time';
   let checkoutInstance = null;
 
