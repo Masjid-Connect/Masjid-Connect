@@ -49,12 +49,25 @@ export async function registerForPushNotifications(): Promise<string | null> {
       sound: 'default',
     });
 
-    await Notifications.setNotificationChannelAsync('prayer-athan', {
+    // Channel sound is locked at first creation on Android — once a
+    // channel exists with a given sound, you can't change it. Devices
+    // that installed earlier builds carry an orphan 'prayer-athan'
+    // channel bound to the 1-second placeholder. Version-suffix the
+    // channel so the real adhan binds to a fresh channel on next launch;
+    // bump again whenever the asset changes. Old channel is left orphaned
+    // (Android prunes unused channels eventually; user can delete in
+    // settings if they want).
+    await Notifications.setNotificationChannelAsync('prayer-athan-v2', {
       name: 'Adhan',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       sound: 'adhan.wav',
     });
+    // Best-effort: remove the orphaned v1 channel so the user doesn't
+    // see two "Adhan" entries in system notification settings.
+    try {
+      await Notifications.deleteNotificationChannelAsync('prayer-athan');
+    } catch {}
 
     await Notifications.setNotificationChannelAsync('announcements', {
       name: 'Announcements',
@@ -127,7 +140,7 @@ export async function schedulePrayerReminders(
           // the ringtone. prayer-athan channel has sound: 'adhan.wav';
           // prayer-reminders uses system default.
           ...(Platform.OS === 'android' && {
-            channelId: playAdhan ? 'prayer-athan' : 'prayer-reminders',
+            channelId: playAdhan ? 'prayer-athan-v2' : 'prayer-reminders',
           }),
         },
         trigger: {
