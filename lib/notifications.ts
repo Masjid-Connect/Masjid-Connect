@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import type { PrayerTimesData, PrayerName } from '@/types';
 import { PRAYER_LABELS } from '@/types';
@@ -83,7 +84,19 @@ export async function registerForPushNotifications(): Promise<string | null> {
     });
   }
 
-  const tokenData = await Notifications.getExpoPushTokenAsync();
+  // SDK 49+ removed the implicit projectId fallback — standalone builds
+  // throw "No 'projectId' specified" without it, and the token never
+  // reaches the backend. Reads from app.json's extra.eas.projectId.
+  const projectId =
+    Constants.expoConfig?.extra?.eas?.projectId ??
+    (Constants as unknown as { easConfig?: { projectId?: string } }).easConfig?.projectId;
+  if (!projectId) {
+    Sentry.captureMessage('Expo projectId missing — push token cannot be registered', {
+      level: 'error',
+    });
+    return null;
+  }
+  const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
   return tokenData.data;
 }
 
