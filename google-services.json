@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1096490387110",
+    "project_id": "salafi-masjid",
+    "storage_bucket": "salafi-masjid.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1096490387110:android:fe6a30f9b70e16e378d667",
+        "android_client_info": {
+          "package_name": "app.salafimasjid"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBru3yKDo7tr6pYaISTE6girwcTz_s2XXE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

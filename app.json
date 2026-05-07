@@ -47,6 +47,7 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "package": "app.salafimasjid",
+      "googleServicesFile": "./google-services.json",
       "splash": {
         "image": "./assets/images/Masjid-Logo-App.png",
         "resizeMode": "contain",
