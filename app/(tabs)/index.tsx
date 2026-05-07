@@ -215,7 +215,8 @@ export default function PrayerTimesScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <ScrollView
-        contentContainerStyle={{ paddingBottom: spacing['5xl'] }}
+        style={{ backgroundColor: colors.background }}
+        contentContainerStyle={{ paddingBottom: spacing['5xl'], backgroundColor: colors.background }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
         }

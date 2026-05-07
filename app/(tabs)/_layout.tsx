@@ -26,6 +26,10 @@ function TabLayoutInner() {
         tabBarInactiveTintColor: colors.tabIconDefault,
         headerShown: false,
         animation: 'fade',
+        // Defensive scene paint — see app/_layout.tsx note. Prevents the
+        // Android DayNight window from showing through transparent areas
+        // of any tab screen when system scheme ≠ app preference.
+        sceneStyle: { backgroundColor: colors.background },
       }}>
       <Tabs.Screen
         name="index"

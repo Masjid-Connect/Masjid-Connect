@@ -14,7 +14,8 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemScheme = useColorScheme();
-  const [themePreference, setThemePreferenceState] = useState<ThemePreference>('system');
+  // Null until AsyncStorage resolves — see render gate below for why.
+  const [themePreference, setThemePreferenceState] = useState<ThemePreference | null>(null);
 
   useEffect(() => {
     getThemePreference().then(setThemePreferenceState);
@@ -25,16 +26,26 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setThemePreferenceState(theme);
   }, []);
 
+  const resolved = themePreference ?? 'system';
   const effectiveScheme: 'light' | 'dark' =
-    themePreference === 'system'
+    resolved === 'system'
       ? (systemScheme === 'dark' ? 'dark' : 'light')
-      : themePreference;
+      : resolved;
 
   const value = useMemo<ThemeContextValue>(() => ({
-    themePreference,
+    themePreference: resolved,
     setThemePreference,
     effectiveScheme,
-  }), [themePreference, setThemePreference, effectiveScheme]);
+  }), [resolved, setThemePreference, effectiveScheme]);
+
+  // Hold rendering until the stored preference is loaded. Without this,
+  // the first render uses 'system' as a fallback — and on a system-dark
+  // device with an explicit-light preference, that produces dark
+  // backgrounds in components (and React Navigation theme caches) that
+  // don't fully update when the preference resolves a tick later. The
+  // splash overlay is already covering the screen during this window,
+  // so the brief null is invisible to the user.
+  if (themePreference === null) return null;
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

@@ -209,10 +209,16 @@ function RootLayoutNav() {
     return () => sub.remove();
   }, [router]);
 
+  // Explicit screen background — without this, the Android Activity's
+  // DayNight window theme can leak through transparent regions when the
+  // OS scheme disagrees with the user's app preference (e.g. system dark
+  // + explicit light). Belt-and-braces with the React Navigation theme.
+  const sceneBackground = effectiveScheme === 'dark' ? palette.sapphire950 : palette.stone100;
+
   return (
     <ThemeProvider value={effectiveScheme === 'dark' ? MosqueDark : MosqueLight}>
       <StatusBar style={effectiveScheme === 'dark' ? 'light' : 'dark'} />
-      <Stack screenOptions={{ animation: 'ios_from_right' }}>
+      <Stack screenOptions={{ animation: 'ios_from_right', contentStyle: { backgroundColor: sceneBackground } }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false, animation: 'none' }} />
         <Stack.Screen name="live-lesson" options={{ presentation: 'modal', headerShown: false, animation: 'slide_from_bottom' }} />
         <Stack.Screen name="privacy" options={{ presentation: 'card', headerBackTitle: ' ' }} />
