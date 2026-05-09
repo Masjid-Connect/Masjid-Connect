@@ -1132,6 +1132,43 @@ ul {
   width: auto;
 }
 
+/* ─── Store badge: iOS coming-soon state (2026-05-09) ────────────
+   Apple Developer Program enrolment is still pending Apple approval
+   (since 2026-04-12). The website ships the App Store badge in a
+   visually-disabled state with a small "Coming soon" pill so visitors
+   understand iOS is on the way without a broken link. Replace this
+   block with a real <a> once the App Store listing is live. */
+.store-badge--coming-soon {
+  position: relative;
+  display: inline-block;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.store-badge__coming-soon-pill {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background: var(--gilt);
+  color: #0B1326; /* Celestial Ink Indigo on gold */
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Footer pill is smaller — the footer SVG is 32px vs hero 44px. */
+.footer__store-badges .store-badge__coming-soon-pill {
+  top: -8px;
+  right: -6px;
+  font-size: 9px;
+  padding: 2px 7px;
+}
+
 .hero__phones {
   flex: 1;
   display: flex;
