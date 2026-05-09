@@ -66,18 +66,9 @@ jest.mock('expo-haptics', () => ({
   NotificationFeedbackType: { Success: 'success', Warning: 'warning', Error: 'error' },
 }));
 
-// Mock expo-location
-jest.mock('expo-location', () => ({
-  requestForegroundPermissionsAsync: jest.fn(() =>
-    Promise.resolve({ status: 'granted' })
-  ),
-  getCurrentPositionAsync: jest.fn(() =>
-    Promise.resolve({ coords: { latitude: 51.5, longitude: -0.1 } })
-  ),
-  getLastKnownPositionAsync: jest.fn(() =>
-    Promise.resolve({ coords: { latitude: 51.5, longitude: -0.1 } })
-  ),
-}));
+// expo-location was uninstalled 2026-04-16 (Google Play "Health app" flag —
+// see DECISIONS.md). The mock for it is intentionally absent; any test that
+// reaches for `expo-location` will rightly fail at import time.
 
 // Mock react-native-reanimated
 jest.mock('react-native-reanimated', () => {
