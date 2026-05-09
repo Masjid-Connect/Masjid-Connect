@@ -20,7 +20,8 @@
       "autoIncrement": true,
       "channel": "production",
       "env": {
-        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true",
+        "EXPO_PUBLIC_MOSQUE_ID": "98e7931b-8cf2-476e-99de-1daf4246c188"
       }
     }
   },

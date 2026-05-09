@@ -56,6 +56,7 @@ No Flutter, no Next.js, no Firebase, no Redis, no Celery, no microservices.
 - No user-generated content beyond admin-posted announcements and events.
 - Community members browse anonymously. Login is optional (for subscriptions and push notifications).
 - Admin experience must require zero technical knowledge. Target: 60 seconds from opening admin panel to posting an announcement.
+- **Single masjid (operational scope, locked).** The app is built for The Salafi Masjid (Wright Street), Birmingham. Multi-mosque was design optionality; it is NOT in scope. The backend retains a relational `Mosque` table so existing per-mosque data isolation works, but production has exactly one row and no client surface presents a chooser. The mobile app pins the UUID via `EXPO_PUBLIC_MOSQUE_ID` rather than discovering it at runtime. This is an operational scoping decision, not a doctrinal one — the rule is about product scope, not about other masjids being inferior or excluded for religious reasons. Re-opening multi-mosque is a major scope change, not a config tweak.
 
 ## 7. Code Rules
 
