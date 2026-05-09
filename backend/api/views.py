@@ -923,6 +923,11 @@ def create_checkout_session(request):
             amount = math.ceil((amount + 20) / (1 - 0.025))
 
         base_metadata = {
+            # `app=masjid` is the unambiguous signal the webhook handler uses to
+            # distinguish masjid donations from other businesses on the shared
+            # Stripe account (e.g. Salafi Bookstore). Do not remove or rename
+            # without updating _is_masjid_donation_metadata in this file.
+            "app": "masjid",
             "frequency": frequency,
             "source": "app" if is_url_only else "website",
             "gift_aid": "yes" if wants_gift_aid else "no",
@@ -1210,19 +1215,57 @@ def stripe_webhook(request):
     return Response({"detail": "Webhook processed."}, status=status.HTTP_200_OK)
 
 
+def _is_masjid_donation_metadata(metadata: dict) -> bool:
+    """Identify masjid donation events vs other businesses on the same Stripe account.
+
+    The Stripe account "Salafi Bookstore and Islamic Centre" is shared with at
+    least the Salafi Bookstore. Their checkouts ALSO fire `checkout.session.completed`
+    on this webhook. Without a gate, the handler would create phantom Donation rows
+    from bookstore sales — and crash whenever bookstore data didn't match the
+    Donation model's expectations (this is the cause of the 9-day webhook outage
+    that began ~2026-04-30).
+
+    The masjid donate flow (create_checkout_session) always sets
+    `metadata.donation_amount` and (going forward) `metadata.app == "masjid"`.
+    Either signal qualifies — we accept legacy donations created before the
+    `app` field was added.
+
+    Returns True if the metadata looks like a masjid donation. Else False.
+    """
+    if not metadata:
+        return False
+    if metadata.get("app") == "masjid":
+        return True
+    # Legacy gate: every masjid checkout sets donation_amount; bookstore does not.
+    if metadata.get("donation_amount"):
+        return True
+    return False
+
+
 def _handle_checkout_completed(session):
     """Handle checkout.session.completed — create a Donation record.
 
     If Gift Aid was opted in, also create or link a GiftAidDeclaration.
+
+    Skipped silently for non-masjid checkouts on the shared Stripe account.
     """
     from datetime import date
 
     from core.models import Donation, GiftAidDeclaration
 
+    metadata = session.get("metadata") or {}
+
+    if not _is_masjid_donation_metadata(metadata):
+        logger.info(
+            "Stripe webhook: ignoring non-masjid checkout %s "
+            "(no donation_amount or app=masjid in metadata; likely Salafi Bookstore)",
+            session.get("id"),
+        )
+        return
+
     customer_email = session.get("customer_email") or session.get("customer_details", {}).get("email", "")
     amount_total = session.get("amount_total", 0)
     currency = session.get("currency", "gbp")
-    metadata = session.get("metadata") or {}
     customer_details = session.get("customer_details") or {}
     address = customer_details.get("address") or {}
 
@@ -1347,10 +1390,33 @@ def _link_gift_aid_declaration(donation):
 
 
 def _handle_invoice_payment_succeeded(invoice):
-    """Handle invoice.payment_succeeded — a recurring payment went through."""
+    """Handle invoice.payment_succeeded — a recurring payment went through.
+
+    Skipped silently for non-masjid invoices on the shared Stripe account.
+    Recurring donation subscriptions inherit metadata from the original
+    checkout, so masjid invoices have the same `donation_amount` /
+    `app=masjid` signal we use elsewhere.
+    """
     from datetime import date
 
     from core.models import Donation
+
+    metadata = invoice.get("metadata") or {}
+
+    # Subscription metadata may live on the subscription object rather than
+    # the invoice itself; if the invoice's own metadata is empty, fall back
+    # to the subscription_details.metadata that Stripe sometimes inlines.
+    if not metadata:
+        sub_details = invoice.get("subscription_details") or {}
+        metadata = sub_details.get("metadata") or {}
+
+    if not _is_masjid_donation_metadata(metadata):
+        logger.info(
+            "Stripe webhook: ignoring non-masjid invoice %s "
+            "(no masjid metadata; likely Salafi Bookstore subscription)",
+            invoice.get("id"),
+        )
+        return
 
     customer_email = invoice.get("customer_email", "")
     amount_paid = invoice.get("amount_paid", 0)
@@ -1366,7 +1432,6 @@ def _handle_invoice_payment_succeeded(invoice):
 
     # Try to find Gift Aid status from the subscription metadata
     subscription_id = invoice.get("subscription")
-    metadata = invoice.get("metadata") or {}
     wants_gift_aid = metadata.get("gift_aid") == "yes"
 
     billing_address = invoice.get("customer_address") or {}
