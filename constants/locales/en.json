@@ -412,5 +412,18 @@
   },
   "a11y": {
     "emailContact": "Email {{email}}"
+  },
+  "version_check": {
+    "soft": {
+      "title": "Update available",
+      "body": "A newer version of the app is in the store.",
+      "cta": "Update"
+    },
+    "block": {
+      "title": "Update required",
+      "body": "This version is no longer supported. Please update to continue.",
+      "cta": "Update now"
+    },
+    "dismiss_a11y_label": "Dismiss update reminder for now"
   }
 }

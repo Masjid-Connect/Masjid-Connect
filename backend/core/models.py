@@ -757,3 +757,83 @@ class MixlrStatus(models.Model):
     def channel_url(self):
         """Public channel page URL."""
         return f"https://{self.channel_slug.replace('-', '')}.mixlr.com" if self.channel_slug else ""
+
+
+class VersionPolicy(models.Model):
+    """Singleton: which app versions are blocked / nudged.
+
+    Read by mobile clients on cold start + foreground via GET /api/v1/version-policy.
+    Edited by staff via the Django admin. Exactly one row exists (pk=1, enforced
+    on save). Bumping `*_minimum` is a break-glass action and locks out clients
+    on lower versions. Bumping `*_recommended` shows a dismissible nudge.
+    """
+
+    BELOW_MINIMUM_CHOICES = [
+        ("block", "Block (full-screen, non-dismissible)"),
+        ("soft", "Soft (banner only — same as below recommended)"),
+        ("none", "None (no UI shown)"),
+    ]
+    BELOW_RECOMMENDED_CHOICES = [
+        ("soft", "Soft (dismissible banner)"),
+        ("none", "None (no UI shown)"),
+    ]
+
+    id = models.PositiveSmallIntegerField(primary_key=True, default=1, editable=False)
+
+    ios_minimum = models.CharField(
+        max_length=20, default="1.0.0",
+        help_text="iOS clients below this version trigger `policy_below_minimum`. Semver only (e.g. 1.0.0).",
+    )
+    ios_recommended = models.CharField(
+        max_length=20, default="1.0.0",
+        help_text="iOS clients below this version trigger `policy_below_recommended`. Bump after a release is live in the App Store.",
+    )
+    ios_store_url = models.URLField(
+        default="https://apps.apple.com/app/id0000000000",
+        help_text="Deep link iOS clients open when they tap the update CTA. Replace 0000000000 with the App Store numeric ID once Apple Developer approval lands.",
+    )
+
+    android_minimum = models.CharField(
+        max_length=20, default="1.0.0",
+        help_text="Android clients below this version trigger `policy_below_minimum`. Semver only.",
+    )
+    android_recommended = models.CharField(
+        max_length=20, default="1.0.0",
+        help_text="Android clients below this version trigger `policy_below_recommended`. Bump after a release is live on Play.",
+    )
+    android_store_url = models.URLField(
+        default="https://play.google.com/store/apps/details?id=app.salafimasjid",
+        help_text="Deep link Android clients open when they tap the update CTA.",
+    )
+
+    policy_below_minimum = models.CharField(
+        max_length=10, choices=BELOW_MINIMUM_CHOICES, default="block",
+        help_text="What happens to clients on a version below `*_minimum`.",
+    )
+    policy_below_recommended = models.CharField(
+        max_length=10, choices=BELOW_RECOMMENDED_CHOICES, default="soft",
+        help_text="What happens to clients on a version at-or-above `*_minimum` but below `*_recommended`.",
+    )
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Version policy"
+        verbose_name_plural = "Version policy"
+
+    def __str__(self):
+        return f"iOS≥{self.ios_recommended} / Android≥{self.android_recommended}"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # Singleton — refuse deletion. Reset values via admin instead.
+        return
+
+    @classmethod
+    def solo(cls) -> "VersionPolicy":
+        """Return the policy row, creating it with defaults if absent."""
+        obj, _created = cls.objects.get_or_create(pk=1)
+        return obj
