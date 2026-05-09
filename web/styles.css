@@ -3,16 +3,18 @@
    "Timeless Sanctuary" Design System → CSS Custom Properties
    ═══════════════════════════════════════════════════════════════ */
 
-/* ─── Display face: EB Garamond (variable, SIL OFL) ──────────── */
-/* Self-hosted; one variable file covers weights 400–800. Latin only —
+/* ─── Display face: Sora (variable axis 200–700, SIL OFL) ─────── */
+/* Self-hosted; one variable file covers weights 200–700. Latin only —
    the site is English-only (see memory/CONSTRAINTS.md). font-display:
-   swap so first paint isn't blocked. See DESIGN.md § Typography. */
+   swap so first paint isn't blocked. Source: Google Fonts v17 latin
+   subset. See DESIGN.md § Typography. */
 @font-face {
-  font-family: 'EB Garamond';
+  font-family: 'Sora';
   font-style: normal;
-  font-weight: 400 800;
+  font-weight: 200 700;
   font-display: swap;
-  src: url('/fonts/eb-garamond-v32-latin.woff2') format('woff2');
+  src: url('/fonts/sora-v17-latin.woff2') format('woff2-variations'),
+       url('/fonts/sora-v17-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
@@ -54,9 +56,11 @@
      sand, which trades modern for orientalist-lazy. 'Stone' name
      kept for back-compat; values are now cool neutrals matching
      iOS systemGray6/5/4. Brand tones (sapphire, gold) unchanged. */
-  --stone-100: #F5F5F7;
-  --stone-200: #EFEFF4;
-  --stone-300: #E5E5EA;
+  /* Celestial Ink (2026-05-09): Paper White canvas + warm Vellum +
+     light Mist. Replaces the previous iOS cool-gray neutrals. */
+  --stone-100: #FFFFFF;
+  --stone-200: #F4F1EA;
+  --stone-300: #EFEEF1;
   --stone-400: #D1D1D6;
 
   /* Onyx — organic near-black for text (foreground). These are NOT
@@ -68,9 +72,11 @@
   /* Midnight — Deep & Cinematic dark surfaces (Candidate A).
      Meant for hero moments (landing hero background, prayer-times
      hero backdrop, 404 editorial pause) as full SURFACES, not tints. */
-  --midnight-950: #06101F;
-  --midnight-900: #0E1E38;
-  --midnight-800: #17304F;
+  /* Celestial Ink Primary — Indigo Ink (2026-05-09).
+     Deeper blue, slightly less near-black than the previous values. */
+  --midnight-950: #0B1326;
+  --midnight-900: #16223D;
+  --midnight-800: #1F3158;
 
   /* Back-compat aliases — existing selectors reference --onyx-950
      (as text AND as dark surface in different places, ambiguous by
@@ -94,9 +100,9 @@
        --divine-gold  : accents on LIGHT (paper) surfaces (3.18:1 on paper)
        --gilt         : richer gold for gold glinting on MIDNIGHT dark surfaces
                          (the hero-on-dark "lit masjid" moments). */
-  --divine-gold: #C99A2E;
-  --divine-gold-bright: #E6C24A;
-  --gilt: #D4A03A;
+  --divine-gold: #C99A2E;          /* Light-surface accent (kept — passes WCAG 3:1 on white) */
+  --divine-gold-bright: #E8C76B;   /* Celestial Ink — luminous Star-Gold glint (was #E6C24A) */
+  --gilt: #D4AF5A;                 /* Celestial Ink Tertiary — Star-Gold on midnight (was #D4A03A) */
   --divine-gold-glow: rgba(201, 154, 46, 0.08);
 
   /* Sage — success */
@@ -132,8 +138,10 @@
   --radius-xl: 28px;
   --radius-full: 9999px;
 
-  /* Font families — two-face system per DESIGN.md § Typography */
-  --font-display: 'EB Garamond', Georgia, 'Times New Roman', serif;
+  /* Font families — two-face system per DESIGN.md § Typography.
+     Display face moved from EB Garamond -> Sora (2026-05-09) for the
+     Celestial Ink direction. Body remains system sans. */
+  --font-display: 'Sora', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
   --font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
 
@@ -179,24 +187,24 @@
 /* Deep sapphire navy, not black — the brand lives in every pixel.
    Values here MUST match mobile palette in constants/Colors.ts. */
 [data-theme="dark"] {
-  /* Backgrounds → sapphire navy family (matching mobile sapphire950/900/800) */
-  --stone-100: #0A1628;
-  --stone-200: #0F1E34;
-  --stone-300: #18304E;
+  /* Backgrounds → Celestial Ink Indigo family (matching mobile sapphire950/900/850) */
+  --stone-100: #0B1326;
+  --stone-200: #16223D;
+  --stone-300: #1F3158;
   /* Text → snow family (matching mobile snow/snowSecondary/snowTertiary) */
   --onyx-900: #F5F5F7;
-  --onyx-850: #0F1E34;
-  --onyx-800: #18304E;
+  --onyx-850: #16223D;  /* Celestial Ink — matches midnight-900 */
+  --onyx-800: #1F3158;  /* Celestial Ink — matches midnight-800 */
   --onyx-600: #8E8E93;
   --onyx-400: #636366;
   /* Brand tints for dark mode */
   --sapphire-700: #5B9BD5;
   --sapphire-600: #1A3F6B;
   --sapphire-400: #5B9BD5;
-  /* Gold — brighter variant for dark contrast (matching mobile divineGoldBright) */
-  --divine-gold: #E5C14B;
-  --divine-gold-bright: #E5C14B;
-  --divine-gold-glow: rgba(229, 193, 75, 0.15);
+  /* Gold — luminous Star-Gold for dark contrast (matching mobile divineGoldBright) */
+  --divine-gold: #E8C76B;
+  --divine-gold-bright: #E8C76B;
+  --divine-gold-glow: rgba(232, 199, 107, 0.16);
   /* Status colors — lighter variants for dark backgrounds (matching mobile) */
   --sage-600: #6BCB9B;
   --crimson-600: #F87171;
@@ -271,7 +279,7 @@
 }
 
 [data-theme="dark"] .navbar--solid {
-  background: rgba(10, 22, 40, 0.97);
+  background: rgba(11, 19, 38, 0.97); /* Celestial Ink Indigo */
   box-shadow: 0 1px 0 var(--separator);
 }
 
@@ -2246,7 +2254,7 @@ ul {
 
 [data-theme="dark"] .donate__popular-pill {
   background: var(--divine-gold-bright);
-  color: #0A1628;
+  color: #0B1326; /* Celestial Ink Indigo */
 }
 
 /* Embedded Checkout ────────────────────────────────────────── */

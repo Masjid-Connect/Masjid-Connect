@@ -42,9 +42,9 @@ Lives in the mobile app, not the website — documented here for the full pictur
 
 ## Typography
 
-**EB Garamond** (classical serif, SIL OFL) is the display face for `h1`, `h2`, section hero titles, prayer-time numerals on `/prayer-times`, and principle numerals on `/about`. System fonts carry body text, buttons, and UI.
+**Sora** (geometric sans display, SIL OFL) is the display face for `h1`, `h2`, section hero titles, prayer-time numerals on `/prayer-times`, and principle numerals on `/about`. System fonts carry body text, buttons, and UI.
 
-Loaded via `@font-face` + `<link rel="preload">` from `/web/fonts/eb-garamond-v32-latin.woff2` (41KB, variable weight 400–800 axis) with `font-display: swap`.
+Self-hosted at `/web/fonts/sora-v17-latin.woff2` (33KB, variable axis 200–700 in a single file). Loaded via `@font-face` + `<link rel="preload">` on every HTML page with `font-display: swap` so first paint isn't blocked. Source: Google Fonts v17 latin subset (English-only site per `memory/CONSTRAINTS.md`).
 
 The type scale in `styles.css` uses named `--fs-*` custom properties — no arbitrary `font-size` values in individual rules. See `DESIGN.md` § Typography for the full scale.
 

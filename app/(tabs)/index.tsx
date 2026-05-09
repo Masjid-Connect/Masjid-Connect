@@ -274,10 +274,10 @@ export default function PrayerTimesScreen() {
             accessibilityRole="header"
             accessibilityLabel={nextPrayerData ? `${t('prayer.nextPrayer')}: ${t(`prayer.${nextPrayerData.name}`)}, ${countdown || ''}` : undefined}
           >
-            {/* Centered stack — reverted 2026-04-16 per user: keep the
-                pre-recompose composition. Prayer name + countdown +
-                time, all centered. Previous font (EB Garamond display
-                face) on the countdown. */}
+            {/* Centered stack — prayer name + countdown + time, all
+                centered. Both name and countdown render in Sora (the
+                display face) so the hero reads as a single typographic
+                lockup rather than two faces side-by-side. */}
             {nextPrayerData && (
               <>
                 {/* Prayer name — display face */}
@@ -285,7 +285,7 @@ export default function PrayerTimesScreen() {
                   {t(`prayer.${nextPrayerData.name}`)}
                 </Text>
 
-                {/* Countdown — large display number, EB Garamond */}
+                {/* Countdown — large display number, Sora Medium */}
                 {countdown ? (
                   <Animated.View style={countdownAnimatedStyle}>
                     <Text style={[

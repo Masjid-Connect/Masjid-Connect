@@ -264,6 +264,27 @@ Format: short title → decision → why → trade-off accepted.
 
 ---
 
+## Celestial Ink + Sora + Apple Liquid Glass (2026-05-09)
+
+**Adopted "Celestial Ink" palette (Indigo Ink + Star-Gold + Paper White), swapped display face from EB Garamond → Sora, and applied Apple Liquid Glass to the navigation/overlay layer. Added `Live` as a third community segment.**
+
+- **Why typography**: EB Garamond was settled but read printed-book where the Stitch references kept showing contemporary editorial. Sora — geometric sans display from Production Type, weight axis 200–700, SIL OFL — fits the modern brief without falling into the Pixelboro consumer-pop trap. User confirmed via three rounds of side-by-side preview HTML (Newsreader-vs-EB-Garamond → Sora-vs-Newsreader → Celestial-Ink-vs-Pixelboro). Three font generations in one day; this one we shipped.
+- **Why palette**: Stitch's "Celestial Ink" board specified Primary `#0B1326` (Indigo Ink), Secondary `#FFFFFF` (Paper White), Tertiary `#D4AF5A` (Star-Gold), Neutral `#1B2030`. Mapped to existing tokens: `stone100` `#F5F5F7`→`#FFFFFF`, `sapphire950` `#06101F`→`#0B1326`, `gilt` `#D4A03A`→`#D4AF5A`, `divineGoldBright` `#E6C24A`→`#E8C76B`. Token names retained to avoid downstream rename. Brand `sapphire700` (`#0F2D52`) unchanged — it's still the click-target colour for filled buttons on light surfaces.
+- **Why Liquid Glass**: User asked "show me the examples with apples glass morphism design." Pulled Apple's published HIG / WWDC25 / Adopting Liquid Glass docs and the LiquidGlassReference repo to get the actual rules. Two key rules I almost broke: (1) "Liquid Glass is exclusively for the navigation layer that floats above app content. Never apply to content itself." (2) "Avoid Glass-on-Glass." First glass preview applied glass to community cards / settings groups / welcome features — all wrong. Reset and built `celestial-ink-glass-apple.html` showing the disciplined version.
+- **Where glass actually goes**: Two surfaces only — `AmbientTabBar` (navigation) and `InAppToast` (overlay). `BottomSheet` body, prayer schedule card, community list rows, settings groups all stay solid per Apple's content-vs-navigation rule. User's directive was "be careful of over-designing" — minimal glass, not pervasive.
+- **Glass implementation**: `components/ui/Glass.tsx` — wraps `expo-blur` BlurView with variant API (`regular` / `clear` / `tint-gold` / `tint-crimson`). Respects `AccessibilityInfo.isReduceTransparencyEnabled()` with solid fallback (Apple's own pattern). Architecture forward-compatible with a future native iOS 26+ `UIGlassEffect` bridge.
+- **Live segment**: Added per user directive ("add live to the community section"). `CommunitySegment` type extends to `'announcements' | 'events' | 'live'`. Segment indicator math went from `/2` → `/3`. New `LiveContent` component renders existing `LiveLessonBanner` when broadcasting, quiet empty state otherwise. Top banner suppressed when active segment is Live (avoid duplication). Tab names unchanged (Prayer / Community / Support / Settings) per user directive "keep the nav items with the current names."
+- **Tracked**: `expo-blur` added (~80KB iOS native). `@expo-google-fonts/eb-garamond` removed; `@expo-google-fonts/sora` added (~210KB woff2 across 5 instances). Web swapped to Google Fonts CDN (slight perf cost vs self-hosted; self-hosting is a follow-up). Font footprint ~ wash.
+- **Considered and rejected**:
+  - **Pixelboro palette** (cyan + electric purple + hot pink) — user proposed it but agreed with the council's block when shown: "we take the councils council on the purple etc not good." Wrong cultural register for a Salafi masjid.
+  - **Glass on every surface** — first preview did this; reset after reading Apple's actual rules. Donny Wals literally uses "glass on every list row" as the cautionary anti-example.
+  - **Adding TopNav with live next-prayer sliver** — would have been a feature addition, not a redesign. Honoured "don't over-design" by leaving the existing inline header pattern.
+  - **Renaming nav items** — user explicitly directed to keep current names.
+  - **Newsreader serif** — earlier candidate before Sora; preview built (still in `context/typography-newsreader-preview.html`); not adopted. Sora's contemporary register won.
+- **Files changed**: `package.json` (font + blur swap), `constants/Theme.ts` (Sora tokens + heroDisplay), `constants/Colors.ts` (palette values), `app/_layout.tsx` (useFonts), `app/(tabs)/index.tsx` (comment cleanup), `app/(tabs)/community.tsx` (Live segment + 3-way indicator), `lib/community-segment.ts` (type), `components/ui/Glass.tsx` (new), `components/ui/InAppToast.tsx` (Glass wrap + tint mapping), `components/navigation/AmbientTabIndicator.tsx` (Glass wrap), `components/community/LiveContent.tsx` (new), `components/community/index.ts` (export), `constants/locales/en.json` (Live keys), `web/styles.css` (Sora @import + palette vars), 11 `web/*.html` (EB Garamond preload removed), `MOBILE.md` / `WEBSITE.md` / `DESIGN.md` updated.
+
+---
+
 ## AI-generated imagery programme scrapped (2026-04-16)
 
 **Tried Runware/Flux for Marinid zellige line-art. User rejected after first batch.**

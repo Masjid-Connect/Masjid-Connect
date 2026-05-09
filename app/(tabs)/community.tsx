@@ -30,6 +30,7 @@ import { spacing, typography, borderRadius, fontWeight, springs, getElevation, h
 import { layout } from '@/lib/layoutGrid';
 import { AnnouncementsContent } from '@/components/community/AnnouncementsContent';
 import { EventsContent } from '@/components/community/EventsContent';
+import { LiveContent } from '@/components/community/LiveContent';
 import { LiveLessonBanner } from '@/components/community/LiveLessonBanner';
 import { GoldBadge } from '@/components/brand/GoldBadge';
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
@@ -60,7 +61,11 @@ export default function CommunityScreen() {
   // React to param changes when the tab is already mounted (e.g. user taps a
   // second notification without the screen unmounting).
   useEffect(() => {
-    if (params.segment === 'announcements' || params.segment === 'events') {
+    if (
+      params.segment === 'announcements' ||
+      params.segment === 'events' ||
+      params.segment === 'live'
+    ) {
       setActiveSegment(params.segment);
     }
   }, [params.segment]);
@@ -106,14 +111,18 @@ export default function CommunityScreen() {
   const segmentIndicatorX = useSharedValue(0);
   const segmentWidth = useSharedValue(0);
   const SEGMENT_PADDING = 2;
+  const SEGMENT_COUNT = 3;
+
+  /** Convert a segment name to its zero-based slot index. */
+  const segmentIndex = (segment: CommunitySegment): number =>
+    segment === 'announcements' ? 0 : segment === 'events' ? 1 : 2;
 
   const handleSegmentLayout = useCallback((event: LayoutChangeEvent) => {
     const width = event.nativeEvent.layout.width;
-    segmentWidth.value = (width - SEGMENT_PADDING * 2) / 2;
+    const slot = (width - SEGMENT_PADDING * 2) / SEGMENT_COUNT;
+    segmentWidth.value = slot;
     // Set initial position without animation
-    if (activeSegment === 'events') {
-      segmentIndicatorX.value = (width - SEGMENT_PADDING * 2) / 2;
-    }
+    segmentIndicatorX.value = segmentIndex(activeSegment) * slot;
   }, [activeSegment, segmentIndicatorX, segmentWidth]);
 
   const indicatorStyle = useAnimatedStyle(() => ({
@@ -125,7 +134,7 @@ export default function CommunityScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setActiveSegment(segment);
     segmentIndicatorX.value = withSpring(
-      segment === 'announcements' ? 0 : segmentWidth.value,
+      segmentIndex(segment) * segmentWidth.value,
       springs.snappy,
     );
   }, [segmentIndicatorX, segmentWidth]);
@@ -186,8 +195,10 @@ export default function CommunityScreen() {
           </Text>
         </Animated.View>
 
-        {/* Live lesson banner — appears when a Mixlr broadcast is active */}
-        {isLive && <LiveLessonBanner broadcastTitle={broadcastTitle} />}
+        {/* Live lesson banner — appears at the top when a Mixlr broadcast
+            is active, except on the Live segment itself (which surfaces
+            the same banner inside its content; avoid duplication). */}
+        {isLive && activeSegment !== 'live' && <LiveLessonBanner broadcastTitle={broadcastTitle} />}
 
         {/* Segmented control with spring-animated sliding indicator */}
         <View style={[styles.segmentContainer, { paddingHorizontal: spacing['3xl'] }]}>
@@ -246,17 +257,50 @@ export default function CommunityScreen() {
                 {t('community.events')}
               </Text>
             </Pressable>
+
+            {/* Live tab — surfaces the live broadcast (or its absence) */}
+            <Pressable
+              style={styles.segmentButton}
+              onPress={() => handleSegmentChange('live')}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: activeSegment === 'live' }}
+              accessibilityLabel={t('community.live')}
+            >
+              <View style={styles.segmentLabelRow}>
+                <Text style={[
+                  typography.subhead,
+                  {
+                    color: activeSegment === 'live' ? colors.text : colors.textSecondary,
+                    fontWeight: activeSegment === 'live' ? fontWeight.semibold : fontWeight.regular,
+                  },
+                ]}>
+                  {t('community.live')}
+                </Text>
+                {isLive && (
+                  <View style={[
+                    styles.liveDot,
+                    { backgroundColor: isDark ? palette.divineGoldBright : palette.divineGold },
+                  ]} />
+                )}
+              </View>
+            </Pressable>
           </View>
         </View>
 
         {/* Segment content with crossfade */}
-        {activeSegment === 'announcements' ? (
+        {activeSegment === 'announcements' && (
           <Animated.View style={styles.segmentContent} entering={FadeIn.duration(200)} exiting={FadeOut.duration(100)}>
             <AnnouncementsContent onScroll={onScroll} />
           </Animated.View>
-        ) : (
+        )}
+        {activeSegment === 'events' && (
           <Animated.View style={styles.segmentContent} entering={FadeIn.duration(200)} exiting={FadeOut.duration(100)}>
             <EventsContent onScroll={onScroll} />
+          </Animated.View>
+        )}
+        {activeSegment === 'live' && (
+          <Animated.View style={styles.segmentContent} entering={FadeIn.duration(200)} exiting={FadeOut.duration(100)}>
+            <LiveContent />
           </Animated.View>
         )}
 
@@ -344,6 +388,12 @@ const styles = StyleSheet.create({
   segmentLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginStart: spacing.xs,
   },
   segmentContent: {
     flex: 1,

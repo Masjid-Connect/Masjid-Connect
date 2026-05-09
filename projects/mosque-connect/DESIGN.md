@@ -38,33 +38,33 @@ Premium, serene, rooted in Islamic geometric art and calligraphic tradition. **G
 - **Notification badge**: Divine Gold circle, never red. `GoldBadge` auto-selects `divineGoldBright` in dark mode for contrast.
 - **Prayer numerals**: tabular, tightened tracking, set in the display face (see Typography).
 
-## Colour Palette — "Timeless Sanctuary"
+## Colour Palette — "Celestial Ink"
 
-**Taxonomy**: Stone (backgrounds), Onyx (dark), Sapphire (brand), Gold (accent), Sage (success), Crimson (urgent), Slate (info). High-contrast for older congregants, calm for daily use.
+**Direction (2026-05-09)**: Indigo Ink + Star-Gold + Paper White. Pivoted from the previous "Timeless Sanctuary" cool-neutrals direction toward a contemporary editorial register: pure white as the dominant light surface, deep blue-saturated indigo as the hero dark, luminous star-gold as accent. Token names retained for backward compatibility across the codebase; semantics shifted.
 
-### Light — "Morning Light in the Musalla"
+### Light — "Paper White canvas"
 
 | Token | Hex | Use |
 |---|---|---|
-| Stone-100 | `#F2EBD8` | Main background — warm paper canvas (Deep & Cinematic pass) |
-| Stone-200 | `#ECE3CC` | Secondary surfaces |
-| Stone-300 | `#D9D0B9` | Grouped backgrounds |
-| Stone-400 | `#BFB49A` | Accent surfaces / editorial dividers |
+| Stone-100 | `#FFFFFF` | Main background — Paper White (Celestial Ink Secondary) |
+| Stone-200 | `#F4F1EA` | Secondary surface — warm Vellum |
+| Stone-300 | `#EFEEF1` | Grouped backgrounds — light Mist |
+| Stone-400 | `#D1D1D6` | Accent surfaces / editorial dividers |
 | Onyx-900 | `#121216` | Primary text — organic near-black |
 | Onyx-600 | `#6B6B70` | Secondary text |
-| Midnight-950 | `#06101F` | Hero dark surface — splash, live lesson, 404 (NEW in Candidate A) |
-| Midnight-900 | `#0E1E38` | Elevated cards on midnight |
-| Midnight-800 | `#17304F` | Grouped list backgrounds on midnight |
+| Midnight-950 | `#0B1326` | Hero dark surface — Indigo Ink (Celestial Ink Primary) |
+| Midnight-900 | `#16223D` | Elevated cards on indigo |
+| Midnight-800 | `#1F3158` | Grouped list backgrounds on indigo |
 | Sapphire-700 | `#0F2D52` | Brand primary, tab selection, links |
 | Sapphire-500 | `#2B5580` | Saturated mid-tone for icon bgs, filled pills, hover |
-| Lapis-500 | `#1E68B8` | NEW — saturated accent for hero CTAs & weighted moments |
+| Lapis-500 | `#1E68B8` | Saturated accent for hero CTAs & weighted moments |
 | Divine Gold | `#C99A2E` | Accent on light/paper surfaces (3.18:1 WCAG 3:1 non-text) |
-| Gilt | `#D4A03A` | NEW — gold glinting against midnight dark surfaces |
+| Gilt | `#D4AF5A` | Star-Gold (Celestial Ink Tertiary) — gold glinting against indigo |
 | Sage-600 | `#2D6A4F` | Success states |
 | Crimson-600 | `#B91C1C` | Urgent (Janazah, immediate announcements) |
 | Separator | `#B3AD9C` | Visible drawn line — warm stone |
 
-### Dark — "Midnight in the Masjid" (near-OLED)
+### Dark — "Indigo Ink at night" (near-OLED)
 
 | Token | Hex | Use |
 |---|---|---|
@@ -73,7 +73,7 @@ Premium, serene, rooted in Islamic geometric art and calligraphic tradition. **G
 | Onyx-800 | `#262628` | Grouped list backgrounds |
 | Snow | `#F5F5F7` | Primary text |
 | Sapphire-400 | `#5B9BD5` | Lighter sapphire for dark backgrounds |
-| Gold Bright | `#E5C14B` | Brighter Divine Gold for dark contrast |
+| Gold Bright | `#E8C76B` | Luminous Star-Gold for dark contrast |
 
 **Semantic layer**: Colours mapped through `semantic.*` tokens in `Colors.ts` (surface, text, status, brand) for future theme variants (e.g. Ramadan Mode).
 
@@ -81,13 +81,13 @@ Premium, serene, rooted in Islamic geometric art and calligraphic tradition. **G
 
 **Two-face system — one display, one body.** System fonts alone are definitional SaaS typography and incompatible with the "god-tier" aspiration. One carefully-chosen display face carries the moments of elevation; system fonts carry body and UI for performance and familiarity.
 
-### Display face — **EB Garamond** (variable)
+### Display face — **Sora** (variable)
 
-- **Why EB Garamond**: free (SIL Open Font License), variable weight axis 400–800, classical Garamond heritage (16th-c. Claude Garamond), scholarly/manuscript register. Used across Islamic scholarly publishing in English. Serene, unadorned, never designery. Does not call attention to itself — which for sacred content is the right stance. ~40KB woff2 latin subset.
-- **Loaded via**: `@expo-google-fonts/eb-garamond` on mobile (static faces at 400/500/600 + 400 italic), `@font-face` + `<link rel="preload">` on web (self-hosted variable woff2 at `/web/fonts/eb-garamond-v32-latin.woff2`). `font-display: swap` so first paint isn't blocked.
-- **Historical note**: Fraunces was adopted briefly (2026-04-15) but its quirky, contemporary-editorial character read as too "designery" for a sacred context and was reverted the same day. Recorded in `DECISIONS.md`.
+- **Why Sora**: free (SIL Open Font License), weight axis 100–800, geometric sans display from Production Type for Google Fonts. Modern, contemporary, restrained — fits the "Celestial Ink" Indigo + Star-Gold direction. Designed for digital editorial, not retrofitted print. Cross-platform fallback: system sans on `<200ms` font miss.
+- **Loaded via**: `@expo-google-fonts/sora` on mobile (5 static instances: 200/300/400/500/600), Google Fonts CDN `@import` on web. `font-display: swap` so first paint isn't blocked.
+- **Historical chain**: Fraunces (2026-04-15, too quirky) → EB Garamond (2026-04-15, too quiet for the contemporary brief) → Sora (2026-05-09, current). Recorded in `DECISIONS.md`.
 - **Applied at** (and nowhere else):
-  - Mobile: `prayerCountdown`, `prayerName`, `largeTitle`, `title1`, `title2` (hero/screen titles only — not list rows, not buttons, not body copy).
+  - Mobile: `heroDisplay`, `largeTitle`, `title1`, `title2`, `prayerName`, `prayerCountdown` (hero/screen titles only — not list rows, not buttons, not body copy). Body remains system sans.
   - Web: `h1`, `h2`, section hero titles, prayer-time numerals on `/prayer-times`, principle numerals on `/about`.
 
 ### Body / UI — system fonts
@@ -101,12 +101,13 @@ Named tokens live in `constants/Theme.ts` (mobile) and as `--fs-*` CSS custom pr
 
 | Token | Mobile size / weight | Web size / weight | Face | Use |
 |---|---|---|---|---|
-| `prayerCountdown` | 54 / 400, tracking -1.5 | — | EB Garamond | Active-prayer countdown (single most-viewed numeral) |
-| `prayerTimeLarge` | — | clamp(32, 4vw, 48) / 400, tabular | EB Garamond | Web `/prayer-times` jama'ah times |
-| `largeTitle` | 34 / 600 | clamp(44, 6vw, 72) / 500 | EB Garamond | Screen / page titles |
-| `title1` | 28 / 600 | 32 / 500 | EB Garamond | Section titles |
-| `title2` | 22 / 600 | 24 / 500 | EB Garamond | Subsections |
-| `title3` | 20 / 600 | 20 / 500 | EB Garamond | Card titles, picker headers |
+| `heroDisplay` | 56 / 200, tracking −1.5 | clamp(56, 8vw, 96) / 200 | Sora | Welcome / auth wordmark moments |
+| `prayerCountdown` | 72 / 500, tracking −3 | — | Sora | Active-prayer countdown (single most-viewed numeral) |
+| `prayerTimeLarge` | — | clamp(32, 4vw, 48) / 500, tabular | Sora | Web `/prayer-times` jama'ah times |
+| `largeTitle` | 36 / 500, tracking −0.6 | clamp(44, 6vw, 72) / 500 | Sora | Screen / page titles |
+| `title1` | 28 / 500, tracking −0.5 | 32 / 500 | Sora | Section titles |
+| `title2` | 22 / 600, tracking −0.3 | 24 / 600 | Sora | Subsections |
+| `title3` | 20 / 600 | 20 / 500 | System | Card titles, picker headers |
 | `headline` | 17 / 600 | 17 / 600 | System | Row headlines, emphasised body |
 | `body` | 17 / 400 | 17 / 400, line-height 1.6 | System | Default paragraph |
 | `callout` | 16 / 400 | 16 / 400 | System | Secondary paragraph |
@@ -131,6 +132,44 @@ Motion is a language with a fixed grammar. No motion-for-motion's-sake, no linea
 | **Haptic accompaniment** | Concurrent | Light impact | Prayer transition only. Nowhere else. |
 
 Forbidden: linear easing anywhere; `springs.gentle` on horizontal travel >200pt (overshoots noticeably); stagger on return visits; motion that fires on every re-render.
+
+## Glass — Apple Liquid Glass discipline
+
+Adopted 2026-05-09. Implementation: `components/ui/Glass.tsx` wraps `expo-blur` BlurView with the rules Apple publishes for [Liquid Glass on iOS 26+](https://developer.apple.com/documentation/TechnologyOverviews/liquid-glass).
+
+### Where Glass goes (navigation / overlay layer ONLY)
+
+| Surface | Variant | Tint | File |
+|---|---|---|---|
+| `AmbientTabBar` | regular | — | `components/navigation/AmbientTabIndicator.tsx` |
+| `InAppToast` (default) | regular | — | `components/ui/InAppToast.tsx` |
+| `InAppToast` (prayer/athan/donation) | tint-gold | gold | same |
+| `InAppToast` (urgent) | tint-crimson | crimson | same |
+
+### Where Glass does NOT go (per Apple)
+
+- List rows, cards, body content (community announcements, settings groups, about body)
+- Form fields, amount tiles, scrollable content
+- Stacked on other glass (no glass-on-glass)
+- The prayer schedule card on the hero (it's content, not navigation)
+- The bottom sheet body (header may go glass in a future pass; the body is content)
+
+### Variants
+
+- **`regular`** — default. Translucent material with full adaptivity. Used everywhere unless a stronger choice is required.
+- **`clear`** — only over rich media (e.g. live-lesson video controls). Apple requires three conditions: element over media, content tolerates dimming, foreground is bold/bright. Don't reach for it casually.
+- **`tint-gold`** — semantic divine accent. Used for prayer reminder, athan, donation confirmation toasts.
+- **`tint-crimson`** — urgent only. Used for janazah / urgent announcement toasts.
+
+Tints are **semantic, not decorative**. Don't add a tint because it looks pretty; add it because the surface carries semantic meaning the user benefits from recognising at a glance.
+
+### Accessibility
+
+`AccessibilityInfo.isReduceTransparencyEnabled()` is checked; when on, every glass surface falls back to a solid equivalent (`palette.sapphire850/900` on dark, `palette.stone200` on light). This mirrors Apple's own behaviour in system apps.
+
+### Forward path
+
+When a native iOS-26+ bridge to `UIGlassEffect` / `UIGlassContainerEffect` lands as an Expo module, swap the `expo-blur` implementation inside `Glass.tsx`. The component API doesn't change.
 
 ## Imagery — AI-generated line art doctrine
 

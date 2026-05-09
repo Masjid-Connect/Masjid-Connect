@@ -26,16 +26,16 @@ export const palette = {
   // the "pale" complaint was a hierarchy problem — stone couldn't
   // dominate AND feel weighted; warming the canvas lets it carry
   // weight without fighting darker accents.
-  // Neutrals — iOS-family cool off-whites (2026-04-16 shift from
-  // warm-paper Candidate A). User feedback: 'warm paper' register
-  // landed as desert/sand, which reads as orientalist shorthand
-  // rather than modern. Reference: iOS systemGray6/5/4, Apple Notes,
-  // Linear. The 'stone' naming is retained for backward compat but
-  // these are now cool neutrals, not literal stone-paper.
-  stone100: '#F5F5F7',      // Main background — iOS system gray, very soft cool neutral
-  stone200: '#EFEFF4',      // Secondary surface — one step deeper
-  stone300: '#E5E5EA',      // Grouped/tertiary
-  stone400: '#D1D1D6',      // Bolder neutral surface
+  // Celestial Ink — Paper White canvas (2026-05-09). Pivoted from
+  // iOS-family cool off-whites to pure white as the dominant light
+  // surface, with a warm vellum (#F4F1EA) for secondary layered
+  // surfaces. Reference: Apple HIG iOS 26 Tahoe paper palette.
+  // The 'stone' naming is retained for backward compat across the
+  // codebase; semantically these are now Paper + Vellum + Mist.
+  stone100: '#FFFFFF',      // Main background — Paper White (Celestial Ink Secondary)
+  stone200: '#F4F1EA',      // Secondary surface — warm Vellum
+  stone300: '#EFEEF1',      // Grouped/tertiary — light Mist
+  stone400: '#D1D1D6',      // Bolder neutral surface (unchanged — used sparingly)
 
   // ─── Onyx: organic dark tones for light-mode text ───────────────
   onyx900: '#121216',       // Primary text on light backgrounds
@@ -50,10 +50,10 @@ export const palette = {
   // are meant to carry HERO moments (splash, live lesson, prayer
   // countdown backdrop, support hadith card) as full surfaces, not
   // just tints. Token names preserved to avoid a downstream rename.
-  sapphire950: '#06101F',   // Dark mode canvas — deepest midnight (was #0A1628)
-  sapphire900: '#0E1E38',   // Dark mode secondary surface
-  sapphire850: '#17304F',   // Dark mode elevated cards
-  sapphire800: '#1A3E5E',   // Dark mode grouped list backgrounds
+  sapphire950: '#0B1326',   // Celestial Ink Primary — deep Indigo Ink (true blue-navy, more saturated than near-black)
+  sapphire900: '#16223D',   // Dark mode secondary surface — one tier up
+  sapphire850: '#1F3158',   // Dark mode elevated cards
+  sapphire800: '#1A3E5E',   // Dark mode grouped list backgrounds (unchanged)
   sapphire700: '#0F2D52',   // Brand primary (light mode tint, tab selection)
   sapphire600: '#1A3F6B',   // Slightly lighter for interactive states
   sapphire500: '#2B5580',   // Saturated mid-tone for icon bgs, filled pills, hover states. 7.9:1 on white (WCAG AAA).
@@ -76,9 +76,9 @@ export const palette = {
   //   - `gilt` is the new richer gilt for gold glinting on MIDNIGHT dark
   //     surfaces (hero moments, live lesson, splash). Brighter, lifts
   //     against the deep-sapphire backgrounds where #C99A2E disappears.
-  divineGold: '#C99A2E',    // Warm gold for light-surface accents
-  divineGoldBright: '#E6C24A', // Dark-mode variant for existing gold usage
-  gilt: '#D4A03A',          // NEW — gold-on-midnight hero accent (Candidate A)
+  divineGold: '#C99A2E',    // Warm gold for light-surface accents (kept — passes WCAG 3:1 on white)
+  divineGoldBright: '#E8C76B', // Dark-mode variant — luminous Star-Gold glint (Celestial Ink, 2026-05-09)
+  gilt: '#D4AF5A',          // Celestial Ink Tertiary — Star-Gold on midnight (was #D4A03A; 2026-05-09)
   divineGoldGlow: 'rgba(201, 154, 46, 0.10)', // Warm glow (tracks divineGold)
   divineGoldText: '#8A7023',        // Darker gold for text on light backgrounds (4.5:1 contrast on white)
   divineGoldTextDark: '#E0C96B',    // Lighter gold for text on dark backgrounds (4.5:1 contrast on black)
@@ -129,9 +129,11 @@ export const palette = {
   steelBlue: '#64748B',
   steelBlueLight: '#94A3B8',
   tintLight: '#EBF2FA',
-  black: '#0A1628',
-  darkElevated: '#132742',
-  darkGrouped: '#18304E',
+  // Legacy aliases — values realigned to Celestial Ink Indigo (2026-05-09)
+  // so the dead-code path doesn't drift from canonical sapphire950/850/800.
+  black: '#0B1326',
+  darkElevated: '#1F3158',
+  darkGrouped: '#1A3E5E',
   // Legacy emerald aliases → sapphire
   emerald700: '#0F2D52',
   emerald600: '#2D6A4F',

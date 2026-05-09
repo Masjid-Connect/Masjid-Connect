@@ -25,9 +25,10 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
-import { getColors, getAlpha } from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import { springs, spacing, typography, components, fontWeight } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
+import { Glass } from '@/components/ui/Glass';
 
 /** Glow indicator dimensions */
 const GLOW_SIZE = components.tabGlow.size;
@@ -74,7 +75,6 @@ export const AmbientTabBar = ({ state, descriptors, navigation }: BottomTabBarPr
     ],
   }));
 
-  const alphaColors = getAlpha(effectiveScheme);
   const glowColor = isDark ? colors.accent : colors.tint;
 
   // Bottom padding must clear BOTH the iOS home indicator (34pt on
@@ -105,12 +105,20 @@ export const AmbientTabBar = ({ state, descriptors, navigation }: BottomTabBarPr
       style={[
         styles.container,
         {
-          backgroundColor: alphaColors.frostedBg,
           height: barHeight,
           paddingBottom: bottomPadding,
         },
       ]}
     >
+      {/* Liquid Glass fill — Apple-faithful navigation-layer treatment.
+          Replaces the previous flat `frostedBg` translucent fill. Falls
+          back to a solid surface when Reduce Transparency is on. */}
+      <Glass
+        variant="regular"
+        scheme={isDark ? 'dark' : 'light'}
+        style={StyleSheet.absoluteFill}
+      />
+
       {/* Ambient glow — positioned absolutely behind tabs */}
       {Platform.OS === 'web' ? (
         <Animated.View

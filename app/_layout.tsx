@@ -62,17 +62,18 @@ const MosqueDark = {
 
 function RootLayout() {
   const { t } = useTranslation();
-  // EB Garamond is the display face — applied to prayer NAMES and
-  // screen titles. The prayer COUNTDOWN uses the system font (not
-  // EB Garamond, not Lora) per user 2026-04-16: 'I need a sans serif,
-  // plain and easy to read'. System font (SF Pro on iOS, Roboto on
-  // Android) is the plainest legible choice.
+  // Sora is the display face (2026-05-09) — applied to hero, screen
+  // titles, prayer name, AND prayer countdown. Sora is geometric sans
+  // and satisfies the user's 2026-04-16 mandate that the countdown be
+  // "sans serif, plain and easy to read." Five static weights cover
+  // the full type scale from heroDisplay (200) to title2 (600).
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    'EBGaramond-Regular': require('@expo-google-fonts/eb-garamond/400Regular/EBGaramond_400Regular.ttf'),
-    'EBGaramond-Medium': require('@expo-google-fonts/eb-garamond/500Medium/EBGaramond_500Medium.ttf'),
-    'EBGaramond-SemiBold': require('@expo-google-fonts/eb-garamond/600SemiBold/EBGaramond_600SemiBold.ttf'),
-    'EBGaramond-Italic': require('@expo-google-fonts/eb-garamond/400Regular_Italic/EBGaramond_400Regular_Italic.ttf'),
+    'Sora-ExtraLight': require('@expo-google-fonts/sora/200ExtraLight/Sora_200ExtraLight.ttf'),
+    'Sora-Light': require('@expo-google-fonts/sora/300Light/Sora_300Light.ttf'),
+    'Sora-Regular': require('@expo-google-fonts/sora/400Regular/Sora_400Regular.ttf'),
+    'Sora-Medium': require('@expo-google-fonts/sora/500Medium/Sora_500Medium.ttf'),
+    'Sora-SemiBold': require('@expo-google-fonts/sora/600SemiBold/Sora_600SemiBold.ttf'),
   });
   const [showSplash, setShowSplash] = useState(true);
 

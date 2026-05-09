@@ -3,32 +3,32 @@ import { PixelRatio, Platform, StyleSheet, TextStyle, ViewStyle } from 'react-na
 /**
  * Font families — two-face system per DESIGN.md § Typography.
  *
- * Display face: **EB Garamond** (classical scholarly serif, SIL OFL).
- * Loaded via `@expo-google-fonts/eb-garamond` in `app/_layout.tsx`.
- * Applied only to prayerCountdown, prayerName, largeTitle, title1,
- * title2. Italic available for specific moments (about-page tagline).
+ * Display face: **Sora** (geometric sans display, SIL OFL).
+ * Loaded via `@expo-google-fonts/sora` in `app/_layout.tsx`.
+ * Applied to prayerCountdown, prayerName, heroDisplay, largeTitle,
+ * title1, title2. Sora has true weight axis 200–700; we ship 5 static
+ * instances (200/300/400/500/600). No true italic — Sora's italic is
+ * an oblique (skewed regular).
  *
  * Body / UI: system fonts (SF Pro / Roboto) via `undefined` sentinel —
  * everywhere else.
  *
- * SpaceMono: technical accents only (timestamps in debug contexts,
- * monospace numeric where tabular doesn't suffice).
+ * SpaceMono: technical accents only.
  *
- * History: Fraunces was adopted briefly (2026-04-15) but its quirky,
- * editorial character read as too "designery" for a sacred context.
- * Replaced same day with EB Garamond for the scholarly/serene register.
- * See projects/mosque-connect/DECISIONS.md.
+ * History: Fraunces (2026-04-15) → EB Garamond (same day) → Sora
+ * (2026-05-09). Pivoted to a contemporary geometric sans for the
+ * "Celestial Ink" direction; serif felt printed-book where the design
+ * brief wanted modern editorial. See projects/mosque-connect/DECISIONS.md.
  */
 export const fonts = {
-  // Display (EB Garamond). EB Garamond has no 300 Light weight; the
-  // lightest is 400 Regular. `displayLight` is aliased to Regular for
-  // token-level compatibility — at 54pt prayer countdown, Regular is
-  // sturdier than Fraunces Light was, and reads more dignified.
-  displayLight: 'EBGaramond-Regular' as const,      // 400 (aliased)
-  displayRegular: 'EBGaramond-Regular' as const,    // 400
-  displayMedium: 'EBGaramond-Medium' as const,      // 500
-  displaySemiBold: 'EBGaramond-SemiBold' as const,  // 600
-  displayItalic: 'EBGaramond-Italic' as const,      // 400 italic
+  // Display (Sora). Sora has true Light 300 — `displayLight` is no
+  // longer an alias to Regular as it was with EB Garamond.
+  displayExtraLight: 'Sora-ExtraLight' as const,    // 200 — heroDisplay
+  displayLight: 'Sora-Light' as const,              // 300 — prayerName
+  displayRegular: 'Sora-Regular' as const,          // 400
+  displayMedium: 'Sora-Medium' as const,            // 500 — largeTitle, title1, prayerCountdown
+  displaySemiBold: 'Sora-SemiBold' as const,        // 600 — title2
+  displayItalic: 'Sora-Regular' as const,           // 400 (no true italic; oblique applied via fontStyle)
 
   // Body / UI — system defaults
   heading: undefined,
@@ -217,27 +217,33 @@ export const borderRadius = {
  * System fonts with weight variation. No custom fonts needed for MVP.
  */
 export const typography = {
-  // ─── Display-class tokens — EB Garamond display face ────────────
+  // ─── Display-class tokens — Sora display face ───────────────────
   // Per DESIGN.md § Typography. fontWeight is omitted deliberately —
-  // the weighted EB Garamond family is selected by name; mixing a
-  // named font with a fontWeight triggers RN's synthetic-bold path
-  // which looks wrong on a serif.
+  // the weighted Sora family is selected by name; mixing a named font
+  // with a fontWeight triggers RN's synthetic-bold path which looks
+  // wrong (smudges glyph edges). Sora has dedicated weight files.
+  heroDisplay: {
+    fontSize: 56,
+    fontFamily: fonts.displayExtraLight,
+    letterSpacing: -1.5,
+    lineHeight: 60,
+  },
   largeTitle: {
-    fontSize: 34,
-    fontFamily: fonts.displaySemiBold,
-    letterSpacing: 0.2,
-    lineHeight: 41,
+    fontSize: 36,
+    fontFamily: fonts.displayMedium,
+    letterSpacing: -0.6,
+    lineHeight: 42,
   },
   title1: {
     fontSize: 28,
-    fontFamily: fonts.displaySemiBold,
-    letterSpacing: 0.15,
+    fontFamily: fonts.displayMedium,
+    letterSpacing: -0.5,
     lineHeight: 34,
   },
   title2: {
     fontSize: 22,
     fontFamily: fonts.displaySemiBold,
-    letterSpacing: 0.1,
+    letterSpacing: -0.3,
     lineHeight: 28,
   },
   // ─── System-font tokens ────────────────────────────────────────
@@ -333,23 +339,17 @@ export const typography = {
     lineHeight: 18,
   },
   // ─── Special purpose display ────────────────────────────────────
-  // Countdown: system font, hero size. User 2026-04-16: 'increase
-  // the size and boldness of the countdown, it is the hero. I do
-  // not like the font now, what did we use before Garamond' — the
-  // answer is system font (SF Pro on iOS / Roboto on Android) at
-  // ultralight weight 200. Bumping to SemiBold + larger per the
-  // 'bolder, bigger, hero' brief.
-  //   Size:   54 -> 72 (hero-dominant, fits "2:14:32" comfortably at
-  //           modern phone widths even in portrait)
-  //   Weight: 200 ultralight -> 600 SemiBold (genuine hero weight,
-  //           not timid)
-  //   Family: fonts.displayRegular (EB Garamond) -> system font
-  //           (omitted — RN falls back to platform default)
-  //   Tracking: tightened -1.5 -> -2 to match the larger size
+  // Countdown: Sora Medium 500, hero size. Sora satisfies the user's
+  // 2026-04-16 mandate ("sans serif, plain and easy to read") — it IS
+  // sans serif, geometric, plain. Migrated from system sans (2026-05-09)
+  // when the display face moved to Sora; consolidating prayer name +
+  // countdown to one face removes the visual seam. Tracking tightened
+  // -2 -> -3 because Sora's geometric forms read better with more
+  // negative tracking at 72pt than the system humanist sans did.
   prayerCountdown: {
     fontSize: 72,
-    fontWeight: '600' as const,
-    letterSpacing: -2,
+    fontFamily: fonts.displayMedium,
+    letterSpacing: -3,
     lineHeight: 78,
   },
   prayerTime: {
@@ -371,10 +371,10 @@ export const typography = {
     lineHeight: 13,
   },
   prayerName: {
-    fontSize: 40,
-    fontFamily: fonts.displayRegular,  // EB Garamond @ 400
-    letterSpacing: -0.25,
-    lineHeight: 48,
+    fontSize: 44,
+    fontFamily: fonts.displayLight,  // Sora @ 300 — light, airy lockup
+    letterSpacing: -1.2,
+    lineHeight: 50,
   },
   // Legacy aliases for compatibility
   display: {

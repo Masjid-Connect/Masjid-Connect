@@ -7,7 +7,7 @@
  *   - app/_layout.tsx (indirectly, via the segment param name on deep-links)
  */
 
-export type CommunitySegment = 'announcements' | 'events';
+export type CommunitySegment = 'announcements' | 'events' | 'live';
 
 /**
  * Resolve the `segment` search param into a CommunitySegment.
@@ -16,5 +16,7 @@ export type CommunitySegment = 'announcements' | 'events';
  * come from our own deep-link handler, so we want exact values only.
  */
 export function resolveCommunitySegment(param: string | undefined): CommunitySegment {
-  return param === 'events' ? 'events' : 'announcements';
+  if (param === 'events') return 'events';
+  if (param === 'live') return 'live';
+  return 'announcements';
 }

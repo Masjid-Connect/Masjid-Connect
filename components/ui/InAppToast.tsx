@@ -10,10 +10,11 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 
-import { getAlpha, getColors, palette } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { borderRadius, getElevation, spacing, springs, typography } from '@/constants/Theme';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useToast, type ToastMessage, type ToastType } from '@/contexts/ToastContext';
+import { Glass, type GlassVariant } from '@/components/ui/Glass';
 
 // ── Accent colour mapping ───────────────────────────────────────────
 
@@ -63,7 +64,6 @@ export const InAppToast = () => {
   const insets = useSafeAreaInsets();
   const isDark = effectiveScheme === 'dark';
   const colors = getColors(effectiveScheme);
-  const alphaColors = getAlpha(effectiveScheme);
 
   const translateY = useSharedValue(-SLIDE_DISTANCE);
   const opacity = useSharedValue(0);
@@ -158,6 +158,13 @@ export const InAppToast = () => {
 
   const accent = getAccentColor(currentToast.type, isDark);
   const isUrgent = currentToast.type === 'urgent';
+  // Map toast type -> glass tint variant. Urgent gets crimson tint;
+  // prayer/athan/donation get gold tint; everything else is regular.
+  const glassVariant: GlassVariant = isUrgent
+    ? 'tint-crimson'
+    : currentToast.type === 'prayer' || currentToast.type === 'athan' || currentToast.type === 'donation'
+      ? 'tint-gold'
+      : 'regular';
 
   return (
     <View
@@ -169,7 +176,6 @@ export const InAppToast = () => {
         style={[
           styles.container,
           {
-            backgroundColor: isUrgent ? alphaColors.urgentBgEmphasis : alphaColors.frostedBg,
             ...getElevation('md', isDark),
             ...(isUrgent && {
               borderWidth: 1,
@@ -181,6 +187,14 @@ export const InAppToast = () => {
         accessibilityRole="alert"
         accessibilityLiveRegion={isUrgent ? 'assertive' : 'polite'}
       >
+        {/* Liquid Glass fill — overlay layer per Apple's discipline.
+            Tint is semantic: gold for divine accents (prayer/athan/donation),
+            crimson for urgent only. */}
+        <Glass
+          variant={glassVariant}
+          scheme={isDark ? 'dark' : 'light'}
+          style={StyleSheet.absoluteFill}
+        />
         <Pressable
           style={styles.pressable}
           onPress={() => {

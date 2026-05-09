@@ -9,6 +9,10 @@ describe('resolveCommunitySegment', () => {
     expect(resolveCommunitySegment('announcements')).toBe('announcements');
   });
 
+  it('returns "live" when the param is exactly "live"', () => {
+    expect(resolveCommunitySegment('live')).toBe('live');
+  });
+
   it('defaults to "announcements" when the param is undefined', () => {
     expect(resolveCommunitySegment(undefined)).toBe('announcements');
   });

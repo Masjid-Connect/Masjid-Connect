@@ -13,7 +13,8 @@ React Native + Expo. File-based routing via Expo Router. TypeScript strict.
 - **Icons**: `@expo/vector-icons/Ionicons` (outline/filled pairs — no FontAwesome)
 - **Date**: date-fns
 - **i18n**: i18next + react-i18next (English only)
-- **Fonts**: **EB Garamond** (classical serif, SIL OFL) as the display face — loaded via `@expo-google-fonts/eb-garamond`. Applied only to `prayerCountdown`, `prayerName`, `largeTitle`, `title1`, `title2`. System fonts elsewhere. See `DESIGN.md` § Typography.
+- **Fonts**: **Sora** (geometric sans display, SIL OFL) as the display face — loaded via `@expo-google-fonts/sora` (5 static instances: 200/300/400/500/600). Applied to `heroDisplay`, `largeTitle`, `title1`, `title2`, `prayerName`, `prayerCountdown`. System fonts elsewhere. See `DESIGN.md` § Typography.
+- **Glass**: `expo-blur` BlurView wrapped by `components/ui/Glass.tsx` for navigation-layer Liquid Glass surfaces (tab bar + in-app toast). Variants: `regular`, `clear`, `tint-gold`, `tint-crimson`. Respects `AccessibilityInfo.isReduceTransparencyEnabled()`. See `DESIGN.md` § Glass.
 - **Prayer Times**: Aladhan API (primary, online) + adhan-js (offline fallback only)
 - **Push**: Expo Notifications + Expo Push Service
 - **In-app Browser**: expo-web-browser (Stripe Hosted Checkout redirect)
