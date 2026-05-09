@@ -33,6 +33,7 @@ from core.models import (
     MosquePrayerTime,
     PushToken,
     UserSubscription,
+    VersionPolicy,
 )
 
 from .serializers import (
@@ -43,6 +44,7 @@ from .serializers import (
     FeedbackSerializer,
     GiftAidDeclarationSerializer,
     MixlrStatusSerializer,
+    VersionPolicySerializer,
     MosqueAdminSerializer,
     MosqueListSerializer,
     MosquePrayerTimeSerializer,
@@ -107,6 +109,22 @@ class DataExportRateThrottle(ScopedRateThrottle):
     """Strict rate limit on GDPR data export to prevent abuse."""
 
     scope = "data_export"
+
+    def allow_request(self, request, view):
+        if getattr(settings, "TESTING", False):
+            return True
+        return super().allow_request(request, view)
+
+
+class VersionPolicyRateThrottle(AnonRateThrottle):
+    """Rate limit for the public version-policy endpoint.
+
+    Legitimate clients fetch <2/hour per session (cold start + foreground
+    transition, then cached locally for 6h). 60/min/IP is generous for
+    legit use, defensive against trivial scraping.
+    """
+
+    rate = "60/minute"
 
     def allow_request(self, request, view):
         if getattr(settings, "TESTING", False):
@@ -1618,4 +1636,22 @@ def mixlr_status(request):
             }
         )
     serializer = MixlrStatusSerializer(status_obj)
+    return Response(serializer.data)
+
+
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])
+@throttle_classes([VersionPolicyRateThrottle])
+def version_policy(request):
+    """Return per-platform version thresholds and the policy for clients below them.
+
+    Public endpoint. Clients fetch this on cold start + foreground transition,
+    cache locally for ~6h, compare their installed version against
+    `recommended` (→ soft banner) and `minimum` (→ block screen).
+
+    The singleton is auto-created with safe defaults (minimum=1.0.0,
+    recommended=1.0.0) on first call so a fresh deployment doesn't 500.
+    """
+    policy = VersionPolicy.solo()
+    serializer = VersionPolicySerializer(policy)
     return Response(serializer.data)

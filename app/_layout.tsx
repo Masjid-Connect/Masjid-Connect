@@ -14,11 +14,14 @@ import { useTranslation } from 'react-i18next';
 import { palette } from '@/constants/Colors';
 import { AnimatedSplash } from '@/components/brand/AnimatedSplash';
 import { InAppToast } from '@/components/ui/InAppToast';
+import { UpdateBanner } from '@/components/ui/UpdateBanner';
+import { UpdateBlocker } from '@/components/ui/UpdateBlocker';
 import { ErrorFallback } from '@/components/ui/ErrorFallback';
 import { WebContainer } from '@/components/ui/WebContainer';
 import { ThemeProvider as AppThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ToastProvider, useToast } from '@/contexts/ToastContext';
+import { useVersionCheck } from '@/hooks/useVersionCheck';
 import { reschedulePrayerRemindersForToday, addNotificationReceivedListener, addNotificationResponseListener } from '@/lib/notifications';
 import { initSentry, Sentry } from '@/lib/sentry';
 import '@/lib/i18n';
@@ -155,6 +158,7 @@ function RootLayout() {
                   <ToastProvider>
                     <RootLayoutNav />
                     <InAppToast />
+                    <VersionCheckOverlay />
                   </ToastProvider>
                 </AppThemeProvider>
               </AnimatedSplash>
@@ -227,4 +231,38 @@ function RootLayoutNav() {
       </Stack>
     </ThemeProvider>
   );
+}
+
+/**
+ * VersionCheckOverlay — renders Banner (soft) or Blocker (block) above the
+ * navigation stack when the version-check hook reports an actionable state.
+ *
+ * Sits OUTSIDE ThemeProvider/Stack on purpose: the Blocker covers everything
+ * including modal screens. Banner is positioned absolute above the tab bar.
+ *
+ * `key` on the banner forces a fresh mount when urgency changes — avoids
+ * stale animation state on transitions.
+ */
+function VersionCheckOverlay() {
+  const { state, recheck } = useVersionCheck();
+  const [bannerKey, setBannerKey] = useState(0);
+
+  if (state.urgency === 'block') {
+    return <UpdateBlocker storeUrl={state.storeUrl} />;
+  }
+  if (state.urgency === 'soft') {
+    return (
+      <UpdateBanner
+        key={bannerKey}
+        storeUrl={state.storeUrl}
+        onDismiss={() => {
+          // Bump the key + recheck so the banner unmounts; the lib has
+          // already persisted the dismissal so the recheck returns 'ok'.
+          setBannerKey((k) => k + 1);
+          void recheck();
+        }}
+      />
+    );
+  }
+  return null;
 }

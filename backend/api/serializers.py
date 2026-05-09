@@ -20,6 +20,7 @@ from core.models import (
     MosquePrayerTime,
     PushToken,
     UserSubscription,
+    VersionPolicy,
 )
 
 User = get_user_model()
@@ -443,3 +444,48 @@ class MixlrStatusSerializer(serializers.ModelSerializer):
             "last_checked",
         ]
         read_only_fields = fields
+
+
+# ── Version Policy ─────────────────────────────────────────────────
+
+
+class _VersionPolicyPlatformSerializer(serializers.Serializer):
+    minimum = serializers.CharField()
+    recommended = serializers.CharField()
+    store_url = serializers.URLField()
+
+
+class _VersionPolicyBehaviourSerializer(serializers.Serializer):
+    below_minimum = serializers.ChoiceField(choices=["block", "soft", "none"])
+    below_recommended = serializers.ChoiceField(choices=["soft", "none"])
+
+
+class VersionPolicySerializer(serializers.Serializer):
+    """Public read shape for /api/v1/version-policy.
+
+    Reshapes the singleton VersionPolicy model into per-platform sub-objects
+    plus a flat `policy` block so clients only consume their own platform's
+    fields.
+    """
+
+    ios = _VersionPolicyPlatformSerializer(read_only=True)
+    android = _VersionPolicyPlatformSerializer(read_only=True)
+    policy = _VersionPolicyBehaviourSerializer(read_only=True)
+
+    def to_representation(self, instance: VersionPolicy):
+        return {
+            "ios": {
+                "minimum": instance.ios_minimum,
+                "recommended": instance.ios_recommended,
+                "store_url": instance.ios_store_url,
+            },
+            "android": {
+                "minimum": instance.android_minimum,
+                "recommended": instance.android_recommended,
+                "store_url": instance.android_store_url,
+            },
+            "policy": {
+                "below_minimum": instance.policy_below_minimum,
+                "below_recommended": instance.policy_below_recommended,
+            },
+        }

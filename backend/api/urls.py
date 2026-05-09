@@ -39,4 +39,6 @@ urlpatterns = [
     path("gift-aid/summary/", views.gift_aid_summary, name="gift-aid-summary"),
     # Mixlr live status
     path("mixlr/status/", views.mixlr_status, name="mixlr-status"),
+    # Version policy (which app versions get nudged or blocked)
+    path("version-policy/", views.version_policy, name="version-policy"),
 ]

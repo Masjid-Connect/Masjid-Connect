@@ -24,6 +24,7 @@ from .models import (
     StripeEvent,
     User,
     UserSubscription,
+    VersionPolicy,
 )
 
 
@@ -662,3 +663,56 @@ class MixlrStatusAdmin(ModelAdmin):
             "fields": ("last_checked", "last_live_at"),
         }),
     )
+
+
+@admin.register(VersionPolicy)
+class VersionPolicyAdmin(ModelAdmin):
+    """Singleton — controls which app versions get blocked or nudged.
+
+    Only one row exists. The `Add` button is disabled. Edit values here
+    after a release is live in the relevant store; bumping `*_minimum` is
+    a break-glass action that locks out clients on lower versions.
+    """
+
+    list_display = [
+        "ios_recommended",
+        "android_recommended",
+        "ios_minimum",
+        "android_minimum",
+        "policy_below_minimum",
+        "updated_at",
+    ]
+    readonly_fields = ["updated_at"]
+    fieldsets = (
+        ("iOS", {
+            "fields": ("ios_recommended", "ios_minimum", "ios_store_url"),
+            "description": (
+                "Bump 'recommended' AFTER a new build is live in the App Store. "
+                "Only bump 'minimum' when shipping a security/contract break that older clients cannot survive."
+            ),
+        }),
+        ("Android", {
+            "fields": ("android_recommended", "android_minimum", "android_store_url"),
+            "description": (
+                "Bump 'recommended' AFTER a new build is live on Play. "
+                "Only bump 'minimum' on break-glass releases."
+            ),
+        }),
+        ("Behaviour", {
+            "fields": ("policy_below_minimum", "policy_below_recommended"),
+            "description": (
+                "How clients react when their installed version is below the thresholds above. "
+                "Default: minimum → block (full-screen), recommended → soft (dismissible banner)."
+            ),
+        }),
+        ("Audit", {
+            "fields": ("updated_at",),
+        }),
+    )
+
+    def has_add_permission(self, request):
+        # Singleton — one row only, created on first GET of the API endpoint.
+        return not VersionPolicy.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
