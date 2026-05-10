@@ -224,13 +224,17 @@ export default function CommunityScreen() {
               accessibilityLabel={`${t('community.announcements')}${announcementUnreadCount > 0 ? `, ${announcementUnreadCount} ${t('announcements.unread')}` : ''}`}
             >
               <View style={styles.segmentLabelRow}>
-                <Text style={[
-                  typography.subhead,
-                  {
-                    color: activeSegment === 'announcements' ? colors.text : colors.textSecondary,
-                    fontWeight: activeSegment === 'announcements' ? fontWeight.semibold : fontWeight.regular,
-                  },
-                ]}>
+                <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.85}
+                  style={[
+                    typography.subhead,
+                    {
+                      color: activeSegment === 'announcements' ? colors.text : colors.textSecondary,
+                      fontWeight: activeSegment === 'announcements' ? fontWeight.semibold : fontWeight.regular,
+                    },
+                  ]}>
                   {t('community.announcements')}
                 </Text>
                 {announcementUnreadCount > 0 && (
@@ -247,13 +251,17 @@ export default function CommunityScreen() {
               accessibilityState={{ selected: activeSegment === 'events' }}
               accessibilityLabel={t('community.events')}
             >
-              <Text style={[
-                typography.subhead,
-                {
-                  color: activeSegment === 'events' ? colors.text : colors.textSecondary,
-                  fontWeight: activeSegment === 'events' ? fontWeight.semibold : fontWeight.regular,
-                },
-              ]}>
+              <Text
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+                style={[
+                  typography.subhead,
+                  {
+                    color: activeSegment === 'events' ? colors.text : colors.textSecondary,
+                    fontWeight: activeSegment === 'events' ? fontWeight.semibold : fontWeight.regular,
+                  },
+                ]}>
                 {t('community.events')}
               </Text>
             </Pressable>
@@ -267,13 +275,17 @@ export default function CommunityScreen() {
               accessibilityLabel={t('community.live')}
             >
               <View style={styles.segmentLabelRow}>
-                <Text style={[
-                  typography.subhead,
-                  {
-                    color: activeSegment === 'live' ? colors.text : colors.textSecondary,
-                    fontWeight: activeSegment === 'live' ? fontWeight.semibold : fontWeight.regular,
-                  },
-                ]}>
+                <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.85}
+                  style={[
+                    typography.subhead,
+                    {
+                      color: activeSegment === 'live' ? colors.text : colors.textSecondary,
+                      fontWeight: activeSegment === 'live' ? fontWeight.semibold : fontWeight.regular,
+                    },
+                  ]}>
                   {t('community.live')}
                 </Text>
                 {isLive && (
