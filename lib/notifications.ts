@@ -43,26 +43,33 @@ export async function registerForPushNotifications(): Promise<string | null> {
   }
 
   if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('prayer-reminders', {
+    // Channel sound + lights are locked at first creation on Android — once
+    // a channel exists with given settings, you can't change them. Version-
+    // suffix when settings change so the new behaviour binds to a fresh
+    // channel on next launch. Legacy 'prayer-reminders' (no lights) is
+    // deleted below so users don't see two "Prayer Reminders" entries.
+    await Notifications.setNotificationChannelAsync('prayer-reminders-v2', {
       name: 'Prayer Reminders',
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
       sound: 'default',
+      enableLights: true,
+      lightColor: '#D4AF5A',
+      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+      bypassDnd: false,
     });
+    try {
+      await Notifications.deleteNotificationChannelAsync('prayer-reminders');
+    } catch {}
 
-    // Channel sound is locked at first creation on Android — once a
-    // channel exists with a given sound, you can't change it. Devices
-    // that installed earlier builds carry an orphan 'prayer-athan'
-    // channel bound to the 1-second placeholder. Version-suffix the
-    // channel so the real adhan binds to a fresh channel on next launch;
-    // bump again whenever the asset changes. Old channel is left orphaned
-    // (Android prunes unused channels eventually; user can delete in
-    // settings if they want).
     await Notifications.setNotificationChannelAsync('prayer-athan-v2', {
       name: 'Adhan',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       sound: 'adhan.wav',
+      enableLights: true,
+      lightColor: '#D4AF5A',
+      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
     });
     // Best-effort: remove the orphaned v1 channel so the user doesn't
     // see two "Adhan" entries in system notification settings.
@@ -145,15 +152,22 @@ export async function schedulePrayerReminders(
         content: {
           title: `${PRAYER_LABELS[prayer].en} — ${PRAYER_LABELS[prayer].ar}`,
           body,
-          // Only set `sound` when adhan is enabled — else rely on
-          // channel default (silent-or-default system sound).
-          ...(playAdhan && { sound: 'adhan.wav' }),
+          // Always set a sound — iOS treats a missing `sound` key as
+          // silent (no fallback to default). Custom adhan when the
+          // toggle is on; system default otherwise.
+          sound: playAdhan ? 'adhan.wav' : 'default',
+          // iOS: timeSensitive breaks through Focus modes (incl. Sleep
+          // Focus at Fajr) so the user actually hears their prayer
+          // reminder. The user explicitly opted in via the reminder
+          // setting; this is the right level. 'critical' would require
+          // an Apple entitlement we don't have.
+          interruptionLevel: 'timeSensitive',
           data: { type: playAdhan ? 'prayer_athan' : 'prayer_reminder', prayer },
-          // Android requires the right channel to play adhan.wav as
-          // the ringtone. prayer-athan channel has sound: 'adhan.wav';
-          // prayer-reminders uses system default.
+          // Android: route to the right channel. prayer-athan-v2 plays
+          // adhan.wav; prayer-reminders-v2 plays system default with
+          // gold light + vibration.
           ...(Platform.OS === 'android' && {
-            channelId: playAdhan ? 'prayer-athan-v2' : 'prayer-reminders',
+            channelId: playAdhan ? 'prayer-athan-v2' : 'prayer-reminders-v2',
           }),
         },
         trigger: {
