@@ -52,6 +52,10 @@ WORKDIR /home/mosque/app
 # Copy application code
 COPY --chown=mosque:mosque . .
 
+# Belt-and-braces: ensure the entrypoint is executable even if git's
+# executable bit wasn't preserved on the contributor's filesystem.
+RUN chmod +x entrypoint.sh
+
 # Collect static files at build time (needs SECRET_KEY but value doesn't matter)
 RUN SECRET_KEY=build-placeholder python manage.py collectstatic --noinput
 
@@ -61,6 +65,9 @@ EXPOSE 8000
 # Health check — curl follows redirects and Coolify requires curl/wget
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
     CMD curl -fsS http://localhost:8000/health/ || exit 1
+
+# Entrypoint applies pending DB migrations, then exec's into CMD.
+ENTRYPOINT ["./entrypoint.sh"]
 
 # Start Gunicorn using our config file
 CMD ["gunicorn", "config.wsgi", "--config", "gunicorn.conf.py"]
