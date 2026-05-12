@@ -202,6 +202,9 @@
     "openInMixlr": "Open in Mixlr",
     "playerError": "Unable to load the player. You can listen on Mixlr directly.",
     "poweredByMixlr": "Audio broadcast via Mixlr",
+    "notLiveTitle": "Not broadcasting right now",
+    "notLiveBody": "When a lesson goes live, you'll find it here.",
+    "notLiveCta": "Visit on Mixlr",
     "notificationTitle": "Live Lesson",
     "notificationBody": "A lesson is now being broadcast from The Salafi Masjid. Tap to listen."
   },
