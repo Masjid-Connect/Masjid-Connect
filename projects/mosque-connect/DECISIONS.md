@@ -12,7 +12,7 @@ Format: short title → decision → why → trade-off accepted.
 - **Why**: avoid native code complexity, keep the team focused on UX.
 - **Trade-off**: cannot ship custom native modules without ejecting.
 
-**Django 5 + DRF**, self-hosted on Digital Ocean (Docker + Coolify).
+**Django 5 + DRF**, self-hosted on Hetzner Cloud (Docker + Coolify).
 - **Why**: same proven pattern as the Orphanages project. Full control, no vendor lock-in.
 - **Trade-off**: ops burden vs a managed platform like Supabase or Firebase.
 

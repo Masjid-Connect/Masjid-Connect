@@ -20,7 +20,7 @@ If a feature does not directly serve that mission, it does not get added.
 | Database | PostgreSQL | **Locked** |
 | Admin | Django Unfold | **Locked** |
 | Push | Expo Push Service | **Locked** |
-| Deployment | Docker + Coolify on Digital Ocean | **Locked** |
+| Deployment | Docker + Coolify on Hetzner Cloud | **Locked** |
 
 **Locked** means: do not replace, do not add alternatives, do not introduce competing frameworks.
 No Flutter, no Next.js, no Firebase, no Redis, no Celery, no microservices.

@@ -1,6 +1,6 @@
 # Backend — Django REST Framework
 
-Lives in `/backend/`. Django 5 + DRF, Token authentication, self-hosted on Digital Ocean (Docker + Coolify, same pattern as Orphanages).
+Lives in `/backend/`. Django 5 + DRF, Token authentication, self-hosted on Hetzner Cloud (Docker + Coolify, same pattern as Orphanages).
 
 ## Stack
 
@@ -143,7 +143,7 @@ Both routes are gated because Swagger UI fetches the schema client-side — a pu
 
 ## Deployment
 
-The backend runs as a Docker container managed by **Coolify** on the Digital Ocean host. There is exactly one routine deploy pathway; everything else is emergency-only.
+The backend runs as a Docker container managed by **Coolify** on the Hetzner Cloud host. There is exactly one routine deploy pathway; everything else is emergency-only.
 
 ### Responsibility split
 
