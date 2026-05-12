@@ -166,6 +166,31 @@ export const EVENT_CATEGORY_COLORS: Record<EventCategory, string> = {
   community: '#64748B', // slate — neutral
 };
 
+/**
+ * A recorded lesson from the Salafi Publications SoundCloud podcast feed.
+ * Source: feeds.soundcloud.com/users/soundcloud:users:64548972/sounds.rss
+ */
+export interface RecordedLesson {
+  /** SoundCloud track id (from RSS guid) */
+  id: string;
+  /** Display title with " By {speaker}" suffix stripped */
+  title: string;
+  /** Parsed speaker name from title, or empty if not extractable */
+  speaker: string;
+  /** ISO 8601 timestamp */
+  publishedAt: string;
+  /** Duration in seconds (parsed from itunes:duration HH:MM:SS) */
+  durationSeconds: number;
+  /** Lesson summary / point list (plain text, entities decoded) */
+  summary: string;
+  /** Direct streamable MP3 URL — 302s to a CloudFront-signed CDN URL */
+  audioUrl: string;
+  /** Track artwork — replaced to t500x500 for mobile bandwidth */
+  artworkUrl: string;
+  /** Original SoundCloud page URL — fallback if native player fails */
+  externalUrl: string;
+}
+
 /** Dark mode variants — lighter shades for visibility on dark surfaces */
 export const EVENT_CATEGORY_COLORS_DARK: Record<EventCategory, string> = {
   lesson: '#6BABE5',     // sapphire-400
