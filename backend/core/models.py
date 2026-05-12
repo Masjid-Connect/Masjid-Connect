@@ -826,6 +826,12 @@ class VersionPolicy(models.Model):
 
     def save(self, *args, **kwargs):
         self.pk = 1
+        # Flip _state.adding when a row at pk=1 already exists so Django
+        # picks UPDATE instead of INSERT. Without this, a brand-new
+        # `VersionPolicy(...).save()` raises IntegrityError on the duplicate
+        # primary key — defeating the whole point of the singleton pattern.
+        if type(self).objects.filter(pk=1).exists():
+            self._state.adding = False
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):

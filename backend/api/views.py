@@ -146,16 +146,20 @@ class IsMosqueAdminOrReadOnly(permissions.BasePermission):
         # Staff users can do anything
         if request.user.is_staff:
             return True
-        # For create actions, check that the user is admin for the target mosque
-        mosque_id = request.data.get("mosque")
-        if mosque_id:
-            return MosqueAdmin.objects.filter(user=request.user, mosque_id=mosque_id).exists()
-        # If no mosque specified in a write request, deny. Previously
-        # returned True (deferring to serializer), but this allowed any
-        # authenticated user past the permission layer for create ops.
-        # The serializer should ALSO validate, but defence in depth
-        # means the permission layer should not have a hole.
-        return False
+        # Create (POST) requires mosque_id in the body so we can check admin
+        # status against the target mosque before the object exists. The
+        # serializer also validates — defence in depth — but the permission
+        # layer must not have a hole for unscoped writes.
+        if request.method == "POST":
+            mosque_id = request.data.get("mosque")
+            if mosque_id:
+                return MosqueAdmin.objects.filter(
+                    user=request.user, mosque_id=mosque_id
+                ).exists()
+            return False
+        # PATCH/PUT/DELETE target an existing object; the mosque comes from
+        # the object itself, not the request body. Defer to has_object_permission.
+        return True
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
