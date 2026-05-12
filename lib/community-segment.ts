@@ -7,16 +7,18 @@
  *   - app/_layout.tsx (indirectly, via the segment param name on deep-links)
  */
 
-export type CommunitySegment = 'announcements' | 'events' | 'live';
+export type CommunitySegment = 'live' | 'lessons' | 'events' | 'announcements';
 
 /**
  * Resolve the `segment` search param into a CommunitySegment.
- * Unknown or missing values default to 'announcements' (the tab's primary view).
+ * Unknown or missing values default to 'lessons' — most opens won't catch
+ * a live broadcast, but recorded lessons are content-rich every time.
  * Matching is case-sensitive and does not strip whitespace — search params
  * come from our own deep-link handler, so we want exact values only.
  */
 export function resolveCommunitySegment(param: string | undefined): CommunitySegment {
-  if (param === 'events') return 'events';
   if (param === 'live') return 'live';
-  return 'announcements';
+  if (param === 'events') return 'events';
+  if (param === 'announcements') return 'announcements';
+  return 'lessons';
 }

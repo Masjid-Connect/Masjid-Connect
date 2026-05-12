@@ -13,17 +13,21 @@ describe('resolveCommunitySegment', () => {
     expect(resolveCommunitySegment('live')).toBe('live');
   });
 
-  it('defaults to "announcements" when the param is undefined', () => {
-    expect(resolveCommunitySegment(undefined)).toBe('announcements');
+  it('returns "lessons" when the param is exactly "lessons"', () => {
+    expect(resolveCommunitySegment('lessons')).toBe('lessons');
   });
 
-  it('defaults to "announcements" when the param is an empty string', () => {
-    expect(resolveCommunitySegment('')).toBe('announcements');
+  it('defaults to "lessons" when the param is undefined', () => {
+    expect(resolveCommunitySegment(undefined)).toBe('lessons');
   });
 
-  it('defaults to "announcements" for any unrecognised value', () => {
-    expect(resolveCommunitySegment('foo')).toBe('announcements');
-    expect(resolveCommunitySegment('EVENTS')).toBe('announcements'); // case-sensitive
-    expect(resolveCommunitySegment('events ')).toBe('announcements'); // whitespace rejected
+  it('defaults to "lessons" when the param is an empty string', () => {
+    expect(resolveCommunitySegment('')).toBe('lessons');
+  });
+
+  it('defaults to "lessons" for any unrecognised value', () => {
+    expect(resolveCommunitySegment('foo')).toBe('lessons');
+    expect(resolveCommunitySegment('EVENTS')).toBe('lessons'); // case-sensitive
+    expect(resolveCommunitySegment('events ')).toBe('lessons'); // whitespace rejected
   });
 });

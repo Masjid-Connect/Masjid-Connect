@@ -2,7 +2,7 @@
   "expo": {
     "name": "The Salafi Masjid",
     "slug": "masjid-app",
-    "version": "1.0.2",
+    "version": "1.1.0",
     "owner": "salafimasjid",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -83,6 +83,13 @@
           "sounds": [
             "./assets/sounds/adhan.wav"
           ]
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "enableBackgroundPlayback": true
         }
       ]
     ],

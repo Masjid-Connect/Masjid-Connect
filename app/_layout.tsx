@@ -21,6 +21,7 @@ import { WebContainer } from '@/components/ui/WebContainer';
 import { ThemeProvider as AppThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ToastProvider, useToast } from '@/contexts/ToastContext';
+import { AudioProvider } from '@/contexts/AudioProvider';
 import { useVersionCheck } from '@/hooks/useVersionCheck';
 import { reschedulePrayerRemindersForToday, addNotificationReceivedListener, addNotificationResponseListener } from '@/lib/notifications';
 import { initSentry, Sentry } from '@/lib/sentry';
@@ -156,9 +157,11 @@ function RootLayout() {
               <AnimatedSplash isVisible={showSplash} onAnimationComplete={handleSplashComplete}>
                 <AppThemeProvider>
                   <ToastProvider>
-                    <RootLayoutNav />
-                    <InAppToast />
-                    <VersionCheckOverlay />
+                    <AudioProvider>
+                      <RootLayoutNav />
+                      <InAppToast />
+                      <VersionCheckOverlay />
+                    </AudioProvider>
                   </ToastProvider>
                 </AppThemeProvider>
               </AnimatedSplash>

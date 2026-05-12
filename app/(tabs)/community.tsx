@@ -31,6 +31,7 @@ import { layout } from '@/lib/layoutGrid';
 import { AnnouncementsContent } from '@/components/community/AnnouncementsContent';
 import { EventsContent } from '@/components/community/EventsContent';
 import { LiveContent } from '@/components/community/LiveContent';
+import { LessonsContent } from '@/components/community/LessonsContent';
 import { LiveLessonBanner } from '@/components/community/LiveLessonBanner';
 import { GoldBadge } from '@/components/brand/GoldBadge';
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
@@ -64,7 +65,8 @@ export default function CommunityScreen() {
     if (
       params.segment === 'announcements' ||
       params.segment === 'events' ||
-      params.segment === 'live'
+      params.segment === 'live' ||
+      params.segment === 'lessons'
     ) {
       setActiveSegment(params.segment);
     }
@@ -111,11 +113,15 @@ export default function CommunityScreen() {
   const segmentIndicatorX = useSharedValue(0);
   const segmentWidth = useSharedValue(0);
   const SEGMENT_PADDING = 2;
-  const SEGMENT_COUNT = 3;
+  const SEGMENT_COUNT = 4;
 
   /** Convert a segment name to its zero-based slot index. */
-  const segmentIndex = (segment: CommunitySegment): number =>
-    segment === 'announcements' ? 0 : segment === 'events' ? 1 : 2;
+  const segmentIndex = (segment: CommunitySegment): number => {
+    if (segment === 'live') return 0;
+    if (segment === 'lessons') return 1;
+    if (segment === 'events') return 2;
+    return 3; // announcements
+  };
 
   const handleSegmentLayout = useCallback((event: LayoutChangeEvent) => {
     const width = event.nativeEvent.layout.width;
@@ -215,57 +221,6 @@ export default function CommunityScreen() {
               ]}
             />
 
-            {/* Announcements tab */}
-            <Pressable
-              style={styles.segmentButton}
-              onPress={() => handleSegmentChange('announcements')}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: activeSegment === 'announcements' }}
-              accessibilityLabel={`${t('community.announcements')}${announcementUnreadCount > 0 ? `, ${announcementUnreadCount} ${t('announcements.unread')}` : ''}`}
-            >
-              <View style={styles.segmentLabelRow}>
-                <Text
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.85}
-                  style={[
-                    typography.subhead,
-                    {
-                      color: activeSegment === 'announcements' ? colors.text : colors.textSecondary,
-                      fontWeight: activeSegment === 'announcements' ? fontWeight.semibold : fontWeight.regular,
-                    },
-                  ]}>
-                  {t('community.announcements')}
-                </Text>
-                {announcementUnreadCount > 0 && (
-                  <GoldBadge count={announcementUnreadCount} size={16} style={{ marginStart: spacing.xs }} />
-                )}
-              </View>
-            </Pressable>
-
-            {/* Events tab */}
-            <Pressable
-              style={styles.segmentButton}
-              onPress={() => handleSegmentChange('events')}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: activeSegment === 'events' }}
-              accessibilityLabel={t('community.events')}
-            >
-              <Text
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.85}
-                style={[
-                  typography.subhead,
-                  {
-                    color: activeSegment === 'events' ? colors.text : colors.textSecondary,
-                    fontWeight: activeSegment === 'events' ? fontWeight.semibold : fontWeight.regular,
-                  },
-                ]}>
-                {t('community.events')}
-              </Text>
-            </Pressable>
-
             {/* Live tab — surfaces the live broadcast (or its absence) */}
             <Pressable
               style={styles.segmentButton}
@@ -296,13 +251,92 @@ export default function CommunityScreen() {
                 )}
               </View>
             </Pressable>
+
+            {/* Lessons tab — recorded archive (Salafi Publications SoundCloud feed) */}
+            <Pressable
+              style={styles.segmentButton}
+              onPress={() => handleSegmentChange('lessons')}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: activeSegment === 'lessons' }}
+              accessibilityLabel={t('community.lessons')}
+            >
+              <Text
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+                style={[
+                  typography.subhead,
+                  {
+                    color: activeSegment === 'lessons' ? colors.text : colors.textSecondary,
+                    fontWeight: activeSegment === 'lessons' ? fontWeight.semibold : fontWeight.regular,
+                  },
+                ]}>
+                {t('community.lessons')}
+              </Text>
+            </Pressable>
+
+            {/* Events tab */}
+            <Pressable
+              style={styles.segmentButton}
+              onPress={() => handleSegmentChange('events')}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: activeSegment === 'events' }}
+              accessibilityLabel={t('community.events')}
+            >
+              <Text
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+                style={[
+                  typography.subhead,
+                  {
+                    color: activeSegment === 'events' ? colors.text : colors.textSecondary,
+                    fontWeight: activeSegment === 'events' ? fontWeight.semibold : fontWeight.regular,
+                  },
+                ]}>
+                {t('community.events')}
+              </Text>
+            </Pressable>
+
+            {/* Announcements tab */}
+            <Pressable
+              style={styles.segmentButton}
+              onPress={() => handleSegmentChange('announcements')}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: activeSegment === 'announcements' }}
+              accessibilityLabel={`${t('community.announcements')}${announcementUnreadCount > 0 ? `, ${announcementUnreadCount} ${t('announcements.unread')}` : ''}`}
+            >
+              <View style={styles.segmentLabelRow}>
+                <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.85}
+                  style={[
+                    typography.subhead,
+                    {
+                      color: activeSegment === 'announcements' ? colors.text : colors.textSecondary,
+                      fontWeight: activeSegment === 'announcements' ? fontWeight.semibold : fontWeight.regular,
+                    },
+                  ]}>
+                  {t('community.announcements')}
+                </Text>
+                {announcementUnreadCount > 0 && (
+                  <GoldBadge count={announcementUnreadCount} size={16} style={{ marginStart: spacing.xs }} />
+                )}
+              </View>
+            </Pressable>
           </View>
         </View>
 
         {/* Segment content with crossfade */}
-        {activeSegment === 'announcements' && (
+        {activeSegment === 'live' && (
           <Animated.View style={styles.segmentContent} entering={FadeIn.duration(200)} exiting={FadeOut.duration(100)}>
-            <AnnouncementsContent onScroll={onScroll} />
+            <LiveContent />
+          </Animated.View>
+        )}
+        {activeSegment === 'lessons' && (
+          <Animated.View style={styles.segmentContent} entering={FadeIn.duration(200)} exiting={FadeOut.duration(100)}>
+            <LessonsContent />
           </Animated.View>
         )}
         {activeSegment === 'events' && (
@@ -310,9 +344,9 @@ export default function CommunityScreen() {
             <EventsContent onScroll={onScroll} />
           </Animated.View>
         )}
-        {activeSegment === 'live' && (
+        {activeSegment === 'announcements' && (
           <Animated.View style={styles.segmentContent} entering={FadeIn.duration(200)} exiting={FadeOut.duration(100)}>
-            <LiveContent />
+            <AnnouncementsContent onScroll={onScroll} />
           </Animated.View>
         )}
 
