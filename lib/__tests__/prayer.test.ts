@@ -45,16 +45,21 @@ describe('getNextPrayer', () => {
 });
 
 describe('getCountdown', () => {
+  // Inject `now` so the test isn't racing the function's internal new Date():
+  // without injection, elapsed microseconds between Date.now() in the test and
+  // new Date() inside the function shave 1ms off the diff, flipping minutes
+  // from 30 to 29 (or 45 to 44) and breaking the regex match. Was a flaky test
+  // that blocked CI for days.
+  const now = new Date('2026-01-01T12:00:00Z');
+
   it('formats hours and minutes', () => {
-    const target = new Date(Date.now() + 2 * 3600000 + 30 * 60000);
-    const result = getCountdown(target);
-    expect(result).toMatch(/2h 3\dm/);
+    const target = new Date(now.getTime() + 2 * 3600000 + 30 * 60000);
+    expect(getCountdown(target, now)).toBe('2h 30m');
   });
 
   it('formats minutes only when less than 1 hour', () => {
-    const target = new Date(Date.now() + 45 * 60000);
-    const result = getCountdown(target);
-    expect(result).toMatch(/4\dm/);
+    const target = new Date(now.getTime() + 45 * 60000);
+    expect(getCountdown(target, now)).toBe('45m');
   });
 });
 

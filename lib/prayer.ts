@@ -60,9 +60,8 @@ export function getNextPrayer(
   return 'fajr';
 }
 
-/** Get countdown string to next prayer */
-export function getCountdown(target: Date): string {
-  const now = new Date();
+/** Get countdown string to next prayer. `now` is injectable for testing. */
+export function getCountdown(target: Date, now: Date = new Date()): string {
   let diff = target.getTime() - now.getTime();
 
   if (diff < 0) {
