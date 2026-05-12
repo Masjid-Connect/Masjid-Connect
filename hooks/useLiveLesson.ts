@@ -27,6 +27,11 @@ export interface UseLiveLessonResult {
   embedUrl: string;
   /** Direct channel URL (fallback) */
   channelUrl: string;
+  /** Direct public stream URL when Mixlr exposes one (Live Stream URL
+   *  toggle is enabled on the account); null otherwise. Consumers
+   *  switch between the native AudioProvider path and the Mixlr embed
+   *  fallback based on whether this is present. */
+  streamUrl: string | null;
   /** Whether the initial fetch is still in progress */
   isLoading: boolean;
   /** Force a refresh of the live status */
@@ -40,6 +45,7 @@ const DEFAULT_STATUS: LiveLessonStatus = {
   channelLogoUrl: '',
   channelUrl: MIXLR_CHANNEL_URL,
   embedUrl: MIXLR_EMBED_URL,
+  streamUrl: null,
 };
 
 export function useLiveLesson(): UseLiveLessonResult {
@@ -96,6 +102,7 @@ export function useLiveLesson(): UseLiveLessonResult {
     channelLogoUrl: status.channelLogoUrl,
     embedUrl: status.embedUrl,
     channelUrl: status.channelUrl,
+    streamUrl: status.streamUrl,
     isLoading,
     refresh: poll,
   };

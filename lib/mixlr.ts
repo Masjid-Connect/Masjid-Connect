@@ -40,6 +40,13 @@ export interface MixlrUserResponse {
   profile_image_url: string;
   is_live: boolean;
   broadcast_ids?: number[];
+  /** True when Salafi Publications has flipped the Live Stream URL toggle
+   *  in their Mixlr Creators dashboard. Until this is on, no public stream
+   *  URL is exposed and the app falls back to the Mixlr embed widget. */
+  live_stream_url_enabled?: boolean;
+  /** Most likely field name once the toggle is on; we also probe siblings. */
+  live_stream_url?: string;
+  stream_url?: string;
   channel: {
     name: string;
     logo_url: string;
@@ -56,11 +63,39 @@ export interface LiveLessonStatus {
   channelLogoUrl: string;
   channelUrl: string;
   embedUrl: string;
+  /** Direct public stream URL when Mixlr exposes one; null otherwise.
+   *  When present, the app uses expo-audio for native playback with
+   *  lock-screen controls. When null, falls back to the Mixlr embed. */
+  streamUrl: string | null;
 }
 
 // ── API ──────────────────────────────────────────────────────────────
 
 const MIXLR_API_TIMEOUT_MS = 10_000;
+
+/**
+ * Pull the public Live Stream URL out of the Mixlr user payload.
+ *
+ * Mixlr documents the feature as "Live Stream URL" (broadcaster flips it
+ * on at creators.mixlr.com/settings/live-stream-url). The API exposes
+ * `live_stream_url_enabled: boolean` — that's the gate. The actual URL
+ * field name we haven't confirmed against an enabled account yet, so we
+ * probe the obvious candidates in priority order. Returns null when the
+ * gate is off OR no candidate field carried a value, in which case the
+ * live-lesson screen falls back to the existing Mixlr embed.
+ *
+ * If Mixlr returns the URL under a field name not in this list, the
+ * fallback path keeps the app working — we just don't get the native
+ * player. Patch the probe order once we see real production data.
+ */
+export function extractStreamUrl(data: MixlrUserResponse): string | null {
+  if (!data.live_stream_url_enabled) return null;
+  const candidates = [data.live_stream_url, data.stream_url];
+  for (const url of candidates) {
+    if (typeof url === 'string' && url.length > 0) return url;
+  }
+  return null;
+}
 
 /**
  * Fetch the current live status from Mixlr's API.
@@ -89,6 +124,7 @@ export async function fetchMixlrStatus(): Promise<LiveLessonStatus | null> {
       channelLogoUrl: data.channel.logo_url || '',
       channelUrl: data.channel.url || MIXLR_CHANNEL_URL,
       embedUrl: MIXLR_EMBED_URL,
+      streamUrl: extractStreamUrl(data),
     };
   } catch (err) {
     clearTimeout(timeoutId);

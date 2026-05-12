@@ -1,12 +1,17 @@
 /**
- * LiveLessonPlayer — full-screen Mixlr player.
+ * LiveLessonPlayer — full-screen view for the active live broadcast.
  *
- * Embeds the Mixlr player widget in a WebView, wrapped in a
- * themed container with Islamic pattern background and
- * mosque branding. Supports background audio playback.
+ * Three rendering branches based on backend state:
+ *  1. Not broadcasting → custom offline card (masjid mark + quiet copy).
+ *  2. Broadcasting + Mixlr exposes a public Live Stream URL → native
+ *     audio via AudioProvider with a masjid-branded UI, no Mixlr chrome.
+ *  3. Broadcasting + Mixlr stream URL NOT yet exposed → fallback to the
+ *     Mixlr embed widget (current behaviour). This keeps the app working
+ *     while we wait for Salafi Publications to flip the Live Stream URL
+ *     toggle in their Mixlr Creators dashboard.
  */
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Image,
   Pressable,
@@ -17,7 +22,15 @@ import {
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, {
+  Easing,
+  FadeIn,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
@@ -30,6 +43,10 @@ import { spacing, typography, borderRadius, getElevation } from '@/constants/The
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { MIXLR_EMBED_URL, MIXLR_CHANNEL_URL } from '@/lib/mixlr';
 import { useLiveLesson } from '@/hooks/useLiveLesson';
+import { useAudio } from '@/contexts/AudioProvider';
+import type { RecordedLesson } from '@/types';
+
+const masjidMarkUri = Image.resolveAssetSource(require('@/assets/images/Masjid-Logo-App.png')).uri;
 
 export default function LiveLessonScreen() {
   const { effectiveScheme } = useTheme();
@@ -41,9 +58,56 @@ export default function LiveLessonScreen() {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const webViewRef = useRef<WebView>(null);
   const [webViewError, setWebViewError] = useState(false);
-  const { isLive, isLoading } = useLiveLesson();
+  const { isLive, isLoading, streamUrl, broadcastTitle } = useLiveLesson();
+  const { currentTrack, isPlaying, play, pause } = useAudio();
+  const reducedMotion = useReducedMotion();
 
   const goldColor = isDark ? palette.divineGoldBright : palette.divineGold;
+
+  // Wrap the live stream URL in the same RecordedLesson shape AudioProvider
+  // already consumes — keeps the engine and lock-screen wiring uniform.
+  // durationSeconds=0 signals "live" so the player UI hides scrub/seek.
+  const liveTrack: RecordedLesson | null = useMemo(() => {
+    if (!streamUrl) return null;
+    return {
+      id: `live-mixlr-${broadcastTitle || 'broadcast'}`,
+      title: broadcastTitle || 'Live broadcast',
+      speaker: 'The Salafi Masjid',
+      publishedAt: new Date().toISOString(),
+      durationSeconds: 0,
+      summary: '',
+      audioUrl: streamUrl,
+      artworkUrl: masjidMarkUri,
+      externalUrl: MIXLR_CHANNEL_URL,
+    };
+  }, [streamUrl, broadcastTitle]);
+
+  // Breathing gold halo for the live state — mirrors the LiveLessonBanner
+  // motion so the cross-surface vocabulary stays consistent.
+  const haloOpacity = useSharedValue(reducedMotion ? 0.45 : 0.3);
+  useEffect(() => {
+    if (reducedMotion) return;
+    haloOpacity.value = withRepeat(
+      withTiming(0.7, { duration: 1800, easing: Easing.inOut(Easing.sin) }),
+      -1,
+      true,
+    );
+  }, [haloOpacity, reducedMotion]);
+  const haloStyle = useAnimatedStyle(() => ({ opacity: haloOpacity.value }));
+
+  const isLivePlayingThisTrack = liveTrack !== null
+    && currentTrack?.id === liveTrack.id
+    && isPlaying;
+
+  const handleLivePlayToggle = () => {
+    if (!liveTrack) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (isLivePlayingThisTrack) {
+      pause();
+    } else {
+      play(liveTrack);
+    }
+  };
 
   const handleClose = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -148,7 +212,70 @@ export default function LiveLessonScreen() {
         entering={FadeIn.delay(100).duration(400)}
         style={[styles.playerContainer, { paddingBottom: insets.bottom + spacing.lg }]}
       >
-        {isLive ? (
+        {isLive && liveTrack ? (
+          // ── Native player path ────────────────────────────────────
+          // Used when Mixlr exposes a public stream URL. AudioProvider
+          // streams it directly with lock-screen / control-center
+          // bindings. No Mixlr UI inside the app.
+          <View style={styles.notLiveContainer}>
+            <View style={styles.haloWrapper}>
+              <Animated.View
+                style={[
+                  styles.halo,
+                  { backgroundColor: goldColor, shadowColor: goldColor },
+                  haloStyle,
+                ]}
+                pointerEvents="none"
+              />
+              <Image
+                source={{ uri: masjidMarkUri }}
+                style={styles.notLiveMark}
+                resizeMode="contain"
+                accessibilityLabel={t('prayer.mosqueName')}
+              />
+            </View>
+
+            <View style={styles.liveBadgeRow}>
+              <View style={[styles.liveBadgeDot, { backgroundColor: goldColor }]} />
+              <Text style={[styles.headerLiveLabel, { color: goldColor }]}>
+                {t('liveLesson.live')}
+              </Text>
+            </View>
+
+            <Text
+              style={[typography.title2, { color: colors.text, textAlign: 'center', marginTop: spacing.xs }]}
+              numberOfLines={2}
+            >
+              {broadcastTitle || t('liveLesson.title')}
+            </Text>
+            <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.xs }]}>
+              {t('liveLesson.fromMasjid')}
+            </Text>
+
+            <Pressable
+              onPress={handleLivePlayToggle}
+              style={({ pressed }) => [
+                styles.livePlayButton,
+                { backgroundColor: goldColor },
+                pressed && { opacity: 0.85 },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={isLivePlayingThisTrack ? t('lessons.pause') : t('liveLesson.listenNow')}
+            >
+              <Ionicons
+                name={isLivePlayingThisTrack ? 'pause' : 'play'}
+                size={40}
+                color={palette.white}
+                style={isLivePlayingThisTrack ? undefined : styles.livePlayIconNudge}
+              />
+            </Pressable>
+          </View>
+        ) : isLive ? (
+          // ── Mixlr embed fallback ──────────────────────────────────
+          // Used until Salafi Publications enables Live Stream URL in
+          // their Mixlr Creators dashboard. Once they flip the toggle
+          // and the API returns a streamUrl, the branch above kicks in
+          // automatically on the next 30s poll — no deploy needed.
           <>
             {/* Branding (live) */}
             <View style={styles.brandingSection}>
@@ -353,5 +480,44 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderRadius: borderRadius.sm,
     borderWidth: 1,
+  },
+  haloWrapper: {
+    width: 180,
+    height: 180,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
+  },
+  halo: {
+    position: 'absolute',
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 36,
+    elevation: 12,
+  },
+  liveBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginBottom: spacing.xs,
+  },
+  liveBadgeDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  livePlayButton: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: spacing['3xl'],
+  },
+  livePlayIconNudge: {
+    marginLeft: 4,
   },
 });
