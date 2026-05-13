@@ -25,7 +25,6 @@ import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { LinearGradient } from 'expo-linear-gradient';
-import { isTomorrow, isYesterday, format as formatDate } from 'date-fns';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -348,35 +347,18 @@ export default function PrayerTimesScreen() {
           ]}
           {...panResponder.panHandlers}
         >
-          <View style={styles.timetableHeader} accessibilityRole="header">
+          <View style={styles.timetableHeader}>
             <View style={{ flex: 1 }}>
-              <Text
-                style={[
-                  typography.sectionHeader,
-                  { color: colors.textSecondary },
-                ]}
-                accessibilityRole="header"
-              >
-                {/* Today gets a named label; any other day shows the
-                    short date ("FRI 17 APR"). Previously "Tomorrow"
-                    and "Yesterday" were named too but user preferred
-                    just the date — less redundant with the date-
-                    navigator header above, which already says "Today"
-                    in pill form when relevant. */}
-                {isToday
-                  ? t('prayer.todaySchedule')
-                  : formatDate(selectedDate, 'EEE d MMM')}
-              </Text>
-              <Text style={[
-                typography.caption2,
-                { color: isEstimated ? colors.info : jamaahAvailable ? colors.success : colors.textTertiary },
-              ]}>
-                {isEstimated
-                  ? t('prayer.estimatedTimes')
-                  : jamaahAvailable
-                    ? t('prayer.mosqueTimes')
+              {(isEstimated || !jamaahAvailable) && (
+                <Text style={[
+                  typography.caption2,
+                  { color: isEstimated ? colors.info : colors.textTertiary },
+                ]}>
+                  {isEstimated
+                    ? t('prayer.estimatedTimes')
                     : t('prayer.calculatedTimes')}
-              </Text>
+                </Text>
+              )}
             </View>
             <Pressable
               onPress={handleSharePrayerTimes}
