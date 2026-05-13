@@ -1172,7 +1172,7 @@ def stripe_webhook(request):
         defaults={
             "event_type": event_type,
             "processed": False,
-            "payload": _safe_serialize_stripe_payload(event, payload),
+            "payload": _redact_pii(_safe_serialize_stripe_payload(event, payload)),
         },
     )
 
@@ -1217,6 +1217,53 @@ def stripe_webhook(request):
         )
 
     return Response({"detail": "Webhook processed."}, status=status.HTTP_200_OK)
+
+
+# PII keys masked in StripeEvent.payload before storage. The Donation table
+# remains the canonical donor record (it's what Gift Aid filing reads from);
+# StripeEvent.payload is audit-only and doesn't need a second PII copy.
+#
+# Conservative on known field names. Stripe adds new fields occasionally —
+# extend this set when you spot one. Worst case is a missed redaction in
+# audit data, not exposure of primary records.
+_STRIPE_PAYLOAD_PII_KEYS = frozenset({
+    "address",
+    "billing_address",
+    "billing_details",
+    "customer_address",
+    "customer_details",
+    "customer_email",
+    "customer_name",
+    "customer_phone",
+    "email",
+    "name",
+    "phone",
+    "receipt_email",
+    "shipping",
+    "shipping_details",
+})
+
+
+def _redact_pii(payload):
+    """Recursively mask PII values inside a Stripe event payload.
+
+    Keys in :data:`_STRIPE_PAYLOAD_PII_KEYS` have their values replaced with
+    the literal string ``"[redacted]"`` — the key itself is preserved so
+    debugging code can still see the field was present. All other keys
+    (object IDs, amounts, currency, status, metadata, timestamps) are
+    untouched and remain useful for triaging webhook issues.
+
+    Non-dict / non-list values are returned unchanged. Walks lists so
+    nested objects (e.g. line_items) are also redacted.
+    """
+    if isinstance(payload, dict):
+        return {
+            key: "[redacted]" if key in _STRIPE_PAYLOAD_PII_KEYS else _redact_pii(value)
+            for key, value in payload.items()
+        }
+    if isinstance(payload, list):
+        return [_redact_pii(item) for item in payload]
+    return payload
 
 
 def _safe_event_field(event, key, default=None):
