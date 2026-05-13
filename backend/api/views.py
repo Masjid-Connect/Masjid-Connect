@@ -1172,7 +1172,7 @@ def stripe_webhook(request):
         defaults={
             "event_type": event_type,
             "processed": False,
-            "payload": event["data"],
+            "payload": _safe_serialize_stripe_payload(event, payload),
         },
     )
 
@@ -1217,6 +1217,54 @@ def stripe_webhook(request):
         )
 
     return Response({"detail": "Webhook processed."}, status=status.HTTP_200_OK)
+
+
+def _safe_serialize_stripe_payload(event, raw_body: bytes) -> dict:
+    """Convert the event's ``data`` field to a JSON-serializable dict.
+
+    Why this exists: ``stripe.Webhook.construct_event`` returns a
+    ``stripe.Event`` whose ``["data"]`` is a ``stripe.StripeObject``, not a
+    plain dict. Passing it to a JSONField causes ``json.dumps`` to raise
+    ``TypeError: Object of type Data is not JSON serializable`` — the cause
+    of the 447-event webhook outage 2026-05-09 → 2026-05-13.
+
+    Three-tier fallback so a future SDK or event-shape change can never
+    crash the webhook (Sentry hears about every fallback path):
+
+    1. Preferred: ``StripeObject.to_dict_recursive()`` — the canonical
+       conversion in stripe-python.
+    2. Fallback: parse the raw signed request body and pluck ``data``.
+       This is what Stripe sent on the wire; nothing more faithful.
+    3. Last resort: a minimal stub keyed by event type. The audit row
+       still gets created (so idempotency holds), and the donation
+       handler still runs.
+    """
+    import json
+
+    data = event.get("data") if hasattr(event, "get") else None
+
+    if data is not None and hasattr(data, "to_dict_recursive"):
+        try:
+            return data.to_dict_recursive()
+        except Exception:
+            logger.exception(
+                "Stripe webhook: to_dict_recursive failed for event %s",
+                event.get("id") if hasattr(event, "get") else None,
+            )
+
+    try:
+        parsed = json.loads(raw_body.decode("utf-8"))
+        return parsed.get("data") or {}
+    except Exception:
+        logger.exception(
+            "Stripe webhook: raw body parse failed for event %s",
+            event.get("id") if hasattr(event, "get") else None,
+        )
+
+    return {
+        "_unserializable": True,
+        "event_type": event.get("type", "") if hasattr(event, "get") else "",
+    }
 
 
 def _is_masjid_donation_metadata(metadata: dict) -> bool:
