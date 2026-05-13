@@ -1219,51 +1219,72 @@ def stripe_webhook(request):
     return Response({"detail": "Webhook processed."}, status=status.HTTP_200_OK)
 
 
+def _safe_event_field(event, key, default=None):
+    """Subscript-style read that works on both dicts and ``StripeObject``.
+
+    stripe-python 15.x's ``StripeObject`` does NOT expose ``.get()`` like a
+    dict — calling it raises ``AttributeError``. Subscript access works on
+    both, so we use that uniformly and catch the failure modes.
+    """
+    try:
+        return event[key]
+    except (KeyError, TypeError, AttributeError):
+        return default
+
+
 def _safe_serialize_stripe_payload(event, raw_body: bytes) -> dict:
     """Convert the event's ``data`` field to a JSON-serializable dict.
 
     Why this exists: ``stripe.Webhook.construct_event`` returns a
     ``stripe.Event`` whose ``["data"]`` is a ``stripe.StripeObject``, not a
-    plain dict. Passing it to a JSONField causes ``json.dumps`` to raise
+    plain dict. Passing it to a JSONField raises
     ``TypeError: Object of type Data is not JSON serializable`` — the cause
     of the 447-event webhook outage 2026-05-09 → 2026-05-13.
 
-    Three-tier fallback so a future SDK or event-shape change can never
-    crash the webhook (Sentry hears about every fallback path):
+    Source of truth is the raw signed request body. We deliberately do NOT
+    rely on ``to_dict_recursive`` here — it was renamed to a private
+    ``_to_dict_recursive`` in stripe-python 15.x and would have set us up
+    for another silent break on the next SDK bump. The body Stripe signed
+    is already valid JSON (signature verification proved it before we got
+    here), so json-loading it is both faster and more faithful.
 
-    1. Preferred: ``StripeObject.to_dict_recursive()`` — the canonical
-       conversion in stripe-python.
-    2. Fallback: parse the raw signed request body and pluck ``data``.
-       This is what Stripe sent on the wire; nothing more faithful.
-    3. Last resort: a minimal stub keyed by event type. The audit row
-       still gets created (so idempotency holds), and the donation
-       handler still runs.
+    Three tiers, every fallback logged to Sentry:
+
+    1. Parse the raw signed body, return its ``data`` field. Always wins
+       in production.
+    2. ``json.loads(str(event["data"]))`` — ``StripeObject.__str__``
+       returns JSON across every stripe-python major. Defensive only.
+    3. Stub keyed by event type. The audit row still gets written so the
+       handler keeps running.
     """
     import json
 
-    data = event.get("data") if hasattr(event, "get") else None
-
-    if data is not None and hasattr(data, "to_dict_recursive"):
-        try:
-            return data.to_dict_recursive()
-        except Exception:
-            logger.exception(
-                "Stripe webhook: to_dict_recursive failed for event %s",
-                event.get("id") if hasattr(event, "get") else None,
-            )
+    event_id = _safe_event_field(event, "id")
 
     try:
         parsed = json.loads(raw_body.decode("utf-8"))
-        return parsed.get("data") or {}
+        data = parsed.get("data")
+        if isinstance(data, dict):
+            return data
     except Exception:
         logger.exception(
-            "Stripe webhook: raw body parse failed for event %s",
-            event.get("id") if hasattr(event, "get") else None,
+            "Stripe webhook: raw body parse failed for event %s", event_id,
         )
+
+    sdk_data = _safe_event_field(event, "data")
+    if sdk_data is not None:
+        try:
+            result = json.loads(str(sdk_data))
+            if isinstance(result, dict):
+                return result
+        except Exception:
+            logger.exception(
+                "Stripe webhook: SDK str() conversion failed for event %s", event_id,
+            )
 
     return {
         "_unserializable": True,
-        "event_type": event.get("type", "") if hasattr(event, "get") else "",
+        "event_type": _safe_event_field(event, "type", "") or "",
     }
 
 
