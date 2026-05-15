@@ -5,8 +5,6 @@ import {
   View,
   Text,
   Pressable,
-  Share,
-  LayoutChangeEvent,
   useWindowDimensions,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -16,7 +14,6 @@ import Animated, {
   useAnimatedStyle,
   interpolate,
   Extrapolation,
-  withSpring,
   FadeIn,
   FadeOut,
 } from 'react-native-reanimated';
@@ -24,16 +21,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 
-import { getColors, getAlpha, palette } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, fontWeight, springs, getElevation, hairline } from '@/constants/Theme';
+import { spacing, typography, hairline } from '@/constants/Theme';
 import { layout } from '@/lib/layoutGrid';
 import { AnnouncementsContent } from '@/components/community/AnnouncementsContent';
 import { EventsContent } from '@/components/community/EventsContent';
 import { LiveContent } from '@/components/community/LiveContent';
 import { LessonsContent } from '@/components/community/LessonsContent';
 import { LiveLessonBanner } from '@/components/community/LiveLessonBanner';
-import { GoldBadge } from '@/components/brand/GoldBadge';
+import { CommunityCard } from '@/components/community/CommunityCard';
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { AdminFAB, QuickPostSheet, EventWizardSheet } from '@/components/admin';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
@@ -45,32 +42,41 @@ import { resolveCommunitySegment, type CommunitySegment } from '@/lib/community-
 const HEADER_HEIGHT = 44;
 const LARGE_TITLE_HEIGHT = 52;
 
+/** Tab-internal mode: the 2×2 grid landing, or one of the four sub-segments
+ *  drilled into. Drill-in is local state, not stack navigation, so back
+ *  navigation stays tab-internal (chevron in the header) and deep links
+ *  from push notifications continue to land via the `segment` search param. */
+type CommunityMode = CommunitySegment | 'grid';
+
+const SEGMENT_LABEL_KEY: Record<CommunitySegment, string> = {
+  events: 'community.events',
+  announcements: 'community.announcements',
+  live: 'community.live',
+  lessons: 'community.lessons',
+};
+
 export default function CommunityScreen() {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
-  const alphaColors = getAlpha(effectiveScheme);
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-  // Deep-link support: a `segment` search param preselects the sub-tab.
-  // Push notifications (announcement/event) use this to route via app/_layout.tsx.
+
+  // Deep-link support: a `segment` search param drills straight into the
+  // sub-segment; absence (or any unrecognised value) lands on the grid.
+  // Push notifications use this via app/_layout.tsx.
   const params = useLocalSearchParams<{ segment?: string }>();
-  const [activeSegment, setActiveSegment] = useState<CommunitySegment>(() =>
-    resolveCommunitySegment(params.segment),
+  const [mode, setMode] = useState<CommunityMode>(
+    () => resolveCommunitySegment(params.segment) ?? 'grid',
   );
 
   // React to param changes when the tab is already mounted (e.g. user taps a
   // second notification without the screen unmounting).
   useEffect(() => {
-    if (
-      params.segment === 'announcements' ||
-      params.segment === 'events' ||
-      params.segment === 'live' ||
-      params.segment === 'lessons'
-    ) {
-      setActiveSegment(params.segment);
-    }
+    const resolved = resolveCommunitySegment(params.segment);
+    if (resolved) setMode(resolved);
   }, [params.segment]);
+
   const { announcements, refresh: refreshAnnouncements } = useAnnouncements();
   const { unreadCount } = useReadAnnouncements();
   const announcementUnreadCount = unreadCount(announcements.map((a) => a.id));
@@ -109,76 +115,133 @@ export default function CommunityScreen() {
 
   const isDark = effectiveScheme === 'dark';
 
-  // ─── Animated segment indicator ─────────────────────────────
-  const segmentIndicatorX = useSharedValue(0);
-  const segmentWidth = useSharedValue(0);
-  const SEGMENT_PADDING = 2;
-  const SEGMENT_COUNT = 4;
+  // ─── Sub-segment drill-in / back-out ───────────────────────────
+  const drillInto = useCallback((segment: CommunitySegment) => {
+    setMode(segment);
+    // Reset scroll position so the large title is visible on entry.
+    scrollY.value = 0;
+  }, [scrollY]);
 
-  /** Convert a segment name to its zero-based slot index. */
-  const segmentIndex = (segment: CommunitySegment): number => {
-    if (segment === 'live') return 0;
-    if (segment === 'lessons') return 1;
-    if (segment === 'events') return 2;
-    return 3; // announcements
+  const backToGrid = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setMode('grid');
+    scrollY.value = 0;
+  }, [scrollY]);
+
+  // ─── Grid mode body ────────────────────────────────────────────
+  const renderGrid = () => (
+    <Animated.View
+      style={styles.gridContainer}
+      entering={FadeIn.duration(200)}
+      exiting={FadeOut.duration(100)}
+    >
+      <View style={styles.gridRow}>
+        <CommunityCard
+          icon="calendar-outline"
+          title={t('community.events')}
+          subtitle={t('community.eventsCardEmpty')}
+          onPress={() => drillInto('events')}
+          accessibilityLabel={t('community.events')}
+        />
+        <View style={styles.gridGap} />
+        <CommunityCard
+          icon="megaphone-outline"
+          title={t('community.announcements')}
+          subtitle={t('community.announcementsCardEmpty')}
+          badge={
+            announcementUnreadCount > 0
+              ? { kind: 'count', count: announcementUnreadCount }
+              : { kind: 'none' }
+          }
+          onPress={() => drillInto('announcements')}
+          accessibilityLabel={t('community.announcements')}
+        />
+      </View>
+      <View style={styles.gridRowGap} />
+      <View style={styles.gridRow}>
+        <CommunityCard
+          icon="radio-outline"
+          title={t('community.live')}
+          subtitle={isLive ? t('community.liveCardOnAir') : t('community.liveCardOffAir')}
+          badge={isLive ? { kind: 'pulse' } : { kind: 'none' }}
+          onPress={() => drillInto('live')}
+          accessibilityLabel={t('community.live')}
+        />
+        <View style={styles.gridGap} />
+        <CommunityCard
+          icon="musical-notes-outline"
+          title={t('community.lessons')}
+          subtitle={t('community.lessonsCardSubtitle')}
+          onPress={() => drillInto('lessons')}
+          accessibilityLabel={t('community.lessons')}
+        />
+      </View>
+    </Animated.View>
+  );
+
+  // ─── Sub-segment body ──────────────────────────────────────────
+  const renderSegmentContent = () => {
+    switch (mode) {
+      case 'live':
+        return <LiveContent />;
+      case 'lessons':
+        return <LessonsContent />;
+      case 'events':
+        return <EventsContent onScroll={onScroll} />;
+      case 'announcements':
+        return <AnnouncementsContent onScroll={onScroll} />;
+      default:
+        return null;
+    }
   };
 
-  const handleSegmentLayout = useCallback((event: LayoutChangeEvent) => {
-    const width = event.nativeEvent.layout.width;
-    const slot = (width - SEGMENT_PADDING * 2) / SEGMENT_COUNT;
-    segmentWidth.value = slot;
-    // Set initial position without animation
-    segmentIndicatorX.value = segmentIndex(activeSegment) * slot;
-  }, [activeSegment, segmentIndicatorX, segmentWidth]);
-
-  const indicatorStyle = useAnimatedStyle(() => ({
-    width: segmentWidth.value,
-    transform: [{ translateX: segmentIndicatorX.value }],
-  }));
-
-  const handleSegmentChange = useCallback((segment: CommunitySegment) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setActiveSegment(segment);
-    segmentIndicatorX.value = withSpring(
-      segmentIndex(segment) * segmentWidth.value,
-      springs.snappy,
-    );
-  }, [segmentIndicatorX, segmentWidth]);
-
-  const handleShareReward = useCallback(async () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    try {
-      await Share.share({
-        message: t('community.shareMessage'),
-      });
-    } catch {
-      // Share cancelled or failed — no action needed
-    }
-  }, [t]);
+  // ─── Title text for the inline header + large title ─────────────
+  const titleText =
+    mode === 'grid'
+      ? t('community.title')
+      : t(SEGMENT_LABEL_KEY[mode]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Subtle Islamic pattern — sacred identity */}
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        <IslamicPattern width={windowWidth} height={windowHeight} opacity={isDark ? 0.04 : 0.05} color={isDark ? palette.divineGoldBright : palette.sapphire700} />
+        <IslamicPattern
+          width={windowWidth}
+          height={windowHeight}
+          opacity={isDark ? 0.04 : 0.05}
+          color={isDark ? palette.divineGoldBright : palette.sapphire700}
+        />
       </View>
 
-      {/* Inline header — appears when large title scrolls away */}
-      <View style={[styles.inlineHeader, { paddingTop: insets.top, height: insets.top + HEADER_HEIGHT, backgroundColor: colors.background }]}>
+      {/* Inline header — back chevron in sub-segments, plain title in grid */}
+      <View
+        style={[
+          styles.inlineHeader,
+          { paddingTop: insets.top, height: insets.top + HEADER_HEIGHT, backgroundColor: colors.background },
+        ]}
+      >
+        {mode !== 'grid' && (
+          <Pressable
+            style={styles.backButton}
+            onPress={backToGrid}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={t('community.back')}
+          >
+            <Ionicons name="chevron-back" size={26} color={colors.text} />
+          </Pressable>
+        )}
         <Animated.Text
           style={[
             typography.headline,
             { color: colors.text, textAlign: 'center' },
             inlineHeaderOpacity,
-          ]}>
-          {t('community.title')}
+          ]}
+        >
+          {titleText}
         </Animated.Text>
         <Animated.View
-          style={[
-            styles.headerSeparator,
-            { backgroundColor: colors.separator },
-            inlineHeaderOpacity,
-          ]}
+          style={[styles.headerSeparator, { backgroundColor: colors.separator }, inlineHeaderOpacity]}
         />
       </View>
 
@@ -196,165 +259,26 @@ export default function CommunityScreen() {
       >
         {/* Large title */}
         <Animated.View style={[styles.largeTitleContainer, largeTitleStyle]}>
-          <Text style={[typography.largeTitle, { color: colors.text }]}>
-            {t('community.title')}
-          </Text>
+          <Text style={[typography.largeTitle, { color: colors.text }]}>{titleText}</Text>
         </Animated.View>
 
-        {/* Live lesson banner — appears at the top when a Mixlr broadcast
-            is active, except on the Live segment itself (which surfaces
-            the same banner inside its content; avoid duplication). */}
-        {isLive && activeSegment !== 'live' && <LiveLessonBanner broadcastTitle={broadcastTitle} />}
+        {/* Live banner — surfaced on the grid and on any non-Live sub-segment.
+            The Live sub-segment renders its own banner inside LiveContent, so
+            we suppress it there to avoid duplication. */}
+        {isLive && mode !== 'live' && <LiveLessonBanner broadcastTitle={broadcastTitle} />}
 
-        {/* Segmented control with spring-animated sliding indicator */}
-        <View style={[styles.segmentContainer, { paddingHorizontal: spacing['3xl'] }]}>
-          <View
-            style={[styles.segmentControl, { backgroundColor: colors.backgroundGrouped }]}
-            onLayout={handleSegmentLayout}
+        {/* Body — grid or sub-segment */}
+        {mode === 'grid' ? (
+          renderGrid()
+        ) : (
+          <Animated.View
+            style={styles.segmentContent}
+            entering={FadeIn.duration(200)}
+            exiting={FadeOut.duration(100)}
           >
-            {/* Animated sliding indicator */}
-            <Animated.View
-              style={[
-                styles.segmentIndicator,
-                { backgroundColor: colors.card, ...getElevation('sm', isDark) },
-                indicatorStyle,
-              ]}
-            />
-
-            {/* Live tab — surfaces the live broadcast (or its absence) */}
-            <Pressable
-              style={styles.segmentButton}
-              onPress={() => handleSegmentChange('live')}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: activeSegment === 'live' }}
-              accessibilityLabel={t('community.live')}
-            >
-              <View style={styles.segmentLabelRow}>
-                <Text
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.85}
-                  style={[
-                    typography.subhead,
-                    {
-                      color: activeSegment === 'live' ? colors.text : colors.textSecondary,
-                      fontWeight: activeSegment === 'live' ? fontWeight.semibold : fontWeight.regular,
-                    },
-                  ]}>
-                  {t('community.live')}
-                </Text>
-                {isLive && (
-                  <View style={[
-                    styles.liveDot,
-                    { backgroundColor: isDark ? palette.divineGoldBright : palette.divineGold },
-                  ]} />
-                )}
-              </View>
-            </Pressable>
-
-            {/* Lessons tab — recorded archive (Salafi Publications SoundCloud feed) */}
-            <Pressable
-              style={styles.segmentButton}
-              onPress={() => handleSegmentChange('lessons')}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: activeSegment === 'lessons' }}
-              accessibilityLabel={t('community.lessons')}
-            >
-              <Text
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.85}
-                style={[
-                  typography.subhead,
-                  {
-                    color: activeSegment === 'lessons' ? colors.text : colors.textSecondary,
-                    fontWeight: activeSegment === 'lessons' ? fontWeight.semibold : fontWeight.regular,
-                  },
-                ]}>
-                {t('community.lessons')}
-              </Text>
-            </Pressable>
-
-            {/* Events tab */}
-            <Pressable
-              style={styles.segmentButton}
-              onPress={() => handleSegmentChange('events')}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: activeSegment === 'events' }}
-              accessibilityLabel={t('community.events')}
-            >
-              <Text
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.85}
-                style={[
-                  typography.subhead,
-                  {
-                    color: activeSegment === 'events' ? colors.text : colors.textSecondary,
-                    fontWeight: activeSegment === 'events' ? fontWeight.semibold : fontWeight.regular,
-                  },
-                ]}>
-                {t('community.events')}
-              </Text>
-            </Pressable>
-
-            {/* Announcements tab */}
-            <Pressable
-              style={styles.segmentButton}
-              onPress={() => handleSegmentChange('announcements')}
-              accessibilityRole="tab"
-              accessibilityState={{ selected: activeSegment === 'announcements' }}
-              accessibilityLabel={`${t('community.announcements')}${announcementUnreadCount > 0 ? `, ${announcementUnreadCount} ${t('announcements.unread')}` : ''}`}
-            >
-              <View style={styles.segmentLabelRow}>
-                <Text
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.85}
-                  style={[
-                    typography.subhead,
-                    {
-                      color: activeSegment === 'announcements' ? colors.text : colors.textSecondary,
-                      fontWeight: activeSegment === 'announcements' ? fontWeight.semibold : fontWeight.regular,
-                    },
-                  ]}>
-                  {t('community.announcements')}
-                </Text>
-                {announcementUnreadCount > 0 && (
-                  <GoldBadge count={announcementUnreadCount} size={16} style={{ marginStart: spacing.xs }} />
-                )}
-              </View>
-            </Pressable>
-          </View>
-        </View>
-
-        {/* Segment content with crossfade */}
-        {activeSegment === 'live' && (
-          <Animated.View style={styles.segmentContent} entering={FadeIn.duration(200)} exiting={FadeOut.duration(100)}>
-            <LiveContent />
+            {renderSegmentContent()}
           </Animated.View>
         )}
-        {activeSegment === 'lessons' && (
-          <Animated.View style={styles.segmentContent} entering={FadeIn.duration(200)} exiting={FadeOut.duration(100)}>
-            <LessonsContent />
-          </Animated.View>
-        )}
-        {activeSegment === 'events' && (
-          <Animated.View style={styles.segmentContent} entering={FadeIn.duration(200)} exiting={FadeOut.duration(100)}>
-            <EventsContent onScroll={onScroll} />
-          </Animated.View>
-        )}
-        {activeSegment === 'announcements' && (
-          <Animated.View style={styles.segmentContent} entering={FadeIn.duration(200)} exiting={FadeOut.duration(100)}>
-            <AnnouncementsContent onScroll={onScroll} />
-          </Animated.View>
-        )}
-
-        {/* Share the App CTA removed from Community tab 2026-04-16
-            per user feedback — lives in Settings (shareApp row) only.
-            Community tab should be about content (announcements/events),
-            not cross-promotion. handleShareReward + styles.shareCard
-            kept in case we need to restore. */}
       </View>
 
       {/* Admin FAB — only visible to mosque administrators */}
@@ -401,6 +325,14 @@ const styles = StyleSheet.create({
     right: 0,
     height: hairline,
   },
+  backButton: {
+    position: 'absolute',
+    left: spacing.lg,
+    bottom: 0,
+    height: HEADER_HEIGHT,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.xs,
+  },
   contentArea: {
     flex: 1,
   },
@@ -409,53 +341,21 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     paddingBottom: spacing.xs,
   },
-  segmentContainer: {
-    paddingVertical: spacing.md,
+  gridContainer: {
+    paddingHorizontal: spacing['3xl'],
+    paddingTop: spacing.lg,
   },
-  segmentControl: {
+  gridRow: {
     flexDirection: 'row',
-    borderRadius: borderRadius.sm,
-    padding: 2,
+    alignItems: 'stretch',
   },
-  segmentIndicator: {
-    position: 'absolute',
-    top: 2,
-    left: 2,
-    bottom: 2,
-    borderRadius: borderRadius.sm - 2,
+  gridGap: {
+    width: spacing.md,
   },
-  segmentButton: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.sm - 2,
-  },
-  segmentLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginStart: spacing.xs,
+  gridRowGap: {
+    height: spacing.md,
   },
   segmentContent: {
-    flex: 1,
-  },
-  shareCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: spacing['3xl'],
-    marginTop: spacing.lg,
-    marginBottom: spacing.xl,
-    padding: spacing.lg,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    gap: spacing.md,
-  },
-  shareTextCol: {
     flex: 1,
   },
 });

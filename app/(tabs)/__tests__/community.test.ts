@@ -17,17 +17,17 @@ describe('resolveCommunitySegment', () => {
     expect(resolveCommunitySegment('lessons')).toBe('lessons');
   });
 
-  it('defaults to "lessons" when the param is undefined', () => {
-    expect(resolveCommunitySegment(undefined)).toBe('lessons');
+  it('returns null when the param is undefined (grid landing)', () => {
+    expect(resolveCommunitySegment(undefined)).toBeNull();
   });
 
-  it('defaults to "lessons" when the param is an empty string', () => {
-    expect(resolveCommunitySegment('')).toBe('lessons');
+  it('returns null when the param is an empty string', () => {
+    expect(resolveCommunitySegment('')).toBeNull();
   });
 
-  it('defaults to "lessons" for any unrecognised value', () => {
-    expect(resolveCommunitySegment('foo')).toBe('lessons');
-    expect(resolveCommunitySegment('EVENTS')).toBe('lessons'); // case-sensitive
-    expect(resolveCommunitySegment('events ')).toBe('lessons'); // whitespace rejected
+  it('returns null for any unrecognised value', () => {
+    expect(resolveCommunitySegment('foo')).toBeNull();
+    expect(resolveCommunitySegment('EVENTS')).toBeNull(); // case-sensitive
+    expect(resolveCommunitySegment('events ')).toBeNull(); // whitespace rejected
   });
 });
