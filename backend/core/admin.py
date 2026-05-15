@@ -113,8 +113,11 @@ class AnnouncementAdmin(_MosqueAutoPopulateMixin, ModelAdmin):
 
 @admin.register(Event)
 class EventAdmin(_MosqueAutoPopulateMixin, ModelAdmin):
-    list_display = ["title", "mosque", "category", "event_date", "start_time", "recurring"]
-    list_filter = ["category", "recurring", "mosque"]
+    list_display = [
+        "title", "mosque", "category", "event_date", "start_time",
+        "recurring", "is_broadcast_live",
+    ]
+    list_filter = ["category", "recurring", "is_broadcast_live", "mosque"]
     search_fields = ["title", "speaker", "description"]
     date_hierarchy = "event_date"
     save_on_top = True
@@ -128,6 +131,14 @@ class EventAdmin(_MosqueAutoPopulateMixin, ModelAdmin):
             "description": (
                 "Set the date and time. For recurring events, set the date of the "
                 "first occurrence and choose weekly or monthly."
+            ),
+        }),
+        ("Broadcast & Poster", {
+            "fields": ("is_broadcast_live", "poster_image"),
+            "description": (
+                "Tick 'Broadcast live' if this event is streamed on Mixlr — the app "
+                "will show a gold LIVE pill when the broadcast is active. Upload a "
+                "poster (optional) to give the event a visual identity in the list."
             ),
         }),
         ("Details", {

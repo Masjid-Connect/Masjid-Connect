@@ -17,8 +17,9 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { format } from 'date-fns';
 import { Calendar, DateData } from 'react-native-calendars';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, borderRadius, typography, components, fontWeight, hairline } from '@/constants/Theme';
 import { useEvents } from '@/hooks/useEvents';
@@ -36,11 +37,12 @@ interface EventsContentProps {
   onScroll?: ReturnType<typeof import('react-native-reanimated').useAnimatedScrollHandler>;
 }
 
-export const EventsContent = ({ onScroll }: EventsContentProps) => {
+export const EventsContent = ({ onScroll: _onScroll }: EventsContentProps) => {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
   const isDark = effectiveScheme === 'dark';
   const { t } = useTranslation();
+  const router = useRouter();
 
   const CATEGORIES = CATEGORY_KEYS.map((key) => ({
     key,
@@ -112,27 +114,48 @@ export const EventsContent = ({ onScroll }: EventsContentProps) => {
     Linking.openURL(url).catch(() => Alert.alert(t('common.error'), t('common.calendarError')));
   };
 
+  const handleEventPress = (event: MosqueEvent) => {
+    // Live event → deep-link straight into the Mixlr player with the
+    // event id forwarded as a route param so the player can show the
+    // event title. Non-live events open the existing detail sheet.
+    if (event.is_live_now) {
+      router.push({ pathname: '/live-lesson', params: { eventId: event.id } });
+      return;
+    }
+    setDetailEvent(event);
+  };
+
   const renderEvent = ({ item, index }: { item: MosqueEvent; index: number }) => {
     const mosqueName = item.expand?.mosque?.name || '';
     const categoryColors = isDark ? EVENT_CATEGORY_COLORS_DARK : EVENT_CATEGORY_COLORS;
     const categoryColor = categoryColors[item.category] || colors.accent;
     const dateStr = item.event_date.split('T')[0] || item.event_date;
+    const goldAccent = isDark ? palette.divineGoldBright : palette.divineGold;
 
     return (
       <Pressable
-        onPress={() => setDetailEvent(item)}
+        onPress={() => handleEventPress(item)}
         accessibilityRole="button"
-        accessibilityLabel={`${item.title}, ${t(`events.categories.${item.category}`)}, ${format(new Date(dateStr), 'EEE, MMM d')} at ${formatTimeString(item.start_time, use24h)}${mosqueName ? `, ${mosqueName}` : ''}`}
+        accessibilityLabel={`${item.title}${item.is_live_now ? `, ${t('community.live')}` : ''}, ${t(`events.categories.${item.category}`)}, ${format(new Date(dateStr), 'EEE, MMM d')} at ${formatTimeString(item.start_time, use24h)}${mosqueName ? `, ${mosqueName}` : ''}`}
       >
         <Animated.View
           entering={FadeInDown.delay(Math.min(index * 50, 300)).duration(350).springify()}
         >
           <Card variant="elevated" elevation="sm" style={styles.eventCard}>
-            <View style={[styles.categoryAccent, { backgroundColor: categoryColor }]} />
+            <View style={[styles.categoryAccent, { backgroundColor: item.is_live_now ? goldAccent : categoryColor }]} />
             <View style={styles.eventContent}>
-              <Text style={[typography.categoryLabel, { color: categoryColor }]}>
-                {t(`events.categories.${item.category}`).toUpperCase()}
-              </Text>
+              <View style={styles.eventTopRow}>
+                <Text style={[typography.categoryLabel, { color: categoryColor, flexShrink: 1 }]} numberOfLines={1}>
+                  {t(`events.categories.${item.category}`).toUpperCase()}
+                </Text>
+                {item.is_live_now && (
+                  <View style={[styles.livePill, { backgroundColor: goldAccent }]}>
+                    <Text style={[typography.caption2, styles.livePillText]}>
+                      {t('liveLesson.live')}
+                    </Text>
+                  </View>
+                )}
+              </View>
               <Text
                 style={[typography.headline, { color: colors.text, marginTop: spacing.xs }]}
                 numberOfLines={2}
@@ -376,6 +399,22 @@ const styles = StyleSheet.create({
   eventContent: {
     flex: 1,
     padding: spacing.lg,
+  },
+  eventTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  livePill: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+    marginStart: spacing.sm,
+  },
+  livePillText: {
+    color: '#000',
+    fontWeight: fontWeight.bold,
+    letterSpacing: 0.6,
   },
   filterRow: {
     flexDirection: 'row',

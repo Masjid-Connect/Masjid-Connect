@@ -176,6 +176,25 @@ class Event(models.Model):
         max_length=20, choices=Category.choices, default=Category.LESSON,
         help_text="Lesson = study circle. Lecture = one-off talk. Youth/Sisters = targeted audience. Community = general.",
     )
+    is_broadcast_live = models.BooleanField(
+        default=False,
+        help_text=(
+            "Tick if this event will be streamed live on Mixlr. When the Mixlr "
+            "broadcast is active and the current time is inside this event's "
+            "window, the mobile app shows a gold LIVE pill on the event row "
+            "and routes a tap straight to the live player."
+        ),
+    )
+    poster_image = models.ImageField(
+        upload_to="events/posters/%Y/%m/",
+        blank=True,
+        validators=[validate_image_file],
+        help_text=(
+            "Optional poster image for this event (JPEG, PNG, or WebP, max 5 MB). "
+            "Shown as a thumbnail on the event row and at full width on the event "
+            "detail screen."
+        ),
+    )
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

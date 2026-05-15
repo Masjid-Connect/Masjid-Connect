@@ -24,6 +24,7 @@ import { ToastProvider, useToast } from '@/contexts/ToastContext';
 import { AudioProvider } from '@/contexts/AudioProvider';
 import { useVersionCheck } from '@/hooks/useVersionCheck';
 import { reschedulePrayerRemindersForToday, addNotificationReceivedListener, addNotificationResponseListener } from '@/lib/notifications';
+import { isUuid } from '@/lib/uuid';
 import { initSentry, Sentry } from '@/lib/sentry';
 import '@/lib/i18n';
 
@@ -210,7 +211,17 @@ function RootLayoutNav() {
       } else if (data.type === 'event') {
         router.push({ pathname: '/(tabs)/community', params: { segment: 'events' } });
       } else if (data.type === 'live_lesson') {
-        router.push('/live-lesson');
+        // Optional event_id deep-link: forward it to the live player so
+        // the event title can render in the header. Validate strictly —
+        // a push payload is attacker-controllable in principle; the player
+        // still re-checks the id against its own data before rendering
+        // any event-supplied text (Seat 28 hardening, defence in depth).
+        const eventId = (data as Record<string, unknown>).event_id;
+        if (isUuid(eventId)) {
+          router.push({ pathname: '/live-lesson', params: { eventId } });
+        } else {
+          router.push('/live-lesson');
+        }
       }
       // prayer_reminder / prayer_athan → default to home (prayer times tab)
     });

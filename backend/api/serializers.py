@@ -3,6 +3,8 @@
 import re
 
 from django.contrib.auth import get_user_model
+from datetime import datetime, timedelta
+
 from django.utils import timezone
 from django.utils.html import strip_tags
 from rest_framework import serializers
@@ -135,6 +137,8 @@ class AnnouncementSerializer(serializers.ModelSerializer):
 
 class EventSerializer(serializers.ModelSerializer):
     mosque_detail = MosqueListSerializer(source="mosque", read_only=True)
+    is_live_now = serializers.SerializerMethodField()
+    poster_image = serializers.ImageField(read_only=True)
 
     class Meta:
         model = Event
@@ -151,11 +155,21 @@ class EventSerializer(serializers.ModelSerializer):
             "location",
             "recurring",
             "category",
+            "is_broadcast_live",
+            "poster_image",
+            "is_live_now",
             "author",
             "created",
             "updated",
         ]
-        read_only_fields = ["id", "author", "created", "updated"]
+        read_only_fields = [
+            "id",
+            "author",
+            "created",
+            "updated",
+            "poster_image",
+            "is_live_now",
+        ]
 
     def validate_title(self, value):
         return strip_tags(value).strip()
@@ -174,6 +188,50 @@ class EventSerializer(serializers.ModelSerializer):
                 {"end_time": "End time must be after start time."}
             )
         return attrs
+
+    # ── is_live_now ───────────────────────────────────────────────────
+    #
+    # Computed each request, never stored — there is no second source of
+    # truth that can drift out of sync with `MixlrStatus.is_live` or
+    # `Event.is_broadcast_live`. Formula:
+    #
+    #   is_live_now = event.is_broadcast_live
+    #                 AND the mosque's MixlrStatus.is_live
+    #                 AND now() ∈ [start_time - 5min, end_time + 15min]
+    #
+    # The 5-min head and 15-min tail tolerate a broadcaster who clicks
+    # GO LIVE a few minutes early or runs over slightly. Events without
+    # an end_time treat start_time + 90 min as the implicit end.
+    #
+    # If a Mosque has no MixlrStatus row (test fixture, freshly-seeded
+    # DB), the value is False — never True without a confirmed live state.
+
+    LIVE_WINDOW_HEAD = timedelta(minutes=5)
+    LIVE_WINDOW_TAIL = timedelta(minutes=15)
+    DEFAULT_EVENT_DURATION = timedelta(minutes=90)
+
+    def get_is_live_now(self, event: Event) -> bool:
+        if not event.is_broadcast_live:
+            return False
+        mixlr = getattr(event.mosque, "mixlr_status", None)
+        if mixlr is None or not mixlr.is_live:
+            return False
+
+        start_dt = datetime.combine(event.event_date, event.start_time)
+        end_time = event.end_time or (
+            (start_dt + self.DEFAULT_EVENT_DURATION).time()
+        )
+        end_dt = datetime.combine(event.event_date, end_time)
+        if end_dt <= start_dt:
+            # End-time clipped to next day (rare; treat duration as default).
+            end_dt = start_dt + self.DEFAULT_EVENT_DURATION
+
+        current = timezone.localtime().replace(tzinfo=None)
+        return (
+            (start_dt - self.LIVE_WINDOW_HEAD)
+            <= current
+            <= (end_dt + self.LIVE_WINDOW_TAIL)
+        )
 
 
 # ── Subscription ──────────────────────────────────────────────────────

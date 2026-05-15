@@ -566,7 +566,10 @@ class EventViewSet(viewsets.ModelViewSet):
         return []
 
     def get_queryset(self):
-        qs = Event.objects.select_related("mosque", "author")
+        # mosque__mixlr_status pulled into the same query so
+        # EventSerializer.is_live_now doesn't trigger an N+1 lookup per
+        # event when rendering the list (Seat 4 / Seat 11 condition).
+        qs = Event.objects.select_related("mosque", "mosque__mixlr_status", "author")
         mosque_ids = self.request.query_params.get("mosque_ids")
         if mosque_ids:
             ids = _parse_uuid_list(mosque_ids)

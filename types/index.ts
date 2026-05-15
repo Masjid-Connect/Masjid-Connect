@@ -45,6 +45,13 @@ export interface MosqueEvent {
   location: string;
   recurring: null | 'weekly' | 'monthly';
   category: EventCategory;
+  /** Admin flag — this event is streamed on Mixlr when it runs. */
+  is_broadcast_live?: boolean;
+  /** Optional uploaded poster image URL (resolved via MEDIA_URL on the backend). */
+  poster_image?: string | null;
+  /** Computed by the backend serializer on each request — true iff the
+   *  broadcast flag is set, MixlrStatus is live, and now() is in window. */
+  is_live_now?: boolean;
   author: string;
   expand?: {
     mosque?: Mosque;
