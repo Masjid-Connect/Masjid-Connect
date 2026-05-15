@@ -1163,7 +1163,15 @@ def stripe_webhook(request):
         )
 
     event_type = event["type"]
-    data_object = event["data"]["object"]
+
+    # stripe-python 15.x's StripeObject has no `.get()`, so we cannot hand
+    # `event["data"]["object"]` straight to the handlers — they all do dict
+    # `.get(...)` and would raise AttributeError. Parse via the same helper
+    # the audit payload uses (tier-1 reads the signed body, which is plain
+    # JSON), then reuse the result for both writes.
+    serialized_data = _safe_serialize_stripe_payload(event, payload)
+    raw_object = serialized_data.get("object") if isinstance(serialized_data, dict) else None
+    data_object = raw_object if isinstance(raw_object, dict) else None
 
     # Idempotency: record event BEFORE processing to prevent duplicates
     # from concurrent webhook retries. Use get_or_create to handle races.
@@ -1172,13 +1180,28 @@ def stripe_webhook(request):
         defaults={
             "event_type": event_type,
             "processed": False,
-            "payload": _redact_pii(_safe_serialize_stripe_payload(event, payload)),
+            "payload": _redact_pii(serialized_data),
         },
     )
 
     if not created:
         logger.info("Stripe webhook: duplicate event %s, skipping", event["id"])
         return Response({"detail": "Already processed."}, status=status.HTTP_200_OK)
+
+    if data_object is None:
+        # Tier-3 stub from _safe_serialize_stripe_payload — both raw-body
+        # parse and SDK __str__ conversion failed. Audit row is recorded;
+        # nothing to dispatch. 200 stops Stripe from retrying an
+        # unparseable body forever; replay via reconcile_stripe_events.
+        logger.error(
+            "Stripe webhook: event %s has no parseable data.object; "
+            "audit row recorded, handler dispatch skipped",
+            event["id"],
+        )
+        return Response(
+            {"detail": "Payload unserializable; skipped."},
+            status=status.HTTP_200_OK,
+        )
 
     logger.info("Stripe webhook received: %s (%s)", event_type, event["id"])
 
