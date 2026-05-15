@@ -4,3 +4,5 @@ export { LiveContent } from './LiveContent';
 export { LessonsContent } from './LessonsContent';
 export { CommunityCard } from './CommunityCard';
 export type { CommunityCardBadge, CommunityCardProps } from './CommunityCard';
+export { LessonFilterBar } from './LessonFilterBar';
+export type { LessonFilter, LessonFilterBarProps } from './LessonFilterBar';

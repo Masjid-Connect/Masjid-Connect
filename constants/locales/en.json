@@ -206,7 +206,12 @@
   "lessons": {
     "loading": "Loading lessons…",
     "empty": "No lessons yet. Pull down to refresh.",
+    "emptyForSeries": "No lessons in {{series}} yet",
+    "emptyForSearch": "No lessons match \"{{query}}\"",
     "errorTitle": "Unable to load lessons",
+    "filterRecent": "Recent",
+    "searchToggle": "Search lessons",
+    "searchPlaceholder": "Search title or speaker",
     "nowPlaying": "Now playing",
     "paused": "Paused",
     "play": "Play",

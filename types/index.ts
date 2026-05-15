@@ -189,6 +189,12 @@ export interface RecordedLesson {
   artworkUrl: string;
   /** Original SoundCloud page URL — fallback if native player fails */
   externalUrl: string;
+  /**
+   * Series this lesson belongs to, detected from the title prefix
+   * against an allow-list of known series. Null when no allow-listed
+   * series matched — those lessons appear under "Other" / "Recent" only.
+   */
+  series: string | null;
 }
 
 /** Dark mode variants — lighter shades for visibility on dark surfaces */

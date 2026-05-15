@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { parseLessonsFeed } from '../lessons';
+import { detectSeries, parseLessonsFeed } from '../lessons';
 
 const FIXTURE_PATH = path.join(__dirname, '__fixtures__', 'lessons-feed.xml');
 const fixture = fs.readFileSync(FIXTURE_PATH, 'utf8');
@@ -85,5 +85,52 @@ describe('parseLessonsFeed', () => {
       </channel></rss>
     `);
     expect(lessons).toHaveLength(0);
+  });
+
+  it('attaches `series` to parsed lessons (allow-list match)', () => {
+    const lessons = parseLessonsFeed(fixture);
+    const rightsOfHajj = lessons.filter((l) => l.series === 'The Rights of Hajj');
+    expect(rightsOfHajj.length).toBeGreaterThan(0);
+  });
+
+  it('leaves `series` null when the title does not match any known series', () => {
+    const lessons = parseLessonsFeed(fixture);
+    const disputes = lessons.find((l) => l.id === '2317751096');
+    expect(disputes?.series).toBeNull();
+  });
+});
+
+describe('detectSeries', () => {
+  it('returns the canonical series for an exact prefix match', () => {
+    expect(detectSeries("Tafseer al-Sa'di Lesson 14 Surah al-Asr"))
+      .toBe("Tafseer al-Sa'di");
+  });
+
+  it('strips a leading "Lesson N" marker before matching', () => {
+    expect(detectSeries('Lesson 6 The Rights of Hajj By Shaykh Abu Idrees'))
+      .toBe('The Rights of Hajj');
+    expect(detectSeries('Lesson 12 Sharh Usool al-Sittah By Abu Hakeem'))
+      .toBe('Sharh Usool al-Sittah');
+  });
+
+  it('strips a leading "Part N" marker before matching', () => {
+    expect(detectSeries('Part 3 The Three Fundamental Principles By Abu Idrees'))
+      .toBe('The Three Fundamental Principles');
+  });
+
+  it('returns null when nothing matches the allow-list', () => {
+    expect(detectSeries('Disputes & Differing Lead to Discord')).toBeNull();
+    expect(detectSeries('Al-Ikhlās - The Pure and Sound Intention')).toBeNull();
+    expect(detectSeries('Random Talk About Nothing')).toBeNull();
+  });
+
+  it('is case-insensitive against the series name', () => {
+    expect(detectSeries('tafseer al-sa\'di Lesson 1')).toBe("Tafseer al-Sa'di");
+    expect(detectSeries('THE RIGHTS OF HAJJ session 2')).toBe('The Rights of Hajj');
+  });
+
+  it('tolerates a colon or dash after the lesson-number marker', () => {
+    expect(detectSeries('Lesson 5: Aqeedah at-Tahawiyyah')).toBe('Aqeedah at-Tahawiyyah');
+    expect(detectSeries('Lesson 5 — Kitab at-Tawheed')).toBe('Kitab at-Tawheed');
   });
 });

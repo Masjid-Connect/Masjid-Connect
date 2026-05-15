@@ -71,9 +71,11 @@ function parseItem(itemXml: string): RecordedLesson | null {
   const id = parseTrackId(guid);
   if (!id) return null;
 
-  const { title, speaker } = splitTitleAndSpeaker(decodeEntities(rawTitle));
+  const decodedTitle = decodeEntities(rawTitle);
+  const { title, speaker } = splitTitleAndSpeaker(decodedTitle);
   const publishedAt = new Date(pubDate).toISOString();
   const durationSeconds = parseDuration(duration);
+  const series = detectSeries(decodedTitle);
 
   return {
     id,
@@ -85,7 +87,73 @@ function parseItem(itemXml: string): RecordedLesson | null {
     audioUrl: enclosureUrl,
     artworkUrl: optimiseArtwork(artworkHref ?? ''),
     externalUrl: link,
+    series,
   };
+}
+
+// ── Series detection ──────────────────────────────────────────────────
+
+/**
+ * Curated allow-list of known lesson series. Detection runs as a strict
+ * prefix match (case-insensitive) AFTER stripping any leading
+ * "Lesson N", "Part N", "Class N", "Session N", "Pt N" markers.
+ *
+ * Order matters: longer / more specific series must come BEFORE their
+ * prefixes (e.g. 'Sharh Usool al-Sittah' before any hypothetical
+ * 'Sharh' general series), so the longer match wins. The detector
+ * iterates in order and returns the first match.
+ *
+ * Yusuf's discipline (council Seat 5): transliteration is preserved
+ * exactly as the masjid uses it — apostrophes, hyphens, capitalisation.
+ * Adding a series is a deliberate act — don't infer from data.
+ */
+export const KNOWN_SERIES: readonly string[] = [
+  // Tafseer
+  "Tafseer al-Sa'di",
+  "Tafseer Ibn Katheer",
+  // Hadith / Sunnah
+  'Sharh as-Sunnah',
+  'Sharh al-Arba\'een an-Nawawiyyah',
+  // Aqeedah
+  'Sharh Usool al-Sittah',
+  'The Three Fundamental Principles',
+  'Aqeedah at-Tahawiyyah',
+  'Kitab at-Tawheed',
+  // Fiqh
+  'The Rights of Hajj',
+  'Sifah Salat an-Nabi',
+] as const;
+
+/** Patterns we tolerate as a leading "Lesson N / Part N / etc." marker
+ *  before the series name proper. Single regex, case-insensitive. */
+const LESSON_MARKER_RE = /^(?:lesson|part|class|session|pt\.?)\s+\d+\s*[-—–:.]?\s*/i;
+
+/**
+ * Detect which known series a lesson title belongs to. Returns the
+ * canonical series name (as listed in KNOWN_SERIES, preserving
+ * transliteration) or null when nothing matches.
+ *
+ * Strategy: try the raw title first, then again with any leading
+ * "Lesson N" marker stripped. Always prefix-match the first KNOWN_SERIES
+ * entry whose string is a prefix of the candidate.
+ *
+ * Examples:
+ *   'Lesson 6 The Rights of Hajj' → 'The Rights of Hajj'
+ *   'Tafseer al-Sa\'di Lesson 14 Surah al-Asr' → 'Tafseer al-Sa\'di'
+ *   'Disputes & Differing Lead to Discord' → null
+ */
+export function detectSeries(title: string): string | null {
+  const candidates: string[] = [title.trim()];
+  const stripped = title.replace(LESSON_MARKER_RE, '').trim();
+  if (stripped !== title.trim()) candidates.push(stripped);
+
+  for (const candidate of candidates) {
+    const lower = candidate.toLowerCase();
+    for (const series of KNOWN_SERIES) {
+      if (lower.startsWith(series.toLowerCase())) return series;
+    }
+  }
+  return null;
 }
 
 // ── Field extractors ──────────────────────────────────────────────────

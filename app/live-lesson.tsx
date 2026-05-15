@@ -79,6 +79,7 @@ export default function LiveLessonScreen() {
       audioUrl: streamUrl,
       artworkUrl: masjidMarkUri,
       externalUrl: MIXLR_CHANNEL_URL,
+      series: null,
     };
   }, [streamUrl, broadcastTitle]);
 
