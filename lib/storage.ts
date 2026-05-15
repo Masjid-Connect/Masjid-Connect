@@ -93,9 +93,11 @@ export async function setNotifyEvents(enabled: boolean): Promise<void> {
   await AsyncStorage.setItem(KEYS.NOTIFY_EVENTS, enabled.toString());
 }
 
-/** Play the masjid's adhan as the prayer-time notification sound.
- *  When false, the "prayer time has entered" push is suppressed entirely —
- *  the 15-minute reminder still fires, but the adhan itself doesn't.
+/** Play the masjid's adhan AT prayer time.
+ *  When true: a notification fires at jama'ah with `adhan.wav`. When false:
+ *  the adhan-at-prayer-time notification is suppressed entirely. The silent
+ *  N-minute-before reminder (controlled separately by `getReminderMinutes`)
+ *  is independent and fires regardless of this toggle.
  *  Default: true (adhan on) — users who want silence opt out.
  */
 export async function getPlayAdhan(): Promise<boolean> {

@@ -107,8 +107,24 @@ export async function registerForPushNotifications(): Promise<string | null> {
   return tokenData.data;
 }
 
-/** Schedule prayer reminder notifications for today.
- *  `times` contains the masjid timetable (jama'ah) times — reminders fire relative to these.
+/** Schedule prayer notifications for today.
+ *
+ *  Two-notification model per prayer (Apr 2026 → May 2026 redesign):
+ *
+ *    - **Silent reminder** fires `reminderMinutes` before jama'ah, default
+ *      sound, body "Jama'ah in N minutes". Identifier `prayer-reminder-{name}`.
+ *      Skipped if `reminderMinutes === 0`. Maghrib never gets a reminder
+ *      (its window is too short for a heads-up to be meaningful).
+ *    - **Adhan** fires AT jama'ah, sound `adhan.wav`, body "Prayer time has
+ *      entered". Identifier `prayer-athan-{name}`. Skipped entirely if the
+ *      `playAdhan` user toggle is off. All five prayers including Maghrib.
+ *
+ *  Replaces the Apr-16 single-notification scheme where the adhan fired
+ *  `reminderMinutes` early — adhan announces prayer ENTRY, not preparation,
+ *  so the cue and the sound are now separate.
+ *
+ *  `times` contains the masjid timetable (jama'ah) times — schedules relative
+ *  to these. Pass `reminderMinutes = 0` to suppress reminders entirely.
  */
 export async function schedulePrayerReminders(
   times: PrayerTimesData,
@@ -116,68 +132,74 @@ export async function schedulePrayerReminders(
 ): Promise<void> {
   if (Platform.OS === 'web') return;
 
-  // Cancel all existing prayer reminders
+  // Sweep any prior schedule (includes legacy `prayer-{name}` identifiers
+  // from the single-notification scheme — see cancelPrayerReminders).
   await cancelPrayerReminders();
 
-  // Whether to schedule the 'at-prayer-time' adhan notification.
-  // User-controlled toggle (Settings → Notifications → Adhan at prayer time).
-  // Default true; when false the at-prayer-time push is skipped entirely
-  // (the 15-minute reminder still fires regardless).
   const playAdhan = await getPlayAdhan();
 
   const now = new Date();
   const prayers: PrayerName[] = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
 
   for (const prayer of prayers) {
-    const targetTime = times[prayer]; // jama'ah time
+    const jamaah = times[prayer];
+    const isMaghrib = prayer === 'maghrib';
 
-    // Maghrib exception: fire AT jama'ah time, no lead. Maghrib's
-    // window is short (sunset to Isha) so a 15-min-before cue would
-    // suggest a window that doesn't exist. Every other prayer uses
-    // reminderMinutes as the lead so the adhan plays as a prepare-
-    // for-prayer cue. User 2026-04-16: 'adhan should be 15 mins
-    // before the prayer, except for maghrib'.
-    const leadMinutes = prayer === 'maghrib' ? 0 : reminderMinutes;
-    const fireAt = new Date(targetTime.getTime() - leadMinutes * 60 * 1000);
+    // ── Silent reminder (non-Maghrib only, opt-in via reminderMinutes > 0) ──
+    if (!isMaghrib && reminderMinutes > 0) {
+      const reminderAt = new Date(jamaah.getTime() - reminderMinutes * 60 * 1000);
+      if (reminderAt > now) {
+        try {
+          await Notifications.scheduleNotificationAsync({
+            content: {
+              title: `${PRAYER_LABELS[prayer].en} — ${PRAYER_LABELS[prayer].ar}`,
+              body: `Jama'ah in ${reminderMinutes} minutes`,
+              sound: 'default',
+              // timeSensitive lets the reminder break through Focus (incl.
+              // Sleep Focus at Fajr). The user opted in by setting a non-
+              // zero reminder lead; that's intent. 'critical' would require
+              // an Apple entitlement we don't have.
+              interruptionLevel: 'timeSensitive',
+              data: { type: 'prayer_reminder', prayer },
+              ...(Platform.OS === 'android' && {
+                channelId: 'prayer-reminders-v2',
+              }),
+            },
+            trigger: {
+              type: Notifications.SchedulableTriggerInputTypes.DATE,
+              date: reminderAt,
+            },
+            identifier: `prayer-reminder-${prayer}`,
+          });
+        } catch (err) {
+          Sentry.captureException(err, { extra: { context: 'schedule prayer reminder', prayer } });
+        }
+      }
+    }
 
-    // Skip if fire time has already passed
-    if (fireAt <= now) continue;
-
-    try {
-      const body = leadMinutes === 0
-        ? `${PRAYER_LABELS[prayer].ar} — Prayer time has entered`
-        : `Jama'ah in ${leadMinutes} minutes`;
-
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: `${PRAYER_LABELS[prayer].en} — ${PRAYER_LABELS[prayer].ar}`,
-          body,
-          // Always set a sound — iOS treats a missing `sound` key as
-          // silent (no fallback to default). Custom adhan when the
-          // toggle is on; system default otherwise.
-          sound: playAdhan ? 'adhan.wav' : 'default',
-          // iOS: timeSensitive breaks through Focus modes (incl. Sleep
-          // Focus at Fajr) so the user actually hears their prayer
-          // reminder. The user explicitly opted in via the reminder
-          // setting; this is the right level. 'critical' would require
-          // an Apple entitlement we don't have.
-          interruptionLevel: 'timeSensitive',
-          data: { type: playAdhan ? 'prayer_athan' : 'prayer_reminder', prayer },
-          // Android: route to the right channel. prayer-athan-v2 plays
-          // adhan.wav; prayer-reminders-v2 plays system default with
-          // gold light + vibration.
-          ...(Platform.OS === 'android' && {
-            channelId: playAdhan ? 'prayer-athan-v2' : 'prayer-reminders-v2',
-          }),
-        },
-        trigger: {
-          type: Notifications.SchedulableTriggerInputTypes.DATE,
-          date: fireAt,
-        },
-        identifier: `prayer-${prayer}`,
-      });
-    } catch (err) {
-      Sentry.captureException(err, { extra: { context: 'schedule prayer notification', prayer } });
+    // ── Adhan at jama'ah (all five prayers, opt-out via playAdhan toggle) ──
+    if (playAdhan && jamaah > now) {
+      try {
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: `${PRAYER_LABELS[prayer].en} — ${PRAYER_LABELS[prayer].ar}`,
+            body: `${PRAYER_LABELS[prayer].ar} — Prayer time has entered`,
+            sound: 'adhan.wav',
+            interruptionLevel: 'timeSensitive',
+            data: { type: 'prayer_athan', prayer },
+            ...(Platform.OS === 'android' && {
+              channelId: 'prayer-athan-v2',
+            }),
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: jamaah,
+          },
+          identifier: `prayer-athan-${prayer}`,
+        });
+      } catch (err) {
+        Sentry.captureException(err, { extra: { context: 'schedule prayer adhan', prayer } });
+      }
     }
   }
 }
