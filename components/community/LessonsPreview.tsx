@@ -1,9 +1,9 @@
 /**
- * LessonsPreview — "Lessons" section on the Community resting state.
+ * LessonsPreview — "Lessons" bento tile.
  *
- * Surfaces the most-recently published recorded lesson as a single row
- * with artwork thumbnail + play badge. Tap drills into the Lessons
- * screen where the AudioProvider takes over and the player sheet opens.
+ * Latest recorded lesson with artwork thumbnail + play badge inside
+ * a BentoTile. Tile shape persists even when the feed hasn't loaded
+ * yet (rare; the SoundCloud feed almost always has content).
  */
 
 import React from 'react';
@@ -16,7 +16,7 @@ import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import { spacing, typography, borderRadius } from '@/constants/Theme';
 import { useRecordedLessons } from '@/hooks/useRecordedLessons';
-import { SectionHeader } from '@/components/community/SectionHeader';
+import { BentoTile } from '@/components/community/BentoTile';
 
 interface LessonsPreviewProps {
   onSeeAll: () => void;
@@ -29,11 +29,12 @@ export const LessonsPreview = ({ onSeeAll }: LessonsPreviewProps) => {
   const { t } = useTranslation();
   const { lessons } = useRecordedLessons();
 
-  if (lessons.length === 0) return null;
-
-  const latest = lessons[0];
+  const isEmpty = lessons.length === 0;
+  const latest = isEmpty ? null : lessons[0];
   const gold = isDark ? palette.divineGoldBright : palette.divineGold;
-  const meta = [latest.speaker, latest.series].filter(Boolean).join(' · ');
+  const meta = latest
+    ? [latest.speaker, latest.series].filter(Boolean).join(' · ')
+    : '';
 
   const handlePress = () => {
     Haptics.selectionAsync();
@@ -41,19 +42,21 @@ export const LessonsPreview = ({ onSeeAll }: LessonsPreviewProps) => {
   };
 
   return (
-    <View>
-      <SectionHeader
-        title={t('community.lessons')}
-        actionLabel={t('community.archive')}
-        onActionPress={onSeeAll}
-      />
-      <Pressable
-        onPress={handlePress}
-        style={({ pressed }) => [pressed && { opacity: 0.7 }]}
-        accessibilityRole="button"
-        accessibilityLabel={`${latest.title}${latest.speaker ? `, ${latest.speaker}` : ''}`}
-      >
-        <View style={styles.row}>
+    <BentoTile
+      title={t('community.lessons')}
+      actionLabel={t('community.archive')}
+      onActionPress={onSeeAll}
+      isEmpty={isEmpty}
+      emptyIcon="musical-notes-outline"
+      emptyMessage={t('community.lessonsEmpty')}
+    >
+      {latest && (
+        <Pressable
+          onPress={handlePress}
+          style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}
+          accessibilityRole="button"
+          accessibilityLabel={`${latest.title}${latest.speaker ? `, ${latest.speaker}` : ''}`}
+        >
           <View style={styles.artworkWrap}>
             {latest.artworkUrl ? (
               <Image
@@ -65,62 +68,63 @@ export const LessonsPreview = ({ onSeeAll }: LessonsPreviewProps) => {
               <View style={[styles.artwork, { backgroundColor: colors.backgroundGrouped }]} />
             )}
             <View style={[styles.playBadge, { backgroundColor: gold }]}>
-              <Ionicons name="play" size={11} color={palette.white} style={styles.playIcon} />
+              <Ionicons name="play" size={9} color={palette.white} style={styles.playIcon} />
             </View>
           </View>
-          <View style={styles.textCol}>
-            <Text style={[typography.headline, { color: colors.text }]} numberOfLines={2}>
+          <View style={styles.text}>
+            <Text
+              style={[typography.subhead, { color: colors.text }]}
+              numberOfLines={2}
+            >
               {latest.title}
             </Text>
             {meta ? (
               <Text
-                style={[typography.footnote, { color: colors.textSecondary, marginTop: 2 }]}
+                style={[typography.caption1, { color: colors.textSecondary, marginTop: 2 }]}
                 numberOfLines={1}
               >
                 {meta}
               </Text>
             ) : null}
           </View>
-          <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
-        </View>
-      </Pressable>
-    </View>
+        </Pressable>
+      )}
+    </BentoTile>
   );
 };
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  textCol: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
   },
   artworkWrap: {
-    width: 48,
-    height: 48,
+    width: 40,
+    height: 40,
     borderRadius: borderRadius.sm,
   },
   artwork: {
-    width: 48,
-    height: 48,
+    width: 40,
+    height: 40,
     borderRadius: borderRadius.sm,
     backgroundColor: '#1a1a1a',
   },
   playBadge: {
     position: 'absolute',
-    bottom: -4,
-    right: -4,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    bottom: -3,
+    right: -3,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
   playIcon: {
     marginLeft: 1,
+  },
+  text: {
+    flex: 1,
   },
 });

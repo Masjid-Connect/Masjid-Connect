@@ -1,22 +1,17 @@
 /**
- * EventsPreview — "Coming up" section on the Community resting state.
+ * EventsPreview — "Coming up" bento tile.
  *
- * Shows the next 3 upcoming events as preview rows. Hooks into the
- * shared `useEvents` cache; the Events screen, when drilled into,
- * reads the same data without re-fetching.
- *
- * Empty / loading: render nothing at all rather than a placeholder —
- * Fadwa's anti-absence-framing. If there are no upcoming events the
- * section simply doesn't appear on the page.
+ * Renders into a BentoTile so the tile shape persists when there are
+ * no upcoming events (sparse-data weeks). Up to 3 event rows when
+ * populated; a quiet empty state inside the tile otherwise.
  */
 
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { useEvents } from '@/hooks/useEvents';
 import { getUse24h } from '@/lib/storage';
-import { SectionHeader } from '@/components/community/SectionHeader';
+import { BentoTile } from '@/components/community/BentoTile';
 import { EventPreviewRow } from '@/components/community/EventPreviewRow';
 
 const PREVIEW_LIMIT = 3;
@@ -27,25 +22,26 @@ interface EventsPreviewProps {
 
 export const EventsPreview = ({ onSeeAll }: EventsPreviewProps) => {
   const { t } = useTranslation();
-  const { events, isLoading } = useEvents();
+  const { events } = useEvents();
   const [use24h, setUse24h] = useState(false);
 
   useEffect(() => {
     getUse24h().then(setUse24h);
   }, []);
 
-  if (isLoading && events.length === 0) return null;
-  if (events.length === 0) return null;
-
   const upcoming = events.slice(0, PREVIEW_LIMIT);
+  const isEmpty = upcoming.length === 0;
 
   return (
-    <View>
-      <SectionHeader
-        title={t('community.comingUp')}
-        actionLabel={t('community.seeAll')}
-        onActionPress={onSeeAll}
-      />
+    <BentoTile
+      title={t('community.comingUp')}
+      actionLabel={t('community.seeAll')}
+      onActionPress={onSeeAll}
+      isEmpty={isEmpty}
+      emptyIcon="calendar-outline"
+      emptyMessage={t('community.eventsEmpty')}
+      minHeight={220}
+    >
       {upcoming.map((event, i) => (
         <EventPreviewRow
           key={event.id}
@@ -55,6 +51,6 @@ export const EventsPreview = ({ onSeeAll }: EventsPreviewProps) => {
           onPress={onSeeAll}
         />
       ))}
-    </View>
+    </BentoTile>
   );
 };

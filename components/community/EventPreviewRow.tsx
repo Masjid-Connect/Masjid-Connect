@@ -27,7 +27,7 @@ interface EventPreviewRowProps {
 }
 
 const PILL_SIZE = 48;
-const SEPARATOR_LEFT_INSET = spacing.lg + PILL_SIZE + spacing.md;
+const SEPARATOR_LEFT_INSET = PILL_SIZE + spacing.md;
 
 export const EventPreviewRow = ({
   event,
@@ -92,8 +92,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.sm,
   },
   text: {
     flex: 1,

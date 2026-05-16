@@ -127,20 +127,26 @@ export default function CommunityScreen() {
     scrollY.value = 0;
   }, [scrollY]);
 
-  // ─── Resting state — content-forward "noticeboard" ─────────────
-  // Three preview sections, each shows real masjid content rather than
-  // generic navigation tiles. Drill-in via "See all →" CTAs in the
-  // section headers; tapping a preview row drills the same way.
-  // Sections render nothing when their data is empty (no "no broadcast"
-  // placeholders — anti-absence-framing).
+  // ─── Resting state — bento layout (1 tall left + 2 stacked right) ──
+  // The tile containers persist regardless of data state so the page
+  // rhythm survives a sparse week. Each tile renders a quiet empty
+  // state inside its own chrome when its data source has no items.
   const renderResting = () => (
     <Animated.View
+      style={styles.bentoContainer}
       entering={FadeIn.duration(200)}
       exiting={FadeOut.duration(100)}
     >
-      <EventsPreview onSeeAll={() => drillInto('events')} />
-      <AnnouncementsPreview onSeeAll={() => drillInto('announcements')} />
-      <LessonsPreview onSeeAll={() => drillInto('lessons')} />
+      <View style={styles.bentoRow}>
+        <View style={styles.bentoLeftCol}>
+          <EventsPreview onSeeAll={() => drillInto('events')} />
+        </View>
+        <View style={styles.bentoRightCol}>
+          <LessonsPreview onSeeAll={() => drillInto('lessons')} />
+          <View style={styles.bentoRowGap} />
+          <AnnouncementsPreview onSeeAll={() => drillInto('announcements')} />
+        </View>
+      </View>
     </Animated.View>
   );
 
@@ -305,6 +311,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing['3xl'],
     paddingTop: spacing.sm,
     paddingBottom: spacing.xs,
+  },
+  bentoContainer: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
+  },
+  bentoRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: spacing.md,
+  },
+  bentoLeftCol: {
+    flex: 1,
+  },
+  bentoRightCol: {
+    flex: 1,
+    flexDirection: 'column',
+  },
+  bentoRowGap: {
+    height: spacing.md,
   },
   segmentContent: {
     flex: 1,
