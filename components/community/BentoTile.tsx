@@ -1,10 +1,15 @@
 /**
  * BentoTile — shared container chrome for the Community bento layout.
  *
- * Provides the persistent "shape" of a tile so the page rhythm survives
- * sparse data states. Each tile carries:
- *   - A tracked uppercase eyebrow (top-left)
- *   - A small gold see-all action (top-right)
+ * The ENTIRE TILE is a single Pressable — tapping anywhere on a tile
+ * (chrome, padding, content area, empty state) fires onActionPress and
+ * drills the user into the named segment. The "see all →" link in the
+ * top-right corner is a visual cue only; it doesn't carry its own
+ * touch target (so the inner Pressables don't compete with the outer).
+ *
+ * Each tile carries:
+ *   - A tracked uppercase eyebrow with a 3×12pt gold tab to its left
+ *   - A small gold see-all visual marker (top-right)
  *   - Body content OR a centred empty state with optional icon
  *
  * Card chrome (background, border, elevation) holds regardless of
@@ -57,14 +62,15 @@ export const BentoTile = ({
   const isDark = effectiveScheme === 'dark';
   const gold = isDark ? palette.divineGoldBright : palette.divineGold;
 
-  const handleAction = () => {
+  const handlePress = () => {
     Haptics.selectionAsync();
     onActionPress();
   };
 
   return (
-    <View
-      style={[
+    <Pressable
+      onPress={handlePress}
+      style={({ pressed }) => [
         styles.tile,
         {
           backgroundColor: colors.card,
@@ -72,8 +78,11 @@ export const BentoTile = ({
           ...getElevation('sm', isDark),
         },
         minHeight ? { minHeight } : null,
+        pressed && styles.pressed,
         style,
       ]}
+      accessibilityRole="button"
+      accessibilityLabel={`${title}, ${actionLabel}`}
     >
       {/* Header row */}
       <View style={styles.header}>
@@ -90,24 +99,17 @@ export const BentoTile = ({
             {title}
           </Text>
         </View>
-        <Pressable
-          onPress={handleAction}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel={actionLabel}
-        >
-          <View style={styles.action}>
-            <Text
-              style={[
-                typography.caption1,
-                { color: gold, fontWeight: fontWeight.semibold, letterSpacing: 0.3 },
-              ]}
-            >
-              {actionLabel}
-            </Text>
-            <Ionicons name="chevron-forward" size={12} color={gold} />
-          </View>
-        </Pressable>
+        <View style={styles.action}>
+          <Text
+            style={[
+              typography.caption1,
+              { color: gold, fontWeight: fontWeight.semibold, letterSpacing: 0.3 },
+            ]}
+          >
+            {actionLabel}
+          </Text>
+          <Ionicons name="chevron-forward" size={12} color={gold} />
+        </View>
       </View>
 
       {/* Body */}
@@ -135,7 +137,7 @@ export const BentoTile = ({
       ) : (
         <View style={styles.body}>{children}</View>
       )}
-    </View>
+    </Pressable>
   );
 };
 
@@ -145,6 +147,9 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     borderWidth: 1,
     padding: spacing.md,
+  },
+  pressed: {
+    opacity: 0.7,
   },
   header: {
     flexDirection: 'row',

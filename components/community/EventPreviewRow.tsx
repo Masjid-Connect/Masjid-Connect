@@ -7,10 +7,9 @@
  */
 
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { format, parseISO } from 'date-fns';
-import * as Haptics from 'expo-haptics';
 
 import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -23,7 +22,6 @@ interface EventPreviewRowProps {
   event: MosqueEvent;
   use24h: boolean;
   showSeparator: boolean;
-  onPress: () => void;
 }
 
 const PILL_SIZE = 48;
@@ -33,7 +31,6 @@ export const EventPreviewRow = ({
   event,
   use24h,
   showSeparator,
-  onPress,
 }: EventPreviewRowProps) => {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
@@ -43,16 +40,9 @@ export const EventPreviewRow = ({
   const timeStr = formatTimeString(event.start_time, use24h);
   const meta = [timeStr, event.speaker].filter(Boolean).join(' · ');
 
-  const handlePress = () => {
-    Haptics.selectionAsync();
-    onPress();
-  };
-
   return (
-    <Pressable
-      onPress={handlePress}
-      style={({ pressed }) => [pressed && { opacity: 0.7 }]}
-      accessibilityRole="button"
+    <View
+      accessible
       accessibilityLabel={`${event.title}, ${format(date, 'EEEE MMM d')}${event.speaker ? `, ${event.speaker}` : ''}`}
     >
       <View style={styles.row}>
@@ -83,7 +73,7 @@ export const EventPreviewRow = ({
           ]}
         />
       )}
-    </Pressable>
+    </View>
   );
 };
 

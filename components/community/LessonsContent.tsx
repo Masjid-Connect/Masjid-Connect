@@ -25,9 +25,9 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
 import * as Haptics from 'expo-haptics';
 
-import { getColors } from '@/constants/Colors';
+import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, components, layout } from '@/constants/Theme';
+import { spacing, typography, components, layout, fontWeight } from '@/constants/Theme';
 import { useRecordedLessons } from '@/hooks/useRecordedLessons';
 import { useAudio } from '@/contexts/AudioProvider';
 import { LessonRow } from '@/components/community/LessonRow';
@@ -64,6 +64,8 @@ function applyFilter(
 export const LessonsContent = () => {
   const { effectiveScheme } = useTheme();
   const colors = getColors(effectiveScheme);
+  const isDark = effectiveScheme === 'dark';
+  const goldAccent = isDark ? palette.divineGoldBright : palette.divineGold;
   const { t } = useTranslation();
   const { lessons, isLoading, error, refresh } = useRecordedLessons();
   const { currentTrack, isPlaying, play } = useAudio();
@@ -155,10 +157,42 @@ export const LessonsContent = () => {
         }
         ListEmptyComponent={
           <View style={styles.center}>
-            <Ionicons name="musical-notes-outline" size={48} color={colors.textTertiary} />
-            <Text style={[typography.subhead, { color: colors.textSecondary, marginTop: spacing.md, textAlign: 'center' }]}>
+            <View
+              style={[
+                styles.emptyHalo,
+                { backgroundColor: goldAccent + (isDark ? '24' : '14') },
+              ]}
+            >
+              <Ionicons name="musical-notes-outline" size={32} color={goldAccent} />
+            </View>
+            <Text
+              style={[
+                typography.title3,
+                {
+                  color: colors.text,
+                  textAlign: 'center',
+                  marginTop: spacing.lg,
+                  fontWeight: fontWeight.semibold,
+                },
+              ]}
+            >
               {emptyMessage}
             </Text>
+            {filter.kind === 'recent' && (
+              <Text
+                style={[
+                  typography.footnote,
+                  {
+                    color: colors.textSecondary,
+                    textAlign: 'center',
+                    marginTop: spacing.sm,
+                    maxWidth: 280,
+                  },
+                ]}
+              >
+                {t('lessons.emptyHint')}
+              </Text>
+            )}
           </View>
         }
       />
@@ -182,5 +216,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing['3xl'],
     paddingVertical: spacing['5xl'],
+  },
+  emptyHalo: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

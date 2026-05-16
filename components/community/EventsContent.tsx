@@ -43,6 +43,7 @@ export const EventsContent = ({ onScroll: _onScroll }: EventsContentProps) => {
   const isDark = effectiveScheme === 'dark';
   const { t } = useTranslation();
   const router = useRouter();
+  const goldAccent = isDark ? palette.divineGoldBright : palette.divineGold;
 
   const CATEGORIES = CATEGORY_KEYS.map((key) => ({
     key,
@@ -259,11 +260,38 @@ export const EventsContent = ({ onScroll: _onScroll }: EventsContentProps) => {
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
           }
         >
-          <Ionicons name="calendar-outline" size={48} color={colors.textTertiary} />
-          <Text style={[typography.headline, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.lg }]}>
+          <View
+            style={[
+              styles.emptyHalo,
+              { backgroundColor: goldAccent + (isDark ? '24' : '14') },
+            ]}
+          >
+            <Ionicons name="calendar-outline" size={32} color={goldAccent} />
+          </View>
+          <Text
+            style={[
+              typography.title3,
+              {
+                color: colors.text,
+                textAlign: 'center',
+                marginTop: spacing.lg,
+                fontWeight: fontWeight.semibold,
+              },
+            ]}
+          >
             {t('events.empty')}
           </Text>
-          <Text style={[typography.subhead, { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.sm }]}>
+          <Text
+            style={[
+              typography.footnote,
+              {
+                color: colors.textSecondary,
+                textAlign: 'center',
+                marginTop: spacing.sm,
+                maxWidth: 280,
+              },
+            ]}
+          >
             {t('events.emptyHint')}
           </Text>
         </ScrollView>
@@ -404,6 +432,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  emptyHalo: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   livePill: {
     paddingHorizontal: spacing.sm,

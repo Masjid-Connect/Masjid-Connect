@@ -6,10 +6,9 @@
  */
 
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { format, parseISO } from 'date-fns';
 import { useTranslation } from 'react-i18next';
-import * as Haptics from 'expo-haptics';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -36,11 +35,6 @@ export const AnnouncementsPreview = ({ onSeeAll }: AnnouncementsPreviewProps) =>
   const dateText = latest ? format(parseISO(latest.published_at), 'd MMM') : '';
   const unread = latest ? isUnread(latest.id) : false;
 
-  const handlePress = () => {
-    Haptics.selectionAsync();
-    onSeeAll();
-  };
-
   return (
     <BentoTile
       title={t('community.notices')}
@@ -52,12 +46,7 @@ export const AnnouncementsPreview = ({ onSeeAll }: AnnouncementsPreviewProps) =>
       minHeight={120}
     >
       {latest && (
-        <Pressable
-          onPress={handlePress}
-          style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}
-          accessibilityRole="button"
-          accessibilityLabel={`${latest.title}, ${t('community.postedOn', { date: dateText })}`}
-        >
+        <View style={styles.row}>
           <View style={styles.dotCol}>
             {unread && <View style={[styles.dot, { backgroundColor: goldDot }]} />}
           </View>
@@ -78,7 +67,7 @@ export const AnnouncementsPreview = ({ onSeeAll }: AnnouncementsPreviewProps) =>
               {t('community.postedOn', { date: dateText })}
             </Text>
           </View>
-        </Pressable>
+        </View>
       )}
     </BentoTile>
   );

@@ -48,7 +48,6 @@ export const EventsPreview = ({ onSeeAll }: EventsPreviewProps) => {
           event={event}
           use24h={use24h}
           showSeparator={i < upcoming.length - 1}
-          onPress={onSeeAll}
         />
       ))}
     </BentoTile>

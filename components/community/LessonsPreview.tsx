@@ -7,10 +7,9 @@
  */
 
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTranslation } from 'react-i18next';
-import * as Haptics from 'expo-haptics';
 
 import { getColors, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -36,11 +35,6 @@ export const LessonsPreview = ({ onSeeAll }: LessonsPreviewProps) => {
     ? [latest.speaker, latest.series].filter(Boolean).join(' · ')
     : '';
 
-  const handlePress = () => {
-    Haptics.selectionAsync();
-    onSeeAll();
-  };
-
   return (
     <BentoTile
       title={t('community.lessons')}
@@ -52,12 +46,7 @@ export const LessonsPreview = ({ onSeeAll }: LessonsPreviewProps) => {
       minHeight={120}
     >
       {latest && (
-        <Pressable
-          onPress={handlePress}
-          style={({ pressed }) => [styles.row, pressed && { opacity: 0.7 }]}
-          accessibilityRole="button"
-          accessibilityLabel={`${latest.title}${latest.speaker ? `, ${latest.speaker}` : ''}`}
-        >
+        <View style={styles.row}>
           <View style={styles.artworkWrap}>
             {latest.artworkUrl ? (
               <Image
@@ -88,7 +77,7 @@ export const LessonsPreview = ({ onSeeAll }: LessonsPreviewProps) => {
               </Text>
             ) : null}
           </View>
-        </Pressable>
+        </View>
       )}
     </BentoTile>
   );

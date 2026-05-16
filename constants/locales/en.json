@@ -203,7 +203,8 @@
   },
   "lessons": {
     "loading": "Loading lessons…",
-    "empty": "No lessons yet. Pull down to refresh.",
+    "empty": "No lessons yet",
+    "emptyHint": "Lessons from the masjid will appear here when published.",
     "emptyForSeries": "No lessons in {{series}} yet",
     "emptyForSearch": "No lessons match \"{{query}}\"",
     "errorTitle": "Unable to load lessons",
