@@ -1,14 +1,18 @@
 /**
- * CommunityCard — one tile in the Community 2×2 grid.
+ * CommunityCard — one tile in the Community 4-up row.
  *
- * Press → spring scale 0.96 (Reanimated) + haptic. Optional badge:
- *   - `count`: Divine Gold unread badge (announcements use this)
- *   - `pulse`: Gold pulsing dot (Live card uses this when broadcasting)
- *   - `none`: nothing
+ * Compact (~22% width on phone), centered icon halo + single-line title.
+ * Each tile carries an identity via the `accent` colour:
+ *   - The icon renders in the full accent colour
+ *   - A halo disc (~12% light / ~22% dark opacity of accent) sits behind it
  *
- * Visual density matters here — empty tiles would feel like an app
- * launcher. Each card surfaces a content-specific subtitle (next event
- * date, "On air", latest lesson title) so the grid carries meaning.
+ * Press → spring scale 0.95 + haptic. Optional badge in the top-right
+ * corner: a Divine Gold unread count, or a slow pulsing dot (live state).
+ *
+ * Design discipline (Council Seats 19 + 30):
+ *   - Colours stay within the Celestial Ink palette — no app-launcher
+ *     rainbow. Variety comes from sapphire tier + gold counterpoint.
+ *   - No idle motion. The pulse only runs while badge.kind === 'pulse'.
  */
 
 import React, { useEffect } from 'react';
@@ -25,7 +29,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
-import { getColors, palette } from '@/constants/Colors';
+import { getColors } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
 import {
   spacing,
@@ -45,16 +49,20 @@ export type CommunityCardBadge =
 export interface CommunityCardProps {
   icon: React.ComponentProps<typeof Ionicons>['name'];
   title: string;
-  subtitle: string;
+  /** Accent colour for icon + halo. Pick from the Celestial Ink palette. */
+  accent: string;
   badge?: CommunityCardBadge;
   onPress: () => void;
   accessibilityLabel: string;
 }
 
+const HALO_SIZE = 38;
+const ICON_SIZE = 20;
+
 export const CommunityCard = ({
   icon,
   title,
-  subtitle,
+  accent,
   badge = { kind: 'none' },
   onPress,
   accessibilityLabel,
@@ -66,13 +74,11 @@ export const CommunityCard = ({
   const pressScale = useSharedValue(1);
   const pulseOpacity = useSharedValue(1);
 
-  // Slow gold pulse only while the badge is in 'pulse' state — Jun's
-  // direction: no idle motion on cards that aren't broadcasting.
   useEffect(() => {
     if (badge.kind === 'pulse') {
       pulseOpacity.value = withRepeat(
         withSequence(
-          withTiming(0.6, { duration: 1200 }),
+          withTiming(0.55, { duration: 1200 }),
           withTiming(1, { duration: 600 }),
         ),
         -1,
@@ -93,7 +99,7 @@ export const CommunityCard = ({
   }));
 
   const onPressIn = () => {
-    pressScale.value = withSpring(0.96, springs.snappy);
+    pressScale.value = withSpring(0.95, springs.snappy);
   };
   const onPressOut = () => {
     pressScale.value = withSpring(1, springs.snappy);
@@ -103,8 +109,11 @@ export const CommunityCard = ({
     onPress();
   };
 
-  const accent = isDark ? palette.divineGoldBright : palette.divineGold;
-  const iconColor = badge.kind === 'pulse' ? accent : colors.text;
+  // Halo: composes alpha into the accent hex. '20' ≈ 12% (light), '38' ≈ 22%
+  // (dark — needs more to remain visible on a dark card). RN parses 8-digit
+  // hex (#RRGGBBAA) on both platforms so the concat is safe.
+  const haloAlphaHex = isDark ? '38' : '20';
+  const haloBg = accent + haloAlphaHex;
 
   return (
     <Animated.View style={[styles.cardWrap, pressStyle]}>
@@ -123,37 +132,32 @@ export const CommunityCard = ({
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
       >
-        <View style={styles.iconRow}>
-          <Ionicons name={icon} size={28} color={iconColor} />
-          {badge.kind === 'count' && badge.count > 0 && (
-            <GoldBadge count={badge.count} />
-          )}
-          {badge.kind === 'pulse' && (
-            <Animated.View
-              style={[styles.pulseDot, { backgroundColor: accent }, pulseStyle]}
-            />
-          )}
+        <View style={[styles.halo, { backgroundColor: haloBg }]}>
+          <Ionicons name={icon} size={ICON_SIZE} color={accent} />
         </View>
-        <View style={styles.textBlock}>
-          <Text
-            style={[
-              typography.headline,
-              { color: colors.text, fontWeight: fontWeight.semibold },
-            ]}
-            numberOfLines={1}
-          >
-            {title}
-          </Text>
-          <Text
-            style={[
-              typography.footnote,
-              { color: colors.textSecondary, marginTop: spacing.xs },
-            ]}
-            numberOfLines={2}
-          >
-            {subtitle}
-          </Text>
-        </View>
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.82}
+          style={[
+            typography.footnote,
+            styles.title,
+            { color: colors.text, fontWeight: fontWeight.semibold },
+          ]}
+        >
+          {title}
+        </Text>
+
+        {badge.kind === 'count' && badge.count > 0 && (
+          <View style={styles.badgeAbs}>
+            <GoldBadge count={badge.count} size={16} />
+          </View>
+        )}
+        {badge.kind === 'pulse' && (
+          <Animated.View
+            style={[styles.pulseAbs, { backgroundColor: accent }, pulseStyle]}
+          />
+        )}
       </Pressable>
     </Animated.View>
   );
@@ -167,21 +171,35 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: borderRadius.md,
     borderWidth: 1,
-    padding: spacing.lg,
-    minHeight: 140,
-    justifyContent: 'space-between',
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
+    paddingHorizontal: spacing.xs,
+    minHeight: 96,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  iconRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+  halo: {
+    width: HALO_SIZE,
+    height: HALO_SIZE,
+    borderRadius: HALO_SIZE / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
   },
-  pulseDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  title: {
+    textAlign: 'center',
   },
-  textBlock: {
-    marginTop: spacing.md,
+  badgeAbs: {
+    position: 'absolute',
+    top: spacing.xs,
+    right: spacing.xs,
+  },
+  pulseAbs: {
+    position: 'absolute',
+    top: spacing.sm,
+    right: spacing.sm,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
 });

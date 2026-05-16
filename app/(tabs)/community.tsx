@@ -128,7 +128,22 @@ export default function CommunityScreen() {
     scrollY.value = 0;
   }, [scrollY]);
 
-  // ─── Grid mode body ────────────────────────────────────────────
+  // ─── Grid mode body — 4-up single row ─────────────────────────
+  // Per-card accents drawn from the Celestial Ink palette. Variety
+  // comes from sapphire tiers + the gold counterpoint — no foreign
+  // hues. Light/dark mappings tuned for contrast on each surface.
+  const accent = {
+    events: isDark ? palette.sapphire400 : palette.sapphire700,
+    announcements: isDark ? palette.divineGoldBright : palette.divineGold,
+    // Live off: deliberately neutral (not a brand accent) so the gold
+    // pulse on transition reads as a real state change, not a redundancy.
+    liveOff: colors.textSecondary,
+    liveOn: isDark ? palette.divineGoldBright : palette.divineGold,
+    // Lessons: deepest ink in light mode (book-on-paper);
+    // parchment in dark mode (pages-on-night).
+    lessons: isDark ? palette.stone300 : palette.sapphire950,
+  };
+
   const renderGrid = () => (
     <Animated.View
       style={styles.gridContainer}
@@ -139,7 +154,7 @@ export default function CommunityScreen() {
         <CommunityCard
           icon="calendar-outline"
           title={t('community.events')}
-          subtitle={t('community.eventsCardEmpty')}
+          accent={accent.events}
           onPress={() => drillInto('events')}
           accessibilityLabel={t('community.events')}
         />
@@ -147,7 +162,7 @@ export default function CommunityScreen() {
         <CommunityCard
           icon="megaphone-outline"
           title={t('community.announcements')}
-          subtitle={t('community.announcementsCardEmpty')}
+          accent={accent.announcements}
           badge={
             announcementUnreadCount > 0
               ? { kind: 'count', count: announcementUnreadCount }
@@ -156,13 +171,11 @@ export default function CommunityScreen() {
           onPress={() => drillInto('announcements')}
           accessibilityLabel={t('community.announcements')}
         />
-      </View>
-      <View style={styles.gridRowGap} />
-      <View style={styles.gridRow}>
+        <View style={styles.gridGap} />
         <CommunityCard
           icon="radio-outline"
           title={t('community.live')}
-          subtitle={isLive ? t('community.liveCardOnAir') : t('community.liveCardOffAir')}
+          accent={isLive ? accent.liveOn : accent.liveOff}
           badge={isLive ? { kind: 'pulse' } : { kind: 'none' }}
           onPress={() => drillInto('live')}
           accessibilityLabel={t('community.live')}
@@ -171,7 +184,7 @@ export default function CommunityScreen() {
         <CommunityCard
           icon="musical-notes-outline"
           title={t('community.lessons')}
-          subtitle={t('community.lessonsCardSubtitle')}
+          accent={accent.lessons}
           onPress={() => drillInto('lessons')}
           accessibilityLabel={t('community.lessons')}
         />
@@ -342,7 +355,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xs,
   },
   gridContainer: {
-    paddingHorizontal: spacing['3xl'],
+    paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
   },
   gridRow: {
@@ -350,10 +363,7 @@ const styles = StyleSheet.create({
     alignItems: 'stretch',
   },
   gridGap: {
-    width: spacing.md,
-  },
-  gridRowGap: {
-    height: spacing.md,
+    width: spacing.sm,
   },
   segmentContent: {
     flex: 1,
