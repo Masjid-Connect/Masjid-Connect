@@ -127,24 +127,25 @@ export default function CommunityScreen() {
     scrollY.value = 0;
   }, [scrollY]);
 
-  // ─── Resting state — bento layout (1 tall left + 2 stacked right) ──
-  // The tile containers persist regardless of data state so the page
-  // rhythm survives a sparse week. Each tile renders a quiet empty
-  // state inside its own chrome when its data source has no items.
+  // ─── Resting state — letterbox bento (1 wide top + 2 side-by-side bottom)
+  // Events naturally has 3+ list rows → wide top tile. Notices and
+  // Lessons each have one latest item → compact equal bottom tiles.
+  // Each tile keeps its chrome regardless of data state, so the page
+  // rhythm survives a sparse week.
   const renderResting = () => (
     <Animated.View
       style={styles.bentoContainer}
       entering={FadeIn.duration(200)}
       exiting={FadeOut.duration(100)}
     >
-      <View style={styles.bentoRow}>
-        <View style={styles.bentoLeftCol}>
-          <EventsPreview onSeeAll={() => drillInto('events')} />
-        </View>
-        <View style={styles.bentoRightCol}>
-          <LessonsPreview onSeeAll={() => drillInto('lessons')} />
-          <View style={styles.bentoRowGap} />
+      <EventsPreview onSeeAll={() => drillInto('events')} />
+      <View style={styles.bentoRowGap} />
+      <View style={styles.bentoBottomRow}>
+        <View style={styles.bentoCol}>
           <AnnouncementsPreview onSeeAll={() => drillInto('announcements')} />
+        </View>
+        <View style={styles.bentoCol}>
+          <LessonsPreview onSeeAll={() => drillInto('lessons')} />
         </View>
       </View>
     </Animated.View>
@@ -316,17 +317,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
   },
-  bentoRow: {
+  bentoBottomRow: {
     flexDirection: 'row',
     alignItems: 'stretch',
     gap: spacing.md,
   },
-  bentoLeftCol: {
+  bentoCol: {
     flex: 1,
-  },
-  bentoRightCol: {
-    flex: 1,
-    flexDirection: 'column',
   },
   bentoRowGap: {
     height: spacing.md,

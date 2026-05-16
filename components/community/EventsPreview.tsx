@@ -40,7 +40,7 @@ export const EventsPreview = ({ onSeeAll }: EventsPreviewProps) => {
       isEmpty={isEmpty}
       emptyIcon="calendar-outline"
       emptyMessage={t('community.eventsEmpty')}
-      minHeight={220}
+      minHeight={isEmpty ? 130 : 220}
     >
       {upcoming.map((event, i) => (
         <EventPreviewRow

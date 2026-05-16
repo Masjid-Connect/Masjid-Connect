@@ -49,6 +49,7 @@ export const LessonsPreview = ({ onSeeAll }: LessonsPreviewProps) => {
       isEmpty={isEmpty}
       emptyIcon="musical-notes-outline"
       emptyMessage={t('community.lessonsEmpty')}
+      minHeight={120}
     >
       {latest && (
         <Pressable

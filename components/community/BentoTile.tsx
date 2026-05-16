@@ -77,15 +77,19 @@ export const BentoTile = ({
     >
       {/* Header row */}
       <View style={styles.header}>
-        <Text
-          style={[
-            styles.title,
-            { color: colors.textSecondary, fontWeight: fontWeight.semibold },
-          ]}
-          numberOfLines={1}
-        >
-          {title}
-        </Text>
+        <View style={styles.titleRow}>
+          {/* Tiny gold tab — gives the eyebrow a sectional mark */}
+          <View style={[styles.eyebrowAccent, { backgroundColor: gold }]} />
+          <Text
+            style={[
+              styles.title,
+              { color: colors.textSecondary, fontWeight: fontWeight.semibold },
+            ]}
+            numberOfLines={1}
+          >
+            {title}
+          </Text>
+        </View>
         <Pressable
           onPress={handleAction}
           hitSlop={8}
@@ -147,6 +151,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: spacing.sm,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 1,
+  },
+  eyebrowAccent: {
+    width: 3,
+    height: 12,
+    borderRadius: 1.5,
   },
   title: {
     fontSize: 10,

@@ -49,6 +49,7 @@ export const AnnouncementsPreview = ({ onSeeAll }: AnnouncementsPreviewProps) =>
       isEmpty={isEmpty}
       emptyIcon="megaphone-outline"
       emptyMessage={t('community.noticesEmpty')}
+      minHeight={120}
     >
       {latest && (
         <Pressable
