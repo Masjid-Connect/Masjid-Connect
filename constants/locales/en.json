@@ -223,6 +223,8 @@
     "live": "LIVE",
     "title": "Live Lesson",
     "fromMasjid": "The Salafi Masjid",
+    "liveNow": "LIVE NOW",
+    "liveFromMasjid": "Live from the masjid",
     "lessonInProgress": "A lesson is being broadcast",
     "tapToListen": "Tap to listen",
     "bannerHint": "Opens the live audio player",

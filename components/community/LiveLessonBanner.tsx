@@ -1,9 +1,16 @@
 /**
- * LiveLessonBanner — "Living Banner" for live Mixlr broadcasts.
+ * LiveLessonBanner — dark "on-air" hero card for active Mixlr broadcasts.
  *
- * Appears at the top of the Community tab when a lesson is being
- * broadcast. Features a breathing Divine Gold glow border, pulsing
- * live indicator dot, and spring-animated entrance.
+ * Appears above the Community tile row when a lesson is being broadcast.
+ * The card itself is theme-independent (always deep ink) so the gold
+ * accents read consistently against a single dark surface — the broadcast
+ * is the hero, not the page.
+ *
+ * Composition (editorial / hadith-book inspired):
+ *   - Pulsing gold dot + "LIVE NOW" eyebrow (uppercase, tracked)
+ *   - Outlined gold play disc on the left
+ *   - Broadcast title in Sora display weight on the right
+ *   - "Live from the masjid" tagline in muted gold
  *
  * Tap → navigates to the full-screen LiveLessonPlayer.
  */
@@ -26,58 +33,51 @@ import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
-import { getColors, palette } from '@/constants/Colors';
-import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, getElevation } from '@/constants/Theme';
+import { palette } from '@/constants/Colors';
+import {
+  spacing,
+  typography,
+  borderRadius,
+  fontWeight,
+  getElevation,
+} from '@/constants/Theme';
 import { withBreathing } from '@/lib/breathMotion';
 
 interface LiveLessonBannerProps {
   broadcastTitle: string;
 }
 
-/** Pulsing gold dot animation cycle (ms) */
 const PULSE_DURATION = 1200;
 
 export const LiveLessonBanner = ({ broadcastTitle }: LiveLessonBannerProps) => {
-  const { effectiveScheme } = useTheme();
-  const colors = getColors(effectiveScheme);
-  const isDark = effectiveScheme === 'dark';
   const router = useRouter();
   const { t } = useTranslation();
   const reducedMotion = useReducedMotion();
 
-  // ─── Breathing gold glow ────────────────────────────────────────
-  // Reduced-motion: hold at mid opacity (0.4), skip infinite loop.
-  const glowOpacity = useSharedValue(reducedMotion ? 0.4 : 0.3);
-
+  // Breathing gold border — subtle, doesn't compete with the dot pulse.
+  const glowOpacity = useSharedValue(reducedMotion ? 0.32 : 0.22);
   useEffect(() => {
     if (reducedMotion) return;
-    withBreathing(glowOpacity, 0.2, 0.6);
+    withBreathing(glowOpacity, 0.18, 0.42);
   }, [glowOpacity, reducedMotion]);
+  const glowStyle = useAnimatedStyle(() => ({ opacity: glowOpacity.value }));
 
-  const glowStyle = useAnimatedStyle(() => ({
-    opacity: glowOpacity.value,
-  }));
-
-  // ─── Pulsing live dot ───────────────────────────────────────────
-  // Reduced-motion: skip the repeat; dot stays at scale 1 (static indicator).
+  // Pulsing dot halo — the primary attention cue.
   const dotScale = useSharedValue(1);
-
   useEffect(() => {
     if (reducedMotion) return;
     dotScale.value = withRepeat(
       withSequence(
-        withTiming(1.4, { duration: PULSE_DURATION / 2, easing: Easing.out(Easing.ease) }),
+        withTiming(1.5, { duration: PULSE_DURATION / 2, easing: Easing.out(Easing.ease) }),
         withTiming(1, { duration: PULSE_DURATION / 2, easing: Easing.in(Easing.ease) }),
       ),
       -1,
       false,
     );
   }, [dotScale, reducedMotion]);
-
-  const dotPulseStyle = useAnimatedStyle(() => ({
+  const dotHaloStyle = useAnimatedStyle(() => ({
     transform: [{ scale: dotScale.value }],
-    opacity: 0.4,
+    opacity: 0.35,
   }));
 
   const handlePress = () => {
@@ -85,8 +85,15 @@ export const LiveLessonBanner = ({ broadcastTitle }: LiveLessonBannerProps) => {
     router.push('/live-lesson');
   };
 
-  const goldColor = isDark ? palette.divineGoldBright : palette.divineGold;
-  const goldBorder = isDark ? 'rgba(240, 208, 96, 0.35)' : 'rgba(166, 133, 35, 0.35)';
+  // Theme-independent surface — the banner reads as one consistent
+  // "deep ink" panel regardless of system light/dark mode. The gold
+  // accents land the same way on both.
+  const cardBg = palette.sapphire900;
+  const goldAccent = palette.divineGoldBright;
+  const paperText = palette.stone100;
+  const mutedText = 'rgba(232, 199, 107, 0.65)';
+
+  const titleText = broadcastTitle?.trim() || t('liveLesson.lessonInProgress');
 
   return (
     <Animated.View
@@ -94,68 +101,60 @@ export const LiveLessonBanner = ({ broadcastTitle }: LiveLessonBannerProps) => {
       exiting={FadeOutUp.duration(200)}
       style={styles.wrapper}
     >
-      {/* Breathing gold glow border */}
-      <Animated.View
-        style={[
-          styles.glowBorder,
-          {
-            borderColor: goldColor,
-            shadowColor: goldColor,
-          },
-          glowStyle,
-        ]}
-        pointerEvents="none"
-      />
-
       <Pressable
         onPress={handlePress}
         style={({ pressed }) => [
           styles.banner,
-          {
-            backgroundColor: isDark ? palette.sapphire850 : palette.white,
-            borderColor: goldBorder,
-            ...getElevation('md', isDark),
-          },
+          { backgroundColor: cardBg, ...getElevation('md', true) },
           pressed && styles.bannerPressed,
         ]}
         accessibilityRole="button"
         accessibilityLabel={t('liveLesson.tapToListen')}
         accessibilityHint={t('liveLesson.bannerHint')}
       >
-        {/* Live indicator */}
-        <View style={styles.liveIndicator}>
-          {/* Pulsing halo behind the dot */}
-          <Animated.View style={[styles.dotHalo, dotPulseStyle]} />
-          <View style={styles.liveDot} />
+        {/* Breathing gold hairline */}
+        <Animated.View
+          style={[styles.border, { borderColor: goldAccent }, glowStyle]}
+          pointerEvents="none"
+        />
+
+        {/* Eyebrow: pulsing dot + LIVE NOW */}
+        <View style={styles.eyebrowRow}>
+          <View style={styles.dotWrap}>
+            <Animated.View
+              style={[styles.dotHalo, { backgroundColor: goldAccent }, dotHaloStyle]}
+              pointerEvents="none"
+            />
+            <View style={[styles.dotCore, { backgroundColor: goldAccent }]} />
+          </View>
+          <Text style={[styles.eyebrowLabel, { color: goldAccent }]}>
+            {t('liveLesson.liveNow')}
+          </Text>
         </View>
 
-        {/* Text content */}
-        <View style={styles.textContainer}>
-          <View style={styles.liveRow}>
-            <Text style={[styles.liveLabel, { color: goldColor }]}>
-              {t('liveLesson.live')}
+        {/* Hero row */}
+        <View style={styles.heroRow}>
+          <View style={[styles.playBtn, { borderColor: goldAccent }]}>
+            <Ionicons name="play" size={20} color={goldAccent} style={styles.playIcon} />
+          </View>
+          <View style={styles.textCol}>
+            <Text
+              style={[
+                typography.title3,
+                styles.title,
+                { color: paperText, fontWeight: fontWeight.semibold },
+              ]}
+              numberOfLines={2}
+            >
+              {titleText}
             </Text>
-            <Text style={[typography.footnote, { color: colors.textSecondary }]}>
-              {t('liveLesson.fromMasjid')}
+            <Text
+              style={[typography.footnote, styles.tagline, { color: mutedText }]}
+              numberOfLines={1}
+            >
+              {t('liveLesson.liveFromMasjid')}
             </Text>
           </View>
-          <Text
-            style={[typography.headline, { color: colors.text }]}
-            numberOfLines={1}
-          >
-            {t('liveLesson.lessonInProgress')}
-          </Text>
-          <Text
-            style={[typography.footnote, { color: goldColor }]}
-            numberOfLines={1}
-          >
-            {t('liveLesson.tapToListen')}
-          </Text>
-        </View>
-
-        {/* Play icon */}
-        <View style={[styles.playButton, { backgroundColor: goldColor }]}>
-          <Ionicons name="play" size={18} color={palette.white} style={styles.playIcon} />
         </View>
       </Pressable>
     </Animated.View>
@@ -164,75 +163,77 @@ export const LiveLessonBanner = ({ broadcastTitle }: LiveLessonBannerProps) => {
 
 const styles = StyleSheet.create({
   wrapper: {
-    paddingHorizontal: spacing['3xl'],
+    paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
     paddingBottom: spacing.xs,
   },
-  glowBorder: {
-    ...StyleSheet.absoluteFillObject,
-    marginHorizontal: spacing['3xl'] - 2,
-    marginTop: spacing.sm - 2,
-    marginBottom: spacing.xs - 2,
-    borderRadius: borderRadius.lg + 2,
-    borderWidth: 2,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 12,
-  },
   banner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.lg,
     borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    gap: spacing.md,
+    padding: spacing.lg,
+    overflow: 'hidden',
   },
   bannerPressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.98 }],
+    opacity: 0.92,
+    transform: [{ scale: 0.985 }],
   },
-  liveIndicator: {
-    width: 28,
-    height: 28,
+  border: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+  },
+  eyebrowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  dotWrap: {
+    width: 12,
+    height: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   dotHalo: {
     position: 'absolute',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: palette.divineGoldBright,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
   },
-  liveDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: palette.divineGoldBright,
+  dotCore: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
-  textContainer: {
-    flex: 1,
-    gap: 2,
-  },
-  liveRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  liveLabel: {
+  eyebrowLabel: {
     fontSize: 11,
     fontWeight: '700',
-    letterSpacing: 1,
+    letterSpacing: 1.4,
     textTransform: 'uppercase',
   },
-  playButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+  heroRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  playBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'rgba(232, 199, 107, 0.08)',
   },
   playIcon: {
-    marginLeft: 2, // optical centering for play triangle
+    marginLeft: 2, // optical centering of the play triangle
+  },
+  textCol: {
+    flex: 1,
+  },
+  title: {
+    lineHeight: 22,
+  },
+  tagline: {
+    marginTop: 2,
   },
 });
