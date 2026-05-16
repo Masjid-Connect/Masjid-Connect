@@ -30,11 +30,12 @@ import { EventsContent } from '@/components/community/EventsContent';
 import { LiveContent } from '@/components/community/LiveContent';
 import { LessonsContent } from '@/components/community/LessonsContent';
 import { LiveLessonBanner } from '@/components/community/LiveLessonBanner';
-import { CommunityCard } from '@/components/community/CommunityCard';
+import { EventsPreview } from '@/components/community/EventsPreview';
+import { AnnouncementsPreview } from '@/components/community/AnnouncementsPreview';
+import { LessonsPreview } from '@/components/community/LessonsPreview';
 import { IslamicPattern } from '@/components/brand/IslamicPattern';
 import { AdminFAB, QuickPostSheet, EventWizardSheet } from '@/components/admin';
 import { useAnnouncements } from '@/hooks/useAnnouncements';
-import { useReadAnnouncements } from '@/hooks/useReadAnnouncements';
 import { useAdminStatus } from '@/hooks/useAdminStatus';
 import { useLiveLesson } from '@/hooks/useLiveLesson';
 import { resolveCommunitySegment, type CommunitySegment } from '@/lib/community-segment';
@@ -77,9 +78,7 @@ export default function CommunityScreen() {
     if (resolved) setMode(resolved);
   }, [params.segment]);
 
-  const { announcements, refresh: refreshAnnouncements } = useAnnouncements();
-  const { unreadCount } = useReadAnnouncements();
-  const announcementUnreadCount = unreadCount(announcements.map((a) => a.id));
+  const { refresh: refreshAnnouncements } = useAnnouncements();
   const { isAdmin, mosqueIds } = useAdminStatus();
   const { isLive, broadcastTitle } = useLiveLesson();
   const [showQuickPost, setShowQuickPost] = useState(false);
@@ -128,67 +127,20 @@ export default function CommunityScreen() {
     scrollY.value = 0;
   }, [scrollY]);
 
-  // ─── Grid mode body — 4-up single row ─────────────────────────
-  // Per-card accents drawn from the Celestial Ink palette. Variety
-  // comes from sapphire tiers + the gold counterpoint — no foreign
-  // hues. Light/dark mappings tuned for contrast on each surface.
-  const accent = {
-    events: isDark ? palette.sapphire400 : palette.sapphire700,
-    announcements: isDark ? palette.divineGoldBright : palette.divineGold,
-    // Live off: deliberately neutral (not a brand accent) so the gold
-    // pulse on transition reads as a real state change, not a redundancy.
-    liveOff: colors.textSecondary,
-    liveOn: isDark ? palette.divineGoldBright : palette.divineGold,
-    // Lessons: deepest ink in light mode (book-on-paper);
-    // parchment in dark mode (pages-on-night).
-    lessons: isDark ? palette.stone300 : palette.sapphire950,
-  };
-
-  const renderGrid = () => (
+  // ─── Resting state — content-forward "noticeboard" ─────────────
+  // Three preview sections, each shows real masjid content rather than
+  // generic navigation tiles. Drill-in via "See all →" CTAs in the
+  // section headers; tapping a preview row drills the same way.
+  // Sections render nothing when their data is empty (no "no broadcast"
+  // placeholders — anti-absence-framing).
+  const renderResting = () => (
     <Animated.View
-      style={styles.gridContainer}
       entering={FadeIn.duration(200)}
       exiting={FadeOut.duration(100)}
     >
-      <View style={styles.gridRow}>
-        <CommunityCard
-          icon="calendar-outline"
-          title={t('community.events')}
-          accent={accent.events}
-          onPress={() => drillInto('events')}
-          accessibilityLabel={t('community.events')}
-        />
-        <View style={styles.gridGap} />
-        <CommunityCard
-          icon="megaphone-outline"
-          title={t('community.announcements')}
-          accent={accent.announcements}
-          badge={
-            announcementUnreadCount > 0
-              ? { kind: 'count', count: announcementUnreadCount }
-              : { kind: 'none' }
-          }
-          onPress={() => drillInto('announcements')}
-          accessibilityLabel={t('community.announcements')}
-        />
-        <View style={styles.gridGap} />
-        <CommunityCard
-          icon="radio-outline"
-          title={t('community.live')}
-          accent={isLive ? accent.liveOn : accent.liveOff}
-          badge={isLive ? { kind: 'pulse' } : { kind: 'none' }}
-          onPress={() => drillInto('live')}
-          accessibilityLabel={t('community.live')}
-        />
-        <View style={styles.gridGap} />
-        <CommunityCard
-          icon="musical-notes-outline"
-          title={t('community.lessons')}
-          accent={accent.lessons}
-          onPress={() => drillInto('lessons')}
-          accessibilityLabel={t('community.lessons')}
-        />
-      </View>
+      <EventsPreview onSeeAll={() => drillInto('events')} />
+      <AnnouncementsPreview onSeeAll={() => drillInto('announcements')} />
+      <LessonsPreview onSeeAll={() => drillInto('lessons')} />
     </Animated.View>
   );
 
@@ -280,9 +232,9 @@ export default function CommunityScreen() {
             we suppress it there to avoid duplication. */}
         {isLive && mode !== 'live' && <LiveLessonBanner broadcastTitle={broadcastTitle} />}
 
-        {/* Body — grid or sub-segment */}
+        {/* Body — resting noticeboard or sub-segment */}
         {mode === 'grid' ? (
-          renderGrid()
+          renderResting()
         ) : (
           <Animated.View
             style={styles.segmentContent}
@@ -353,17 +305,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing['3xl'],
     paddingTop: spacing.sm,
     paddingBottom: spacing.xs,
-  },
-  gridContainer: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-  },
-  gridRow: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-  },
-  gridGap: {
-    width: spacing.sm,
   },
   segmentContent: {
     flex: 1,
