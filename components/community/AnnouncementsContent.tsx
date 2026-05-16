@@ -160,24 +160,43 @@ export const AnnouncementsContent = ({ onScroll }: AnnouncementsContentProps) =>
 
   // ─── Empty ──────────────────────────────────────────────────────
   if (announcements.length === 0) {
+    const gold = isDark ? palette.divineGoldBright : palette.divineGold;
+    const haloBg = gold + (isDark ? '24' : '14'); // ≈14% / 8% opacity tint
     return (
       <ScrollView
         contentContainerStyle={styles.centeredScroll}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
         }>
-        <Ionicons name="megaphone-outline" size={48} color={colors.textSecondary} style={{ opacity: 0.5 }} accessibilityLabel={t('announcements.empty')} />
+        <View style={[styles.emptyHalo, { backgroundColor: haloBg }]}>
+          <Ionicons
+            name="megaphone-outline"
+            size={32}
+            color={gold}
+            accessibilityLabel={t('announcements.empty')}
+          />
+        </View>
         <Text
           style={[
-            typography.headline,
-            { color: colors.textSecondary, textAlign: 'center', marginTop: spacing.lg },
+            typography.title3,
+            {
+              color: colors.text,
+              textAlign: 'center',
+              marginTop: spacing.lg,
+              fontWeight: fontWeight.semibold,
+            },
           ]}>
           {t('announcements.empty')}
         </Text>
         <Text
           style={[
-            typography.subhead,
-            { color: colors.textTertiary, textAlign: 'center', marginTop: spacing.sm },
+            typography.footnote,
+            {
+              color: colors.textSecondary,
+              textAlign: 'center',
+              marginTop: spacing.sm,
+              maxWidth: 280,
+            },
           ]}>
           {t('announcements.emptyHint')}
         </Text>
@@ -458,6 +477,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing['3xl'],
+  },
+  emptyHalo: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   listContent: {
     paddingHorizontal: spacing['3xl'],

@@ -49,9 +49,13 @@ const LARGE_TITLE_HEIGHT = 52;
  *  from push notifications continue to land via the `segment` search param. */
 type CommunityMode = CommunitySegment | 'grid';
 
+/** Drill-in screen title. Note `announcements` maps to "Notices" — the
+ *  full-screen title matches the bento eyebrow (Tova / Khadija: the
+ *  more dignified, masjid-appropriate term) and the shorter word avoids
+ *  the largeTitle wrap problem at iPhone widths. */
 const SEGMENT_LABEL_KEY: Record<CommunitySegment, string> = {
   events: 'community.events',
-  announcements: 'community.announcements',
+  announcements: 'community.notices',
   live: 'community.live',
   lessons: 'community.lessons',
 };
@@ -209,6 +213,9 @@ export default function CommunityScreen() {
             { color: colors.text, textAlign: 'center' },
             inlineHeaderOpacity,
           ]}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.8}
         >
           {titleText}
         </Animated.Text>
@@ -231,7 +238,14 @@ export default function CommunityScreen() {
       >
         {/* Large title */}
         <Animated.View style={[styles.largeTitleContainer, largeTitleStyle]}>
-          <Text style={[typography.largeTitle, { color: colors.text }]}>{titleText}</Text>
+          <Text
+            style={[typography.largeTitle, { color: colors.text }]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.75}
+          >
+            {titleText}
+          </Text>
         </Animated.View>
 
         {/* Live banner — surfaced on the grid and on any non-Live sub-segment.
