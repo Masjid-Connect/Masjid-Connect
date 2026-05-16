@@ -136,6 +136,11 @@ export default function CommunityScreen() {
   // Lessons each have one latest item → compact equal bottom tiles.
   // Each tile keeps its chrome regardless of data state, so the page
   // rhythm survives a sparse week.
+  //
+  // Deliberate: NO dedicated Live tile in the resting bento (user
+  // direction 2026-05-16). When Mixlr is broadcasting, LiveLessonBanner
+  // slides in as a dark hero above the bento; off-air there's no entry
+  // — the Live experience is push-driven. Don't add a 4th tile.
   const renderResting = () => (
     <Animated.View
       style={styles.bentoContainer}
