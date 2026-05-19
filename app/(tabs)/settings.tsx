@@ -87,7 +87,12 @@ export default function SettingsScreen() {
   }));
 
   const inlineHeaderOpacity = useAnimatedStyle(() => ({
-    opacity: interpolate(scrollY.value, [LARGE_TITLE_HEIGHT - 10, LARGE_TITLE_HEIGHT], [0, 1], Extrapolation.CLAMP),
+    opacity: interpolate(
+      scrollY.value,
+      [LARGE_TITLE_HEIGHT - 10, LARGE_TITLE_HEIGHT],
+      [0, 1],
+      Extrapolation.CLAMP,
+    ),
   }));
 
   // State
@@ -152,14 +157,26 @@ export default function SettingsScreen() {
     await setNotifyEvents(value);
   }, []);
 
-  const handleThemeChange = useCallback(async (theme: 'light' | 'dark' | 'system') => {
-    await setThemePreference(theme);
-  }, [setThemePreference]);
+  const handleThemeChange = useCallback(
+    async (theme: 'light' | 'dark' | 'system') => {
+      await setThemePreference(theme);
+    },
+    [setThemePreference],
+  );
 
   const handleShareApp = useCallback(async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     try {
-      await Share.share({ message: t('settings.shareMessage') });
+      // iOS reads `url` separately so AirDrop / Messages render a rich
+      // preview card. Android ignores `url` and concatenates everything
+      // into the message — but the shareMessage string already embeds
+      // the link, so Android shares still carry the URL.
+      // (Was message-only previously; user 2026-05-19: "when sent it
+      //  only sends text, no link".)
+      await Share.share({
+        message: t('settings.shareMessage'),
+        url: 'https://salafimasjid.app',
+      });
     } catch {
       // Share can throw on web if a previous share is still pending
     }
@@ -176,11 +193,14 @@ export default function SettingsScreen() {
   }, []);
 
   // Derived display values
-  const reminderLabel = reminderMin === 0
-    ? t('settings.atAthanTime')
-    : t('settings.minutesBefore', { minutes: reminderMin });
+  const reminderLabel =
+    reminderMin === 0
+      ? t('settings.atAthanTime')
+      : t('settings.minutesBefore', { minutes: reminderMin });
 
-  const themeLabel = t(`settings.theme${themePreference.charAt(0).toUpperCase() + themePreference.slice(1)}`);
+  const themeLabel = t(
+    `settings.theme${themePreference.charAt(0).toUpperCase() + themePreference.slice(1)}`,
+  );
 
   // Build picker options
   const reminderOptions = REMINDER_VALUES.map((v) => ({
@@ -191,13 +211,23 @@ export default function SettingsScreen() {
   return (
     <View style={[styles.root, { backgroundColor: colors.backgroundSecondary }]}>
       {/* Inline header — appears when large title scrolls away */}
-      <View style={[styles.inlineHeader, { paddingTop: insets.top, height: insets.top + HEADER_HEIGHT, backgroundColor: colors.backgroundSecondary }]}>
+      <View
+        style={[
+          styles.inlineHeader,
+          {
+            paddingTop: insets.top,
+            height: insets.top + HEADER_HEIGHT,
+            backgroundColor: colors.backgroundSecondary,
+          },
+        ]}
+      >
         <Animated.Text
           style={[
             typography.headline,
             { color: colors.text, textAlign: 'center' },
             inlineHeaderOpacity,
-          ]}>
+          ]}
+        >
           {t('settings.title')}
         </Animated.Text>
         <Animated.View
@@ -226,9 +256,7 @@ export default function SettingsScreen() {
       >
         {/* Large title */}
         <Animated.View style={[styles.largeTitleContainer, largeTitleStyle]}>
-          <Text style={[typography.largeTitle, { color: colors.text }]}>
-            {t('settings.title')}
-          </Text>
+          <Text style={[typography.largeTitle, { color: colors.text }]}>{t('settings.title')}</Text>
         </Animated.View>
 
         {/* Brand identity anchor — horizontal wordmark, no duplicate
@@ -241,144 +269,142 @@ export default function SettingsScreen() {
             resizeMode="contain"
             accessibilityLabel={t('prayer.mosqueName')}
           />
-          <Text style={[typography.caption2, { color: colors.textTertiary, marginTop: spacing.md }]}>
+          <Text
+            style={[typography.caption2, { color: colors.textTertiary, marginTop: spacing.md }]}
+          >
             {t('settings.version', { version: Constants.expoConfig?.version ?? '1.0.0' })}
           </Text>
         </View>
 
-      {/* ── Notifications & Reminders ── */}
-      <SettingsSection
-        header={t('settings.notifications')}
-        footer={t('settings.notificationsFooter')}
-      >
-        <SettingsRow
-          icon={{ name: 'notifications', backgroundColor: palette.sapphire600 }}
-          label={t('settings.prayerReminder')}
-          value={reminderLabel}
-          accessory="disclosure"
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            setShowReminderPicker(true);
-          }}
-          position="first"
-        />
-        <SettingsRow
-          icon={{ name: 'musical-notes', backgroundColor: palette.divineGold }}
-          label={t('settings.playAdhan')}
-          accessory="toggle"
-          toggleValue={playAdhan}
-          onToggleChange={handleTogglePlayAdhan}
-          position="middle"
-        />
-        <SettingsRow
-          icon={{ name: 'megaphone', backgroundColor: palette.sapphire700 }}
-          label={t('settings.announcementAlerts')}
-          accessory="toggle"
-          toggleValue={notifyAnnouncements}
-          onToggleChange={handleNotifyAnnouncementsChange}
-          position="middle"
-        />
-        <SettingsRow
-          icon={{ name: 'calendar', backgroundColor: palette.divineGold }}
-          label={t('settings.eventReminders')}
-          accessory="toggle"
-          toggleValue={notifyEvents}
-          onToggleChange={handleNotifyEventsChange}
-          position="last"
-        />
-      </SettingsSection>
+        {/* ── Notifications & Reminders ── */}
+        <SettingsSection
+          header={t('settings.notifications')}
+          footer={t('settings.notificationsFooter')}
+        >
+          <SettingsRow
+            icon={{ name: 'notifications', backgroundColor: palette.sapphire600 }}
+            label={t('settings.prayerReminder')}
+            value={reminderLabel}
+            accessory="disclosure"
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              setShowReminderPicker(true);
+            }}
+            position="first"
+          />
+          <SettingsRow
+            icon={{ name: 'musical-notes', backgroundColor: palette.divineGold }}
+            label={t('settings.playAdhan')}
+            accessory="toggle"
+            toggleValue={playAdhan}
+            onToggleChange={handleTogglePlayAdhan}
+            position="middle"
+          />
+          <SettingsRow
+            icon={{ name: 'megaphone', backgroundColor: palette.sapphire700 }}
+            label={t('settings.announcementAlerts')}
+            accessory="toggle"
+            toggleValue={notifyAnnouncements}
+            onToggleChange={handleNotifyAnnouncementsChange}
+            position="middle"
+          />
+          <SettingsRow
+            icon={{ name: 'calendar', backgroundColor: palette.divineGold }}
+            label={t('settings.eventReminders')}
+            accessory="toggle"
+            toggleValue={notifyEvents}
+            onToggleChange={handleNotifyEventsChange}
+            position="last"
+          />
+        </SettingsSection>
 
-      {/* ── Appearance ── */}
-      <SettingsSection
-        header={t('settings.appearance')}
-        footer={t('settings.appearanceFooter')}
-      >
-        <SettingsRow
-          icon={{ name: 'moon', backgroundColor: colors.text }}
-          label={t('settings.theme')}
-          value={themeLabel}
-          accessory="disclosure"
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            setShowThemePicker(true);
-          }}
-          position="first"
-        />
-        <SettingsRow
-          icon={{ name: 'time', backgroundColor: palette.sapphire600 }}
-          label={t('settings.use24h')}
-          accessory="toggle"
-          toggleValue={use24h}
-          onToggleChange={handleToggle24h}
-          position="last"
-        />
-      </SettingsSection>
+        {/* ── Appearance ── */}
+        <SettingsSection header={t('settings.appearance')} footer={t('settings.appearanceFooter')}>
+          <SettingsRow
+            icon={{ name: 'moon', backgroundColor: colors.text }}
+            label={t('settings.theme')}
+            value={themeLabel}
+            accessory="disclosure"
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              setShowThemePicker(true);
+            }}
+            position="first"
+          />
+          <SettingsRow
+            icon={{ name: 'time', backgroundColor: palette.sapphire600 }}
+            label={t('settings.use24h')}
+            accessory="toggle"
+            toggleValue={use24h}
+            onToggleChange={handleToggle24h}
+            position="last"
+          />
+        </SettingsSection>
 
-      {/* ── Help & Feedback ── */}
-      <SettingsSection header={t('settings.helpAndFeedback')}>
-        <SettingsRow
-          icon={{ name: 'information-circle', backgroundColor: colors.textSecondary }}
-          label={t('settings.aboutApp')}
-          accessory="disclosure"
-          onPress={() => router.push('/about')}
-          position="first"
-        />
-        <SettingsRow
-          icon={{ name: 'share-social', backgroundColor: palette.sapphire700 }}
-          label={t('settings.shareApp')}
-          onPress={handleShareApp}
-          position="middle"
-        />
-        <SettingsRow
-          icon={{ name: 'star', backgroundColor: palette.divineGold }}
-          label={t('settings.rateApp')}
-          onPress={async () => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            if (await StoreReview.isAvailableAsync()) {
-              await StoreReview.requestReview();
-            }
-          }}
-          position="middle"
-        />
-        <SettingsRow
-          icon={{ name: 'bug', backgroundColor: palette.crimson600 }}
-          label={t('settings.reportIssue')}
-          onPress={handleReportIssue}
-          position="middle"
-        />
-        <SettingsRow
-          icon={{ name: 'bulb', backgroundColor: palette.divineGold }}
-          label={t('settings.featureRequest')}
-          onPress={handleFeatureRequest}
-          position="middle"
-        />
-        <SettingsRow
-          icon={{ name: 'shield-checkmark', backgroundColor: colors.textSecondary }}
-          label={t('settings.privacyPolicy')}
-          accessory="disclosure"
-          onPress={() => router.push('/privacy')}
-          position="middle"
-        />
-        <SettingsRow
-          icon={{ name: 'document-text', backgroundColor: colors.textSecondary }}
-          label={t('settings.termsOfService')}
-          accessory="disclosure"
-          onPress={() => router.push('/terms')}
-          position="last"
-        />
-      </SettingsSection>
+        {/* ── Help & Feedback ── */}
+        <SettingsSection header={t('settings.helpAndFeedback')}>
+          <SettingsRow
+            icon={{ name: 'information-circle', backgroundColor: colors.textSecondary }}
+            label={t('settings.aboutApp')}
+            accessory="disclosure"
+            onPress={() => router.push('/about')}
+            position="first"
+          />
+          <SettingsRow
+            icon={{ name: 'share-social', backgroundColor: palette.sapphire700 }}
+            label={t('settings.shareApp')}
+            onPress={handleShareApp}
+            position="middle"
+          />
+          <SettingsRow
+            icon={{ name: 'star', backgroundColor: palette.divineGold }}
+            label={t('settings.rateApp')}
+            onPress={async () => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              if (await StoreReview.isAvailableAsync()) {
+                await StoreReview.requestReview();
+              }
+            }}
+            position="middle"
+          />
+          <SettingsRow
+            icon={{ name: 'bug', backgroundColor: palette.crimson600 }}
+            label={t('settings.reportIssue')}
+            onPress={handleReportIssue}
+            position="middle"
+          />
+          <SettingsRow
+            icon={{ name: 'bulb', backgroundColor: palette.divineGold }}
+            label={t('settings.featureRequest')}
+            onPress={handleFeatureRequest}
+            position="middle"
+          />
+          <SettingsRow
+            icon={{ name: 'shield-checkmark', backgroundColor: colors.textSecondary }}
+            label={t('settings.privacyPolicy')}
+            accessory="disclosure"
+            onPress={() => router.push('/privacy')}
+            position="middle"
+          />
+          <SettingsRow
+            icon={{ name: 'document-text', backgroundColor: colors.textSecondary }}
+            label={t('settings.termsOfService')}
+            accessory="disclosure"
+            onPress={() => router.push('/terms')}
+            position="last"
+          />
+        </SettingsSection>
 
-      {/* ── Footer ── */}
-      {/* Version line removed from footer 2026-04-16 — it was duplicate
+        {/* ── Footer ── */}
+        {/* Version line removed from footer 2026-04-16 — it was duplicate
           with the brand anchor at the top of the screen. Prayer-source
           attribution stays here since it's a separate fact. */}
-      <View style={styles.footer}>
-        <Text style={[typography.caption1, { color: colors.textTertiary, textAlign: 'center' }]}>
-          {t('settings.prayerSource')}
-        </Text>
-      </View>
-
-    </AnimatedScrollView>
+        <View style={styles.footer}>
+          <Text style={[typography.caption1, { color: colors.textTertiary, textAlign: 'center' }]}>
+            {t('settings.prayerSource')}
+          </Text>
+        </View>
+      </AnimatedScrollView>
 
       {/* ── Bottom Sheets ── */}
       {/* Sheets MUST be siblings of the ScrollView, not children. When
@@ -405,10 +431,7 @@ export default function SettingsScreen() {
         onSelect={handleThemeChange}
       />
 
-      <ReportIssueSheet
-        visible={showReportIssue}
-        onDismiss={() => setShowReportIssue(false)}
-      />
+      <ReportIssueSheet visible={showReportIssue} onDismiss={() => setShowReportIssue(false)} />
 
       <FeatureRequestSheet
         visible={showFeatureRequest}

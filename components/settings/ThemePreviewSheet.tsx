@@ -1,10 +1,6 @@
 import React, { useCallback } from 'react';
 import { StyleSheet, View, Text, Pressable } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { useTranslation } from 'react-i18next';
@@ -80,21 +76,43 @@ const ThemeCard = ({
         ]}
       >
         {/* Mini status bar line */}
-        <View style={[styles.previewLine, { backgroundColor: previewText, width: '40%', opacity: 0.3 }]} />
+        <View
+          style={[styles.previewLine, { backgroundColor: previewText, width: '40%', opacity: 0.3 }]}
+        />
         {/* Mini card */}
         <View style={[styles.previewCard, { backgroundColor: previewCard }]}>
           <View style={[styles.previewLine, { backgroundColor: previewAccent, width: '60%' }]} />
-          <View style={[styles.previewLine, { backgroundColor: previewText, width: '80%', opacity: 0.2, marginTop: 4 }]} />
-          <View style={[styles.previewLine, { backgroundColor: previewText, width: '50%', opacity: 0.15, marginTop: 3 }]} />
+          <View
+            style={[
+              styles.previewLine,
+              { backgroundColor: previewText, width: '80%', opacity: 0.2, marginTop: 4 },
+            ]}
+          />
+          <View
+            style={[
+              styles.previewLine,
+              { backgroundColor: previewText, width: '50%', opacity: 0.15, marginTop: 3 },
+            ]}
+          />
         </View>
         {/* Mini rows */}
         <View style={[styles.previewRow, { borderBottomColor: previewText }]}>
           <View style={[styles.previewDot, { backgroundColor: previewAccent }]} />
-          <View style={[styles.previewLine, { backgroundColor: previewText, width: '55%', opacity: 0.25 }]} />
+          <View
+            style={[
+              styles.previewLine,
+              { backgroundColor: previewText, width: '55%', opacity: 0.25 },
+            ]}
+          />
         </View>
         <View style={styles.previewRow}>
           <View style={[styles.previewDot, { backgroundColor: previewAccent, opacity: 0.5 }]} />
-          <View style={[styles.previewLine, { backgroundColor: previewText, width: '45%', opacity: 0.2 }]} />
+          <View
+            style={[
+              styles.previewLine,
+              { backgroundColor: previewText, width: '45%', opacity: 0.2 },
+            ]}
+          />
         </View>
 
         {/* Checkmark overlay */}
@@ -145,7 +163,7 @@ export const ThemePreviewSheet = ({
       onSelect(theme);
       onDismiss();
     },
-    [onSelect, onDismiss]
+    [onSelect, onDismiss],
   );
 
   // Light preview colors
@@ -168,8 +186,13 @@ export const ThemePreviewSheet = ({
   const systemPreview = effectiveScheme === 'dark' ? darkPreview : lightPreview;
 
   return (
-    <BottomSheet visible={visible} onDismiss={onDismiss} maxHeight="55%">
-      <Text style={[typography.title3, { color: colors.text, marginBottom: spacing.xl }]}>
+    // No explicit maxHeight — fall back to BottomSheet's 85% default
+    // so the sheet has room on small phones (SE/13 mini). The internal
+    // ScrollView absorbs any remaining overflow. Previously locked to
+    // 55% which clipped the third theme card on devices < 600pt tall.
+    // (User report 2026-05-19: "Doesn't fit on my screen".)
+    <BottomSheet visible={visible} onDismiss={onDismiss}>
+      <Text style={[typography.title3, { color: colors.text, marginBottom: spacing.md }]}>
         {t('settings.theme')}
       </Text>
       <View style={styles.cardsRow}>
@@ -205,18 +228,21 @@ export const ThemePreviewSheet = ({
 const styles = StyleSheet.create({
   cardsRow: {
     flexDirection: 'row',
-    gap: spacing.md,
-    marginBottom: spacing.lg,
+    gap: spacing.sm,
+    marginBottom: spacing.md,
   },
   themeCard: {
     flex: 1,
     alignItems: 'center',
   },
+  // aspectRatio 0.85 (was 0.65): cards are now closer to square so the
+  // 3-up row fits on iPhone SE (568pt) without clipping. The mini-
+  // preview still reads as a phone-shape mockup, just shorter.
   preview: {
     width: '100%',
-    aspectRatio: 0.65,
+    aspectRatio: 0.85,
     borderRadius: borderRadius.sm,
-    padding: spacing.sm,
+    padding: spacing.xs,
     justifyContent: 'flex-start',
     overflow: 'hidden',
   },

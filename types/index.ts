@@ -116,9 +116,9 @@ export const PRAYER_LABELS: Record<PrayerName, { en: string; ar: string }> = {
   fajr: { en: 'Fajr', ar: 'الفجر' },
   sunrise: { en: 'Sunrise', ar: 'الشروق' },
   dhuhr: { en: 'Dhuhr', ar: 'الظهر' },
-  asr: { en: 'Asr', ar: 'العصر' },
+  asr: { en: 'ʿAsr', ar: 'العصر' },
   maghrib: { en: 'Maghrib', ar: 'المغرب' },
-  isha: { en: 'Isha', ar: 'العشاء' },
+  isha: { en: 'ʿIshā', ar: 'العشاء' },
 };
 
 export const CALCULATION_METHODS: Record<string, { label: string; code: number }> = {
@@ -165,11 +165,11 @@ export interface EventCreatePayload {
 }
 
 export const EVENT_CATEGORY_COLORS: Record<EventCategory, string> = {
-  lesson: '#0F2D52',     // sapphire — primary brand
-  lecture: '#1A3F6B',    // sapphire-600 — interactive
+  lesson: '#0F2D52', // sapphire — primary brand
+  lecture: '#1A3F6B', // sapphire-600 — interactive
   quran_school: '#2D6A4F', // sage — Quran study (was gold, reserved for prayer)
-  youth: '#6A5ACD',     // violet — youthful energy
-  sisters: '#B91C1C',   // crimson
+  youth: '#6A5ACD', // violet — youthful energy
+  sisters: '#B91C1C', // crimson
   community: '#64748B', // slate — neutral
 };
 
@@ -206,10 +206,10 @@ export interface RecordedLesson {
 
 /** Dark mode variants — lighter shades for visibility on dark surfaces */
 export const EVENT_CATEGORY_COLORS_DARK: Record<EventCategory, string> = {
-  lesson: '#6BABE5',     // sapphire-400
-  lecture: '#8CC0ED',    // lighter sapphire
+  lesson: '#6BABE5', // sapphire-400
+  lecture: '#8CC0ED', // lighter sapphire
   quran_school: '#6BCB9B', // sage-400
-  youth: '#9B8FE8',     // lighter violet
-  sisters: '#F87171',   // crimson-400
+  youth: '#9B8FE8', // lighter violet
+  sisters: '#F87171', // crimson-400
   community: '#94A3B8', // slate-400
 };

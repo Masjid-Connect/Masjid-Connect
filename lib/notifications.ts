@@ -153,7 +153,7 @@ export async function schedulePrayerReminders(
           await Notifications.scheduleNotificationAsync({
             content: {
               title: `${PRAYER_LABELS[prayer].en} — ${PRAYER_LABELS[prayer].ar}`,
-              body: `Jama'ah in ${reminderMinutes} minutes`,
+              body: `Jamāʿah in ${reminderMinutes} minutes`,
               sound: 'default',
               // timeSensitive lets the reminder break through Focus (incl.
               // Sleep Focus at Fajr). The user opted in by setting a non-
@@ -244,14 +244,14 @@ export async function cancelPrayerReminders(): Promise<void> {
 
 /** Listen for notifications received while app is foregrounded */
 export function addNotificationReceivedListener(
-  callback: (notification: Notifications.Notification) => void
+  callback: (notification: Notifications.Notification) => void,
 ) {
   return Notifications.addNotificationReceivedListener(callback);
 }
 
 /** Listen for notification interactions (user tapped a notification) */
 export function addNotificationResponseListener(
-  callback: (response: Notifications.NotificationResponse) => void
+  callback: (response: Notifications.NotificationResponse) => void,
 ) {
   return Notifications.addNotificationResponseReceivedListener(callback);
 }

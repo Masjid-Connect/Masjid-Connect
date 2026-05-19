@@ -28,7 +28,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { getColors, getAlpha, palette } from '@/constants/Colors';
 import { useTheme } from '@/contexts/ThemeContext';
-import { spacing, typography, borderRadius, getElevation, springs, fontWeight, hairline } from '@/constants/Theme';
+import {
+  spacing,
+  typography,
+  borderRadius,
+  getElevation,
+  springs,
+  fontWeight,
+  hairline,
+} from '@/constants/Theme';
 import { layout, patterns } from '@/lib/layoutGrid';
 import { PrayerSkeleton } from '@/components/ui/PrayerSkeleton';
 import { usePrayerTimes } from '@/hooks/usePrayerTimes';
@@ -68,7 +76,7 @@ import type { PrayerName } from '@/types';
 // card looks massive'. 40 keeps a soft fade between sky and content
 // without a visual gulf.
 const HERO_PADDING_BOTTOM = 40;
-const ROW_PADDING_V = spacing.lg;             // 16 (~52px row height)
+const ROW_PADDING_V = spacing.lg; // 16 (~52px row height)
 
 export default function PrayerTimesScreen() {
   const insets = useSafeAreaInsets();
@@ -81,13 +89,29 @@ export default function PrayerTimesScreen() {
   const alphaColors = getAlpha(effectiveScheme);
   const reducedMotion = useReducedMotion();
   const {
-    prayers, nextPrayer, countdown, windowProgress, hijriDate,
-    isLoading, error: prayerError, jamaahAvailable, isEstimated, use24h, refresh,
-    selectedDate, isToday, goToNextDay, goToPrevDay, goToToday,
+    prayers,
+    nextPrayer,
+    countdown,
+    windowProgress,
+    hijriDate,
+    isLoading,
+    error: prayerError,
+    jamaahAvailable,
+    isEstimated,
+    use24h,
+    refresh,
+    selectedDate,
+    isToday,
+    goToNextDay,
+    goToPrevDay,
+    goToToday,
   } = usePrayerTimes();
 
   const [refreshing, setRefreshing] = React.useState(false);
-  const [heroLayout, setHeroLayout] = useState<{ width: number; height: number }>({ width: screenWidth, height: layout.heroHeight });
+  const [heroLayout, setHeroLayout] = useState<{ width: number; height: number }>({
+    width: screenWidth,
+    height: layout.heroHeight,
+  });
 
   // ─── Prayer transition animations ───────────────────────────────
   // Scale pulse on countdown + gold overlay flash when active prayer changes
@@ -96,11 +120,7 @@ export default function PrayerTimesScreen() {
   const goldPulseOpacity = useSharedValue(0);
 
   useEffect(() => {
-    if (
-      nextPrayer &&
-      prevNextPrayer.current !== null &&
-      prevNextPrayer.current !== nextPrayer
-    ) {
+    if (nextPrayer && prevNextPrayer.current !== null && prevNextPrayer.current !== nextPrayer) {
       // Sacred moment: prayer has transitioned
       if (!reducedMotion) {
         // Countdown scale pulse: 1 → 1.08 → 1 (spring)
@@ -151,7 +171,7 @@ export default function PrayerTimesScreen() {
       onPanResponderRelease: () => {
         swipeHandled.current = false;
       },
-    })
+    }),
   ).current;
 
   const handleRefresh = async () => {
@@ -163,7 +183,13 @@ export default function PrayerTimesScreen() {
   const handleSharePrayerTimes = async () => {
     if (prayers.length === 0) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const dateLabel = isToday ? t('prayer.today') : selectedDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+    const dateLabel = isToday
+      ? t('prayer.today')
+      : selectedDate.toLocaleDateString('en-GB', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+        });
     const lines = prayers
       .map((p) => `${p.label.padEnd(10)} ${formatPrayerTime(p.time, use24h)}`)
       .join('\n');
@@ -185,12 +211,33 @@ export default function PrayerTimesScreen() {
   // ─── Error state — both prayer time sources failed (R2) ────────
   if (prayerError && prayers.length === 0) {
     return (
-      <View style={[styles.root, styles.loading, { backgroundColor: colors.background, paddingTop: insets.top }]}>
+      <View
+        style={[
+          styles.root,
+          styles.loading,
+          { backgroundColor: colors.background, paddingTop: insets.top },
+        ]}
+      >
         <Ionicons name="cloud-offline-outline" size={48} color={colors.textTertiary} />
-        <Text style={[typography.title3, { color: colors.text, marginTop: spacing.lg, textAlign: 'center' }]}>
+        <Text
+          style={[
+            typography.title3,
+            { color: colors.text, marginTop: spacing.lg, textAlign: 'center' },
+          ]}
+        >
           {t('error.prayerTimesUnavailable')}
         </Text>
-        <Text style={[typography.body, { color: colors.textSecondary, marginTop: spacing.sm, textAlign: 'center', paddingHorizontal: spacing['3xl'] }]}>
+        <Text
+          style={[
+            typography.body,
+            {
+              color: colors.textSecondary,
+              marginTop: spacing.sm,
+              textAlign: 'center',
+              paddingHorizontal: spacing['3xl'],
+            },
+          ]}
+        >
           {t('error.prayerTimesRetry')}
         </Text>
         <Pressable
@@ -215,9 +262,16 @@ export default function PrayerTimesScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       <ScrollView
         style={{ backgroundColor: colors.background }}
-        contentContainerStyle={{ paddingBottom: spacing['5xl'], backgroundColor: colors.background }}
+        contentContainerStyle={{
+          paddingBottom: spacing['5xl'],
+          backgroundColor: colors.background,
+        }}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.accent}
+          />
         }
         showsVerticalScrollIndicator={false}
       >
@@ -225,7 +279,10 @@ export default function PrayerTimesScreen() {
         <View
           style={[
             styles.hero,
-            { paddingTop: insets.top + (isLandscape ? spacing.lg : spacing['3xl']), minHeight: isLandscape ? 160 : Math.max(320, screenHeight * 0.50) },
+            {
+              paddingTop: insets.top + (isLandscape ? spacing.lg : spacing['3xl']),
+              minHeight: isLandscape ? 160 : Math.max(320, screenHeight * 0.5),
+            },
             isLandscape && styles.heroLandscape,
           ]}
           onLayout={(e) => {
@@ -271,7 +328,11 @@ export default function PrayerTimesScreen() {
             entering={FadeIn.duration(600)}
             style={styles.heroContent}
             accessibilityRole="header"
-            accessibilityLabel={nextPrayerData ? `${t('prayer.nextPrayer')}: ${t(`prayer.${nextPrayerData.name}`)}, ${countdown || ''}` : undefined}
+            accessibilityLabel={
+              nextPrayerData
+                ? `${t('prayer.nextPrayer')}: ${t(`prayer.${nextPrayerData.name}`)}, ${countdown || ''}`
+                : undefined
+            }
           >
             {/* Centered stack — prayer name + countdown + time, all
                 centered. Both name and countdown render in Sora (the
@@ -280,30 +341,49 @@ export default function PrayerTimesScreen() {
             {nextPrayerData && (
               <>
                 {/* Prayer name — display face */}
-                <Text style={[styles.prayerName, { color: colors.text }]} accessibilityRole="header">
+                <Text
+                  style={[styles.prayerName, { color: colors.text }]}
+                  accessibilityRole="header"
+                >
                   {t(`prayer.${nextPrayerData.name}`)}
                 </Text>
+
+                {/* "enters in" caption — disambiguates the big number
+                    below as a duration, not a time. (User report
+                    2026-05-19: countdown looked like a clock time.) */}
+                {countdown ? (
+                  <Text style={[styles.prayerCountdownCaption, { color: colors.textSecondary }]}>
+                    {t('prayer.heroEntersIn', { prayer: t(`prayer.${nextPrayerData.name}`) })}
+                  </Text>
+                ) : null}
 
                 {/* Countdown — large display number, Sora Medium */}
                 {countdown ? (
                   <Animated.View style={countdownAnimatedStyle}>
-                    <Text style={[
-                      styles.countdown,
-                      { color: colors.text },
-                      // Landscape: scale the hero countdown down to fit
-                      // the reduced vertical space. Portrait bump to 72pt
-                      // would overflow landscape on most phones.
-                      isLandscape && { fontSize: 48, lineHeight: 54 },
-                    ]}>
+                    <Text
+                      style={[
+                        styles.countdown,
+                        { color: colors.text },
+                        // Landscape: scale the hero countdown down to fit
+                        // the reduced vertical space. Portrait bump to 72pt
+                        // would overflow landscape on most phones.
+                        isLandscape && { fontSize: 48, lineHeight: 54 },
+                      ]}
+                    >
                       {countdown}
                     </Text>
                   </Animated.View>
                 ) : null}
 
                 {/* Prayer time — gold accent */}
-                <Text style={[styles.prayerTime, {
-                  color: colors.accentText,
-                }]}>
+                <Text
+                  style={[
+                    styles.prayerTime,
+                    {
+                      color: colors.accentText,
+                    },
+                  ]}
+                >
                   {formatPrayerTime(nextPrayerData.time, use24h)}
                 </Text>
               </>
@@ -313,10 +393,7 @@ export default function PrayerTimesScreen() {
 
         {/* ── Gradient fade: hero → content ──────────────────────── */}
         <LinearGradient
-          colors={[
-            gradient[gradient.length - 1] || colors.background,
-            colors.background,
-          ]}
+          colors={[gradient[gradient.length - 1] || colors.background, colors.background]}
           style={[styles.heroFade, isLandscape && { height: spacing.xl }]}
         />
 
@@ -325,101 +402,101 @@ export default function PrayerTimesScreen() {
             timetable card centre to a readable column on iPad so the
             row doesn't stretch with a 600px empty middle. */}
         <View style={screenWidth >= layout.tabletBreakpoint ? styles.tabletContent : undefined}>
+          {/* ── Date Navigator ─────────────────────────────────────── */}
+          <DateNavigator
+            selectedDate={selectedDate}
+            isTodayDate={isToday}
+            hijriDate={hijriDate}
+            onPrev={goToPrevDay}
+            onNext={goToNextDay}
+            onToday={goToToday}
+          />
 
-        {/* ── Date Navigator ─────────────────────────────────────── */}
-        <DateNavigator
-          selectedDate={selectedDate}
-          isTodayDate={isToday}
-          hijriDate={hijriDate}
-          onPrev={goToPrevDay}
-          onNext={goToNextDay}
-          onToday={goToToday}
-        />
-
-        {/* ── Timetable Card ────────────────────────────────────── */}
-        <View
-          style={[
-            styles.timetableCard,
-            {
-              backgroundColor: colors.card,
-              ...getElevation('md', isDark),
-            },
-          ]}
-          {...panResponder.panHandlers}
-        >
-          <View style={styles.timetableHeader}>
-            <View style={{ flex: 1 }}>
-              {(isEstimated || !jamaahAvailable) && (
-                <Text style={[
-                  typography.caption2,
-                  { color: isEstimated ? colors.info : colors.textTertiary },
-                ]}>
-                  {isEstimated
-                    ? t('prayer.estimatedTimes')
-                    : t('prayer.calculatedTimes')}
-                </Text>
-              )}
+          {/* ── Timetable Card ────────────────────────────────────── */}
+          <View
+            style={[
+              styles.timetableCard,
+              {
+                backgroundColor: colors.card,
+                ...getElevation('md', isDark),
+              },
+            ]}
+            {...panResponder.panHandlers}
+          >
+            <View style={styles.timetableHeader}>
+              <View style={{ flex: 1 }}>
+                {(isEstimated || !jamaahAvailable) && (
+                  <Text
+                    style={[
+                      typography.caption2,
+                      { color: isEstimated ? colors.info : colors.textTertiary },
+                    ]}
+                  >
+                    {isEstimated ? t('prayer.estimatedTimes') : t('prayer.calculatedTimes')}
+                  </Text>
+                )}
+              </View>
+              <Pressable
+                onPress={handleSharePrayerTimes}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.share')}
+                hitSlop={8}
+              >
+                <Ionicons name="share-outline" size={20} color={colors.textSecondary} />
+              </Pressable>
             </View>
-            <Pressable
-              onPress={handleSharePrayerTimes}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.share')}
-              hitSlop={8}
-            >
-              <Ionicons name="share-outline" size={20} color={colors.textSecondary} />
-            </Pressable>
-          </View>
 
-          {/* Column headers. Begins time stacks beneath the jamā'ah
+            {/* Column headers. Begins time stacks beneath the jamā'ah
               time in each row (narrow-device layouts couldn't fit two
               columns without the jamā'ah time wrapping), so the header
               shows just PRAYER | JAMĀ'AH. The sub-line in the row is
               self-labelled ("Begins 4:28 AM"). */}
-          <View style={styles.columnHeaderRow}>
-            <View style={styles.dotCol} />
-            <Text style={[typography.sectionHeader, { color: colors.textTertiary, flex: 1 }]}>
-              {t('prayer.prayerLabel')}
-            </Text>
-            <Text
-              style={[
-                typography.sectionHeader,
-                { color: colors.textTertiary, textAlign: 'right' },
-                styles.timeCol,
-              ]}
-            >
-              {t('prayer.jamaatColumn')}
-            </Text>
-          </View>
-
-          {prayers.map((prayer, index) => {
-            const isNext = prayer.name === nextPrayer;
-            const isPassed = !isNext && prayer.time < new Date();
-
-            return (
-              <View
-                key={prayer.name}
-                // No entering animation on rows — Reanimated's FadeIn
-                // replays on parent re-renders on Android (data-refresh
-                // from the two-phase static→API load + the 30s countdown
-                // interval), flashing rows to opacity 0 for ~220ms. User
-                // saw this as "blank rows sometimes". Skeleton → data
-                // handoff is already the soft reveal.
-                // collapsable={false} prevents Android view-flattening,
-                // which with the active-row overflow:hidden + border-
-                // radius combo could blank the child Text entirely
-                // (2026-04-21 Dhuhr-row report).
-                collapsable={false}
-                accessibilityLabel={`${t(`prayer.${prayer.name}`)}, ${formatPrayerTime(prayer.time, use24h)}${prayer.startTime && prayer.startTime.getTime() !== prayer.time.getTime() ? `, ${t('prayer.beginsColumn').toLowerCase()} ${formatPrayerTime(prayer.startTime, use24h)}` : ''}${isNext ? `, ${t('prayer.nextPrayer')}` : ''}`}
+            <View style={styles.columnHeaderRow}>
+              <View style={styles.dotCol} />
+              <Text style={[typography.sectionHeader, { color: colors.textTertiary, flex: 1 }]}>
+                {t('prayer.prayerLabel')}
+              </Text>
+              <Text
                 style={[
-                  styles.row,
-                  index < prayers.length - 1 && !isNext && {
-                    borderBottomWidth: hairline,
-                    borderBottomColor: colors.separator,
-                  },
-                  isNext && styles.activeRowLayout,
+                  typography.sectionHeader,
+                  { color: colors.textTertiary, textAlign: 'right' },
+                  styles.timeCol,
                 ]}
               >
-                {/* Active-row background layer.
+                {t('prayer.jamaatColumn')}
+              </Text>
+            </View>
+
+            {prayers.map((prayer, index) => {
+              const isNext = prayer.name === nextPrayer;
+              const isPassed = !isNext && prayer.time < new Date();
+
+              return (
+                <View
+                  key={prayer.name}
+                  // No entering animation on rows — Reanimated's FadeIn
+                  // replays on parent re-renders on Android (data-refresh
+                  // from the two-phase static→API load + the 30s countdown
+                  // interval), flashing rows to opacity 0 for ~220ms. User
+                  // saw this as "blank rows sometimes". Skeleton → data
+                  // handoff is already the soft reveal.
+                  // collapsable={false} prevents Android view-flattening,
+                  // which with the active-row overflow:hidden + border-
+                  // radius combo could blank the child Text entirely
+                  // (2026-04-21 Dhuhr-row report).
+                  collapsable={false}
+                  accessibilityLabel={`${t(`prayer.${prayer.name}`)}, ${formatPrayerTime(prayer.time, use24h)}${prayer.startTime && prayer.startTime.getTime() !== prayer.time.getTime() ? `, ${t('prayer.entersColumn').toLowerCase()} ${formatPrayerTime(prayer.startTime, use24h)}` : ''}${isNext ? `, ${t('prayer.nextPrayer')}` : ''}`}
+                  style={[
+                    styles.row,
+                    index < prayers.length - 1 &&
+                      !isNext && {
+                        borderBottomWidth: hairline,
+                        borderBottomColor: colors.separator,
+                      },
+                    isNext && styles.activeRowLayout,
+                  ]}
+                >
+                  {/* Active-row background layer.
                     Owns borderRadius + overflow:hidden + the progress
                     bar, so the text-bearing row View doesn't sit under
                     an overflow-clipping ancestor. Android intermittently
@@ -430,69 +507,69 @@ export default function PrayerTimesScreen() {
                     addressed view-flattening + iOS-only props but left
                     the combo on the text-bearing View; this isolates
                     it. */}
-                {isNext && (
-                  <View
-                    pointerEvents="none"
+                  {isNext && (
+                    <View
+                      pointerEvents="none"
+                      style={[
+                        styles.activeRowBg,
+                        { backgroundColor: alphaColors.prayerActiveRowBg },
+                      ]}
+                    >
+                      {isToday && (
+                        <View style={styles.progressBarContainer}>
+                          <View
+                            style={[
+                              styles.progressBarFill,
+                              {
+                                width: `${Math.round(windowProgress * 100)}%`,
+                                backgroundColor: alphaColors.prayerProgressFill,
+                              } as ViewStyle,
+                            ]}
+                          />
+                        </View>
+                      )}
+                    </View>
+                  )}
+
+                  {/* Gold accent bar for active prayer */}
+                  {isNext && (
+                    <View
+                      style={[
+                        styles.activeAccentBar,
+                        { backgroundColor: isDark ? palette.divineGoldBright : palette.divineGold },
+                      ]}
+                    />
+                  )}
+
+                  {/* Status indicator: glow dot (active), checkmark (passed), or empty */}
+                  <View style={styles.dotCol}>
+                    {isNext ? (
+                      <GlowDot
+                        color={colors.prayerActive}
+                        size={3}
+                        blurRadius={4}
+                        animated={true}
+                      />
+                    ) : isPassed ? (
+                      <Ionicons name="checkmark" size={14} color={colors.textTertiary} />
+                    ) : null}
+                  </View>
+
+                  {/* Name — i18n-aware */}
+                  <Text
                     style={[
-                      styles.activeRowBg,
-                      { backgroundColor: alphaColors.prayerActiveRowBg },
+                      isNext ? typography.headline : typography.body,
+                      {
+                        color: isPassed ? colors.textTertiary : colors.text,
+                        flex: 1,
+                        opacity: isPassed ? 0.5 : 1,
+                      },
                     ]}
                   >
-                    {isToday && (
-                      <View style={styles.progressBarContainer}>
-                        <View
-                          style={[
-                            styles.progressBarFill,
-                            {
-                              width: `${Math.round(windowProgress * 100)}%`,
-                              backgroundColor: alphaColors.prayerProgressFill,
-                            } as ViewStyle,
-                          ]}
-                        />
-                      </View>
-                    )}
-                  </View>
-                )}
+                    {t(`prayer.${prayer.name}`)}
+                  </Text>
 
-                {/* Gold accent bar for active prayer */}
-                {isNext && (
-                  <View style={[
-                    styles.activeAccentBar,
-                    { backgroundColor: isDark ? palette.divineGoldBright : palette.divineGold },
-                  ]} />
-                )}
-
-                {/* Status indicator: glow dot (active), checkmark (passed), or empty */}
-                <View style={styles.dotCol}>
-                  {isNext ? (
-                    <GlowDot
-                      color={colors.prayerActive}
-                      size={3}
-                      blurRadius={4}
-                      animated={true}
-                    />
-                  ) : isPassed ? (
-                    <Ionicons
-                      name="checkmark"
-                      size={14}
-                      color={colors.textTertiary}
-                    />
-                  ) : null}
-                </View>
-
-                {/* Name — i18n-aware */}
-                <Text style={[
-                  isNext ? typography.headline : typography.body,
-                  {
-                    color: isPassed ? colors.textTertiary : colors.text,
-                    flex: 1,
-                    opacity: isPassed ? 0.5 : 1,
-                  },
-                ]}>
-                  {t(`prayer.${prayer.name}`)}
-                </Text>
-
-                {/* Time column — jamā'ah primary, begins stacked
+                  {/* Time column — jamā'ah primary, begins stacked
                     beneath as a self-labelled caption. Width 144 is
                     wide enough for "10:15 PM" + "Begins 10:15 PM" up
                     to ~1.3x system font scaling without needing auto-
@@ -500,46 +577,51 @@ export default function PrayerTimesScreen() {
                     minimumFontScale (iOS-only) — those blanked the
                     active-row Text on Android (2026-04-21 report);
                     removed, relying on width + numberOfLines alone. */}
-                <View style={styles.timeCol}>
-                  <Text
-                    numberOfLines={1}
-                    allowFontScaling
-                    style={[
-                      typography.prayerTime,
-                      {
-                        color: isNext ? colors.prayerActive : isPassed ? colors.textTertiary : colors.text,
-                        fontVariant: ['tabular-nums'],
-                        textAlign: 'right',
-                        opacity: isPassed ? 0.5 : 1,
-                      },
-                    ]}>
-                    {formatPrayerTime(prayer.time, use24h)}
-                  </Text>
-                  {prayer.startTime && prayer.startTime.getTime() !== prayer.time.getTime() ? (
+                  <View style={styles.timeCol}>
                     <Text
                       numberOfLines={1}
                       allowFontScaling
                       style={[
-                        typography.caption2,
+                        typography.prayerTime,
                         {
-                          color: colors.textTertiary,
+                          color: isNext
+                            ? colors.prayerActive
+                            : isPassed
+                              ? colors.textTertiary
+                              : colors.text,
                           fontVariant: ['tabular-nums'],
                           textAlign: 'right',
-                          marginTop: 2,
-                          opacity: isPassed ? 0.4 : 0.75,
+                          opacity: isPassed ? 0.5 : 1,
                         },
-                      ]}>
-                      {t('prayer.beginsColumn')} {formatPrayerTime(prayer.startTime, use24h)}
+                      ]}
+                    >
+                      {formatPrayerTime(prayer.time, use24h)}
                     </Text>
-                  ) : null}
+                    {prayer.startTime && prayer.startTime.getTime() !== prayer.time.getTime() ? (
+                      <Text
+                        numberOfLines={1}
+                        allowFontScaling
+                        style={[
+                          typography.caption2,
+                          {
+                            color: colors.textTertiary,
+                            fontVariant: ['tabular-nums'],
+                            textAlign: 'right',
+                            marginTop: 2,
+                            opacity: isPassed ? 0.4 : 0.75,
+                          },
+                        ]}
+                      >
+                        {t('prayer.entersColumn')} {formatPrayerTime(prayer.startTime, use24h)}
+                      </Text>
+                    ) : null}
+                  </View>
                 </View>
+              );
+            })}
+          </View>
 
-              </View>
-            );
-          })}
-        </View>
-
-        {/* Close tablet-constrained wrapper */}
+          {/* Close tablet-constrained wrapper */}
         </View>
       </ScrollView>
     </View>
@@ -590,10 +672,17 @@ const styles = StyleSheet.create({
     ...typography.prayerName,
     textAlign: 'center',
   },
+  prayerCountdownCaption: {
+    ...typography.footnote,
+    textAlign: 'center',
+    marginTop: spacing.xs, // 4
+    opacity: 0.85,
+    letterSpacing: 0.3,
+  },
   countdown: {
     ...typography.prayerCountdown,
     fontVariant: ['tabular-nums'],
-    marginTop: spacing.xs, // 4
+    marginTop: spacing['2xs'], // tighter — caption already adds breathing room above
     textAlign: 'center',
   },
   prayerTime: {
@@ -612,10 +701,10 @@ const styles = StyleSheet.create({
   // Timetable card — elevated surface with depth
   timetableCard: {
     marginHorizontal: spacing.lg, // 16
-    marginTop: spacing.lg,        // 16
+    marginTop: spacing.lg, // 16
     borderRadius: borderRadius.lg, // 20
-    paddingTop: spacing.lg,        // 16
-    paddingBottom: spacing.sm,     // 8
+    paddingTop: spacing.lg, // 16
+    paddingBottom: spacing.sm, // 8
     overflow: 'hidden',
   },
   timetableHeader: {
@@ -623,7 +712,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: spacing.xl, // 20
-    marginBottom: spacing.sm,      // 8
+    marginBottom: spacing.sm, // 8
   },
   row: {
     flexDirection: 'row',
@@ -632,7 +721,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl, // 20
   },
   activeRowLayout: {
-    marginHorizontal: spacing.sm,  // 8
+    marginHorizontal: spacing.sm, // 8
     paddingHorizontal: spacing.lg, // 16
   },
   activeRowBg: {
@@ -643,8 +732,8 @@ const styles = StyleSheet.create({
   activeAccentBar: {
     position: 'absolute',
     left: 0,
-    top: spacing.sm,    // 8
-    bottom: spacing.sm,  // 8
+    top: spacing.sm, // 8
+    bottom: spacing.sm, // 8
     width: 3,
     borderRadius: borderRadius['2xs'],
   },
@@ -653,7 +742,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timeCol: {
-    width: 144,            // wide enough for "10:15 PM" + "Begins 10:15 PM" at ~1.3x font scaling; no auto-shrink needed
+    width: 144, // wide enough for "10:15 PM" + "Begins 10:15 PM" at ~1.3x font scaling; no auto-shrink needed
     alignItems: 'flex-end',
   },
   columnHeaderRow: {
