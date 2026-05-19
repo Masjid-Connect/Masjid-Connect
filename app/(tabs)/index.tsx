@@ -330,7 +330,7 @@ export default function PrayerTimesScreen() {
             accessibilityRole="header"
             accessibilityLabel={
               nextPrayerData
-                ? `${t('prayer.nextPrayer')}: ${t(`prayer.${nextPrayerData.name}`)}, ${countdown || ''}`
+                ? `${t(`prayer.${nextPrayerData.name}`)}, ${t('prayer.heroJamaahIn')} ${countdown || ''}`.trim()
                 : undefined
             }
           >
@@ -348,12 +348,13 @@ export default function PrayerTimesScreen() {
                   {t(`prayer.${nextPrayerData.name}`)}
                 </Text>
 
-                {/* "enters in" caption — disambiguates the big number
-                    below as a duration, not a time. (User report
-                    2026-05-19: countdown looked like a clock time.) */}
+                {/* Caption: names what the countdown is to (the masjid
+                    jamāʿah, per usePrayerTimes.ts:314) and disambiguates
+                    the big number below as a duration, not a clock time.
+                    Prayer name above already establishes which prayer. */}
                 {countdown ? (
                   <Text style={[styles.prayerCountdownCaption, { color: colors.textSecondary }]}>
-                    {t('prayer.heroEntersIn', { prayer: t(`prayer.${nextPrayerData.name}`) })}
+                    {t('prayer.heroJamaahIn')}
                   </Text>
                 ) : null}
 

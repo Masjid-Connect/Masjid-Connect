@@ -33,7 +33,7 @@
     "prayerLabel": "Prayer",
     "entersColumn": "Enters",
     "jamaatColumn": "Jamāʿah",
-    "heroEntersIn": "{{prayer}} enters in",
+    "heroJamaahIn": "Jamāʿah in",
     "previousDay": "Previous day",
     "nextDay": "Next day",
     "jumpToToday": "Jump to today"
